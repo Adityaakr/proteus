@@ -32,7 +32,7 @@ export default function ApiDocs() {
         <article className={s.doc}>
           <header className={s.head}>
             <span className={s.label}>API reference</span>
-            <h1 className={s.title}>Using a PROTEUS deal</h1>
+            <h1 className={s.title}>Using a Proteus AI deal</h1>
             <p className={s.lede}>A funded deal gives you an endpoint and an API key. Every call is metered against the prepaid balance held in escrow. The seller is paid only for delivered units you countersign, and whatever is left comes back to you after the term.</p>
             <ol className={s.flow} aria-label="Deal lifecycle">
               {[
@@ -120,7 +120,7 @@ const r = await res.json();`}</Code>
 
           <section id="seller" className={s.section}>
             <h2 className={s.h2}><span className={s.num}>06</span>For sellers: your endpoint</h2>
-            <p>Your product runs on your own HTTPS endpoint. For every metered request PROTEUS sends the buyer's fields as <code>input</code>, exactly as you defined them under "What buyers send", files as base64 envelopes:</p>
+            <p>Your product runs on your own HTTPS endpoint. For every metered request Proteus AI sends the buyer's fields as <code>input</code>, exactly as you defined them under "What buyers send", files as base64 envelopes:</p>
             <Code lang="http">{`POST https://api.yourcompany.com/proteus
 Authorization: Bearer <your secret>
 X-Proteus-Request-Id: order-10421

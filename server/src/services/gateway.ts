@@ -103,7 +103,7 @@ export interface UpstreamConfig {
 }
 
 /**
- * Seller-owned adapter: PROTEUS forwards each metered request to the seller's own HTTPS endpoint and
+ * Seller-owned adapter: Proteus AI forwards each metered request to the seller's own HTTPS endpoint and
  * bills exactly what the endpoint reports. Contract (documented in docs/api.md, "Bring your own endpoint"):
  *   POST <url>  JSON { requestId, dealId?, orgId, productSlug, input }
  *   2xx JSON { answer: string, billable?: boolean, status?: "delivered"|"failed"|"handoff" }

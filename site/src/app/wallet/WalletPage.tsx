@@ -15,7 +15,7 @@ import { DepositDialog } from "./DepositDialog";
 import { Qr } from "./QrCode";
 import w from "./wallet.module.css";
 
-export const CUSTODY_NOTE = "Embedded wallet. Your key is split between a hardware enclave and your login. You can export it from the account menu. PROTEUS never holds your key.";
+export const CUSTODY_NOTE = "Embedded wallet. Your key is split between a hardware enclave and your login. You can export it from the account menu. Proteus AI never holds your key.";
 export default function WalletPage() {
   const { wallet } = useAuth();
   const [deposit, setDeposit] = useState(false);
@@ -83,7 +83,7 @@ export default function WalletPage() {
               </div>
             </Card>
             <Card title="Custody" variant="muted" padding="compact">
-              <p className="body2">{wallet.type === "external" ? "External wallet. You signed in with a wallet you control; PROTEUS never holds your key." : CUSTODY_NOTE}</p>
+              <p className="body2">{wallet.type === "external" ? "External wallet. You signed in with a wallet you control; Proteus AI never holds your key." : CUSTODY_NOTE}</p>
             </Card>
           </div>
         </div>

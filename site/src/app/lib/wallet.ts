@@ -59,7 +59,7 @@ export function walletErrorMessage(e: unknown): string {
   const name = (err as { name?: string })?.name ?? "";
   if (name === "HttpRequestError" || name === "TimeoutError" || /HTTP request failed|request timed out|Failed to fetch/i.test(err?.message ?? "")) {
     const status = (err as { status?: number })?.status;
-    return `Arc testnet RPC did not answer${status ? ` (HTTP ${status})` : ""}. Check your connection and refresh; reads retry through the PROTEUS API automatically.`;
+    return `Arc testnet RPC did not answer${status ? ` (HTTP ${status})` : ""}. Check your connection and refresh; reads retry through the Proteus AI API automatically.`;
   }
   return err?.shortMessage ?? err?.message ?? "The wallet request failed.";
 }

@@ -78,7 +78,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
         <header className={d.head}>
           <div className={d.sellerRow}>
             {wide ? <SellerMark name={seller.name} brand={seller.brand} variant="wordmark" size="sm" /> : <><SellerMark name={seller.name} brand={seller.brand} size="sm" /><span className={d.sellerName}>{seller.name}</span></>}
-          {seller.brand?.verified && <span className={d.badgeOk} title="Verified by PROTEUS: identity and endpoint checked by the platform operator"><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
+          {seller.brand?.verified && <span className={d.badgeOk} title="Verified by Proteus AI: identity and endpoint checked by the platform operator"><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
           </div>
           <h1 className={d.title}>{product.name}</h1>
           {product.summary && <p className={d.summary}>{product.summary}</p>}
@@ -191,13 +191,13 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
                   <dt>Deals funded</dt><dd className="app-mono">{st.dealsFunded}</dd>
                   <dt>Settled to seller</dt><dd><Money micro={BigInt(st.settled)} digits={2} /></dd>
                   <dt>In escrow now</dt><dd><Money micro={BigInt(st.inEscrow)} digits={2} /></dd>
-                  <dt>On PROTEUS since</dt><dd>{fmtDate(st.since)}</dd>
+                  <dt>On Proteus AI since</dt><dd>{fmtDate(st.since)}</dd>
                 </>
               )}
             </dl>
             <p className={d.fine}>
               {demo
-                ? "An example seller, modeled on a real customer segment, with PROTEUS's own brand. Deals on it are real Arc testnet transactions; its service answers are illustrative and it never counts toward live totals."
+                ? "An example seller, modeled on a real customer segment, with Proteus AI's own brand. Deals on it are real Arc testnet transactions; its service answers are illustrative and it never counts toward live totals."
                 : "The owner signed in, published these terms and holds the payout wallet. The service answers from the seller's own endpoint."}
             </p>
           </div>

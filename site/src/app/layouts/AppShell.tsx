@@ -96,7 +96,7 @@ export function AppShell({ children, title, actions }: AppShellProps) {
   // Most specific match wins, so "/app" is not active under "/app/deals". Under /app/sell with an
   // org but no specific section (the sell overview), nothing in the Sell group is forced active.
   const active = all.filter((it) => matches(pathname, it)).sort((a, b) => b.to.length - a.to.length)[0];
-  const heading = title ?? active?.label ?? "PROTEUS";
+  const heading = title ?? active?.label ?? "Proteus AI";
   const tabs: AppNavItem[] = mode === "sell"
     ? [sell[0]!, ...(hasOrg ? [SELL_NAV_ORG[2]!, SELL_NAV_ORG[1]!] : []), BUY_NAV[4]!, { label: "Buy", short: "Buy", to: "/app", icon: ic(Store), end: true }]
     : [BUY_NAV[0]!, BUY_NAV[1]!, BUY_NAV[3]!, BUY_NAV[4]!, { label: "Sell", short: "Sell", to: "/app/sell", icon: ic(Briefcase) }];
@@ -105,7 +105,7 @@ export function AppShell({ children, title, actions }: AppShellProps) {
   return (
     <div data-app className={s.seller}>
       <a href="#app-main" className="app-skip-link">Skip to content</a>
-      <aside className={s.sidebar} aria-label="PROTEUS">
+      <aside className={s.sidebar} aria-label="Proteus AI">
         <div className={s.sideBrand}>
           <Wordmark to="/app" />
         </div>

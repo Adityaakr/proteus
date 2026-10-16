@@ -1,6 +1,6 @@
-# PROTEUS site
+# Proteus AI site
 
-Local rebuild of the PROTEUS marketing page (originally designed in Framer, remix of the
+Local rebuild of the Proteus AI marketing page (originally designed in Framer, remix of the
 Fantom AI template). Vite + React 19 + TypeScript + framer-motion + Lenis.
 
 ```bash

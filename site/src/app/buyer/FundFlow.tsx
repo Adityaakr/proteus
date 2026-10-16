@@ -241,7 +241,7 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
       {!done && relayerAvailable && steps.fund !== "completed" && (
         <label className={f.check}>
           <input type="checkbox" checked={useRelayer} onChange={(e) => setUseRelayer(e.target.checked)} disabled={phase !== "pending"} />
-          <span>Let PROTEUS submit the funding transaction. You still approve the USDC yourself.</span>
+          <span>Let Proteus AI submit the funding transaction. You still approve the USDC yourself.</span>
         </label>
       )}
       {err && <Notice tone="danger">{err}</Notice>}

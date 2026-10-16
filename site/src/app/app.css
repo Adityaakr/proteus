@@ -1,4 +1,4 @@
-/* Global rules for the PROTEUS app routes. Everything lives under [data-app] so the marketing page is untouched. */
+/* Global rules for the Proteus AI app routes. Everything lives under [data-app] so the marketing page is untouched. */
 [data-app] {
   min-height: 100dvh;
   background: var(--c-page);

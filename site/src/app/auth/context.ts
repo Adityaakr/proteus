@@ -23,7 +23,7 @@ export interface AuthValue {
   login: () => void;
   logout: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
-  /** The PROTEUS account wallet: the embedded wallet, or the external wallet the person signed in with. */
+  /** The Proteus AI account wallet: the embedded wallet, or the external wallet the person signed in with. */
   wallet: AuthWallet | null;
   /** GET /api/me. Undefined while loading, or when the server does not know the token yet (401). */
   me: MeResponse | undefined;

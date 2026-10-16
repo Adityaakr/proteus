@@ -1,4 +1,4 @@
-# PROTEUS API (v0)
+# Proteus AI API (v0)
 
 Base path `/api`. JSON in and out. Money crosses the wire as **strings of integer micro-USDC** (`"1440000000"` = $1,440) unless a field name ends in `Usd`, in which case it is a decimal string for display. Units are integer strings. Addresses and hashes are hex strings.
 
@@ -203,7 +203,7 @@ Same-origin JSON-RPC relay to Arc testnet for the browser. The web app reads bal
 
 A seller can back a product with its own HTTPS endpoint instead of the first-party sample store. Set `adapter: "http"` and `upstream: { url, authHeader?, secret? }` when publishing (`POST /api/app/products`). The URL must be `https://` (loopback `http://` is allowed for local development); the secret is AES-256-GCM encrypted at rest and never returned by the API.
 
-For every metered request (prepaid deal or pay-per-call) PROTEUS sends:
+For every metered request (prepaid deal or pay-per-call) Proteus AI sends:
 
 ```
 POST <url>

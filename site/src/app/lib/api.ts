@@ -122,7 +122,7 @@ async function request<R>(method: Method, path: string, opts: RequestOpts = {}):
     });
   } catch (e) {
     if ((e as Error).name === "AbortError") throw e;
-    throw new ApiError(0, "Could not reach the PROTEUS API. Check that the server is running.", e, "network");
+    throw new ApiError(0, "Could not reach the Proteus AI API. Check that the server is running.", e, "network");
   }
   const text = await res.text();
   let data: unknown = undefined;

@@ -5,8 +5,8 @@ import { SectionHeader } from "../ui/SectionHeader";
 import s from "./Compare.module.css";
 
 /**
- * "How PROTEUS compares": a light, spacious comparison table in the register of Linear, Ramp and
- * Attio. PROTEUS sits in the first column on a faint accent; competitors are plain typographic
+ * "How Proteus AI compares": a light, spacious comparison table in the register of Linear, Ramp and
+ * Attio. Proteus AI sits in the first column on a faint accent; competitors are plain typographic
  * names linking to their sites. Marks are Yes, Partial, Not core focus or Planned, nothing louder.
  * On phones each product becomes a card. No third-party logos: names only.
  */
@@ -54,7 +54,7 @@ export function Compare() {
 
           <Appear preset="pop-0.4" className={s.tableWrap}>
             <table className={s.table}>
-              <caption className="sr-only">How PROTEUS compares with DealHub, Pactum AI, Nue, Sequence and Metronome</caption>
+              <caption className="sr-only">How Proteus AI compares with DealHub, Pactum AI, Nue, Sequence and Metronome</caption>
               <thead>
                 <tr>
                   <th scope="col" className={s.capHead}><span className="label">Capability</span></th>

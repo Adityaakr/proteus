@@ -6,7 +6,7 @@ Updated 2026-10-16 (Tameion deadline: 2026-10-17 23:59 ET).
 
 | Area | Status | Evidence |
 | --- | --- | --- |
-| Marketing site (PROTEUS copy, Framer-faithful design) | done | `site/`, http://localhost:5174 |
+| Marketing site (Proteus AI copy, Framer-faithful design) | done | `site/`, http://localhost:5174 |
 | Deterministic pricing + policy engine (micro-USDC bigint) | done | `packages/domain`, 13 Vitest tests pass |
 | EIP-712 Terms / Acceptance / Delivery shared types | done | `packages/domain/src/terms.ts` |
 | `DealEscrow.sol` (fund, cumulative settle, seller close, refund, dispute, pause) | done | 24 unit/fuzz tests + 3 invariants pass (`pnpm contracts:test`) |
@@ -46,7 +46,7 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 ## Market and negotiation redesign with seller identity (2026-10-16, night)
 
 - Sellers have a brand (logo, tagline, category, website, accent) set at Start selling or in Sell > Settings > Brand, with client-side logo resizing to a sub-96 KB data URL. The market is seller-centric: search, category filter, live sellers first, each card with the wordmark or monogram, label, tagline, real stats from the deals table and its product rows. Product page: breadcrumb hero with the seller mark, meta chips, capability grid, billable-unit callout, tier cards with "Best unit price", a five-step "How a deal works" strip, an About card with stats, and a tighter Negotiate rail. Negotiation page: seller wordmark in the header and chat, deal summary rail, offer cards with volume/unit price/refund grid and included-feature chips. Negotiations list shows the seller mark.
-- Six demo sellers seeded (Harbor Logistics, Kaidata, Meridian Legal, Vantage API, Orbit Labs, Tidewater Health) with PROTEUS's own invented marks; Northwind renamed Northwind Commerce. Real third-party logos were deliberately not used: listing a real company as a seller would claim a customer that does not exist.
+- Six demo sellers seeded (Harbor Logistics, Kaidata, Meridian Legal, Vantage API, Orbit Labs, Tidewater Health) with Proteus AI's own invented marks; Northwind renamed Northwind Commerce. Real third-party logos were deliberately not used: listing a real company as a seller would claim a customer that does not exist.
 - Verified headless at 1440 and 390 px: market, demo and live product pages, a fresh negotiation with three offers, the negotiations list and seller settings render with no console errors or horizontal overflow.
 
 ## Demo sellers removed, hero facts and timeline (2026-10-16, late night)
@@ -63,9 +63,9 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 - Sell navigation: Overview, Negotiations, Deals, Customers, Products & pricing, Payments, Usage & delivery, Insights, Agent policies, Settings.
 - Overview rebuilt on `GET /app/dashboard`: revenue earned, active negotiations (with how many need approval), deal margin, customer funds held; "Needs your attention" cards for pending approvals with the rule that triggered them; recent deals list. New pages: Customers (per-buyer totals, click through to their deals), Usage & delivery (every metered request with billing and receipt state), Insights (30-day bars and funnel from real rows), Agent policies (per-product floor, discount cap, approval threshold, capacity, validity, cost). All numbers are sums over the seller's own rows.
 
-## "How PROTEUS compares" on the marketing page (2026-10-16, late)
+## "How Proteus AI compares" on the marketing page (2026-10-16, late)
 
-- New light section `site/src/sections/Compare.tsx` between Differentiation and Security: headline, seven capabilities, PROTEUS in a faint accent first column, then DealHub, Pactum AI, Nue, Sequence, Metronome as plain typographic names linking to their sites (no third-party logos). Marks are Yes / Partial / Not core focus with a short qualifier where the plain word would overstate; assessed from each vendor's public product pages (searched 2026-10-16). PROTEUS marks only what is implemented; USDC is labeled Arc testnet. Phone layout is one card per product. Closing line and footnote included.
+- New light section `site/src/sections/Compare.tsx` between Differentiation and Security: headline, seven capabilities, Proteus AI in a faint accent first column, then DealHub, Pactum AI, Nue, Sequence, Metronome as plain typographic names linking to their sites (no third-party logos). Marks are Yes / Partial / Not core focus with a short qualifier where the plain word would overstate; assessed from each vendor's public product pages (searched 2026-10-16). Proteus AI marks only what is implemented; USDC is labeled Arc testnet. Phone layout is one card per product. Closing line and footnote included.
 
 ## Model-written negotiation (2026-10-16, late)
 
@@ -79,7 +79,7 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 
 ## Example sellers modeled on competitor customer segments (2026-10-16, night)
 
-- Six example sellers restored via `server/scripts/seed-example-sellers.ts` (`pnpm --filter @proteus/server db:seed-examples`), each modeled on a segment the comparison-table tools serve: Orbit Labs (hosted inference per million tokens, the Metronome segment), Kaidata and Vantage API (API-first data and fintech, the Sequence segment), Meridian Legal (legal AI scale-up), Harbor Logistics and Tidewater Health (operations and vertical teams). Prices sit at public market rates for each category. Brands are PROTEUS's own marks; the UI says "Example seller" everywhere, the product page says the service is illustrative, and the market carries a one-line explanation. Real companies are not listed as sellers.
+- Six example sellers restored via `server/scripts/seed-example-sellers.ts` (`pnpm --filter @proteus/server db:seed-examples`), each modeled on a segment the comparison-table tools serve: Orbit Labs (hosted inference per million tokens, the Metronome segment), Kaidata and Vantage API (API-first data and fintech, the Sequence segment), Meridian Legal (legal AI scale-up), Harbor Logistics and Tidewater Health (operations and vertical teams). Prices sit at public market rates for each category. Brands are Proteus AI's own marks; the UI says "Example seller" everywhere, the product page says the service is illustrative, and the market carries a one-line explanation. Real companies are not listed as sellers.
 
 ## Operations-agent categories and example sellers (2026-10-16, night)
 

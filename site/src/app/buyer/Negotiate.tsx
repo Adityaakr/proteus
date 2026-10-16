@@ -196,7 +196,7 @@ export default function Negotiate() {
         </nav>
         <div className={n.sellerRow}>
           {wideLogo ? <SellerMark name={sellerName} brand={neg.sellerBrand} variant="wordmark" size="sm" /> : <><SellerMark name={sellerName} brand={neg.sellerBrand} size="sm" /><span className={n.sellerName}>{sellerName}</span></>}
-          {neg.sellerBrand?.verified && <span className={n.badgeOk} title="Verified by PROTEUS"><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
+          {neg.sellerBrand?.verified && <span className={n.badgeOk} title="Verified by Proteus AI"><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
           <span className={neg.status === "closed" ? n.badgeMuted : n.badgeState}>{neg.status === "open" ? "Open" : neg.status === "quoted" ? "Offers ready" : neg.status === "accepted" ? "Accepted" : "Closed"}</span>
         </div>
         <div className={n.titleRow}>

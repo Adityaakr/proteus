@@ -207,7 +207,7 @@ export function validate(f: FormState, hasOrg: boolean): Errors {
     } catch {
       ok = false;
     }
-    if (!ok) e.upstreamUrl = "Full https URL of the endpoint PROTEUS should call for every metered request.";
+    if (!ok) e.upstreamUrl = "Full https URL of the endpoint Proteus AI should call for every metered request.";
     if (f.upstreamAuthHeader.trim() && !/^[A-Za-z0-9-]{1,64}$/.test(f.upstreamAuthHeader.trim())) e.upstreamAuthHeader = "Header name only, letters, digits and dashes.";
   }
   return e;

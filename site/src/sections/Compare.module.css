@@ -1,4 +1,4 @@
-/* How PROTEUS compares. Light section between the dark Differentiation and Security blocks. */
+/* How Proteus AI compares. Light section between the dark Differentiation and Security blocks. */
 .section { position: relative; width: 100%; display: flex; justify-content: center; align-items: center; overflow: clip; background: var(--c-white); }
 .container { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; padding: 100px 40px; }
 .content { position: relative; width: 100%; max-width: 1200px; display: flex; flex-direction: column; align-items: center; gap: 56px; }

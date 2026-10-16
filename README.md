@@ -1,8 +1,8 @@
-# PROTEUS
+# Proteus AI
 
 **Close the deal. Keep the margin.** The autonomous deal desk for internet businesses.
 
-A seller configures what it sells, what each unit costs, a margin floor, capacity and an approval threshold. A buyer (a person, or a buyer agent through the same API) describes a real business need. PROTEUS interprets the need, assembles the packages that clear policy, negotiates within it, has both sides sign identical terms, funds the deal in USDC on Arc, runs a real metered service, and settles only the usage the buyer countersigned. Unused balance goes back to the buyer.
+A seller configures what it sells, what each unit costs, a margin floor, capacity and an approval threshold. A buyer (a person, or a buyer agent through the same API) describes a real business need. Proteus AI interprets the need, assembles the packages that clear policy, negotiates within it, has both sides sign identical terms, funds the deal in USDC on Arc, runs a real metered service, and settles only the usage the buyer countersigned. Unused balance goes back to the buyer.
 
 Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. **Testnet only. Sandbox seller labeled. Contract unaudited. No mainnet.**
 

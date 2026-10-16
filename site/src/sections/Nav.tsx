@@ -7,7 +7,7 @@ import { useBreakpoint } from "../ui/useBreakpoint";
 import { parseTransition } from "../lib/motion";
 import s from "./Nav.module.css";
 
-const LOGO = "/assets/proteus-wordmark.png";
+const LOGO = "/assets/proteus-ai-wordmark.png";
 
 /** Phone Closed -> Open: spring-duration 0.35s 0.25 0s. Open -> Closed: tween 0.44,0,0.56,1 0.35s. */
 const T_OPEN = parseTransition("spring-duration 0.35s 0.25 0s");
@@ -48,7 +48,7 @@ export function Nav() {
       >
         <div className={s.logoRow}>
           <a className={s.logo} href="/#hero">
-            <img src={LOGO} alt="" width={131} height={26} />
+            <img src={LOGO} alt="" width={137} height={26} />
           </a>
           {phone && (
             <button type="button" className={s.trigger} aria-expanded={open} onClick={() => setOpen((o) => !o)}>

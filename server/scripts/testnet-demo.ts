@@ -1,5 +1,5 @@
 /**
- * End-to-end money loop against a running PROTEUS API and an Arc-compatible chain.
+ * End-to-end money loop against a running Proteus AI API and an Arc-compatible chain.
  *
  *   API_URL=http://localhost:8787 BUYER_PRIVATE_KEY=0x... tsx scripts/testnet-demo.ts
  *

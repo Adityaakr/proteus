@@ -6,7 +6,7 @@ import { parseTransition } from "../lib/motion";
 import { useInViewOnce } from "../lib/useScrollTarget";
 
 /**
- * Framer "User roles card" (ezA3Bb8pm), remixed as the PROTEUS approvals card.
+ * Framer "User roles card" (ezA3Bb8pm), remixed as the Proteus AI approvals card.
  * Four variants cycle once the card is 50% in view (onInView 1 -> 2, then a timed loop):
  *  1  cursor off-card, dropdown hidden
  *  2  cursor enters next to the first row's pill

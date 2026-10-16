@@ -43,7 +43,7 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
         appearance: {
           theme: "light",
           accentColor: "#012BFF",
-          logo: "/assets/proteus-wordmark.png",
+          logo: "/assets/proteus-ai-wordmark.png",
           landingHeader: "Sign in to Proteus AI",
           showWalletLoginFirst: false,
           walletChainType: "ethereum-only",
@@ -88,7 +88,7 @@ function PrivyBridge({ children }: { children: ReactNode }) {
   const meEnabled = ready && authenticated;
   const meQ = useQuery<MeResponse>({ queryKey: qk.me, queryFn: api.me, enabled: meEnabled, retry: false, staleTime: 30_000 });
 
-  // The PROTEUS account wallet is always the Privy embedded wallet. An injected wallet (MetaMask and the
+  // The Proteus AI account wallet is always the Privy embedded wallet. An injected wallet (MetaMask and the
   // like) is used only when the user signed in with it and has no embedded wallet at all. Browser
   // extensions that merely exist are never picked up, so nothing opens MetaMask behind the user's back.
   const embedded: ConnectedWallet | undefined = wallets.find((w) => w.walletClientType === "privy");
@@ -121,7 +121,7 @@ function PrivyBridge({ children }: { children: ReactNode }) {
   );
 
   const getWalletClient = useCallback(async () => {
-    if (!connected) throw new WalletError("Your PROTEUS wallet is still being set up. Try again in a moment.");
+    if (!connected) throw new WalletError("Your Proteus AI wallet is still being set up. Try again in a moment.");
     return walletClientFor({
       address: connected.address,
       switchChain: (id) => connected.switchChain(id),
@@ -129,7 +129,7 @@ function PrivyBridge({ children }: { children: ReactNode }) {
     });
   }, [connected]);
 
-  // Link the account wallet to the PROTEUS account once the server knows the user (GET /api/me ok) and
+  // Link the account wallet to the Proteus AI account once the server knows the user (GET /api/me ok) and
   // the wallet is not listed yet: GET nonce, personal_sign the exact link message, POST link.
   const linkTried = useRef<string | null>(null);
   useEffect(() => {

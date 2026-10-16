@@ -2,7 +2,7 @@
  * Seeds the EXAMPLE sellers. Each one is modeled on a customer segment the tools in our comparison serve:
  *   usage-based AI infrastructure (Metronome's customers), API-first fintech and data startups (Sequence's),
  *   legal and SaaS scale-ups (Nue's), ops teams in midsize B2B (DealHub's), and vertical operators.
- * Prices sit at public market rates for each category. Brands are PROTEUS's own invented marks, never a real
+ * Prices sit at public market rates for each category. Brands are Proteus AI's own invented marks, never a real
  * company; every seller carries label "sandbox" (shown as "Example seller"), runs the deterministic example
  * adapter, and is excluded from live counters. Deals on them are real Arc testnet transactions. Idempotent.
  */

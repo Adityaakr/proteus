@@ -1,4 +1,4 @@
-/** All page copy for PROTEUS. Edit here, not in sections. Source: "PROTEUS" copy doc ("Your business should be able to make a deal" draft). */
+/** All page copy for Proteus AI. Edit here, not in sections. Source: "Proteus AI" copy doc ("Your business should be able to make a deal" draft). */
 
 export const links = {
   explore: "/app/market",
@@ -25,9 +25,9 @@ export const hero = {
   headline: "Your business should be able to make a deal.",
   headlineAlt: "Your next deal shouldn’t wait for sales.",
   subhead:
-    "PROTEUS is the AI agent that negotiates and closes deals for your business. It works out what you can offer, negotiates within your rules, and turns the agreement into a paid transaction.",
+    "Proteus AI is the AI agent that negotiates and closes deals for your business. It works out what you can offer, negotiates within your rules, and turns the agreement into a paid transaction.",
   secondary: { label: "See how it works", href: links.howItWorks },
-  primary: { label: "Explore PROTEUS", href: links.explore },
+  primary: { label: "Explore Proteus AI", href: links.explore },
   chat: {
     user: "We run three online stores on Zendesk, about 8,000 tickets a month. We want order tracking and delivery questions automated, roughly 2,000 resolutions a month. Budget is $1,500. Can you make it work?",
     status: ["Reading the request...", "Checking packages, costs, and margin", "Structuring two offers"],
@@ -37,7 +37,7 @@ export const hero = {
     completed: "Offer made",
     suggestionsLabel: "Suggestions",
     suggestions: ["Option 01: 2,000 resolutions, $1,700/month", "Option 02: 1,500 resolutions, $1,440/month", "Keep negotiating"],
-    placeholder: "Reply to PROTEUS..",
+    placeholder: "Reply to Proteus AI..",
   },
 };
 
@@ -49,21 +49,21 @@ export const howItWorks = {
   tag: "How it works",
   heading: "From interest to income.\nOne continuous workflow.",
   description:
-    "A pricing page can’t handle a discount, a commitment or a budget. Someone has to work out the deal, usually the founder. PROTEUS does it for you.",
+    "A pricing page can’t handle a discount, a commitment or a budget. Someone has to work out the deal, usually the founder. Proteus AI does it for you.",
   mandates: [
     "Can we get a volume discount?",
     "What if we commit for six months?",
     "Can you fit this into our budget?",
   ],
-  promptCard: { suggestion: "Customers ask", run: "Explore PROTEUS" },
+  promptCard: { suggestion: "Customers ask", run: "Explore Proteus AI" },
   steps: [
     {
       title: "It understands what customers want.",
-      body: "Buyers describe what they need in plain language. PROTEUS extracts product, volume, service level, timeline and budget, and checks what you can deliver before it talks price.",
+      body: "Buyers describe what they need in plain language. Proteus AI extracts product, volume, service level, timeline and budget, and checks what you can deliver before it talks price.",
     },
     {
       title: "It works out a deal.",
-      body: "Offers are built from your pricing rules, costs and capacity. PROTEUS can propose a package, trade terms, suggest an alternative, or explain why a request doesn’t work.",
+      body: "Offers are built from your pricing rules, costs and capacity. Proteus AI can propose a package, trade terms, suggest an alternative, or explain why a request doesn’t work.",
     },
     {
       title: "It gets the agreement done.",
@@ -86,7 +86,7 @@ export const decisions = {
   tag: "Intelligence",
   heading: "It knows the price. More importantly, it knows why.",
   description:
-    "A customer asks for 30% off. Is there volume behind it? Spare capacity? Margin left? Those are the calls PROTEUS makes. Not every opportunity is a good deal, and it can tell the difference.",
+    "A customer asks for 30% off. Is there volume behind it? Spare capacity? Margin left? Those are the calls Proteus AI makes. Not every opportunity is a good deal, and it can tell the difference.",
   tabs: [
     { number: "01", title: "Price with context" },
     { number: "02", title: "Trade intelligently" },
@@ -112,8 +112,8 @@ export const decisions = {
     {
       id: "lyqPHrB7z",
       title: "Adapt to new information.",
-      body: "When costs or availability change, PROTEUS can update future offers without unilaterally rewriting accepted agreements.",
-      wave: "PROTEUS is updating offers",
+      body: "When costs or availability change, Proteus AI can update future offers without unilaterally rewriting accepted agreements.",
+      wave: "Proteus AI is updating offers",
       paragraphs: [
         "Costs and availability changed. Future offers reflect the new information and your margin rules.",
         "Accepted agreements are not rewritten.",
@@ -144,7 +144,7 @@ export const verification = {
   tag: "Control",
   heading: "Give it responsibility. Not unlimited authority.",
   description:
-    "You set how the business sells. PROTEUS works inside those limits. It can negotiate; it cannot make up the rules.",
+    "You set how the business sells. Proteus AI works inside those limits. It can negotiate; it cannot make up the rules.",
   counts: {
     title: "Your products. Your economics.",
     body: "What you sell, which packages exist, what each costs, and the margin and capacity rules behind them.",
@@ -170,7 +170,7 @@ export const verification = {
 
 export const partners = {
   tag: "Use cases",
-  heading: "Every business sells differently. PROTEUS works with that.",
+  heading: "Every business sells differently. Proteus AI works with that.",
   description:
     "Negotiate the work, not just the subscription. Different workloads deserve different agreements, and custom infrastructure shouldn’t need a custom sales process.",
   steps: [
@@ -183,9 +183,9 @@ export const partners = {
 
 export const comparison = {
   tag: "Differentiation",
-  heading: "A chatbot can answer a question. PROTEUS can make a deal.",
+  heading: "A chatbot can answer a question. Proteus AI can make a deal.",
   description:
-    "You already have a place for questions, software for quotes and tools for billing. The commercial decision between them is still manual. PROTEUS connects the decision to the transaction.",
+    "You already have a place for questions, software for quotes and tools for billing. The commercial decision between them is still manual. Proteus AI connects the decision to the transaction.",
   cards: [
     { icon: "/assets/JXfbymshMLyfsl2323zgdqBGL4.svg", threshold: 0.46, title: "Understand the request", body: "Go beyond keywords and identify what the customer is actually trying to buy." },
     { icon: "/assets/oj7jXSrLMVYLxliKOyzXN6J1ZRs.svg", threshold: 0.46, title: "Evaluate the economics", body: "Understand the price, the expected cost, and the conditions that make the deal acceptable." },
@@ -197,7 +197,7 @@ export const comparison = {
 };
 
 
-/** "How PROTEUS compares": assessed from each vendor's public product pages in October 2026. */
+/** "How Proteus AI compares": assessed from each vendor's public product pages in October 2026. */
 export type CompareMark = "yes" | "partial" | "not-core" | "planned";
 export interface CompareVendor {
   name: string;
@@ -210,10 +210,10 @@ export interface CompareVendor {
   notes?: (string | undefined)[];
 }
 export const compare = {
-  tag: "How PROTEUS compares",
+  tag: "How Proteus AI compares",
   heading: "Built to close deals, not just manage them.",
   description:
-    "Good tools exist for quoting, billing and negotiation. PROTEUS brings the whole workflow together, from the first requirement to the executed deal.",
+    "Good tools exist for quoting, billing and negotiation. Proteus AI brings the whole workflow together, from the first requirement to the executed deal.",
   capabilities: [
     "Autonomous customer-facing negotiations",
     "Cost-aware pricing and margin protection",
@@ -224,10 +224,10 @@ export const compare = {
     "Designed for small AI and internet businesses",
   ],
   proteus: {
-    name: "PROTEUS",
+    name: "Proteus AI",
     description: "The autonomous deal desk: negotiation, signed terms, escrow and metered delivery in one flow.",
     href: "/app",
-    logo: "/assets/proteus-wordmark.png",
+    logo: "/assets/proteus-ai-wordmark.png",
     marks: ["yes", "yes", "yes", "yes", "yes", "yes", "yes"],
     notes: [undefined, undefined, undefined, "Both sides sign, escrow funds", "Arc testnet today", undefined, undefined],
   } as CompareVendor,
@@ -238,8 +238,8 @@ export const compare = {
     { name: "Sequence", logo: "/assets/vendors/sequence.svg", description: "Billing and CPQ for B2B SaaS with custom contracts.", href: "https://www.sequencehq.com", marks: ["not-core", "not-core", "yes", "partial", "not-core", "yes", "partial"], notes: [undefined, undefined, undefined, "Signed quotes auto-execute", undefined, undefined, "Startups and scale-ups"] },
     { name: "Metronome", logo: "/assets/vendors/metronome.svg", description: "Usage-based billing infrastructure, now part of Stripe.", href: "https://metronome.com", marks: ["not-core", "not-core", "yes", "not-core", "not-core", "yes", "partial"], notes: [undefined, undefined, "Contracts and overrides", undefined, undefined, "Metering and invoicing", "Self-serve starter plan"] },
   ] as CompareVendor[],
-  closing: "Others help you quote, negotiate, or bill. PROTEUS is built to take a deal from the first conversation to the final transaction.",
-  footnote: "Assessed from each vendor's public product pages in October 2026. Names and logos belong to their owners and are shown for identification only. PROTEUS marks reflect what is implemented today. USDC settlement runs on Arc testnet.",
+  closing: "Others help you quote, negotiate, or bill. Proteus AI is built to take a deal from the first conversation to the final transaction.",
+  footnote: "Assessed from each vendor's public product pages in October 2026. Names and logos belong to their owners and are shown for identification only. Proteus AI marks reflect what is implemented today. USDC settlement runs on Arc testnet.",
 };
 
 export interface Plan {
@@ -283,7 +283,7 @@ export const record = {
   tag: "Business insights",
   heading: "Every negotiation tells you something about your business.",
   description:
-    "A discount request, five asks for the same integration, deals that keep failing at one price: each one is a signal. PROTEUS turns conversations into a commercial record you can learn from.",
+    "A discount request, five asks for the same integration, deals that keep failing at one price: each one is a signal. Proteus AI turns conversations into a commercial record you can learn from.",
   entries: [
     { quote: "Four of the last five buyers asked for Shopify before price. Demand tells you what to build next.", name: "Northwind Commerce", role: "Demand", company: "illustrative example", initials: "NC", portrait: { src: "/assets/logos/mark-northwind.png", alt: "Northwind Commerce" } },
     { quote: "Offers above $1.20 a call get countered. Offers at $1.10 close. Pricing shows where the market actually is.", name: "Lumen Voice", role: "Pricing", company: "illustrative example", initials: "LV", portrait: { src: "/assets/logos/mark-lumen.png", alt: "Lumen Voice" } },
@@ -300,7 +300,7 @@ export const faq = {
   heading: "Frequently asked questions",
   description: "What it is, who it is for, what you control, and what is live.",
   items: [
-    { q: "What is PROTEUS?", a: "An autonomous deal desk. It negotiates custom terms within your rules, has both sides sign, and connects the agreement to payment and delivery." },
+    { q: "What is Proteus AI?", a: "An autonomous deal desk. It negotiates custom terms within your rules, has both sides sign, and connects the agreement to payment and delivery." },
     { q: "Who is it for?", a: "AI and API companies, developer infrastructure, and internet businesses whose customers need custom packages, usage commitments or negotiated pricing." },
     { q: "Does it replace a salesperson?", a: "It handles eligible negotiations end to end. Large or unusual deals can still involve people." },
     { q: "Can it offer discounts?", a: "Yes, within the limits you set. It prefers trading terms, such as a smaller package or a longer commitment, over cutting price." },
@@ -308,17 +308,17 @@ export const faq = {
     { q: "Can it change a deal after payment?", a: "No. Accepted terms are signed by both sides and hold for the term. Changes follow the agreement." },
     { q: "What does the seller control?", a: "Products, costs, pricing rules, minimum margin, capacity, approval thresholds and payout wallet." },
     { q: "Can customers pay in USDC?", a: "Yes. Deals are funded into escrow and settled in USDC on Arc through Circle’s tooling. Today this runs on Arc testnet." },
-    { q: "Can another AI agent negotiate with PROTEUS?", a: "Yes, through the same API a person uses: request a quote, accept terms, fund and call the service." },
+    { q: "Can another AI agent negotiate with Proteus AI?", a: "Yes, through the same API a person uses: request a quote, accept terms, fund and call the service." },
     { q: "How do I get started?", a: "Sign in, publish one product with its tiers, costs and margin floor, point it at your endpoint, and let customers negotiate. Close one good deal, then add more." },
-    { q: "Is PROTEUS live?", a: "The full loop runs on Arc testnet today: negotiation, signed terms, escrow, metered delivery, settlement and refund. Mainnet is not enabled." },
+    { q: "Is Proteus AI live?", a: "The full loop runs on Arc testnet today: negotiation, signed terms, escrow, metered delivery, settlement and refund. Mainnet is not enabled." },
   ],
 };
 
 export const footer = {
   heading: "Let your business do more of the selling.",
-  line: "Customers already tell you what they need, with budgets and deadlines. PROTEUS gives them someone ready to make the deal: an agent that knows your economics, negotiates within your rules and moves the opportunity to payment.",
+  line: "Customers already tell you what they need, with budgets and deadlines. Proteus AI gives them someone ready to make the deal: an agent that knows your economics, negotiates within your rules and moves the opportunity to payment.",
   cta: { label: "Negotiate a deal", href: links.explore },
-  brand: "PROTEUS",
+  brand: "Proteus AI",
   tagline: "Your business, ready to make a deal.",
   columnTitle: "Product",
   columns: [
@@ -328,13 +328,13 @@ export const footer = {
     { label: "FAQ", href: "/#faqs" },
     { label: "GitHub", href: links.github },
   ],
-  copyright: "© 2026 PROTEUS. Built with Circle and Arc.",
+  copyright: "© 2026 Proteus AI. Built with Circle and Arc.",
   right: { label: "Public records", href: links.record },
 };
 
 export const meta = {
-  title: "PROTEUS | The autonomous deal desk",
-  description: "PROTEUS negotiates custom deals for internet businesses, protects the margin, and turns the agreement into a paid transaction.",
+  title: "Proteus AI | The autonomous deal desk",
+  description: "Proteus AI negotiates custom deals for internet businesses, protects the margin, and turns the agreement into a paid transaction.",
   ogTitle: "Your business should be able to make a deal.",
-  ogDescription: "Meet PROTEUS, the autonomous deal desk that understands what you sell, what it costs, and which deals are worth closing.",
+  ogDescription: "Meet Proteus AI, the autonomous deal desk that understands what you sell, what it costs, and which deals are worth closing.",
 };

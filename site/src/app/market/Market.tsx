@@ -70,7 +70,7 @@ export default function Market() {
 
       {sellers.some((s) => s.label !== "live") && (
         <p className={m.note}>
-          Lumen Voice runs on its own endpoint. The other sellers are examples modeled on the segments the tools in our comparison serve; they carry PROTEUS's own marks and answer from an illustrative service. Every deal on any of them is a real Arc testnet transaction.
+          Lumen Voice runs on its own endpoint. The other sellers are examples modeled on the segments the tools in our comparison serve; they carry Proteus AI's own marks and answer from an illustrative service. Every deal on any of them is a real Arc testnet transaction.
         </p>
       )}
       {q.isLoading ? (
@@ -103,7 +103,7 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
         <div className={m.sellerId}>
           <div className={m.sellerName}>
             <Link to={`/app/market/${s.slug}`} className={m.sellerLink}>{wide ? <SellerMark name={s.name} brand={s.brand} variant="wordmark" size="md" /> : s.name}</Link>
-            {s.brand.verified && <span className={m.badgeOk} title="Verified by PROTEUS: identity and endpoint checked by the platform operator"><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
+            {s.brand.verified && <span className={m.badgeOk} title="Verified by Proteus AI: identity and endpoint checked by the platform operator"><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
           </div>
           <div className={m.sellerMeta}>
             {s.brand.category && <span>{categoryLabel(s.brand.category)}</span>}

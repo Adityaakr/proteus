@@ -1,6 +1,6 @@
 # DECISIONS
 
-Decision log for PROTEUS (renamed from MARGIN on 2026-10-16). Each entry: decision, why, what would change it.
+Decision log for Proteus AI (renamed from MARGIN on 2026-10-16). Each entry: decision, why, what would change it.
 
 ## 2026-10-16 Architecture (Prism panel: practitioner, security/custody, UX, simplicity)
 

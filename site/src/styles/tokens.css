@@ -5,7 +5,7 @@
 @font-face { font-family: "Geist"; font-weight: 500; font-style: normal; font-display: swap; src: url("/fonts/Geist-500.woff2") format("woff2"); }
 @font-face { font-family: "Geist"; font-weight: 600; font-style: normal; font-display: swap; src: url("/fonts/Geist-600.woff2") format("woff2"); }
 /* Headings in the template use PP Neue Montreal (commercial). Satoshi is the free stand-in
-   the PROTEUS copy doc asks for; swap the files here if a PP Neue Montreal licence is available. */
+   the Proteus AI copy doc asks for; swap the files here if a PP Neue Montreal licence is available. */
 @font-face { font-family: "Satoshi"; font-weight: 400; font-style: normal; font-display: swap; src: url("/fonts/Satoshi-400.woff2") format("woff2"); }
 @font-face { font-family: "Satoshi"; font-weight: 500; font-style: normal; font-display: swap; src: url("/fonts/Satoshi-500.woff2") format("woff2"); }
 @font-face { font-family: "Satoshi"; font-weight: 700; font-style: normal; font-display: swap; src: url("/fonts/Satoshi-700.woff2") format("woff2"); }

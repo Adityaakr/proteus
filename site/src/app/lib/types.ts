@@ -40,7 +40,7 @@ export interface SellerBrand {
   category?: string;
   website?: string;
   accent?: string;
-  /** Verified by PROTEUS (platform-set). */
+  /** Verified by Proteus AI (platform-set). */
   verified?: boolean;
 }
 

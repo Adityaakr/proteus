@@ -87,7 +87,7 @@ export default function Settings() {
         )}
       </Card>
 
-      <Card title="Payout address" subtitle="Settled USDC is paid to your PROTEUS account wallet." actions={<StatusTag network="testnet" label="Arc testnet" />}>
+      <Card title="Payout address" subtitle="Settled USDC is paid to your Proteus AI account wallet." actions={<StatusTag network="testnet" label="Arc testnet" />}>
         {payout ? (
           <div className={s.fields}>
             <span className={s.row}>

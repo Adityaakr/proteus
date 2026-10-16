@@ -33,7 +33,7 @@ export default function Welcome() {
     <main className={s.page} id="app-main">
       <div className={s.inner}>
         <span className={s.label}>Welcome{name ? `, ${name}` : ""}</span>
-        <h1 className={s.title}>What brings you to PROTEUS?</h1>
+        <h1 className={s.title}>What brings you to Proteus AI?</h1>
         <p className={s.lede}>One account does both. Pick where to start; you can switch any time from the sidebar.</p>
         <div className={s.options}>
           <button type="button" className={s.option} onClick={() => choose.mutate("buy")} disabled={choose.isPending} aria-busy={picked === "buy"}>

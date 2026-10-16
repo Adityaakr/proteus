@@ -72,7 +72,7 @@ function ProductBody({ p }: { p: ProductWithPrivate }) {
 function ServiceEndpoint({ p }: { p: ProductWithPrivate }) {
   const svc = p.service ?? (p.adapter === "http" ? { kind: "http" as const, url: null, authHeader: null, hasSecret: false } : { kind: "sample-store" as const });
   return (
-    <Card title="Service endpoint" subtitle="What answers each metered request. PROTEUS bills only what it reports as delivered." actions={svc.kind === "http" ? <StatusTag network="live" label="Your endpoint" /> : <StatusTag network="sandbox" label="Demo sample store" />}>
+    <Card title="Service endpoint" subtitle="What answers each metered request. Proteus AI bills only what it reports as delivered." actions={svc.kind === "http" ? <StatusTag network="live" label="Your endpoint" /> : <StatusTag network="sandbox" label="Demo sample store" />}>
       {svc.kind === "http" ? (
         <p className="body3">
           POST <span className="app-mono">{svc.url ?? "(not set)"}</span>

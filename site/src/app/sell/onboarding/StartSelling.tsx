@@ -176,7 +176,7 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
             </div>
           </SellerOnly>
 
-          <Card title="Service endpoint" subtitle="Your HTTPS API answers every metered request. PROTEUS forwards the request, bills only what you report as delivered, and never charges failures or handoffs.">
+          <Card title="Service endpoint" subtitle="Your HTTPS API answers every metered request. Proteus AI forwards the request, bills only what you report as delivered, and never charges failures or handoffs.">
             <div className={s.grid2}>
               <Field label="Endpoint URL" placeholder="https://api.yourcompany.com/proteus" hint="POST, JSON in, JSON out. Contract in docs/api.md under Bring your own endpoint." {...input("upstreamUrl")} inputMode="url" autoComplete="off" />
               <Field label="Secret" type="password" placeholder="Optional" hint="Sent on every call. Stored encrypted, never shown again." {...input("upstreamSecret")} autoComplete="new-password" />
@@ -184,7 +184,7 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
             </div>
           </Card>
 
-          <Card title="What buyers send" subtitle="The fields a buyer fills in for each request. PROTEUS forwards them to your endpoint as JSON, files as base64.">
+          <Card title="What buyers send" subtitle="The fields a buyer fills in for each request. Proteus AI forwards them to your endpoint as JSON, files as base64.">
             <div className={s.fields}>
               <Field label="Intro" placeholder="Send the invoice as PDF or JSON." hint="Optional. One sentence shown above the request form." {...input("requestIntro")} maxLength={200} />
               <div className={s.reqHead} aria-hidden>

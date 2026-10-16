@@ -4,7 +4,7 @@ import { AuthContext, type AuthValue } from "./context";
 export type { AuthValue, AuthUser, AuthWallet } from "./context";
 
 /**
- * The signed in PROTEUS account. Works under PrivyAppProvider (real or mock mode):
+ * The signed in Proteus AI account. Works under PrivyAppProvider (real or mock mode):
  * { ready, authenticated, user, login, logout, getAccessToken, wallet: { address, type } | null, me, ... }.
  */
 export function useAuth(): AuthValue {

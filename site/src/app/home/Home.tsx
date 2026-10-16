@@ -51,7 +51,7 @@ export default function Home() {
 
       {meStatus === "unauthorized" && (
         <Notice tone="info" title="Account sync pending">
-          You are signed in, but the PROTEUS server has not linked this login yet. Your wallet works; lists of your negotiations and deals appear once it does.
+          You are signed in, but the Proteus AI server has not linked this login yet. Your wallet works; lists of your negotiations and deals appear once it does.
         </Notice>
       )}
 
@@ -134,7 +134,7 @@ export default function Home() {
             <SellWidget />
           ) : (
             <section className={h.section} aria-labelledby="h-sell">
-              <span id="h-sell" className={h.label}>Sell on PROTEUS</span>
+              <span id="h-sell" className={h.label}>Sell on Proteus AI</span>
               <h2 className={h.railTitle}>Let your agent negotiate for you</h2>
               <p className={h.railText}>List an AI service with published tiers. Your agent negotiates within your margin rules, and payouts land in this same wallet.</p>
               <div><ActionButton variant="secondary" size="sm" to="/app/sell" iconLeft={<Briefcase size={14} strokeWidth={2} />}>Start selling</ActionButton></div>
