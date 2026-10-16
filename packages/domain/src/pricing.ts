@@ -348,9 +348,6 @@ export function qualifyingTier(product: Product, units: bigint): Tier {
   return best;
 }
 
-function absBig(x: bigint): bigint {
-  return x < 0n ? -x : x;
-}
 
 /** Deterministic short id from inputs (FNV-1a 64-bit over the joined string, base36). */
 export function stableId(parts: (string | number | bigint)[]): string {

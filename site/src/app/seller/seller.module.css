@@ -1,0 +1,79 @@
+.page { display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 1160px; margin: 0 auto; min-width: 0; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.split { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.between { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.formGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.formGrid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.formActions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.muted { color: var(--c-dark-60); }
+.small { font-size: 12px; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.strong { color: var(--c-dark); font-weight: 500; }
+.link { color: var(--c-primary); text-decoration: underline; text-underline-offset: 3px; }
+.sub { display: block; font-family: var(--font-body); font-size: 12px; color: var(--c-dark-60); }
+
+/* Product tiers */
+.tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.tier { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 14px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+.tierPrice { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 20px; color: var(--c-dark); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; padding: 3px 10px; border-radius: 1000px; font-family: var(--font-body); font-size: 12px; color: var(--c-dark-80); background: var(--c-white); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+
+/* Private key figures */
+.figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.fig { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.75); box-shadow: inset 0 0 0 1px rgba(255, 84, 0, 0.16); min-width: 0; }
+.figLabel { font-family: var(--font-body); font-size: 12px; color: var(--c-dark-60); }
+.figValue { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 16px; color: var(--c-dark); }
+.formBox { display: flex; flex-direction: column; gap: 14px; padding: 16px; border-radius: 14px; background: rgba(255, 255, 255, 0.8); box-shadow: inset 0 0 0 1px rgba(255, 84, 0, 0.16); }
+.formBox input { background: var(--c-white); }
+
+/* Transcript */
+.transcript { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.turn { display: flex; flex-direction: column; gap: 4px; max-width: 88%; }
+.turn_buyer { align-self: flex-start; }
+.turn_agent { align-self: flex-end; align-items: flex-end; }
+.turn_system { align-self: center; align-items: center; max-width: 100%; }
+.bubble { padding: 10px 14px; border-radius: 16px; font-family: var(--font-body); font-size: 14px; line-height: 1.5; color: var(--c-dark); background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+.turn_agent .bubble { background: rgba(1, 43, 255, 0.06); box-shadow: inset 0 0 0 1px var(--c-primary-20); }
+.turn_system .bubble { background: transparent; box-shadow: inset 0 0 0 1px var(--c-dark-10); border-style: dashed; color: var(--c-dark-80); font-size: 13px; text-align: center; }
+.turnMeta { font-family: var(--font-body); font-size: 12px; color: var(--c-dark-60); }
+
+/* Decisions log */
+.log { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.logItem { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.8); box-shadow: inset 0 0 0 1px rgba(255, 84, 0, 0.16); }
+.logHead { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.kind { font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 1000px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); color: var(--c-dark-80); }
+.publicLine { font-family: var(--font-body); font-size: 12px; color: var(--c-dark-60); }
+
+/* Approvals */
+.approvals { display: flex; flex-direction: column; gap: 16px; }
+.decide { display: flex; flex-direction: column; gap: 12px; padding-top: 4px; }
+
+/* Balances */
+.balances { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.bal { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 12px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); min-width: 0; }
+.balValue { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 18px; color: var(--c-dark); }
+.meter { display: flex; height: 8px; border-radius: 8px; overflow: hidden; background: var(--c-dark-5); }
+.meterSettled { background: var(--c-primary); }
+.meterRefunded { background: var(--c-dark-40); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-family: var(--font-body); font-size: 12px; color: var(--c-dark-60); }
+.legendDot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+.confirm { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 14px; background: rgba(214, 40, 40, 0.04); box-shadow: inset 0 0 0 1px rgba(214, 40, 40, 0.25); }
+
+.statMoney { font-size: inherit; }
+
+@media (max-width: 1199.98px) {
+  .split { grid-template-columns: 1fr; }
+  .formGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 809.98px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid2, .formGrid, .formGrid2 { grid-template-columns: 1fr; }
+  .balances { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .turn { max-width: 100%; }
+  .statMoney { font-size: 21px; }
+}
