@@ -14,6 +14,8 @@ import { T_DEFAULT } from "../../lib/motion";
 import { NetworkBadge, StatusTag } from "../ui/StatusTag";
 import { CopyButton, shortHex } from "../ui/misc";
 import { useAuth } from "../auth/useAuth";
+import { walletLabel } from "../auth/context";
+import { WalletPicker } from "../wallet/WalletPicker";
 import { api, isMock, qk } from "../lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Wordmark } from "./Wordmark";
@@ -239,24 +241,26 @@ function AccountMenu() {
                   <CopyButton value={wallet.address} label="Copy wallet address" />
                 </span>
               )}
-              <span className="body3">{wallet?.type === "external" ? "External wallet" : "Embedded wallet"} on Arc testnet</span>
+              <span className="body3">{wallet ? walletLabel(wallet) : "Wallet"} on Arc testnet{wallet?.type === "external" && !wallet.connected ? ", not connected" : ""}</span>
+            </div>
+            <div className={s.menuGroup}>
+              <span className={s.menuGroupLabel}>Wallets</span>
+              <WalletPicker compact onPick={() => setOpen(false)} />
             </div>
             <Link role="menuitem" to="/app/wallet" className={s.menuItem} onClick={() => setOpen(false)}>
               <Wallet size={16} strokeWidth={2} aria-hidden /> Wallet
             </Link>
-            {wallet?.type !== "external" && (
-              <button
-                role="menuitem"
-                type="button"
-                className={s.menuItem}
-                onClick={() => {
-                  setOpen(false);
-                  void exportWallet().catch(() => {});
-                }}
-              >
-                <KeyRound size={16} strokeWidth={2} aria-hidden /> Export key
-              </button>
-            )}
+            <button
+              role="menuitem"
+              type="button"
+              className={s.menuItem}
+              onClick={() => {
+                setOpen(false);
+                void exportWallet().catch(() => {});
+              }}
+            >
+              <KeyRound size={16} strokeWidth={2} aria-hidden /> Export embedded key
+            </button>
             <Link role="menuitem" to="/app/settings" className={s.menuItem} onClick={() => setOpen(false)}>
               <Settings size={16} strokeWidth={2} aria-hidden /> Settings
             </Link>

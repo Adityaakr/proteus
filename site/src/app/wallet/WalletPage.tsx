@@ -8,6 +8,8 @@ import { CopyButton, ExplorerLink, KeyValue, Notice } from "../ui/misc";
 import { NetworkBadge } from "../ui/StatusTag";
 import { LoadingCard } from "../ui/Skeleton";
 import { useAuth } from "../auth/useAuth";
+import { walletLabel } from "../auth/context";
+import { WalletPicker } from "./WalletPicker";
 import { PageHeader } from "../buyer/common";
 import { BalanceCard } from "./BalanceCard";
 import { useDepositWatch } from "./useDepositWatch";
@@ -25,14 +27,14 @@ export default function WalletPage() {
 
   return (
     <AppShell title="Wallet">
-      <PageHeader title="Your wallet" lede="One balance for everything: fund deals, pay per call, and receive payouts when you sell." />
+      <PageHeader title="Your wallet" lede="One active wallet for everything: fund deals, pay per call, and receive payouts when you sell." />
       {!wallet ? (
         <LoadingCard label="Setting up your wallet" lines={3} />
       ) : (
         <div className={w.grid}>
           <div className={w.stack}>
             <BalanceCard
-              title="Balance"
+              title={`Balance · ${walletLabel(wallet)}`}
               poll={watch.pollMs}
               action={
                 <span style={{ display: "inline-flex", gap: 8, flexWrap: "wrap" }}>
@@ -82,8 +84,11 @@ export default function WalletPage() {
                 <p className="body3">Send only Arc testnet USDC to this address.</p>
               </div>
             </Card>
+            <Card title="Wallets on this account" subtitle="Pick the wallet the app uses. Balance, deposits, deal funding, payouts and signatures all follow it.">
+              <WalletPicker />
+            </Card>
             <Card title="Custody" variant="muted" padding="compact">
-              <p className="body2">{wallet.type === "external" ? "External wallet. You signed in with a wallet you control; Proteus AI never holds your key." : CUSTODY_NOTE}</p>
+              <p className="body2">{wallet.type === "external" ? `${walletLabel(wallet)}. You control the key in your own wallet app; Proteus AI never holds it.` : CUSTODY_NOTE}</p>
             </Card>
           </div>
         </div>

@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "../db";
 import { revokeOrgSigner, signerView, sweepCollector } from "../chain/signer";
 import { json } from "../lib/http";
-import { createOrg, createProduct, issueLinkNonce, linkWallet, marketList, marketSellers, meView, myActivity, myDeals, myNegotiations, userOrg, walletView, type ProductCreateInput } from "../services/accounts";
+import { createOrg, createProduct, issueLinkNonce, linkWallet, setPrimaryWallet, marketList, marketSellers, meView, myActivity, myDeals, myNegotiations, userOrg, walletView, type ProductCreateInput } from "../services/accounts";
 import { auth, requireAuth } from "./auth";
 import { requireSession, session } from "./session";
 import { CATEGORIES, updateBrand } from "../services/brand";
@@ -33,6 +33,11 @@ const LinkBody = z.object({ address: z.string().regex(/^0x[0-9a-fA-F]{40}$/), ki
 meRoutes.post("/me/wallets/link", async (c) => {
   const b = LinkBody.parse(await c.req.json());
   return json(c, await linkWallet(auth(c).userId, b.address as Address, b.kind, b.nonce, b.signature as Hex));
+});
+
+meRoutes.patch("/me/wallets/primary", async (c) => {
+  const b = z.object({ address: z.string().regex(/^0x[0-9a-fA-F]{40}$/) }).parse(await c.req.json());
+  return json(c, await setPrimaryWallet(auth(c).userId, b.address as Address));
 });
 
 meRoutes.get("/me/negotiations", async (c) => json(c, await myNegotiations(auth(c).userId)));

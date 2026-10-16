@@ -12,6 +12,23 @@ export interface AuthUser {
 export interface AuthWallet {
   address: Address;
   type: "embedded" | "external";
+  /** Privy wallet client type for external wallets: "metamask", "coinbase_wallet", "rainbow", "wallet_connect"... */
+  clientType?: string;
+  /** True when the wallet can sign right now (embedded: always once created; external: connected in this browser). */
+  connected: boolean;
+}
+
+/** "Embedded wallet", "MetaMask", "Coinbase Wallet"... */
+export function walletLabel(w: Pick<AuthWallet, "type" | "clientType">): string {
+  if (w.type === "embedded") return "Embedded wallet";
+  const t = (w.clientType ?? "").toLowerCase();
+  if (t.includes("metamask")) return "MetaMask";
+  if (t.includes("coinbase")) return "Coinbase Wallet";
+  if (t.includes("rainbow")) return "Rainbow";
+  if (t.includes("wallet_connect") || t.includes("walletconnect")) return "WalletConnect";
+  if (t.includes("rabby")) return "Rabby";
+  if (t.includes("phantom")) return "Phantom";
+  return "External wallet";
 }
 
 export interface AuthValue {
@@ -23,8 +40,14 @@ export interface AuthValue {
   login: () => void;
   logout: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
-  /** The Proteus AI account wallet: the embedded wallet, or the external wallet the person signed in with. */
+  /** The active account wallet: balances, deposits, funding, payouts and signatures use it. */
   wallet: AuthWallet | null;
+  /** Every wallet on the account: the embedded wallet plus any external wallet linked to it. */
+  wallets: AuthWallet[];
+  /** Makes one of `wallets` the active one. Remembered on the server and in this browser. */
+  setActiveWallet: (address: Address) => void;
+  /** Opens Privy's wallet modal: reconnects a linked external wallet (pass its address) or links a new one. */
+  connectExternalWallet: (address?: Address) => void;
   /** GET /api/me. Undefined while loading, or when the server does not know the token yet (401). */
   me: MeResponse | undefined;
   meStatus: "idle" | "loading" | "ready" | "unauthorized" | "error";
@@ -46,6 +69,9 @@ export const DEFAULT_AUTH: AuthValue = {
   logout: async () => {},
   getAccessToken: async () => null,
   wallet: null,
+  wallets: [],
+  setActiveWallet: noop,
+  connectExternalWallet: noop,
   me: undefined,
   meStatus: "idle",
   refetchMe: noop,

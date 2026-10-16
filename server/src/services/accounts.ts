@@ -42,12 +42,24 @@ export async function linkWallet(userId: string, address: Address, kind: "embedd
 /** Records a wallet as the user's once control has been proven by any signature the caller verified. */
 export async function insertWalletLink(userId: string, address: Address, kind: "embedded" | "external", proof: Hex) {
   const existing = await db.select().from(schema.walletLinks).where(eq(schema.walletLinks.userId, userId));
-  const primary = existing.length === 0 || kind === "embedded";
-  if (primary) await db.update(schema.walletLinks).set({ primary: false }).where(eq(schema.walletLinks.userId, userId));
+  // The first wallet linked becomes the active one; later links never change the choice. The client sets
+  // the active wallet explicitly (PATCH /me/wallets/primary): the wallet the person signed in with by default.
+  const primary = existing.length === 0;
+  const already = existing.find((w) => w.address === address.toLowerCase());
   await db
     .insert(schema.walletLinks)
     .values({ id: id("wl"), userId, address: address.toLowerCase(), kind, primary, proof })
-    .onConflictDoUpdate({ target: [schema.walletLinks.userId, schema.walletLinks.address], set: { kind, primary, proof } });
+    .onConflictDoUpdate({ target: [schema.walletLinks.userId, schema.walletLinks.address], set: { kind, proof, primary: already?.primary ?? primary } });
+}
+
+/** Makes one of the user's linked wallets the active one: balances, funding, payouts and signatures use it. */
+export async function setPrimaryWallet(userId: string, address: Address) {
+  const addr = address.toLowerCase();
+  const rows = await db.select().from(schema.walletLinks).where(eq(schema.walletLinks.userId, userId));
+  if (!rows.some((w) => w.address === addr)) throw new HttpError(404, "that wallet is not linked to this account");
+  await db.update(schema.walletLinks).set({ primary: false }).where(eq(schema.walletLinks.userId, userId));
+  await db.update(schema.walletLinks).set({ primary: true }).where(and(eq(schema.walletLinks.userId, userId), eq(schema.walletLinks.address, addr)));
+  return meView(userId);
 }
 
 export async function userWallets(userId: string) {

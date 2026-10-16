@@ -1,0 +1,10 @@
+import { chromium } from "playwright";
+const out = process.argv[2];
+const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 1440, height: 900 } }); const errs = []; p.on("pageerror", (e) => errs.push(e.message.slice(0, 160)));
+await p.goto("http://localhost:5195/app", { waitUntil: "networkidle" }); await p.waitForTimeout(2500);
+await p.getByRole("button", { name: "Account menu" }).click(); await p.waitForTimeout(1500);
+await p.screenshot({ path: `${out}/wallet-menu.jpg`, type: "jpeg", quality: 70, clip: { x: 700, y: 0, width: 740, height: 560 } });
+await p.keyboard.press("Escape");
+await p.goto("http://localhost:5195/app/wallet", { waitUntil: "networkidle" }); await p.waitForTimeout(2500);
+await p.screenshot({ path: `${out}/wallet-page.jpg`, type: "jpeg", quality: 65, fullPage: true });
+console.log("errors", JSON.stringify(errs)); await b.close();
