@@ -123,17 +123,16 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
         </dl>
       )}
       <ul className={m.products}>
-        {s.products.map((p, i) => <ProductRow key={p.slug} seller={s.slug} p={p} index={i + 1} />)}
+        {s.products.map((p) => <ProductRow key={p.slug} seller={s.slug} p={p} />)}
       </ul>
     </motion.article>
   );
 }
 
-function ProductRow({ seller, p, index }: { seller: string; p: MarketSellerProduct; index: number }) {
+function ProductRow({ seller, p }: { seller: string; p: MarketSellerProduct }) {
   return (
     <li>
       <Link to={`/app/market/${seller}/${p.slug}`} className={m.product}>
-        <span className={m.productNum} aria-hidden>{String(index).padStart(2, "0")}</span>
         <span className={m.productMain}>
           <span className={m.productName}>{p.name}</span>
           {p.summary && <span className={m.productSummary}>{p.summary}</span>}
