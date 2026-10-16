@@ -52,4 +52,4 @@ Tests: `pnpm --filter @proteus/domain test` (13), `pnpm --filter @proteus/server
 
 ## Circle and Arc usage
 
-Arc testnet (chain 5042002) with the native-gas USDC and its 6-decimal ERC-20 interface; Arc Foundry for the contract; Circle developer-controlled wallets SDK 10.8.1 for the relayer (`createContractExecutionTransaction`, `ARC-TESTNET`). Which relayer actually ran is recorded on every transaction row and shown on the deal page.
+Arc testnet (chain 5042002) with the native-gas USDC and its 6-decimal ERC-20 interface; Arc Foundry for the contract; Circle's Facilitator Service for x402 pay-per-call (verified and settled on testnet, see the acceptance report); Circle developer-controlled wallets SDK 10.8.1 wired as the relayer (not yet exercised, needs credentials). Which relayer actually ran is recorded on every transaction row and shown on the deal page.

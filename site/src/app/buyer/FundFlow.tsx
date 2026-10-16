@@ -60,16 +60,17 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
 
   const [deal, setDeal] = useState<Deal | undefined>(initialDeal);
   const dealRef = useRef<Deal | undefined>(initialDeal);
+  const alreadyFunded = Boolean(initialDeal && !UNFUNDED.includes(initialDeal.status));
   const [steps, setSteps] = useState<Record<StepId, TodoStatus | "failed">>(() => ({
     sign: initialDeal ? "completed" : "pending",
     accept: initialDeal ? "completed" : "pending",
-    approve: "pending",
-    fund: initialDeal?.status === "funding_pending" ? "completed" : "pending",
-    confirm: initialDeal?.status === "funding_pending" ? "in-progress" : "pending",
+    approve: alreadyFunded ? "completed" : "pending",
+    fund: alreadyFunded || initialDeal?.status === "funding_pending" ? "completed" : "pending",
+    confirm: alreadyFunded ? "completed" : initialDeal?.status === "funding_pending" ? "in-progress" : "pending",
   }));
   const [txs, setTxs] = useState<{ approve?: Hex; fund?: Hex }>({ fund: initialDeal?.funding.txHash });
   const [useRelayer, setUseRelayer] = useState(false);
-  const [phase, setPhase] = useState<ToolApprovalStatus>("pending");
+  const [phase, setPhase] = useState<ToolApprovalStatus>(alreadyFunded ? "complete" : "pending");
   const [err, setErr] = useState<string | null>(null);
   const [lowBalance, setLowBalance] = useState(false);
   const [before, setBefore] = useState<bigint | null>(null);

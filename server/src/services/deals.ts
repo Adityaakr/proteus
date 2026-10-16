@@ -82,6 +82,9 @@ export async function dealView(dealId: string, opts: { apiKeyOnce?: string } = {
     refundTxHash: deal.refundTxHash,
     explorer: {
       escrow: escrow ? explorerAddress(escrow) : null,
+      funding: deal.fundingTxHash ? explorerTx(deal.fundingTxHash) : fundTx ? explorerTx(fundTx.txHash) : undefined,
+      settlements: txs.filter((t) => t.kind === "settle").map((t) => explorerTx(t.txHash)),
+      refund: deal.refundTxHash ? explorerTx(deal.refundTxHash) : undefined,
       txs: txs.map((t) => ({ kind: t.kind, txHash: t.txHash, status: t.status, via: t.submittedVia, url: explorerTx(t.txHash), at: t.createdAt })),
     },
     labels: { network: "testnet", seller: lp.org.label, relayer: relayerKind() },

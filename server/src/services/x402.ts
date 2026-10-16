@@ -51,6 +51,11 @@ export interface Authorization {
   nonce: Hex;
 }
 
+/** Facilitator payment identifier: 16 to 128 chars of [A-Za-z0-9_-], stable per (payer, requestId). */
+export function paymentIdentifier(payer: Address, requestId: string): string {
+  return "pay_" + keccak256(encodePacked(["address", "string"], [payer, requestId])).slice(2, 42);
+}
+
 export function paymentNonce(payer: Address, requestId: string, resource: string, amount: bigint): Hex {
   return keccak256(encodePacked(["address", "string", "string", "uint256"], [payer, requestId, resource, amount]));
 }
@@ -96,12 +101,15 @@ async function sellerProof(orgId: string, purpose: "verify" | "settle" | "status
   return { header: Buffer.from(JSON.stringify(envelope)).toString("base64url"), signer: account.address };
 }
 
-async function facilitator(orgId: string, path: "verify" | "settle", body: Record<string, unknown>, payTo: Address) {
-  const json = JSON.stringify(body);
-  const proof = await sellerProof(orgId, path, "POST", json, payTo);
-  const headers: Record<string, string> = { "content-type": "application/json", "Facilitator-Seller-Proof": proof.header };
+async function facilitator(orgId: string, path: "verify" | "settle" | `status/${string}`, body: Record<string, unknown> | null, payTo: Address) {
+  const method = body ? "POST" : "GET";
+  const json = body ? JSON.stringify(body) : "";
+  const purpose = path.startsWith("status") ? "status" : (path as "verify" | "settle");
+  const proof = await sellerProof(orgId, purpose, method, json, payTo);
+  const headers: Record<string, string> = { "Facilitator-Seller-Proof": proof.header };
+  if (body) headers["content-type"] = "application/json";
   if (env.CIRCLE_API_KEY) headers.authorization = `Bearer ${env.CIRCLE_API_KEY}`;
-  const res = await fetch(`${env.X402_FACILITATOR_URL}/${path}`, { method: "POST", headers, body: json });
+  const res = await fetch(`${env.X402_FACILITATOR_URL}/${path}`, { method, headers, body: body ? json : undefined });
   const text = await res.text();
   let data: Record<string, unknown> = {};
   try {
@@ -129,12 +137,13 @@ export async function payAndExecute(sellerSlug: string, productSlug: string, pay
   const rowId = existing?.id ?? id("ppc");
   if (!existing) await db.insert(schema.payPerCallPayments).values({ id: rowId, orgId: lp.org.id, productId: lp.row.id, payer: payer.toLowerCase(), requestId, resource, amount: price, nonce, status: "quoted" });
 
-  const paymentPayload = { x402Version: 2, resource: { url: resource, description: accepts.description, mimeType: accepts.mimeType }, accepted: { scheme: accepts.scheme, network: accepts.network, amount: accepts.amount, asset: accepts.asset, payTo: accepts.payTo, maxTimeoutSeconds: accepts.maxTimeoutSeconds, extra: { ...accepts.extra, assetTransferMethod: "eip3009" } }, payload: { signature: payment.signature, authorization: a }, extensions: { "payment-identifier": { info: { required: true, id: `${payer.toLowerCase()}:${requestId}` } } } };
+  const paymentPayload = { x402Version: 2, resource: { url: resource, description: accepts.description, mimeType: accepts.mimeType }, accepted: { scheme: accepts.scheme, network: accepts.network, amount: accepts.amount, asset: accepts.asset, payTo: accepts.payTo, maxTimeoutSeconds: accepts.maxTimeoutSeconds, extra: { ...accepts.extra, assetTransferMethod: "eip3009" } }, payload: { signature: payment.signature, authorization: a }, extensions: { "payment-identifier": { info: { required: true, id: paymentIdentifier(payer, requestId) } } } };
   const paymentRequirements = { scheme: accepts.scheme, network: accepts.network, amount: accepts.amount, asset: accepts.asset, payTo: accepts.payTo, maxTimeoutSeconds: accepts.maxTimeoutSeconds, extra: accepts.extra };
   const body = { x402Version: 2, paymentPayload, paymentRequirements };
 
   const v = await facilitator(lp.org.id, "verify", body, accepts.payTo as Address);
-  if (!v.ok || v.data.isValid === false) {
+  console.log("[x402 verify]", v.status, JSON.stringify(v.data).slice(0, 400));
+  if (!v.ok || v.data.isValid === false || v.data.success === false) {
     await db.update(schema.payPerCallPayments).set({ status: "failed", error: JSON.stringify(v.data).slice(0, 500), updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, rowId));
     throw new HttpError(402, "payment could not be verified by the facilitator", v.data);
   }
@@ -147,13 +156,44 @@ export async function payAndExecute(sellerSlug: string, productSlug: string, pay
     return { requestId, ...out, payment: { status: "not_charged", reason: out.status } };
   }
   const s = await facilitator(lp.org.id, "settle", body, accepts.payTo as Address);
-  const txHash = (s.data.transaction as string | undefined) ?? (s.data.txHash as string | undefined) ?? null;
-  const paymentId = (s.data.paymentId as string | undefined) ?? null;
-  const status = s.ok && (s.data.success === true || s.data.status === "settled" || txHash) ? "settled" : s.ok ? "executed" : "failed";
+  console.log("[x402 settle]", s.status, JSON.stringify(s.data).slice(0, 400));
+  // Circle facilitator (exact scheme): { success: true, transaction: "0x…" } or
+  // { success: false, errorReason: "settlement_pending", transaction: "", extensions: { "settlement-status": { status, paymentId, statusUrl } } }.
+  const tx = String(s.data.transaction ?? "");
+  const ext = (s.data.extensions as { "settlement-status"?: { status?: string; paymentId?: string } } | undefined)?.["settlement-status"];
+  const paymentId = ext?.paymentId ?? (s.data.paymentId as string | undefined) ?? null;
+  const pending = s.ok && s.data.success !== true && (s.data.errorReason === "settlement_pending" || ext?.status === "pending");
+  const settleOk = s.ok && s.data.success === true && Boolean(tx);
+  const status = settleOk ? "settled" : pending ? "pending" : "failed";
   const response = { requestId, ...out };
-  await db.update(schema.payPerCallPayments).set({ status, paymentId, settleTxHash: txHash, response, error: s.ok ? null : JSON.stringify(s.data).slice(0, 500), updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, rowId));
-  if (!s.ok) throw new HttpError(502, "service delivered but settlement failed; the authorization will expire unused", s.data);
-  return { ...response, payment: { paymentId, settleTxHash: txHash, status, facilitator: env.X402_FACILITATOR_URL, network: env.X402_NETWORK } };
+  await db.update(schema.payPerCallPayments).set({ status, paymentId, settleTxHash: tx || null, response, error: status === "failed" ? JSON.stringify(s.data).slice(0, 500) : null, updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, rowId));
+  if (status === "failed") throw new HttpError(502, `service delivered but the facilitator did not settle (${String(s.data.errorReason ?? s.status)}); the authorization expires unused and nothing was charged`, s.data);
+  return { ...response, payment: { paymentId, settleTxHash: tx || null, status, facilitator: env.X402_FACILITATOR_URL, network: env.X402_NETWORK, statusNote: pending ? "The facilitator accepted the payment and is settling it on Arc; the transaction hash appears once it lands." : undefined } };
+}
+
+/** Poll the facilitator for pending pay-per-call settlements and record the transaction once it lands. */
+export async function checkPendingPayments(): Promise<number> {
+  const rows = await db.select().from(schema.payPerCallPayments).where(eq(schema.payPerCallPayments.status, "pending"));
+  let n = 0;
+  for (const r of rows) {
+    if (!r.paymentId) continue;
+    try {
+      const collector = (await orgSignerAccount(r.orgId)).address;
+      const st = await facilitator(r.orgId, `status/${r.paymentId}`, null, collector);
+      const status = String(st.data.status ?? "");
+      const tx = String(st.data.transaction ?? "");
+      if (status === "completed" && tx) {
+        await db.update(schema.payPerCallPayments).set({ status: "settled", settleTxHash: tx, updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, r.id));
+        n++;
+      } else if (status === "failed") {
+        await db.update(schema.payPerCallPayments).set({ status: "failed", error: String(st.data.reason ?? "facilitator reported failure"), updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, r.id));
+        n++;
+      }
+    } catch (e) {
+      console.warn("[x402 status]", r.id, String((e as Error).message).slice(0, 160));
+    }
+  }
+  return n;
 }
 
 /** Runs the product adapter without a deal (no escrow metering). */

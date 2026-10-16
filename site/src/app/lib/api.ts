@@ -160,6 +160,7 @@ export const api = {
   /* Quotes */
   quote: (id: string, buyer?: string) => request<T.Quote>("GET", `/quotes/${enc(id)}${buyer ? `?buyer=${enc(buyer)}` : ""}`),
   acceptQuote: (id: string, body: { buyerAddress: string; buyerSignature: string }) => request<T.Deal>("POST", `/quotes/${enc(id)}/accept`, { body }),
+  rotateServiceKey: (dealId: string, body: { address: string; ts: number; signature: string }) => request<T.Deal>("POST", `/deals/${enc(dealId)}/service/rotate-key`, { body }),
 
   /* Deals (buyer) */
   deal: (id: string) => request<T.Deal>("GET", `/deals/${enc(id)}`),

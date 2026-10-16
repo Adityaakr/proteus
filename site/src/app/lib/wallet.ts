@@ -182,7 +182,7 @@ export async function signTransferAuthorization(client: WalletClient, req: PayAc
   const validBefore = BigInt(Math.floor(Date.now() / 1000) + Math.min(120, req.maxTimeoutSeconds || 120));
   const authorization: PayAuthorization = { from, to: getAddress(req.payTo), value: req.amount, validAfter: "0", validBefore: validBefore.toString(), nonce };
   const signature = await client.signTypedData({
-    account: from,
+    account: client.account ?? from,
     domain: { name: req.extra?.name ?? "USDC", version: req.extra?.version ?? "2", chainId, verifyingContract: getAddress(req.asset) },
     types: TRANSFER_WITH_AUTHORIZATION_TYPES,
     primaryType: "TransferWithAuthorization",

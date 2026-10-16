@@ -149,6 +149,23 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
 
   /* refund */
   const refund = useMutation({ mutationFn: () => api.requestRefund(deal.id) });
+  const rotate = useMutation({
+    mutationFn: async () => {
+      const c = await getWalletClient();
+      const address = c.account!.address;
+      const ts = Math.floor(Date.now() / 1000);
+      const signature = await c.signMessage({ account: c.account!, message: `PROTEUS rotate service key\ndeal: ${deal.id}\nts: ${ts}` });
+      return api.rotateServiceKey(deal.id, { address, ts, signature });
+    },
+    onSuccess: (d) => {
+      if (d.service.apiKey) {
+        setApiKey(d.service.apiKey);
+        setFreshKey(d.service.apiKey);
+        saveKey(deal.id, d.service.apiKey);
+      }
+      qc.setQueryData(qk.deal(deal.id), d);
+    },
+  });
 
   const receipts = usage?.receipts ?? [];
   const provisioned = deal.service.status === "provisioned";
@@ -201,7 +218,11 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
             {!provisioned ? (
               <Notice tone="info">The service is being provisioned. This page updates automatically.</Notice>
             ) : !apiKey ? (
-              <Notice tone="warn" title="API key not available in this browser">The key was shown once when the service was provisioned. Use the copy you saved.</Notice>
+              <div className={s.stack}>
+                <Notice tone="warn" title="API key not available in this browser">The key was shown once when the service was provisioned. Use the copy you saved, or issue a new one with a wallet signature (the old key stops working).</Notice>
+                <ActionButton variant="secondary" loading={rotate.isPending} loadingLabel="Signing" onClick={() => rotate.mutate()}>Issue a new key</ActionButton>
+                {rotate.error && <Notice tone="danger">{errorMessage(rotate.error)}</Notice>}
+              </div>
             ) : (
               <form onSubmit={submitTest} className={s.stack} noValidate>
                 <div className={s.formGrid}>

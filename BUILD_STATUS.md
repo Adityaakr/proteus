@@ -25,6 +25,10 @@ Updated 2026-10-16 (Tameion deadline: 2026-10-17 23:59 ET).
 
 DealEscrow deployed and verified at `0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`. Full loop executed with real transactions on 2026-10-16: see `docs/acceptance-report.md` (approve, fund, settle, close, refund; `deposit = settled + refunded`). The buyer was our own funded key, so this is proof of the loop, not customer traction.
 
+## Circle Facilitator Service (x402)
+
+Pay per call verified and settled by Circle's facilitator on Arc testnet (`docs/acceptance-report.md`). Pending settlements are polled on `/status/{paymentId}`.
+
 ## Account model (second pass)
 
 Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org seller signer, market, x402 pay-per-call endpoint. Server routes are live and tested with the dev bypass; the web rebuild is being integrated. See `docs/01-account-and-flow.md`.

@@ -31,10 +31,25 @@ All seven receipts return `status: success` (blocks 67510050 to 67510406). Final
 
 Explorer link for any hash: `https://explorer.testnet.arc.io/tx/<hash>`.
 
+## Second loop, driven from the browser (deal `deal_1z11abv0hrid`, record `/records/d_ig8ykrcxlp7j0168`)
+
+The same buyer key ran the product UI (dev key auth mode, which swaps the Privy wallet for a local key; every other code path is the production one):
+
+| Step | Transaction |
+| --- | --- |
+| Buyer wallet approves 15 USDC and calls `createAndFundDeal` itself (no relayer) | `0x45c566afd735ebae5d9f3dbef8b911636787ee1b338849fe25764e1c9cdf83f1` |
+| Buyer issues a service key with a wallet signature, sends a delivered request and a refund handoff (not billed), signs usage; relayer settles 1.25 USDC | `0xb4b9d98ff60151cd217bfd2673e4588529c82fcef499bc470ca5794d21de1436` |
+| Seller closes the term from the console session | `0xa4fee8bbdc86ee703778da03e02babac96a05344ada7371ee3e9d13886081adc` |
+| Refund of 13.75 USDC to the buyer, requested from the deal page | `0x56a346c09db7df90c3b26062af05946c82b8fb7b6ee5ba909c70006bdf6782e1` |
+
+## Pay per call through Circle's facilitator (x402, exact scheme)
+
+Buyer signed an EIP-3009 `TransferWithAuthorization` for exactly 1.5 USDC against the server-issued nonce; the server called `POST /verify` (`isValid: true`) and, after delivering the answer, `POST /settle` (`success: true`). The facilitator settled on Arc testnet: `0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8`. A retry with the same request id returned the stored result without a second settlement. This is real Circle Facilitator Service usage (keyless trial).
+
 ## What this does and does not prove
 
 - Proves: the deterministic margin check, dual-signed terms, escrow funding, metered delivery with non-billable failures, buyer-countersigned settlement, early close and refund all work on the real network with the real USDC interface, and the reconciler rebuilt balances from chain events.
-- Does not prove: customer traction (the buyer was our own key), the Circle developer-controlled wallet relayer (viem relayer ran; Circle credentials were not provided), or x402 settlement (needs a buyer with a funded embedded wallet in the browser).
+- Does not prove: customer traction (the buyer was our own key) or the Circle developer-controlled wallet relayer (viem relayer ran; Circle credentials were not provided). x402 settlement through Circle's facilitator is proven above.
 
 ## Reproduce
 
