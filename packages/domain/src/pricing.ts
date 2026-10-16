@@ -283,9 +283,12 @@ export function getQuoteCandidates(ctx: EvaluationContext, req: Requirements): C
     }
   }
 
-  // Sort: eligible first by contribution desc, then approval_required, then rejected.
+  // Sort: eligible first, then approval_required, then rejected. Within a status the candidate that matches
+  // what the buyer asked for comes first (their units, then their budget), then by contribution desc, so the
+  // recommended offer is the one sized to the request rather than the largest tier.
   const rank = (s: CandidateStatus) => (s === "eligible" ? 0 : s === "approval_required" ? 1 : 2);
-  return out.sort((a, b) => rank(a.status) - rank(b.status) || (b.economics.expectedContribution > a.economics.expectedContribution ? 1 : -1));
+  const fit = (c: Candidate) => (c.origins.includes("requested_units") ? 0 : c.origins.includes("budget_fit") ? 1 : 2);
+  return out.sort((a, b) => rank(a.status) - rank(b.status) || fit(a) - fit(b) || (b.economics.expectedContribution > a.economics.expectedContribution ? 1 : -1));
 }
 
 /* ------------------------------------------------------------------ */

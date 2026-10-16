@@ -1,20 +1,21 @@
-/** Moves the listed example products to the lower end of market pricing. Idempotent; seed files carry the same numbers. */
+/** Moves the listed example products to the lower end of market pricing, with no per-deal setup cost and no
+ * prepaid minimum, so a buyer can take one unit or ten at the same unit price. Idempotent; seed files carry the same numbers. */
 import { and, eq } from "drizzle-orm";
 import { toMicro } from "@proteus/domain";
 import { db, schema } from "../src/db";
 
 type Row = { org: string; slug: string; tiers: string[]; perCall: string; variable: string; direct: string; minUsd: string };
 const ROWS: Row[] = [
-  { org: "lantern-compliance", slug: "screening-checks", tiers: ["0.12", "0.08"], perCall: "0.20", variable: "0.03", direct: "5", minUsd: "10" },
-  { org: "ledgerline", slug: "invoice-processing", tiers: ["0.25", "0.18"], perCall: "0.35", variable: "0.07", direct: "5", minUsd: "10" },
-  { org: "lumen-voice", slug: "after-hours-answering", tiers: ["0.30", "0.22"], perCall: "0.40", variable: "0.09", direct: "5", minUsd: "10" },
-  { org: "lumen-voice", slug: "ai-receptionist", tiers: ["0.50"], perCall: "0.70", variable: "0.16", direct: "5", minUsd: "10" },
-  { org: "lumen-voice", slug: "callback-booking", tiers: ["0.15", "0.10"], perCall: "0.10", variable: "0.03", direct: "0", minUsd: "1" },
-  { org: "orbit-labs", slug: "embeddings", tiers: ["0.02", "0.015"], perCall: "0.03", variable: "0.006", direct: "1", minUsd: "5" },
-  { org: "orbit-labs", slug: "gpu-hours", tiers: ["1.90", "1.60"], perCall: "2.20", variable: "0.95", direct: "10", minUsd: "20" },
-  { org: "orbit-labs", slug: "inference-capacity", tiers: ["0.30", "0.22"], perCall: "0.40", variable: "0.09", direct: "2", minUsd: "10" },
-  { org: "pilotlight-ops", slug: "operator-tasks", tiers: ["0.60", "0.45"], perCall: "0.80", variable: "0.18", direct: "5", minUsd: "10" },
-  { org: "tessera-vendors", slug: "vendor-evaluations", tiers: ["0.60", "0.45"], perCall: "0.80", variable: "0.18", direct: "2", minUsd: "10" },
+  { org: "lantern-compliance", slug: "screening-checks", tiers: ["0.12", "0.08"], perCall: "0.20", variable: "0.03", direct: "0", minUsd: "0" },
+  { org: "ledgerline", slug: "invoice-processing", tiers: ["0.25", "0.18"], perCall: "0.35", variable: "0.07", direct: "0", minUsd: "0" },
+  { org: "lumen-voice", slug: "after-hours-answering", tiers: ["0.30", "0.22"], perCall: "0.40", variable: "0.09", direct: "0", minUsd: "0" },
+  { org: "lumen-voice", slug: "ai-receptionist", tiers: ["0.50"], perCall: "0.70", variable: "0.16", direct: "0", minUsd: "0" },
+  { org: "lumen-voice", slug: "callback-booking", tiers: ["0.15", "0.10"], perCall: "0.10", variable: "0.03", direct: "0", minUsd: "0" },
+  { org: "orbit-labs", slug: "embeddings", tiers: ["0.02", "0.015"], perCall: "0.03", variable: "0.006", direct: "0", minUsd: "0" },
+  { org: "orbit-labs", slug: "gpu-hours", tiers: ["1.90", "1.60"], perCall: "2.20", variable: "0.95", direct: "0", minUsd: "0" },
+  { org: "orbit-labs", slug: "inference-capacity", tiers: ["0.30", "0.22"], perCall: "0.40", variable: "0.09", direct: "0", minUsd: "0" },
+  { org: "pilotlight-ops", slug: "operator-tasks", tiers: ["0.60", "0.45"], perCall: "0.80", variable: "0.18", direct: "0", minUsd: "0" },
+  { org: "tessera-vendors", slug: "vendor-evaluations", tiers: ["0.60", "0.45"], perCall: "0.80", variable: "0.18", direct: "0", minUsd: "0" },
 ];
 
 async function main() {
