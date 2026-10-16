@@ -68,6 +68,11 @@ export default function Market() {
         </div>
       </div>
 
+      {sellers.some((s) => s.label !== "live") && (
+        <p className={m.note}>
+          <strong>Example sellers</strong> are modeled on the segments the tools in our comparison serve: usage-based AI infrastructure, API-first data and fintech startups, legal and SaaS scale-ups, and operations teams. They carry PROTEUS's own marks, run an illustrative service, and every deal on them is a real Arc testnet transaction.
+        </p>
+      )}
       {q.isLoading ? (
         <div className={m.sellerGrid}>
           <LoadingCard lines={4} />
@@ -99,7 +104,7 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
         <div className={m.sellerId}>
           <div className={m.sellerName}>
             <Link to={`/app/market/${s.slug}`} className={m.sellerLink}>{wide ? <SellerMark name={s.name} brand={s.brand} variant="wordmark" size="md" /> : s.name}</Link>
-            {demo ? <span className={m.badgeMuted}>Demo seller</span> : <span className={m.badgeOk}><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
+            {demo ? <span className={m.badgeMuted}>Example seller</span> : <span className={m.badgeOk}><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
           </div>
           <div className={m.sellerMeta}>
             {s.brand.category && <span>{categoryLabel(s.brand.category)}</span>}

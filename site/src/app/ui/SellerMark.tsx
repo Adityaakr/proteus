@@ -5,6 +5,8 @@ import s from "./ui.module.css";
 export const CATEGORY_LABELS: Record<string, string> = {
   support: "Customer support",
   voice: "Voice and calls",
+  infra: "AI infrastructure",
+  devtools: "Developer tools",
   logistics: "Logistics",
   data: "Data",
   legal: "Legal",

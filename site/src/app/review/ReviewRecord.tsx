@@ -40,7 +40,7 @@ export default function ReviewRecord() {
             eyebrow={
               <>
                 <StatusTag network={q.data.labels.network} />
-                <StatusTag network={q.data.labels.seller === "sandbox" ? "sandbox" : "live"} label={q.data.labels.seller === "sandbox" ? "Demo seller" : "Live seller"} />
+                <StatusTag network={q.data.labels.seller === "sandbox" ? "sandbox" : "live"} label={q.data.labels.seller === "sandbox" ? "Example seller" : "Live seller"} />
                 <span className="body3">Record {publicId}</span>
               </>
             }

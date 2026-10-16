@@ -29,9 +29,9 @@ export default function Settings() {
       <PageHeader description="Your seller org, the key that signs on its behalf, and where payouts go." />
 
       {sandbox && (
-        <Notice tone="info" title="Demo seller">
+        <Notice tone="info" title="Example seller">
           <span className={s.row}>
-            <StatusTag network="sandbox" label="Demo seller" icon={<FlaskConical size={12} />} />
+            <StatusTag network="sandbox" label="Example seller" icon={<FlaskConical size={12} />} />
             This is the seeded demo seller with a sample order store. Its deals run on Arc testnet for real but never count toward live totals.
           </span>
         </Notice>
@@ -109,7 +109,7 @@ export default function Settings() {
             items={[
               { k: "Name", v: me.org.name },
               { k: "Slug", v: <MonoValue value={me.org.slug} /> },
-              { k: "Label", v: <StatusTag network={sandbox ? "sandbox" : "live"} label={sandbox ? "Demo seller" : "Live seller"} /> },
+              { k: "Label", v: <StatusTag network={sandbox ? "sandbox" : "live"} label={sandbox ? "Example seller" : "Live seller"} /> },
               { k: "Your role", v: "Owner" },
             ]}
           />

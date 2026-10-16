@@ -77,7 +77,7 @@ export interface ProductWithPrivate {
   active?: boolean;
   /** Service adapter key from the API ("http" or "order-support"). */
   adapter?: string;
-  service?: { kind: "http"; url: string | null; authHeader: string | null; hasSecret: boolean } | { kind: "sample-store" };
+  service?: { kind: "http"; url: string | null; authHeader: string | null; hasSecret: boolean } | { kind: "sample-store" } | { kind: "example" };
   billableUnit: string;
   unitLabel: string;
   supportedIntegrations: string[];

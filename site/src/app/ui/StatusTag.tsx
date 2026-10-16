@@ -12,7 +12,7 @@ export type StatusTone = "neutral" | "info" | "success" | "warn" | "danger";
 export type NetworkKind = "sandbox" | "testnet" | "mainnet" | "illustrative" | "live";
 
 export const NETWORK_LABELS: Record<NetworkKind, string> = {
-  sandbox: "Demo",
+  sandbox: "Example",
   testnet: "Testnet",
   mainnet: "Mainnet",
   illustrative: "Illustrative",

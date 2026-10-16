@@ -50,7 +50,7 @@ export interface SellerStats {
   since: IsoTime;
 }
 
-export type ServiceKind = "seller-endpoint" | "sample-store";
+export type ServiceKind = "seller-endpoint" | "sample-store" | "example";
 
 export interface PublicProduct {
   slug: string;

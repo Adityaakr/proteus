@@ -78,7 +78,7 @@ export function SellerShell({ nav, children, title, orgLabel = "sandbox", orgNam
             {typeof heading === "string" ? <h1 className="h5">{heading}</h1> : heading}
           </div>
           {actions}
-          <StatusTag network={orgLabel === "sandbox" ? "sandbox" : "live"} label={orgLabel === "sandbox" ? "Demo seller" : "Live seller"} />
+          <StatusTag network={orgLabel === "sandbox" ? "sandbox" : "live"} label={orgLabel === "sandbox" ? "Example seller" : "Live seller"} />
           <span className="hide-phone"><NetworkBadge /></span>
         </header>
         <main id="seller-main" tabIndex={-1} className={s.sellerMain}>

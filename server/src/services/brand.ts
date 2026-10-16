@@ -13,7 +13,7 @@ export interface Brand {
   accent?: string;
 }
 
-export const CATEGORIES = ["support", "voice", "logistics", "data", "legal", "risk", "media", "finance", "health", "other"] as const;
+export const CATEGORIES = ["support", "voice", "infra", "devtools", "logistics", "data", "legal", "risk", "media", "finance", "health", "other"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 const MAX_DATA_URL = 96 * 1024;

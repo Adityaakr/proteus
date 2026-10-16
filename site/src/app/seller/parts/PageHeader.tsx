@@ -37,7 +37,7 @@ export function PageHeader({ title, description, back, status, actions, labels =
         {description && <p className="body3">{description}</p>}
         {labels && (
           <div className={s.labels}>
-            <StatusTag network={sellerLabel === "live" ? "live" : "sandbox"} label={sellerLabel === "live" ? "Live seller" : "Demo seller"} />
+            <StatusTag network={sellerLabel === "live" ? "live" : "sandbox"} label={sellerLabel === "live" ? "Live seller" : "Example seller"} />
             <StatusTag network="testnet" label="Arc testnet" />
           </div>
         )}

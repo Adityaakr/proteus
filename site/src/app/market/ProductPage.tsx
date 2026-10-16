@@ -79,7 +79,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
           <div className={d.sellerRow}>
             {wide ? <SellerMark name={seller.name} brand={seller.brand} variant="wordmark" size="sm" /> : <><SellerMark name={seller.name} brand={seller.brand} size="sm" /><span className={d.sellerName}>{seller.name}</span></>}
             {demo ? (
-              <span className={d.badgeMuted}>Demo seller</span>
+              <span className={d.badgeMuted}>Example seller</span>
             ) : (
               <span className={d.badgeOk}><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>
             )}
@@ -91,7 +91,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
             {bestUnit && <li><CircleDollarSign size={13} aria-hidden />From <Money usd={bestUnit} digits={decimalsFor(bestUnit)} /> per {product.unitLabel}</li>}
             {product.payPerCallUsd && <li><Zap size={13} aria-hidden /><Money usd={product.payPerCallUsd} digits={decimalsFor(product.payPerCallUsd)} /> per call</li>}
             <li><ShieldCheck size={13} aria-hidden />Escrow on Arc testnet</li>
-            <li><Server size={13} aria-hidden />{product.service === "seller-endpoint" ? "Seller-run endpoint" : "Sample order store"}</li>
+            <li><Server size={13} aria-hidden />{product.service === "seller-endpoint" ? "Seller-run endpoint" : product.service === "example" ? "Illustrative service" : "Sample order store"}</li>
             {category && <li>{categoryLabel(category)}</li>}
           </ul>
         </header>
@@ -186,7 +186,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
             </dl>
             <p className={d.fine}>
               {demo
-                ? "A demo seller seeded by PROTEUS. Deals on it are real Arc testnet transactions; its answers are illustrative."
+                ? "An example seller, modeled on a real customer segment, with PROTEUS's own brand. Deals on it are real Arc testnet transactions; its service answers are illustrative and it never counts toward live totals."
                 : "The owner signed in, published these terms and holds the payout wallet. The service answers from the seller's own endpoint."}
             </p>
           </div>
