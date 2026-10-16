@@ -178,6 +178,8 @@ export const partners = {
     { number: "02", title: "AI voice. Turn a messy requirement into a clear offer: call volume, minutes, concurrency, commitments." },
     { number: "03", title: "AI inference and compute. Sell capacity to real demand: workload, model, compute cost, term." },
     { number: "04", title: "APIs and developer infrastructure. Answer developers without a sales call: coverage, rate limits, volume, terms." },
+    { number: "05", title: "AP and AR automation. Price the work by invoice, not by seat: volume, approval rules, exceptions, term." },
+    { number: "06", title: "Compliance and screening. Sell checks per counterparty: coverage, turnaround, retention, volume." },
   ],
 };
 
