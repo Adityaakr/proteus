@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Search, Store } from "lucide-react";
+import { ArrowRight, BadgeCheck, Search, Store } from "lucide-react";
 import { motion } from "framer-motion";
 import { T_DEFAULT } from "../../lib/motion";
 import { AppShell } from "../layouts/AppShell";
@@ -103,6 +103,7 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
         <div className={m.sellerId}>
           <div className={m.sellerName}>
             <Link to={`/app/market/${s.slug}`} className={m.sellerLink}>{wide ? <SellerMark name={s.name} brand={s.brand} variant="wordmark" size="md" /> : s.name}</Link>
+            {s.brand.verified && <span className={m.badgeOk} title="Verified by PROTEUS: identity and endpoint checked by the platform operator"><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
           </div>
           <div className={m.sellerMeta}>
             {s.brand.category && <span>{categoryLabel(s.brand.category)}</span>}

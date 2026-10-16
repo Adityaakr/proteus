@@ -40,6 +40,8 @@ export interface SellerBrand {
   category?: string;
   website?: string;
   accent?: string;
+  /** Verified by PROTEUS (platform-set). */
+  verified?: boolean;
 }
 
 /** Real per-seller numbers from the deals table (micro-USDC strings). */

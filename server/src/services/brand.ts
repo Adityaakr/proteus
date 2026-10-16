@@ -11,6 +11,8 @@ export interface Brand {
   website?: string;
   /** Accent hex color for the monogram, e.g. "#1b4dff". */
   accent?: string;
+  /** Set by the platform operator, never by the seller's own brand form. */
+  verified?: boolean;
 }
 
 export const CATEGORIES = ["support", "voice", "infra", "devtools", "treasury", "payables", "vendors", "operations", "compliance", "logistics", "data", "legal", "risk", "media", "finance", "health", "other"] as const;
@@ -120,6 +122,7 @@ export async function updateBrand(orgId: string, patch: { name?: string; brand?:
   if (!org) throw new HttpError(404, "org not found");
   const current = (org.brand as Brand | null) ?? {};
   const next = validateBrand({ ...current, ...(patch.brand ?? {}) }) ?? current;
+  if (current.verified) next.verified = true;
   // Explicit empty strings clear a field.
   for (const k of ["logoUrl", "markUrl", "tagline", "category", "website", "accent"] as const) if (patch.brand && patch.brand[k] === "") delete next[k];
   const name = patch.name?.trim();

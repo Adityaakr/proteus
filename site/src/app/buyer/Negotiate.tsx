@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type Keyb
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Check, ChevronRight, Loader2, SendHorizontal, User } from "lucide-react";
+import { BadgeCheck, Check, ChevronRight, Loader2, SendHorizontal, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SellerMark, possessive, useLogoShape } from "../ui/SellerMark";
 import type { SellerBrand } from "../lib/types";
@@ -196,6 +196,7 @@ export default function Negotiate() {
         </nav>
         <div className={n.sellerRow}>
           {wideLogo ? <SellerMark name={sellerName} brand={neg.sellerBrand} variant="wordmark" size="sm" /> : <><SellerMark name={sellerName} brand={neg.sellerBrand} size="sm" /><span className={n.sellerName}>{sellerName}</span></>}
+          {neg.sellerBrand?.verified && <span className={n.badgeOk} title="Verified by PROTEUS"><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
           <span className={neg.status === "closed" ? n.badgeMuted : n.badgeState}>{neg.status === "open" ? "Open" : neg.status === "quoted" ? "Offers ready" : neg.status === "accepted" ? "Accepted" : "Closed"}</span>
         </div>
         <div className={n.titleRow}>
