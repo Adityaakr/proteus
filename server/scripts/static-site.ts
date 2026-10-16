@@ -38,4 +38,4 @@ app.all("/api/*", async (c) => {
 });
 app.use("/*", serveStatic({ root: relative(process.cwd(), dist) }));
 app.get("/*", (c) => c.html(shell));
-serve({ fetch: app.fetch, port }, () => console.log(`[static] site on :${port}${apiOrigin ? `, /api forwarded to ${apiOrigin}` : ", /api answers 503 until DATABASE_URL or API_ORIGIN is set"}`));
+serve({ fetch: app.fetch, port, hostname: "::" }, () => console.log(`[static] site on :${port}${apiOrigin ? `, /api forwarded to ${apiOrigin}` : ", /api answers 503 until DATABASE_URL or API_ORIGIN is set"}`));

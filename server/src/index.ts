@@ -68,7 +68,7 @@ app.onError((err, c) => {
   return json(c, { error: msg.slice(0, 400) }, status);
 });
 
-serve({ fetch: app.fetch, port: env.PORT }, (info) => {
+serve({ fetch: app.fetch, port: env.PORT, hostname: "::" }, (info) => {
   console.log(`Proteus AI api on http://localhost:${info.port} | agent=${agentAdapterName()} relayer=${relayerKind()} escrow=${env.ESCROW_ADDRESS ?? "unset"}`);
   startReconciler();
   setInterval(() => import("./services/x402").then((m) => m.checkPendingPayments()).catch(() => {}), 15_000);
