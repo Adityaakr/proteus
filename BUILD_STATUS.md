@@ -67,6 +67,10 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 
 - New light section `site/src/sections/Compare.tsx` between Differentiation and Security: headline, seven capabilities, PROTEUS in a faint accent first column, then DealHub, Pactum AI, Nue, Sequence, Metronome as plain typographic names linking to their sites (no third-party logos). Marks are Yes / Partial / Not core focus with a short qualifier where the plain word would overstate; assessed from each vendor's public product pages (searched 2026-10-16). PROTEUS marks only what is implemented; USDC is labeled Arc testnet. Phone layout is one card per product. Closing line and footnote included.
 
+## Model-written negotiation (2026-10-16, late)
+
+- OpenRouter key configured in `server/.env` (untracked); the agent adapter reports `openrouter:anthropic/claude-sonnet-4.5`. A real turn on Lumen Voice's product returned a plain-prose reply naming three policy-checked offers; prompts now forbid markdown so the chat renders cleanly.
+
 ## Blocked on inputs from Aditya
 
 1. Done: deployer and relayer funded, escrow deployed, loop executed on testnet.
