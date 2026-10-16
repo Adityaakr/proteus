@@ -1,0 +1,16 @@
+{
+  "name": "@proteus/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "arc-forge build",
+    "test": "arc-forge test -vv",
+    "typecheck": "echo skip",
+    "deploy:testnet": "arc-forge script script/Deploy.s.sol --rpc-url ${ARC_TESTNET_RPC_URL:-https://rpc.testnet.arc.io} --private-key $DEPLOYER_PRIVATE_KEY --broadcast",
+    "verify:testnet": "arc-forge verify-contract $ESCROW_ADDRESS src/DealEscrow.sol:DealEscrow --chain-id 5042002 --verifier blockscout --verifier-url https://explorer.testnet.arc.io/api/",
+    "abi": "node scripts/export-abi.cjs"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "5.6.1"
+  }
+}

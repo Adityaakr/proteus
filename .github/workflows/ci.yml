@@ -1,0 +1,57 @@
+name: ci
+
+on:
+  push:
+    branches: [main, "feat/**"]
+  pull_request:
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: proteus
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @proteus/domain typecheck && pnpm --filter @proteus/domain test
+      - run: pnpm --filter @proteus/server typecheck && pnpm --filter @proteus/server test
+      - run: cd site && npx tsc -p tsconfig.app.json --noEmit && pnpm build
+      - name: schema push + seed against the CI database
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/proteus
+        run: pnpm --filter @proteus/server db:push && pnpm --filter @proteus/server db:seed
+
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: pnpm install --frozen-lockfile --filter @proteus/contracts
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - run: cd contracts && forge test -vv

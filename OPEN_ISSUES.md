@@ -1,0 +1,11 @@
+# OPEN_ISSUES
+
+- **Testnet deployment pending funds.** No Arc testnet transaction hashes exist yet. The e2e proof so far is on local Arc anvil (chain 31337). Do not present it as testnet traction.
+- **Circle relayer unverified.** `createContractExecutionTransaction` with `callData` on `ARC-TESTNET` is implemented from the installed SDK types but has not been executed. Until it runs, Circle usage must be reported as "integrated, not yet exercised". The viem relayer is the verified path.
+- **Seller signer is server-held for the sandbox seller.** This is the "owner-approved, narrowly delegated seller signer" the spec allows. A real seller should sign Terms from their own wallet (SIWE console login + browser signing), which is not built.
+- **Permit / EIP-3009 on Arc USDC unverified.** Funding uses `approve` + `transferFrom` (two buyer transactions). Verify `permit` support on `0x3600…0000` to collapse to one.
+- **Grace window vs late receipts.** Settlement after `end + grace` reverts by design; a receipt submitted late is not settleable. Sellers should settle before the window closes. Documented in `docs/settlement-model.md`.
+- **Reconciler scans the last 5,000 blocks on first run.** Deals funded earlier than that before the API first saw them would need a manual backfill.
+- **Rule-based extraction is regex based.** Numbers in unusual phrasing may be missed; the agent then asks a clarifying question rather than guessing.
+- **No rate limiting on public routes yet.** Add before any public deployment.
+- **Blocklisted payee DoS.** If a seller payee is blocklisted on Arc, settlement reverts (Arc transfer rules). The arbiter path can route funds to the buyer; no seller-side recovery exists.

@@ -73,6 +73,7 @@
 
   --font-heading: "Satoshi", "PP Neue Montreal", "Geist", system-ui, sans-serif;
   --font-body: "Geist", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Geist Mono", Menlo, Consolas, monospace;
 
   /* Breakpoints (Framer): Desktop >=1200, Tablet 810-1199.98, Phone <=809.98 */
   --bp-tablet: 1199.98px;
