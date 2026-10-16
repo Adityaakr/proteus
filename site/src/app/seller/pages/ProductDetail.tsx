@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Calculator } from "lucide-react";
 import type { CostUpdateBody, PolicyUpdateBody } from "@proteus/domain";
 import { ActionButton, Card, Field, Money, Notice, StatusTag } from "../kit";
-import { usePreview, useProduct, useUpdateCost, useUpdatePolicy } from "../api";
+import { useDeleteProduct, usePreview, useProduct, useSetListing, useUpdateCost, useUpdatePolicy } from "../api";
 import { QueryView } from "../parts/QueryView";
 import { PageHeader } from "../parts/PageHeader";
 import { SellerOnly } from "../parts/SellerOnly";
@@ -26,9 +26,38 @@ export default function ProductDetail() {
   );
 }
 
+function Listing({ p }: { p: ProductWithPrivate }) {
+  const navigate = useNavigate();
+  const listing = useSetListing(p.id);
+  const del = useDeleteProduct();
+  const [confirm, setConfirm] = useState(false);
+  const listed = p.active !== false;
+  return (
+    <Card title="Listing" subtitle={listed ? "Buyers can find this product in the market and start negotiations." : "Hidden from the market. Existing deals, keys and metering keep working."} actions={<StatusTag tone={listed ? "success" : "neutral"} label={listed ? "Listed" : "Hidden"} />}>
+      <div className={s.row}>
+        <ActionButton variant="secondary" size="sm" loading={listing.isPending} loadingLabel={listed ? "Hiding" : "Listing"} onClick={() => listing.mutate(!listed)}>
+          {listed ? "Remove from market" : "List in market"}
+        </ActionButton>
+        {!confirm ? (
+          <button type="button" className={s.link} onClick={() => setConfirm(true)}>Delete product</button>
+        ) : (
+          <span className={s.row}>
+            <span className="body3">Delete permanently? Only possible while nothing references it.</span>
+            <ActionButton variant="danger" size="sm" loading={del.isPending} loadingLabel="Deleting" onClick={() => del.mutate(p.id, { onSuccess: () => navigate("/app/sell/products") })}>Yes, delete</ActionButton>
+            <button type="button" className={s.link} onClick={() => setConfirm(false)}>Keep it</button>
+          </span>
+        )}
+      </div>
+      {listing.isError && <Notice tone="danger">{errorMessage(listing.error)}</Notice>}
+      {del.isError && <Notice tone="warn">{errorMessage(del.error)}</Notice>}
+    </Card>
+  );
+}
+
 function ProductBody({ p }: { p: ProductWithPrivate }) {
   return (
     <>
+      <Listing p={p} />
       <PublicProduct p={p} />
       <PrivateSummary p={p} />
       <div className={s.grid2}>

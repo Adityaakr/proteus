@@ -76,7 +76,7 @@ export function stringifyBigSafe(v: unknown): string {
   return JSON.stringify(v, (_k, val) => (typeof val === "bigint" ? val.toString() : val));
 }
 
-type Method = "GET" | "POST" | "PATCH";
+type Method = "GET" | "POST" | "PATCH" | "DELETE";
 
 /**
  * Access token source for `Authorization: Bearer`. PrivyAppProvider registers Privy's
@@ -216,6 +216,8 @@ export const api = {
     signer: () => request<T.SignerInfo>("GET", "/app/signer"),
     revokeSigner: () => request<{ revokedAt: T.IsoTime; note?: string; [k: string]: unknown }>("POST", "/app/signer/revoke", { body: {} }),
     createProduct: (body: T.ProductCreateBody) => request<T.ProductWithPrivate>("POST", "/app/products", { body }),
+    setListing: (id: string, active: boolean) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/listing`, { body: { active } }),
+    deleteProduct: (id: string) => request<{ deleted: string }>("DELETE", `/app/products/${enc(id)}`),
     dashboard: () => request<import("../seller/console").Dashboard>("GET", "/app/dashboard"),
     customers: () => request<import("../seller/console").Customer[]>("GET", "/app/customers"),
     usage: () => request<import("../seller/console").Usage>("GET", "/app/usage"),

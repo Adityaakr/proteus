@@ -28,6 +28,8 @@ export const sellerApi = {
   deal: async (id: string) => N.deal(await api.app.deal(id)),
   closeTerm: (id: string) => api.app.closeTerm(id),
   finance: async () => N.finance(await api.app.finance()),
+  setListing: async (id: string, active: boolean) => N.product(await api.app.setListing(id, active)),
+  deleteProduct: (id: string) => api.app.deleteProduct(id),
   dashboard: () => api.app.dashboard(),
   customers: () => api.app.customers(),
   usage: () => api.app.usage(),
@@ -62,6 +64,14 @@ export const useApprovals = () => useQuery({ queryKey: K.approvals, queryFn: sel
 export const useDeals = () => useQuery({ queryKey: K.deals, queryFn: sellerApi.deals, retry });
 export const useDeal = (id: string) => useQuery({ queryKey: K.deal(id), queryFn: () => sellerApi.deal(id), retry });
 export const useFinance = () => useQuery({ queryKey: K.finance, queryFn: sellerApi.finance, retry });
+export function useSetListing(id: string) {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (active: boolean) => sellerApi.setListing(id, active), onSuccess: (p) => { qc.setQueryData(K.product(id), p); qc.invalidateQueries({ queryKey: K.products }); qc.invalidateQueries({ queryKey: ["market"] }); } });
+}
+export function useDeleteProduct() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: string) => sellerApi.deleteProduct(id), onSuccess: () => { qc.invalidateQueries({ queryKey: K.products }); qc.invalidateQueries({ queryKey: ["market"] }); } });
+}
 export const useDashboard = () => useQuery({ queryKey: K.dashboard, queryFn: sellerApi.dashboard, retry });
 export const useCustomers = () => useQuery({ queryKey: K.customers, queryFn: sellerApi.customers, retry });
 export const useUsage = () => useQuery({ queryKey: K.usage, queryFn: sellerApi.usage, retry });

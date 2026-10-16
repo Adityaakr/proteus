@@ -47,6 +47,7 @@ export function product(raw: W.ProductWithPrivate | Loose): ProductWithPrivate {
     slug: String(r.slug),
     name: String(r.name),
     adapter: typeof r.adapter === "string" ? r.adapter : undefined,
+    active: typeof r.active === "boolean" ? r.active : true,
     service: (r.service as ProductWithPrivate["service"]) ?? undefined,
     billableUnit: String(r.billableUnit ?? ""),
     unitLabel: String(r.unitLabel ?? "unit"),

@@ -31,7 +31,8 @@ export default function Products() {
                       subtitle={p.billableUnit}
                       actions={
                         <span className={s.row}>
-                          <StatusTag state="active" label={`${tiers.length} public tiers`} />
+                          {p.active === false ? <StatusTag tone="neutral" label="Hidden from market" /> : <StatusTag tone="success" label="Listed" />}
+                          <span className="body3">{tiers.length} public tiers</span>
                           <ArrowRight size={18} aria-hidden style={{ color: "var(--c-dark-60)" }} />
                         </span>
                       }

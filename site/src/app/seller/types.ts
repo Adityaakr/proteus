@@ -73,6 +73,8 @@ export interface ProductWithPrivate {
   id: string;
   slug: string;
   name: string;
+  /** Listed in the market. Hidden products keep serving existing deals. */
+  active?: boolean;
   /** Service adapter key from the API ("http" or "order-support"). */
   adapter?: string;
   service?: { kind: "http"; url: string | null; authHeader: string | null; hasSecret: boolean } | { kind: "sample-store" };

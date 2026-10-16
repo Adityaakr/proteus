@@ -59,7 +59,7 @@ async function productWithPrivate(orgId: string, productId: string) {
   ];
   const pub = publicProduct(lp);
   const up = lp.row.upstream as { url?: string; authHeader?: string; secretEnc?: string } | null;
-  return { ...pub, id: lp.row.id, adapter: lp.row.adapter, service: lp.row.adapter === "http" ? { kind: "http", url: up?.url ?? null, authHeader: up?.authHeader ?? null, hasSecret: Boolean(up?.secretEnc) } : { kind: "sample-store" }, maxUnitsPerDeal: lp.product.maxUnitsPerDeal, public: pub, cost: lp.cost, policy: lp.policy, costHistory: costs, policyHistory: pols, preview, previewCases: preview, labels: { seller: lp.org.label, private: "Seller only. Never shown to buyers." } };
+  return { ...pub, id: lp.row.id, active: lp.row.active, adapter: lp.row.adapter, service: lp.row.adapter === "http" ? { kind: "http", url: up?.url ?? null, authHeader: up?.authHeader ?? null, hasSecret: Boolean(up?.secretEnc) } : { kind: "sample-store" }, maxUnitsPerDeal: lp.product.maxUnitsPerDeal, public: pub, cost: lp.cost, policy: lp.policy, costHistory: costs, policyHistory: pols, preview, previewCases: preview, labels: { seller: lp.org.label, private: "Seller only. Never shown to buyers." } };
 }
 
 appRoutes.get("/app/products", async (c) => {
@@ -71,6 +71,35 @@ appRoutes.get("/app/products", async (c) => {
 });
 
 appRoutes.get("/app/products/:id", async (c) => json(c, await productWithPrivate(session(c).orgId, c.req.param("id"))));
+
+/** Listing on or off. Hidden products leave the market; existing deals and keys keep working. */
+appRoutes.patch("/app/products/:id/listing", async (c) => {
+  const { orgId } = session(c);
+  const body = (await c.req.json()) as { active?: boolean };
+  if (typeof body.active !== "boolean") throw new HttpError(400, "active must be true or false");
+  const [row] = await db.select().from(schema.products).where(and(eq(schema.products.id, c.req.param("id")), eq(schema.products.orgId, orgId)));
+  if (!row) throw new HttpError(404, "product not found");
+  await db.update(schema.products).set({ active: body.active }).where(eq(schema.products.id, row.id));
+  return json(c, await productWithPrivate(orgId, row.id));
+});
+
+/** Permanent removal, only when nothing references the product. Otherwise unpublish instead. */
+appRoutes.delete("/app/products/:id", async (c) => {
+  const { orgId } = session(c);
+  const id = c.req.param("id");
+  const [row] = await db.select().from(schema.products).where(and(eq(schema.products.id, id), eq(schema.products.orgId, orgId)));
+  if (!row) throw new HttpError(404, "product not found");
+  const [deals] = await db.select({ n: dsql<number>`count(*)` }).from(schema.deals).where(eq(schema.deals.productId, id));
+  const [negs] = await db.select({ n: dsql<number>`count(*)` }).from(schema.negotiations).where(eq(schema.negotiations.productId, id));
+  const [ppc] = await db.select({ n: dsql<number>`count(*)` }).from(schema.payPerCallPayments).where(eq(schema.payPerCallPayments.productId, id));
+  if (Number(deals?.n ?? 0) + Number(negs?.n ?? 0) + Number(ppc?.n ?? 0) > 0) {
+    throw new HttpError(409, "this product has negotiations, deals or paid calls on record; unpublish it instead so those records stay intact");
+  }
+  await db.delete(schema.policies).where(eq(schema.policies.productId, id));
+  await db.delete(schema.costModels).where(eq(schema.costModels.productId, id));
+  await db.delete(schema.products).where(eq(schema.products.id, id));
+  return json(c, { deleted: id });
+});
 
 appRoutes.post("/app/products/:id/preview", async (c) => {
   const { orgId } = session(c);
