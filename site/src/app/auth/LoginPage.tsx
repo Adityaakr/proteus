@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LogIn, Mail, Wallet } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { T_DEFAULT } from "../../lib/motion";
 import { Wordmark } from "../layouts/Wordmark";
-import { SandboxNote } from "../layouts/SandboxNote";
 import { ActionButton } from "../ui/ActionButton";
 import { Card } from "../ui/Card";
+import { ArcMark } from "../ui/Marks";
 import { useAuth } from "./useAuth";
 import { safeNext } from "./RequireAuth";
 import "../app.css";
@@ -51,17 +51,12 @@ export default function LoginPage() {
           <Card>
             <div className={s.head}>
               <h1 className={s.title}>Sign in to PROTEUS</h1>
-              <p className="body2">One account to buy and sell AI services. Signing in creates a wallet for you on Arc testnet, so you can fund deals and get paid from one balance.</p>
+              <p className="body2">One account to buy and sell AI services, with a wallet created for you at sign-in.</p>
             </div>
-            <ul className={s.methods}>
-              <li><Mail size={16} strokeWidth={2} aria-hidden /> Email or Google</li>
-              <li><Wallet size={16} strokeWidth={2} aria-hidden /> Or a wallet you already use</li>
-            </ul>
             <ActionButton size="lg" fullWidth onClick={go} loading={!ready} loadingLabel="Loading" iconLeft={<LogIn size={16} strokeWidth={2} />}>
               {mock ? "Continue as the demo user" : "Sign in"}
             </ActionButton>
-            <SandboxNote />
-            <p className="body3">Embedded wallet. Your key is split between a hardware enclave and your login. You can export it from the account menu. PROTEUS never holds your key.</p>
+            <p className={s.builtOn}><span>Built on</span><ArcMark size={14} /><span>Arc</span></p>
           </Card>
         </motion.div>
       </main>

@@ -36,7 +36,7 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
     <PrivyProvider
       appId={PRIVY_APP_ID}
       config={{
-        loginMethods: ["email", "google", "wallet"],
+        loginMethods: ["email", "wallet"],
         embeddedWallets: { ethereum: { createOnLogin: "all-users" } },
         defaultChain: walletChain,
         supportedChains: [walletChain],
