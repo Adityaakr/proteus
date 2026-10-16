@@ -108,6 +108,9 @@ What a seller sees: a console to publish a product (unit definition, public tier
 
 The steelman for the alternative, letting the model price freely with a human approving: it would be simpler and would adapt to edge cases. We passed because a seller's margin floor is the one thing it must be impossible to talk past, by a buyer, a buyer's agent, or a prompt injection, and "impossible" has to mean a check that does not involve a model at all.
 
+<img width="1649" height="989" alt="Screenshot 2026-10-17 at 2 54 45 AM" src="https://github.com/user-attachments/assets/af51ae12-a19a-47d1-aaa6-90d0c4194981" />
+
+
 ## Architecture
 
 ```mermaid
