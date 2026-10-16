@@ -70,7 +70,7 @@ export default function Market() {
 
       {sellers.some((s) => s.label !== "live") && (
         <p className={m.note}>
-          Lumen Voice runs on its own endpoint. The other sellers are examples modeled on the segments the tools in our comparison serve; they carry Proteus AI's own marks and answer from an illustrative service. Every deal on any of them is a real Arc testnet transaction.
+          Lumen Voice runs on its own endpoint. The other sellers are examples modeled on the segments the tools in our comparison serve; they carry Proteus AI's own marks, and their service work is done by Proteus AI's agent from exactly what you send. Every deal on any of them is a real Arc testnet transaction.
         </p>
       )}
       {q.isLoading ? (

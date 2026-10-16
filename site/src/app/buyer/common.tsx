@@ -46,7 +46,7 @@ export function fmtUnits(units?: string | null) {
   return units.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 export function prettyIntegration(id: string) {
-  const map: Record<string, string> = { "rest-api": "REST API", webhook: "Webhooks", zendesk: "Zendesk", shopify: "Shopify", gorgias: "Gorgias", intercom: "Intercom", salesforce: "Salesforce" };
+  const map: Record<string, string> = { "rest-api": "REST API", webhook: "Webhooks", mcp: "MCP", zapier: "Zapier", slack: "Slack", email: "Email", "google-sheets": "Google Sheets", zendesk: "Zendesk", shopify: "Shopify", gorgias: "Gorgias", intercom: "Intercom", hubspot: "HubSpot", salesforce: "Salesforce", quickbooks: "QuickBooks", xero: "Xero", stripe: "Stripe" };
   return map[id] ?? id;
 }
 

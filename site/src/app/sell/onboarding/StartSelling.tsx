@@ -14,7 +14,7 @@ import { BrandFields } from "../BrandFields";
 import s from "../sell.module.css";
 
 const CAPABILITY_SUGGESTIONS = ["Order status", "Delivery questions", "Returns", "Human handoff", "Refund status"];
-const INTEGRATION_SUGGESTIONS = ["rest-api", "shopify", "zendesk", "intercom", "gorgias"];
+const INTEGRATION_SUGGESTIONS = ["rest-api", "webhook", "mcp", "zapier", "slack", "email", "google-sheets", "shopify", "zendesk", "intercom", "hubspot", "salesforce", "quickbooks", "xero", "stripe"];
 
 /** One screen, one primary action: publish the first product (creating the seller org when needed). */
 export default function StartSelling({ org }: { org?: MeOrg }) {
