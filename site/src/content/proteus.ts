@@ -20,7 +20,7 @@ export const nav = {
 };
 
 export const hero = {
-  tag: "The autonomous deal desk built on",
+  tag: "The autonomous deal service desk for internet businesses, built on",
   tagNetwork: "Arc",
   headline: "Your business should be able to make a deal.",
   headlineAlt: "Your next deal shouldn’t wait for sales.",
@@ -305,7 +305,7 @@ export const faq = {
   heading: "Frequently asked questions",
   description: "What it is, who it is for, what you control, and what is live.",
   items: [
-    { q: "What is Proteus AI?", a: "An autonomous deal desk. It negotiates custom terms within your rules, has both sides sign, and connects the agreement to payment and delivery." },
+    { q: "What is Proteus AI?", a: "The autonomous deal service desk for internet businesses. It negotiates custom terms within your rules, has both sides sign, and connects the agreement to payment and delivery." },
     { q: "Who is it for?", a: "AI and API companies, developer infrastructure, and internet businesses whose customers need custom packages, usage commitments or negotiated pricing." },
     { q: "Does it replace a salesperson?", a: "It handles eligible negotiations end to end. Large or unusual deals can still involve people." },
     { q: "Can it offer discounts?", a: "Yes, within the limits you set. It prefers trading terms, such as a smaller package or a longer commitment, over cutting price." },
@@ -338,8 +338,8 @@ export const footer = {
 };
 
 export const meta = {
-  title: "Proteus AI | The autonomous deal desk",
+  title: "Proteus AI | The autonomous deal service desk for internet businesses",
   description: "Proteus AI negotiates custom deals for internet businesses, protects the margin, and turns the agreement into a paid transaction.",
   ogTitle: "Your business should be able to make a deal.",
-  ogDescription: "Meet Proteus AI, the autonomous deal desk that understands what you sell, what it costs, and which deals are worth closing.",
+  ogDescription: "Meet Proteus AI, the autonomous deal service desk for internet businesses. It understands what you sell, what it costs, and which deals are worth closing.",
 };
