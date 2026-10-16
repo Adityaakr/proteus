@@ -268,9 +268,9 @@ export const trust = {
   description:
     "Built with Circle and Arc so an accepted agreement and its USDC payment are one thing. Money moves because both sides signed, never because a model decided.",
   cards: [
-    { title: "Signed terms, funded escrow", body: "Price, package, volume and payment conditions are signed by both sides, then funded by the buyer." },
+    { title: "Signed and funded", body: "Price, package, volume and payment conditions are signed by both sides, then funded by the buyer." },
     { title: "Usage-based delivery", body: "Delivered units are metered against the prepaid commitment." },
-    { title: "Settlement and refunds", body: "The seller is paid for countersigned usage. Unused balance goes back to the buyer." },
+    { title: "Settled and refunded", body: "The seller is paid for countersigned usage. Unused balance goes back to the buyer." },
     { title: "Verifiable records", body: "Every deal links to its onchain settlement evidence." },
   ],
 };
