@@ -16,7 +16,6 @@ import { CopyButton, shortHex } from "../ui/misc";
 import { useAuth } from "../auth/useAuth";
 import { isMock } from "../lib/api";
 import { Wordmark } from "./Wordmark";
-import { SANDBOX_TEXT } from "./SandboxNote";
 import "../app.css";
 import s from "./shells.module.css";
 
@@ -101,7 +100,6 @@ export function AppShell({ children, title, actions }: AppShellProps) {
             <nav aria-label="Account" className={s.sideNav}>
               <SideItem it={SETTINGS} on={active === SETTINGS} />
             </nav>
-            <p className={s.sideSandbox}>{SANDBOX_TEXT}</p>
           </div>
         </LayoutGroup>
       </aside>

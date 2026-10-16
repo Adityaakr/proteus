@@ -132,7 +132,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
                   </>
                 )}
               </div>
-              <p className={w.sheetFoot}>Testnet USDC has no value. Only Arc testnet USDC sent to this address shows up here.</p>
+              <p className={w.sheetFoot}>Only USDC sent on Arc testnet to this address shows up here.</p>
             </div>
           </motion.div>
         )}

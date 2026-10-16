@@ -257,7 +257,6 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
         )}
       </div>
       {deal && !done && deal.status === "funding_pending" && phase === "pending" && <p className={f.fine}>Funding was submitted. Press the button to keep checking.</p>}
-      <p className={f.fine}>Arc testnet. Testnet USDC has no value.</p>
     </>
   );
 }
