@@ -44,7 +44,7 @@ The same buyer key ran the product UI (dev key auth mode, which swaps the Privy 
 
 ## Pay per call through Circle's facilitator (x402, exact scheme)
 
-Buyer signed an EIP-3009 `TransferWithAuthorization` for exactly 1.5 USDC against the server-issued nonce; the server called `POST /verify` (`isValid: true`) and, after delivering the answer, `POST /settle` (`success: true`). The facilitator settled on Arc testnet: `0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8`. A retry with the same request id returned the stored result without a second settlement. This is real Circle Facilitator Service usage (keyless trial).
+Buyer signed an EIP-3009 `TransferWithAuthorization` for exactly 1.5 USDC against the server-issued nonce; the server called `POST /verify` (`isValid: true`) and, after delivering the answer, `POST /settle` (`success: true`). The facilitator settled on Arc testnet: `0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8`. A retry with the same request id returned the stored result without a second settlement. A second call made from the product page in the browser settled as `0xa72ebe949d45ae96520d5a54e09e924a9d483fd75d18ec43eb359b0a99dd7743`. This is real Circle Facilitator Service usage (keyless trial).
 
 ## What this does and does not prove
 
