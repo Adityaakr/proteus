@@ -1,11 +1,11 @@
 /** All page copy for PROTEUS. Edit here, not in sections. Source: "PROTEUS" copy doc ("Your business should be able to make a deal" draft). */
 
 export const links = {
-  explore: "/#how-it-works", // TODO: real app URL
+  explore: "/s/northwind-support/order-support",
   howItWorks: "/#how-it-works",
-  earlyAccess: "/#faqs", // TODO: real early-access form
-  record: "/#record",
-  github: "/#record", // TODO: real repo URL
+  earlyAccess: "/app",
+  record: "/review",
+  github: "https://github.com/Adityaakr/proteus",
 };
 
 export const nav = {
@@ -15,8 +15,8 @@ export const nav = {
     { label: "Use cases", href: "/#partners" },
     { label: "FAQ", href: "/#faqs" },
   ],
-  secondary: { label: "Get early access", href: links.earlyAccess },
-  primary: { label: "Explore PROTEUS", href: links.explore },
+  secondary: { label: "Seller console", href: links.earlyAccess },
+  primary: { label: "Negotiate a deal", href: links.explore },
 };
 
 export const hero = {
@@ -213,7 +213,7 @@ export const pricing = {
   description: "",
   toggle: { left: "Testnet", right: "Mainnet", badge: "" },
   ownerNow: { name: "Seller", value: 0, period: "", description: "", features: [], cta: { label: "Get early access", href: links.earlyAccess } } as Plan,
-  partner: { name: "Buyer", value: 0, period: "", description: "", features: [], cta: { label: "Explore PROTEUS", href: links.explore }, primary: true } as Plan,
+  partner: { name: "Buyer", value: 0, period: "", description: "", features: [], cta: { label: "Negotiate a deal", href: links.explore }, primary: true } as Plan,
   mainnet: { name: "Mainnet", value: 0, period: "", description: "", features: [], cta: { label: "See how it works", href: links.howItWorks } } as Plan,
   testnet: { name: "Testnet", value: 0, period: "", description: "", features: [], cta: { label: "See how it works", href: links.howItWorks } } as Plan,
   includes: "INCLUDES",
@@ -270,7 +270,7 @@ export const faq = {
 export const footer = {
   heading: "Let your business do more of the selling.",
   line: "Customers are already telling you what they need. They have budgets, deadlines, and requirements. What they don’t always have is someone ready to work out a deal. PROTEUS gives your business an agent that understands your economics, negotiates within your rules, and moves qualified opportunities toward payment. Less waiting. Fewer handoffs. More deals that make sense.",
-  cta: { label: "Explore PROTEUS", href: links.explore },
+  cta: { label: "Negotiate a deal", href: links.explore },
   brand: "PROTEUS",
   tagline: "Your business, ready to make a deal.",
   columnTitle: "Product",
@@ -282,7 +282,7 @@ export const footer = {
     { label: "GitHub", href: links.github },
   ],
   copyright: "© 2026 PROTEUS. Built with Circle and Arc.",
-  right: { label: "Get early access", href: links.earlyAccess },
+  right: { label: "Public records", href: links.record },
 };
 
 export const meta = {

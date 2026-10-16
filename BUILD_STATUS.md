@@ -15,7 +15,7 @@ Updated 2026-10-16 (Tameion deadline: 2026-10-17 23:59 ET).
 | Prompt-injection handling ("ignore your margin policy") | done | decision log kind `injection_blocked`, policy unchanged |
 | Chain reconciler (balances from chain events, journal entries) | done | `server/src/chain/reconciler.ts` |
 | Relayer: Circle developer-controlled wallet or viem fallback | done, Circle path untested without credentials | `server/src/chain/relayer.ts` |
-| Web platform (buyer flow, seller console, review pages, agentic components) | in progress | `site/src/app` |
+| Web platform (buyer flow, seller console, review pages, agentic components) | done, walked against the live API at 1200 and 390 with Playwright, no page errors | `site/src/app`, `site/scripts/shot-platform.mjs` |
 
 ## End-to-end rehearsal (local Arc anvil, chain 31337, real contract calls)
 

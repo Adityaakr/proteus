@@ -137,8 +137,8 @@ function OfferView({ quote }: { quote: Quote }) {
                 { k: "Chain id", v: <span className="app-mono">{quote.chainId}</span> },
                 { k: "Escrow", v: <MonoValue value={quote.escrowAddress} short copy label="escrow address" /> },
                 { k: "USDC", v: <MonoValue value={quote.usdcAddress} short copy label="USDC address" /> },
-                { k: "Deal id", v: <MonoValue value={quote.terms.dealId} short copy label="deal id" /> },
-                { k: "Terms hash", v: <MonoValue value={quote.terms.publicTermsHash} short copy label="public terms hash" /> },
+                { k: "Deal id", v: quote.terms ? <MonoValue value={quote.terms.dealId} short copy label="deal id" /> : <span className={s.muted}>Shown once your wallet is connected</span> },
+                { k: "Terms hash", v: quote.terms ? <MonoValue value={quote.terms.publicTermsHash} short copy label="public terms hash" /> : <span className={s.muted}>Derived for your wallet address</span> },
               ]}
             />
           </Card>
@@ -170,8 +170,8 @@ function OfferView({ quote }: { quote: Quote }) {
               moneyMovement
               status={phase}
               parameters={[
-                { label: "Prepaid amount", value: <Money micro={quote.terms.prepaid} unit />, mono: true },
-                { label: "Units", value: fmtUnits(quote.terms.maxUnits), mono: true },
+                { label: "Prepaid amount", value: <Money micro={quote.terms?.prepaid ?? quote.offer.prepaidTotal} unit />, mono: true },
+                { label: "Units", value: fmtUnits(quote.terms?.maxUnits ?? quote.offer.units), mono: true },
                 { label: "Network", value: "Arc testnet" },
                 { label: "Signer", value: w.account ? <MonoValue value={w.account} short /> : "Not connected" },
               ]}

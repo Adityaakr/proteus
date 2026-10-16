@@ -57,7 +57,8 @@ async function productWithPrivate(orgId: string, productId: string) {
     { label: "Requested 2,000 units with a $1,500 budget", candidates: getQuoteCandidates(ctx, { desiredUnits: 2000n, budget: toMicro("1500"), integrations: [], notes: [], openQuestions: [] }) },
     { label: "Budget $1,500 only", candidates: getQuoteCandidates(ctx, { budget: toMicro("1500"), integrations: [], notes: [], openQuestions: [] }) },
   ];
-  return { id: lp.row.id, adapter: lp.row.adapter, public: publicProduct(lp), cost: lp.cost, policy: lp.policy, costHistory: costs, policyHistory: pols, preview, labels: { seller: lp.org.label, private: "Seller only. Never shown to buyers." } };
+  const pub = publicProduct(lp);
+  return { id: lp.row.id, adapter: lp.row.adapter, ...pub, maxUnitsPerDeal: lp.product.maxUnitsPerDeal, public: pub, cost: lp.cost, policy: lp.policy, costHistory: costs, policyHistory: pols, preview, previewCases: preview, labels: { seller: lp.org.label, private: "Seller only. Never shown to buyers." } };
 }
 
 appRoutes.get("/app/products", async (c) => {

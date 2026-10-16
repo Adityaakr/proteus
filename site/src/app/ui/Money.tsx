@@ -23,8 +23,9 @@ export function microFromString(v: bigint | string | null | undefined): bigint |
 }
 
 export function usdStringToDisplay(usd: string, digits = 2): string {
-  const neg = usd.trim().startsWith("-");
-  const [w, f = ""] = usd.trim().replace("-", "").split(".");
+  const cleaned = usd.trim().replace(/^-?\$/, (m) => (m.startsWith("-") ? "-" : ""));
+  const neg = cleaned.startsWith("-");
+  const [w, f = ""] = cleaned.replace("-", "").split(".");
   const grouped = (w || "0").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   const frac = digits > 0 ? "." + (f + "000000").slice(0, digits) : "";
   return `${neg ? "-" : ""}$${grouped}${frac}`;
