@@ -134,7 +134,9 @@ export async function payAndExecute(sellerSlug: string, productSlug: string, pay
 
   // Idempotency: one row per (payer, requestId).
   const [existing] = await db.select().from(schema.payPerCallPayments).where(and(eq(schema.payPerCallPayments.payer, payer.toLowerCase()), eq(schema.payPerCallPayments.requestId, requestId)));
-  if (existing?.status === "settled" || existing?.status === "executed") return { ...(existing.response as Record<string, unknown>), payment: { paymentId: existing.paymentId, settleTxHash: existing.settleTxHash, status: existing.status, replay: true } };
+  if (existing?.status === "settled" || existing?.status === "executed" || existing?.status === "pending") return { ...(existing.response as Record<string, unknown>), payment: { paymentId: existing.paymentId, settleTxHash: existing.settleTxHash, status: existing.status, replay: true, statusNote: existing.status === "pending" ? "The facilitator is still settling this payment; the transaction hash appears once it lands." : undefined } };
+  // A row still quoted or verified is an attempt in flight (or one that crashed). Refuse a parallel run for two minutes rather than executing twice.
+  if (existing && (existing.status === "quoted" || existing.status === "verified") && Date.now() - new Date(existing.updatedAt ?? existing.createdAt).getTime() < 120_000) throw new HttpError(409, "this request id is already being processed; retry in a moment with the same request id");
   const rowId = existing?.id ?? id("ppc");
   if (!existing) await db.insert(schema.payPerCallPayments).values({ id: rowId, orgId: lp.org.id, productId: lp.row.id, payer: payer.toLowerCase(), requestId, resource, amount: price, nonce, status: "quoted" });
 

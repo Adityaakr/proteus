@@ -9,3 +9,6 @@
 - **Rule-based extraction is regex based.** Numbers in unusual phrasing may be missed; the agent then asks a clarifying question rather than guessing.
 - **No rate limiting on public routes yet.** Add before any public deployment.
 - **Blocklisted payee DoS.** If a seller payee is blocklisted on Arc, settlement reverts (Arc transfer rules). The arbiter path can route funds to the buyer; no seller-side recovery exists.
+- **Owner is the arbiter.** `Deploy.s.sol` defaults the arbiter to the deployer, so on the testnet deployment the owner key decides the split of any disputed deal. Set `ESCROW_ARBITER` to a separate party before anything that matters.
+- **Deal routes are capability-id gated.** `GET /deals/:id` returns the one-time API key to whoever knows the deal id; ids are random and unguessable, but there is no login check, by design for agent access. Tie the read to a buyer wallet signature before public hosting.
+- **Figure guard limits.** The OpenRouter guard catches dollar amounts, percentages, suffixed and multi-digit numbers; spelled-out numbers pass. Prices are never decided by the reply, so this is a wording control, not a money control.

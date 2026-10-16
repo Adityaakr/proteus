@@ -54,8 +54,16 @@ export function describeInput(input: ServiceInput): string {
 }
 
 const MAX_INPUT_BYTES = 700_000;
+const MAX_FILE_BYTES = 512 * 1024;
+/** 413 when the request is over 700 KB of JSON or any attached file decodes to more than 512 KB. */
 export function assertInputSize(input: unknown) {
-  if (JSON.stringify(input).length > MAX_INPUT_BYTES) throw new HttpError(413, "request input is too large; files must be under 512 KB");
+  if (JSON.stringify(input).length > MAX_INPUT_BYTES) throw new HttpError(413, "request input is too large; files must be under 512 KB and the request under 700 KB");
+  if (input && typeof input === "object") {
+    for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
+      const b64 = v && typeof v === "object" && typeof (v as { dataBase64?: unknown }).dataBase64 === "string" ? (v as { dataBase64: string }).dataBase64 : null;
+      if (b64 && Math.floor((b64.length * 3) / 4) - (b64.endsWith("==") ? 2 : b64.endsWith("=") ? 1 : 0) > MAX_FILE_BYTES) throw new HttpError(413, `file "${k}" is larger than 512 KB`);
+    }
+  }
 }
 
 export interface ServiceOutput {
@@ -133,7 +141,8 @@ export async function httpUpstream(cfg: UpstreamConfig, ctx: { requestId: string
       return { status: "failed", billable: false, answer: "The seller's endpoint did not return JSON. This request was not charged.", source: { store: host, fields: [] } };
     }
     const answer = typeof body.answer === "string" ? body.answer : text.slice(0, 2000);
-    const status = body.status === "handoff" ? "handoff" : body.status === "failed" ? "failed" : "delivered";
+    // Billable only when the endpoint says so: status "delivered", or no status with billable:true. Anything else is failed.
+    const status = body.status === "handoff" ? "handoff" : body.status === "failed" ? "failed" : body.status === "delivered" || (body.status === undefined && body.billable === true) ? "delivered" : "failed";
     const billable = status === "delivered" && body.billable !== false;
     return { status, billable, answer, source: { store: host, orderId: input.orderId, fields: Object.keys(body).filter((k) => k !== "answer") } };
   } catch (e) {
@@ -206,10 +215,15 @@ export async function execute(dealId: string, requestId: string, input: ServiceI
     const [inserted] = await tx
       .insert(schema.serviceRequests)
       .values({ id: id("sr"), orgId: deal.orgId, dealId, requestId, status: output.status, billable, units, cumulativeUnits, cumulativeCharged, input: input as unknown as Record<string, unknown>, output: output as unknown as Record<string, unknown>, evidenceDigest, sellerSignature, latencyMs: Date.now() - started })
+      .onConflictDoNothing({ target: [schema.serviceRequests.dealId, schema.serviceRequests.requestId] })
       .returning();
-    return inserted!;
+    return inserted ?? null;
   });
-  return receiptView(row, terms.prepaid);
+  if (row) return receiptView(row, terms.prepaid);
+  // Two identical requests raced; the other one won the unique index. Return its receipt, charge nothing more.
+  const [stored] = await db.select().from(schema.serviceRequests).where(and(eq(schema.serviceRequests.dealId, dealId), eq(schema.serviceRequests.requestId, requestId)));
+  if (!stored) throw new HttpError(500, "request was not recorded");
+  return receiptView(stored, terms.prepaid);
 }
 
 export function receiptView(r: typeof schema.serviceRequests.$inferSelect, prepaid: bigint) {

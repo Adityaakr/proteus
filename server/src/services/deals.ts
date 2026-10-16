@@ -99,6 +99,20 @@ export async function fundingIntent(dealId: string, txHash?: Hex) {
   if (!["awaiting_funding", "funding_pending"].includes(deal.status)) throw new HttpError(409, `deal is ${deal.status}`);
   const terms = reviveTerms(deal.terms as Record<string, unknown>);
   if (txHash) {
+    // The hash must name a transaction from this deal's buyer to the escrow before it is shown anywhere.
+    if (!/^0x[0-9a-fA-F]{64}$/.test(txHash)) throw new HttpError(400, "txHash must be a 32-byte hex hash");
+    let found: { from: Address; to: Address | null } | null = null;
+    for (let i = 0; i < 4 && !found; i++) {
+      try {
+        const t = await publicClient.getTransaction({ hash: txHash });
+        found = { from: t.from, to: t.to ?? null };
+      } catch {
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+    }
+    if (!found) throw new HttpError(400, "that transaction is not on Arc testnet yet; post the hash after the wallet broadcasts it");
+    if (found.to?.toLowerCase() !== escrowAddress().toLowerCase()) throw new HttpError(400, "that transaction is not a call to the escrow contract");
+    if (found.from.toLowerCase() !== terms.buyer.toLowerCase()) throw new HttpError(400, "that transaction was not sent by this deal's buyer");
     await db.insert(schema.chainTxs).values({ id: id("tx"), orgId: deal.orgId, dealId, kind: "fund", txHash, submittedVia: "buyer-wallet" }).onConflictDoNothing();
     await db.update(schema.deals).set({ status: "funding_pending", fundingTxHash: txHash, updatedAt: new Date() }).where(eq(schema.deals.id, dealId));
     return dealView(dealId);

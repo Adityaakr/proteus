@@ -9,6 +9,13 @@ import { composeRuleBased, extractRuleBased } from "./rule-based";
  * Same guardrails as the Anthropic adapter: the model extracts typed requirements and writes a reply
  * constrained to the deterministic candidates; any unlisted figure falls back to the rule-based reply.
  */
+/**
+ * Figures the guard checks: dollar amounts, percentages, k/USDC/USD-suffixed numbers, grouped numbers and any
+ * bare number of two or more digits. Spelled-out numbers ("twenty percent") are not caught.
+ */
+const FIGURE_RE = /\$\s?[\d,]+(?:\.\d+)?|\b\d[\d,]*(?:\.\d+)?\s?(?:%|percent|k\b|usdc\b|usd\b|dollars\b)|\b\d{1,3}(?:,\d{3})+\b|\b\d{2,}(?:\.\d+)?\b/gi;
+const norm = (f: string) => f.toLowerCase().replace(/\s+/g, "");
+
 export function createOpenRouterAdapter(): AgentAdapter {
   const client = new OpenAI({ apiKey: env.OPENROUTER_API_KEY, baseURL: "https://openrouter.ai/api/v1", defaultHeaders: { "HTTP-Referer": env.WEB_ORIGIN, "X-OpenRouter-Title": "Proteus AI deal desk" } });
   const model = env.OPENROUTER_MODEL;
@@ -84,8 +91,14 @@ export function createOpenRouterAdapter(): AgentAdapter {
       for (const o of [...input.offers, ...input.rejected]) for (const v of [formatUsd(o.prepaidTotal), formatUsd(o.prepaidTotal, 0), o.units.toLocaleString(), o.units.toString(), ...unitVariants(o)]) allowed.add(v);
       if (input.requirements.budget) for (const v of [formatUsd(input.requirements.budget), formatUsd(input.requirements.budget, 0)]) allowed.add(v);
       if (input.requirements.desiredUnits) for (const v of [input.requirements.desiredUnits.toLocaleString(), input.requirements.desiredUnits.toString()]) allowed.add(v);
+      // Product facts the model is told to quote: the term length and any number inside the fact strings.
+      if (input.facts) {
+        allowed.add(String(input.facts.termDays));
+        for (const str of [input.facts.refundPolicy, input.facts.billableUnit, ...input.facts.capabilities, ...input.facts.supportedIntegrations]) for (const f of str.match(FIGURE_RE) ?? []) allowed.add(norm(f));
+      }
+      for (const o of [...input.offers, ...input.rejected]) for (const v of unitVariants(o)) allowed.add(norm(v));
       // Figures the buyer typed may be echoed back.
-      for (const t of input.turns) if (t.role === "buyer") for (const f of t.content.match(/\$[\d,]+(?:\.\d+)?|\b\d{1,3}(?:,\d{3})+\b|\b\d{4,}\b/g) ?? []) allowed.add(f);
+      for (const t of input.turns) if (t.role === "buyer") for (const f of t.content.match(FIGURE_RE) ?? []) allowed.add(norm(f));
       try {
         const res = await client.chat.completions.create({
           model,
@@ -96,8 +109,9 @@ export function createOpenRouterAdapter(): AgentAdapter {
           ],
         });
         const text = (res.choices[0]?.message.content ?? "").trim();
-        const figures = text.match(/\$[\d,]+(?:\.\d+)?|\b\d{1,3}(?:,\d{3})+\b|\b\d{4,}\b/g) ?? [];
-        const invented = figures.filter((f) => !allowed.has(f) && !allowed.has(f.replace(/\.00$/, "")));
+        const figures = text.match(FIGURE_RE) ?? [];
+        const ok = (f: string) => allowed.has(f) || allowed.has(norm(f)) || allowed.has(f.replace(/\.00$/, "")) || allowed.has(norm(f).replace(/\.00$/, ""));
+        const invented = figures.filter((f) => !ok(f));
         if (!text || invented.length) {
           steps.push({ at: iso(), label: "Model reply rejected (unlisted figure), used deterministic reply", state: "blocked", detail: invented.join(", ") });
           return { reply: fallback, steps };
