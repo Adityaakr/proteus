@@ -30,7 +30,7 @@ export function SectionHeader({ tag, heading, description, align = "center", dar
     >
       <Tag title={tag} icon={icon} dark={dark} />
       <div style={{ display: "flex", flexDirection: "column", alignItems: isCenter ? "center" : "flex-start", gap: textGap, width: "100%" }}>
-        <h2 className="h2" style={{ maxWidth: headingMaxWidth, textAlign: isCenter ? "center" : "left", color: dark ? "var(--c-white)" : "var(--c-dark)" }}>
+        <h2 className="h2" style={{ maxWidth: headingMaxWidth, textAlign: isCenter ? "center" : "left", color: dark ? "var(--c-white)" : "var(--c-dark)", whiteSpace: "pre-line" }}>
           {heading}
         </h2>
         {description && (

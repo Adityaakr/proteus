@@ -46,7 +46,7 @@ export const logos = {
 
 export const howItWorks = {
   tag: "How it works",
-  heading: "From interest to income. One continuous workflow.",
+  heading: "From interest to income.\nOne continuous workflow.",
   description:
     "A pricing page can’t handle a discount, a commitment or a budget. Someone has to work out the deal, usually the founder. PROTEUS does it for you.",
   mandates: [
