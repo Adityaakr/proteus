@@ -35,3 +35,5 @@ Satoshi (free, Fontshare) in its place. To use PP Neue Montreal, drop the woff2 
 ## Hosting
 
 The built site (`pnpm --filter proteus-site build` → `site/dist`) is served by the API process on the same origin in the Railway deployment (start command: `cd server && node_modules/.bin/tsx scripts/start-prod.ts`); see `DEPLOYMENT.md` at the repo root. A Railway service whose watch path is limited to `site/` only redeploys when this folder changes; clear the watch path in the service settings so server changes deploy too.
+
+Hosted on Railway as a single service: the API serves the built site. The hosted market is seeded by `server/scripts/bootstrap.ts` on boot.
