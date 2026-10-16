@@ -151,3 +151,42 @@ GET /api/review                 -> [{ publicId, sellerLabel, productName, status
 GET /api/review/:publicId       -> { timeline: [{ at, kind: "quote"|"accept"|"fund"|"service"|"usage_accept"|"settle"|"refund", summary, txHash?, explorerUrl? }], termsHash, publicTerms, balances, labels }
 ```
 No buyer PII, no seller cost or policy values, no transcripts.
+
+## v1 additions: accounts, dashboard, pay-per-call (2026-10-16)
+
+Auth: every route below (and every `/api/app/*` route) accepts `Authorization: Bearer <privy access token>`; the server verifies it with Privy and resolves the user. The sandbox cookie session remains only for the credential-free demo seller.
+
+```
+GET  /api/me
+  -> { userId, email?, wallets: [{ address, type: "embedded"|"external", primary: boolean }], org?: { id, slug, name, label, role: "owner" }, labels: { network: "testnet" } }
+
+GET  /api/me/wallet
+  -> { address, usdc: micro, native: wei-string, faucetUrl, chainId, explorerUrl }
+
+GET  /api/me/negotiations      -> [NegotiationSummary]   (negotiations started by this user)
+GET  /api/me/deals             -> [DealSummary]          (deals where buyerAddress is one of the user's wallets)
+GET  /api/me/activity          -> { negotiations, deals, payPerCall: { calls, spent } }
+
+POST /api/orgs                 { name, slug? }             -> org (creates the user's seller org; one per user; issues the org's seller signer)
+GET  /api/app/signer           -> { address, scope: "terms+delivery", createdAt, revokedAt? }
+POST /api/app/signer/revoke    -> { revokedAt }  (stops future signing; funded deals keep accepting it, stated in the response)
+POST /api/app/products         ProductCreateBody -> ProductWithPrivate   (first product publishes cost v1 and policy v1 together)
+
+GET  /api/market               -> [{ sellerSlug, sellerName, sellerLabel, productSlug, name, unitLabel, startingTierUsd, perCallUsd? }]
+```
+
+`ProductCreateBody = { name, slug?, unitLabel, billableUnit, capabilities[], supportedIntegrations[], tiers: [{ name, includedUnits, unitPriceUsd, includes[] }], maxUnitsPerDeal, termDays, refundPolicy, cost: { variableCostPerUnitUsd, directCostPerDealUsd, txCostBps }, policy: { minMarginBps, maxDiscountBps, approvalThresholdUsd, prepaidMinimumUsd, availableCapacityUnits, quoteTtlSeconds }, payPerCall?: { priceUsd } }`
+
+Negotiations and quotes started by a logged-in user carry `buyerAddress` = the user's primary wallet; `POST /api/quotes/:id/accept` verifies the signature against a wallet that belongs to the caller.
+
+### Pay per call (x402, Circle facilitator, Arc testnet)
+
+```
+POST /api/pay/:sellerSlug/:productSlug/execute   { requestId, input }        (no payment header yet)
+  -> 402 { x402Version: 2, accepts: [{ scheme: "exact", network: "eip155:5042002", asset: USDC, payTo, amount: micro, maxTimeoutSeconds: 120, resource, extra: { name: "USDC", version: "2" } }], requestId, nonce }
+      nonce = keccak256(payer, requestId, resource, amount) computed server-side once the payer is known (buyer passes `payer` in the body)
+
+POST /api/pay/:sellerSlug/:productSlug/execute   { requestId, input, payment: { signature, authorization: { from, to, value, validAfter, validBefore, nonce } } }
+  -> 200 ServiceExecute response plus { payment: { paymentId, settleTxHash?, status: "settled"|"pending" } }
+```
+Server flow: recompute requirements, check `authorization` equals them exactly, `POST facilitator/verify`, execute the service, `POST facilitator/settle`, store `(payer, requestId)` with state. A retry returns the stored response and never settles twice. Failed or handoff responses are not settled (the authorization simply expires).
