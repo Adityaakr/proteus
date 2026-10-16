@@ -11,10 +11,15 @@ function fail(msg: string): never {
 }
 
 const url = process.env.DATABASE_URL;
-if (!url) fail("DATABASE_URL is not set. On Railway, add the Postgres plugin to THIS service and reference its DATABASE_URL in the service variables. If you see this on a service that is not the API (for example a site or domain service), delete that service: only @proteus/server should run.");
+if (!url) {
+  // No database: this is not the API service. Still serve the site so the deployment is never a 502, and say what is missing.
+  console.warn("[start] DATABASE_URL is not set, so the API cannot run here. Serving the site only. To run the whole product on this service, add the Postgres plugin and reference its DATABASE_URL; to forward /api to the API service instead, set API_ORIGIN to that service's URL.");
+  await import("./static-site");
+  await new Promise(() => {});
+}
 let host = "";
 try {
-  const u = new URL(url);
+  const u = new URL(url!);
   host = u.hostname;
   console.log(`[start] database ${u.hostname}:${u.port || "5432"}/${u.pathname.replace("/", "")} as ${u.username || "?"}`);
 } catch {
