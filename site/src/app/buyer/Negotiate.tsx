@@ -2,18 +2,15 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronRight, SendHorizontal, User } from "lucide-react";
+import { BadgeCheck, ChevronRight, SendHorizontal, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SellerMark, possessive, useLogoShape } from "../ui/SellerMark";
 import type { SellerBrand } from "../lib/types";
 import { T_DEFAULT } from "../../lib/motion";
 import { AppShell } from "../layouts/AppShell";
-import { Stepper } from "../ui/Stepper";
 import { AgentActivity, type ActivityLine } from "../agentic/AgentActivity";
 import { ReasoningText } from "../agentic/ReasoningText";
 import { ActionButton } from "../ui/ActionButton";
-import { Card } from "../ui/Card";
-import { EmptyState } from "../ui/EmptyState";
 import { LoadingCard } from "../ui/Skeleton";
 import { Money } from "../ui/Money";
 import { StatusTag } from "../ui/StatusTag";
@@ -22,6 +19,7 @@ import { api, errorMessage, qk, type Negotiation, type Offer, type Turn } from "
 import { OfferCard } from "./OfferCard";
 import { ErrorState, FLOW_STAGES, fmtUnits, prettyIntegration } from "./common";
 import s from "./buyer.module.css";
+import n from "./negotiate.module.css";
 
 const WORKING_STEPS = ["Reading your message", "Extracting requirements", "Checking the seller's pricing rules", "Preparing offers"];
 const COUNTER_STEPS = ["Reading your counteroffer", "Checking margin and discount rules", "Looking for an alternative", "Writing a decision"];
@@ -154,32 +152,36 @@ export default function Negotiate() {
 
   return (
     <AppShell title="Negotiation">
-      <header className={s.negHead}>
-        <nav className={s.crumbs} aria-label="Breadcrumb">
+      <header className={n.head}>
+        <nav className={n.crumbs} aria-label="Breadcrumb">
           <Link to="/app/market">Market</Link>
-          <ChevronRight size={14} aria-hidden />
+          <ChevronRight size={13} aria-hidden />
           <Link to={`/app/market/${neg.sellerSlug}`}>{sellerName}</Link>
-          <ChevronRight size={14} aria-hidden />
+          <ChevronRight size={13} aria-hidden />
           <Link to={`/app/market/${neg.sellerSlug}/${neg.productSlug}`}>{productName}</Link>
         </nav>
-        <div className={s.negTitleRow}>
-          {!wideLogo && <SellerMark name={sellerName} brand={neg.sellerBrand} size="lg" />}
-          <div className={s.negTitleCol}>
-            <div className={s.eyebrow}>
-              {wideLogo ? <SellerMark name={sellerName} brand={neg.sellerBrand} variant="wordmark" size="md" /> : <span className={s.negSeller}>{sellerName}</span>}
-              <StatusTag network={neg.labels?.seller === "live" ? "live" : "sandbox"} label={neg.labels?.seller === "live" ? "Live seller" : "Demo seller"} />
-              <StatusTag state={neg.status} />
-            </div>
-            <h1 className={s.negTitle}>{productName}</h1>
-            <p className="body3">Negotiation {neg.publicId}. Describe your volume, tools and budget. Offers come from the seller's pricing rules, so the agent cannot be talked past them.</p>
-          </div>
-          <div className="hide-phone"><Stepper current={0} steps={FLOW_STAGES} /></div>
+        <div className={n.sellerRow}>
+          {wideLogo ? <SellerMark name={sellerName} brand={neg.sellerBrand} variant="wordmark" size="sm" /> : <><SellerMark name={sellerName} brand={neg.sellerBrand} size="sm" /><span className={n.sellerName}>{sellerName}</span></>}
+          {neg.labels?.seller === "live" ? <span className={n.badgeOk}><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span> : <span className={n.badgeMuted}>Demo seller</span>}
+          <span className={neg.status === "closed" ? n.badgeMuted : n.badgeState}>{neg.status === "open" ? "Open" : neg.status === "quoted" ? "Offers ready" : neg.status === "accepted" ? "Accepted" : "Closed"}</span>
         </div>
+        <div className={n.titleRow}>
+          <h1 className={n.title}>{productName}</h1>
+          <span className={`hide-phone ${n.steps}`} aria-label="Deal progress">
+            {FLOW_STAGES.map((st, i) => (
+              <span key={st} className={n.steps}>
+                {i > 0 && <i aria-hidden>/</i>}
+                {i === 0 ? <b>{st}</b> : <span>{st}</span>}
+              </span>
+            ))}
+          </span>
+        </div>
+        <p className={n.lede}>Describe your volume, tools and budget. Offers come from the seller's pricing rules, so the agent cannot be talked past them. Negotiation {neg.publicId}.</p>
       </header>
 
-      <div className={s.grid2}>
-        <section className={s.chat} aria-label="Conversation with the seller's agent">
-          <div ref={threadRef} className={s.thread} role="log" aria-live="polite" aria-relevant="additions" aria-label="Messages" tabIndex={0}>
+      <div className={n.grid}>
+        <section className={n.chat} aria-label="Conversation with the seller's agent">
+          <div ref={threadRef} className={n.thread} role="log" aria-live="polite" aria-relevant="additions" aria-label="Messages" tabIndex={0}>
             <AnimatePresence initial={false}>
               {turns.map((t) => (
                 <TurnView key={t.id} turn={t} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
@@ -188,9 +190,9 @@ export default function Negotiate() {
                 <TurnView key="pending-buyer" turn={{ id: "pending", role: "buyer", content: pendingText, createdAt: new Date().toISOString() }} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
               )}
               {working && (
-                <motion.div key="working" className={`${s.turn} ${s.turnAgent}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={T_DEFAULT} style={{ width: "min(420px, 100%)" }}>
-                  <span className={s.who}><SellerMark name={sellerName} brand={neg.sellerBrand} size="sm" /> {agentName}</span>
-                  <div className={`${s.bubble} ${s.bubbleAgent}`}>
+                <motion.div key="working" className={`${n.turn} ${n.turnAgent}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={T_DEFAULT} style={{ width: "min(420px, 100%)" }}>
+                  <span className={n.who}><SellerMark name={sellerName} brand={neg.sellerBrand} size="sm" /> {agentName}</span>
+                  <div className={`${n.bubble} ${n.bubbleAgent}`}>
                     <ReasoningText phrases={counter.isPending ? COUNTER_STEPS : WORKING_STEPS} variant="cascade" srLabel="The seller's agent is working" />
                   </div>
                   <AgentActivity items={steps} status="working" maxHeight={120} workingLabel="Working" />
@@ -203,11 +205,11 @@ export default function Negotiate() {
               <Notice tone="danger">{errorMessage(mutationError)}</Notice>
             </div>
           )}
-          <form className={s.composer} onSubmit={submit}>
+          <form className={n.composer} onSubmit={submit}>
             <label htmlFor="composer" className="sr-only">Message the seller's agent</label>
             <textarea
               id="composer"
-              className={s.composerInput}
+              className={n.composerInput}
               rows={1}
               placeholder={closed ? "This negotiation is closed" : `Message ${agentName}`}
               value={draft}
@@ -222,9 +224,10 @@ export default function Negotiate() {
           </form>
         </section>
 
-        <div className={s.stack}>
-          <Card title="Deal summary" level={2} padding="compact">
-            <dl className={s.reqList}>
+        <aside className={n.rail} aria-label="Deal">
+          <div className={n.block}>
+            <span className={n.label}>Deal summary</span>
+            <dl className={n.kv}>
               <dt>Seller</dt>
               <dd><SellerMark name={sellerName} brand={neg.sellerBrand} variant="wordmark" size="sm" /></dd>
               <dt>Product</dt>
@@ -234,72 +237,71 @@ export default function Negotiate() {
               <dt>Billing</dt>
               <dd>Per {neg.unitLabel ?? "unit"} delivered, only what you countersign</dd>
             </dl>
-          </Card>
+          </div>
 
-          <Card title="Offers" subtitle="Accept one to see the full terms. Nothing is binding until you sign." level={2} padding="compact">
+          <div className={n.block}>
+            <span className={n.label}>Offers</span>
             {offers.length === 0 ? (
-              <EmptyState title="No offers yet" description="Share your expected volume or budget and the agent will propose options." />
+              <p className={n.blockNote}>No offers yet. Share your expected volume or budget and the agent will propose options.</p>
             ) : (
-              <div className={s.offers}>
-                {offers.map((o) => (
-                  <OfferCard
-                    key={o.candidateId}
-                    offer={o}
-                    unitLabel={neg.unitLabel}
-                    termDays={neg.termDays}
-                    top={o.candidateId === topId}
-                    busy={acceptingId === o.candidateId}
-                    counterBusy={counteringId === o.candidateId}
-                    onAccept={(offer) => accept.mutate(offer)}
-                    onCounter={closed ? undefined : (offer, ask) => counter.mutate({ offer, ask })}
-                  />
-                ))}
-              </div>
+              <>
+                <p className={n.blockNote}>Accept one to see the full terms. Nothing is binding until you sign.</p>
+                <div className={n.offers}>
+                  {offers.map((o) => (
+                    <OfferCard
+                      key={o.candidateId}
+                      offer={o}
+                      unitLabel={neg.unitLabel}
+                      termDays={neg.termDays}
+                      top={o.candidateId === topId}
+                      busy={acceptingId === o.candidateId}
+                      counterBusy={counteringId === o.candidateId}
+                      onAccept={(offer) => accept.mutate(offer)}
+                      onCounter={closed ? undefined : (offer, ask) => counter.mutate({ offer, ask })}
+                    />
+                  ))}
+                </div>
+              </>
             )}
-          </Card>
+          </div>
 
-          <Card title="What the agent understood" level={2} padding="compact">
-            <dl className={s.reqList}>
+          <div className={n.block}>
+            <span className={n.label}>What the agent understood</span>
+            <dl className={n.kv}>
               <dt>Volume</dt>
-              <dd>{req.desiredUnits ? `${fmtUnits(req.desiredUnits)} per term` : <span className={s.muted}>Not stated yet</span>}</dd>
+              <dd>{req.desiredUnits ? `${fmtUnits(req.desiredUnits)} per term` : <span className={n.muted}>Not stated yet</span>}</dd>
               <dt>Budget</dt>
-              <dd>{req.budget ? <Money micro={req.budget} digits={0} /> : <span className={s.muted}>Not stated yet</span>}</dd>
+              <dd>{req.budget ? <Money micro={req.budget} digits={0} /> : <span className={n.muted}>Not stated yet</span>}</dd>
               <dt>Integrations</dt>
-              <dd>{req.integrations.length ? req.integrations.map(prettyIntegration).join(", ") : <span className={s.muted}>None mentioned</span>}</dd>
+              <dd>{req.integrations.length ? req.integrations.map(prettyIntegration).join(", ") : <span className={n.muted}>None mentioned</span>}</dd>
             </dl>
             {req.openQuestions.length > 0 && (
-              <div className={s.stackTight}>
-                <span className="label" style={{ color: "var(--c-dark-60)" }}>Open questions</span>
-                <ul className={s.checkList}>
-                  {req.openQuestions.map((q) => (
-                    <li key={q} style={{ fontSize: 14 }}>{q}</li>
-                  ))}
-                </ul>
-              </div>
+              <>
+                <span className={n.label} style={{ marginTop: 6 }}>Open questions</span>
+                <ul className={n.list}>{req.openQuestions.map((q) => <li key={q}>{q}</li>)}</ul>
+              </>
             )}
             {req.assumptions.length > 0 && (
-              <div className={s.stackTight}>
-                <span className="label" style={{ color: "var(--c-dark-60)" }}>Assumptions</span>
-                <ul className={s.checkList}>
-                  {req.assumptions.map((a) => (
-                    <li key={a} style={{ fontSize: 14 }}>{a}</li>
-                  ))}
-                </ul>
-              </div>
+              <>
+                <span className={n.label} style={{ marginTop: 6 }}>Assumptions</span>
+                <ul className={n.list}>{req.assumptions.map((a) => <li key={a}>{a}</li>)}</ul>
+              </>
             )}
-          </Card>
+          </div>
 
           {neg.activity.length > 0 && (
-            <AgentActivity
-              items={neg.activity.map((a, i) => ({ id: `${a.at}-${i}`, type: "text", content: a.label, state: a.state === "done" ? "done" : "running" }))}
-              status={neg.activity.some((a) => a.state === "working") ? "working" : "complete"}
-              duration={lastDuration}
-              completeLabel={lastDuration ? undefined : "Latest agent steps"}
-              collapseOnComplete
-              defaultOpen={false}
-            />
+            <div className={n.block}>
+              <AgentActivity
+                items={neg.activity.map((a, i) => ({ id: `${a.at}-${i}`, type: "text", content: a.label, state: a.state === "done" ? "done" : "running" }))}
+                status={neg.activity.some((a) => a.state === "working") ? "working" : "complete"}
+                duration={lastDuration}
+                completeLabel={lastDuration ? undefined : "Latest agent steps"}
+                collapseOnComplete
+                defaultOpen={false}
+              />
+            </div>
           )}
-        </div>
+        </aside>
       </div>
     </AppShell>
   );
@@ -313,17 +315,17 @@ function prettyName(slug: string) {
 function TurnView({ turn, agentName, sellerName, brand }: { turn: Turn; agentName: string; sellerName: string; brand?: SellerBrand }) {
   const buyer = turn.role === "buyer";
   const system = turn.role === "system";
-  const cls = buyer ? s.turnBuyer : system ? s.turnSystem : s.turnAgent;
-  const bubble = buyer ? s.bubbleBuyer : system ? s.bubbleSystem : s.bubbleAgent;
+  const cls = buyer ? n.turnBuyer : system ? n.turnSystem : n.turnAgent;
+  const bubble = buyer ? n.bubbleBuyer : system ? n.bubbleSystem : n.bubbleAgent;
   return (
-    <motion.div className={`${s.turn} ${cls}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={T_DEFAULT}>
+    <motion.div className={`${n.turn} ${cls}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={T_DEFAULT}>
       {!system && (
-        <span className={s.who}>
-          {buyer ? <span className={s.youMark} aria-hidden><User size={12} /></span> : <SellerMark name={sellerName} brand={brand} size="sm" />}
+        <span className={n.who}>
+          {buyer ? <span className={n.youMark} aria-hidden><User size={11} /></span> : <SellerMark name={sellerName} brand={brand} size="sm" />}
           {buyer ? "You" : agentName}
         </span>
       )}
-      <div className={`${s.bubble} ${bubble}`}>{turn.content}</div>
+      <div className={`${n.bubble} ${bubble}`}>{turn.content}</div>
       {turn.decision && (
         <div className={s.row}>
           <StatusTag

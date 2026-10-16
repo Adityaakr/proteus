@@ -1,16 +1,14 @@
 import { useId, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check } from "lucide-react";
 import { toMicro } from "@proteus/domain";
 import { T_DEFAULT } from "../../lib/motion";
 import { ActionButton } from "../ui/ActionButton";
 import { Field } from "../ui/Field";
 import { Money } from "../ui/Money";
-import { StatusTag } from "../ui/StatusTag";
 import { Notice } from "../ui/misc";
 import type { Offer } from "../lib/api";
 import { fmtUnits, prettyIntegration } from "./common";
-import s from "./buyer.module.css";
+import n from "./negotiate.module.css";
 
 const ORIGIN_LABEL: Record<Offer["origin"], string> = {
   tier: "Published tier",
@@ -53,81 +51,47 @@ export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAc
     }
   };
 
+  const digits = offer.unitPriceUsd.split(".")[1]?.replace(/0+$/, "").length && offer.unitPriceUsd.split(".")[1]!.replace(/0+$/, "").length > 2 ? 4 : 2;
+  const reasons = offer.publicReasons.filter((r) => !/integrations are not available/.test(r));
   return (
-    <motion.article layout transition={T_DEFAULT} className={`${s.offer} ${top ? s.offerTop : ""}`} aria-label={`${offer.tierName} offer, ${fmtUnits(offer.units)} ${unitLabel}s`}>
-      <div className={s.offerHead}>
-        <div className={s.stackTight}>
-          <div className={s.row}>
-            <span className="h6">{offer.tierName}</span>
-            {top && offer.status === "eligible" ? <StatusTag tone="info" label="Recommended" /> : <StatusTag state={offer.status} />}
-          </div>
-          <div className={s.chips}>
-            {origins.map((o) => (
-              <span key={o} className={s.chipSm}>{ORIGIN_LABEL[o]}</span>
-            ))}
-          </div>
-        </div>
-        <div className={s.stackTight} style={{ alignItems: "flex-end" }}>
-          <span className={s.offerTotal}>
-            <Money usd={offer.prepaidTotalUsd} />
-          </span>
-          <span className="body3">prepaid{termDays ? ` for ${termDays} days` : " for the term"}</span>
-        </div>
+    <motion.article layout transition={T_DEFAULT} className={n.offer} aria-label={`${offer.tierName} offer, ${fmtUnits(offer.units)} ${unitLabel}s`}>
+      <div className={n.offerHead}>
+        <span className={n.offerName}>
+          {offer.tierName}
+          {top && offer.status === "eligible" ? <span className={n.offerTag}>Recommended</span> : offer.status === "approval_required" ? <span className={n.offerTagMuted}>Needs seller approval</span> : offer.status === "rejected" ? <span className={n.offerTagMuted}>Not available</span> : null}
+        </span>
+        <span className={n.offerTotal}><Money usd={offer.prepaidTotalUsd} /></span>
       </div>
-      <dl className={s.offerGrid}>
-        <div><dt>Volume</dt><dd>{fmtUnits(offer.units)} {unitLabel}s</dd></div>
-        <div><dt>Unit price</dt><dd><Money usd={offer.unitPriceUsd} digits={offer.unitPriceUsd.split(".")[1]?.replace(/0+$/, "").length && offer.unitPriceUsd.split(".")[1]!.replace(/0+$/, "").length > 2 ? 4 : 2} /></dd></div>
-        {offer.overagePriceUsd ? <div><dt>Overage</dt><dd><Money usd={offer.overagePriceUsd} /></dd></div> : <div><dt>Refund</dt><dd>Unused balance</dd></div>}
-      </dl>
-      {offer.includes.length > 0 && (
-        <div className={s.chips}>
-          {offer.includes.map((inc) => (
-            <span key={inc} className={s.chipSm}><Check size={12} strokeWidth={2.5} aria-hidden style={{ color: "var(--c-primary)" }} />{inc}</span>
-          ))}
-        </div>
-      )}
+      <p className={n.offerFacts}>
+        <b>{fmtUnits(offer.units)}</b> {unitLabel}s at <b><Money usd={offer.unitPriceUsd} digits={digits} /></b> each, prepaid{termDays ? ` for ${termDays} days` : ""}.
+        {offer.overagePriceUsd ? <> Overage <b><Money usd={offer.overagePriceUsd} /></b>.</> : " Unused balance refunds after the term."}
+        {" "}<span className={n.offerTagMuted}>{origins.map((o) => ORIGIN_LABEL[o]).join(", ")}</span>
+      </p>
+      {offer.includes.length > 0 && <p className={n.offerIncl}>Includes {offer.includes.join(", ")}.</p>}
       {offer.unsupportedIntegrations.length > 0 && (
         <Notice tone="warn">
           {offer.unsupportedIntegrations.map(prettyIntegration).join(", ")} {offer.unsupportedIntegrations.length > 1 ? "are" : "is"} not supported and is excluded from these terms.
         </Notice>
       )}
-      {offer.publicReasons.filter((r) => !/integrations are not available/.test(r)).map((r) => (
-        <p key={r} className="body3">{r}</p>
-      ))}
-      <div className={s.offerActions}>
-        <ActionButton variant={top ? "primary" : "secondary"} onClick={() => onAccept(offer)} loading={busy} disabled={offer.status === "rejected"} loadingLabel="Preparing the quote">
+      {reasons.map((r) => <p key={r} className={n.offerReason}>{r}</p>)}
+      <div className={n.offerActions}>
+        <ActionButton size="sm" variant={top ? "primary" : "secondary"} onClick={() => onAccept(offer)} loading={busy} disabled={offer.status === "rejected"} loadingLabel="Preparing the quote">
           {needsApproval ? "Request seller approval" : "Accept this offer"}
         </ActionButton>
         {onCounter && (
-          <ActionButton variant="ghost" onClick={() => setCounterOpen((o) => !o)} aria-expanded={counterOpen} aria-controls={formId}>
-            Make a counteroffer
-          </ActionButton>
+          <button type="button" className={n.textBtn} onClick={() => setCounterOpen((o) => !o)} aria-expanded={counterOpen} aria-controls={formId}>
+            {counterOpen ? "Close counteroffer" : "Make a counteroffer"}
+          </button>
         )}
       </div>
       <AnimatePresence initial={false}>
         {counterOpen && onCounter && (
-          <motion.form
-            id={formId}
-            key="counter"
-            onSubmit={submit}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={T_DEFAULT}
-            style={{ overflow: "hidden" }}
-            noValidate
-          >
-            <div className={s.counter}>
-              <fieldset className={s.segmented}>
+          <motion.form id={formId} key="counter" onSubmit={submit} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={T_DEFAULT} style={{ overflow: "hidden" }} noValidate>
+            <div className={n.counter}>
+              <fieldset className={n.segmented}>
                 <legend className="sr-only">Counter with</legend>
-                <label>
-                  <input type="radio" name={`${formId}-mode`} checked={mode === "total"} onChange={() => setMode("total")} />
-                  Target total
-                </label>
-                <label>
-                  <input type="radio" name={`${formId}-mode`} checked={mode === "units"} onChange={() => setMode("units")} />
-                  Target units
-                </label>
+                <label><input type="radio" name={`${formId}-mode`} checked={mode === "total"} onChange={() => setMode("total")} /> Target total</label>
+                <label><input type="radio" name={`${formId}-mode`} checked={mode === "units"} onChange={() => setMode("units")} /> Target units</label>
               </fieldset>
               <Field
                 label={mode === "total" ? `Total for ${fmtUnits(offer.units)} ${unitLabel}s (USDC)` : `${unitLabel[0]!.toUpperCase()}${unitLabel.slice(1)}s for ${offer.prepaidTotalUsd} USDC`}
@@ -138,10 +102,8 @@ export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAc
                 error={err}
                 hint="The seller's rules decide instantly. Nothing is binding until you sign."
               />
-              <div className={s.row}>
-                <ActionButton type="submit" variant="secondary" loading={counterBusy} loadingLabel="Checking with the seller">
-                  Send counteroffer
-                </ActionButton>
+              <div>
+                <ActionButton type="submit" size="sm" variant="secondary" loading={counterBusy} loadingLabel="Checking with the seller">Send counteroffer</ActionButton>
               </div>
             </div>
           </motion.form>
