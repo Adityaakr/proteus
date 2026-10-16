@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -125,6 +125,25 @@ export default function Negotiate() {
   };
 
   const wideLogo = useLogoShape(negQ.data?.sellerBrand?.logoUrl) === "wide";
+  // Size the chat to the space left under the header so the composer is always on screen (desktop only).
+  const chatRef = useRef<HTMLElement>(null);
+  const [chatHeight, setChatHeight] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = chatRef.current;
+      if (!el || window.innerWidth <= 1100) return setChatHeight(null);
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      setChatHeight(Math.max(320, window.innerHeight - top - 24));
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    const ro = new ResizeObserver(measure);
+    if (chatRef.current?.parentElement) ro.observe(chatRef.current.parentElement);
+    return () => {
+      window.removeEventListener("resize", measure);
+      ro.disconnect();
+    };
+  }, [negQ.data]);
 
   if (negQ.isLoading)
     return (
@@ -180,7 +199,7 @@ export default function Negotiate() {
       </header>
 
       <div className={n.grid}>
-        <section className={n.chat} aria-label="Conversation with the seller's agent">
+        <section ref={chatRef} className={n.chat} style={chatHeight ? { height: chatHeight, minHeight: 0, maxHeight: "none" } : undefined} aria-label="Conversation with the seller's agent">
           <div ref={threadRef} className={n.thread} role="log" aria-live="polite" aria-relevant="additions" aria-label="Messages" tabIndex={0}>
             <AnimatePresence initial={false}>
               {turns.map((t) => (
