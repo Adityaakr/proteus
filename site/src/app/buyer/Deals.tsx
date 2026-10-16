@@ -17,7 +17,7 @@ import { ErrorState, PageHeader, fmtDate, prettySlug } from "./common";
 export default function Deals() {
   const navigate = useNavigate();
   const q = useQuery({ queryKey: qk.meDeals, queryFn: api.meDeals, retry: false });
-  const empty = <EmptyState icon={<Handshake size={20} strokeWidth={1.75} />} title="No deals yet" description="Accept an offer in a negotiation and fund it from your balance." action={<ActionButton to="/app/market">Browse the market</ActionButton>} />;
+  const empty = <EmptyState icon={<Handshake size={20} strokeWidth={1.75} />} title="No deals yet" description="Accept an offer in a negotiation and fund it from your balance." action={<ActionButton variant="secondary" size="sm" to="/app/market">Browse the market</ActionButton>} />;
   return (
     <AppShell title="Deals">
       <PageHeader title="Deals" lede="Prepaid agreements held in escrow. The seller is paid only for usage you sign." />

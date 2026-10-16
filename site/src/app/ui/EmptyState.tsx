@@ -17,9 +17,9 @@ export function EmptyState({ title, description, icon, action, className }: Empt
       <span className={s.emptyIcon} aria-hidden>
         {icon ?? <Inbox size={20} strokeWidth={1.75} />}
       </span>
-      <h2 className="h6">{title}</h2>
-      {description && <p className="body3" style={{ maxWidth: 420 }}>{description}</p>}
-      {action}
+      <h2 className={s.emptyTitle}>{title}</h2>
+      {description && <p className="body3" style={{ maxWidth: 480 }}>{description}</p>}
+      {action && <div className={s.emptyAction}>{action}</div>}
     </div>
   );
 }

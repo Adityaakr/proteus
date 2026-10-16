@@ -105,7 +105,9 @@
 .rowLink:hover td { background: var(--c-dark-5); }
 
 /* EmptyState */
-.empty { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 8px; padding: 18px 0; }
+.empty { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 8px; padding: 22px 24px; }
+.emptyTitle { margin: 0; font-family: var(--font-body); font-size: 15px; font-weight: 500; color: var(--c-dark); }
+.emptyAction { margin-top: 6px; }
 .emptyIcon { display: none; }
 
 /* Field */

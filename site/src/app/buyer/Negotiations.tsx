@@ -17,7 +17,7 @@ import { ErrorState, PageHeader, fmtDateTime, prettySlug } from "./common";
 export default function Negotiations() {
   const navigate = useNavigate();
   const q = useQuery({ queryKey: qk.meNegotiations, queryFn: api.meNegotiations, retry: false });
-  const empty = <EmptyState icon={<MessagesSquare size={20} strokeWidth={1.75} />} title="No negotiations yet" description="Open a product in the market and tell the seller's agent what you need." action={<ActionButton to="/app/market">Browse the market</ActionButton>} />;
+  const empty = <EmptyState icon={<MessagesSquare size={20} strokeWidth={1.75} />} title="No negotiations yet" description="Open a product in the market and tell the seller's agent what you need." action={<ActionButton variant="secondary" size="sm" to="/app/market">Browse the market</ActionButton>} />;
   return (
     <AppShell title="Negotiations">
       <PageHeader title="Negotiations" lede="Every conversation you started with a seller's agent." />
