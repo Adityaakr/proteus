@@ -5,7 +5,7 @@ import { AppShell } from "../layouts/AppShell";
 import { ActionButton } from "../ui/ActionButton";
 import { Card } from "../ui/Card";
 import { CopyButton, ExplorerLink, KeyValue, Notice } from "../ui/misc";
-import { StatusTag } from "../ui/StatusTag";
+import { NetworkBadge } from "../ui/StatusTag";
 import { LoadingCard } from "../ui/Skeleton";
 import { useAuth } from "../auth/useAuth";
 import { PageHeader } from "../buyer/common";
@@ -63,7 +63,7 @@ export default function WalletPage() {
             <Card title="Network" variant="muted" padding="compact">
               <KeyValue
                 items={[
-                  { k: "Chain", v: <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>Arc testnet <StatusTag network="testnet" /></span> },
+                  { k: "Chain", v: <NetworkBadge network="testnet" /> },
                   { k: "Chain id", v: <span className="app-mono">{ARC_TESTNET_CHAIN_ID}</span> },
                   { k: "Gas", v: "Paid in USDC from this balance. Funding a deal takes two small transactions." },
                   { k: "Explorer", v: <ExplorerLink href={explorerAddress(wallet.address)}>View address on explorer</ExplorerLink> },

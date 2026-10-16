@@ -42,31 +42,33 @@
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 20px 14px;
+  gap: 20px;
+  padding: 16px 12px;
   background: var(--c-white);
   box-shadow: inset -1px 0 0 var(--c-dark-10);
 }
 .sideBrand { display: flex; align-items: center; gap: 10px; padding: 4px 10px; min-height: 44px; }
-.sideNav { display: flex; flex-direction: column; gap: 4px; }
+.sideNav { display: flex; flex-direction: column; gap: 2px; }
 .sideItem {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 40px;
-  padding: 8px 12px;
-  border-radius: 1000px;
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: 8px;
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   color: var(--c-dark-80);
   position: relative;
+  transition: color 120ms ease;
 }
 .sideItem:hover { background: var(--c-dark-5); color: var(--c-dark); }
-.sideItemActive { color: var(--c-primary); }
-.sideItemActive:hover { background: transparent; color: var(--c-primary); }
-.activePill { position: absolute; inset: 0; border-radius: 1000px; background: var(--c-primary-10, rgba(1, 43, 255, 0.08)); box-shadow: inset 0 0 0 1px var(--c-primary-20); z-index: 0; }
-.sideIcon { position: relative; z-index: 1; display: inline-flex; width: 18px; height: 18px; align-items: center; justify-content: center; }
+.sideItemActive { color: var(--c-dark); }
+.sideItemActive:hover { background: transparent; color: var(--c-dark); }
+.activePill { position: absolute; inset: 0; border-radius: 8px; background: var(--c-dark-5); z-index: 0; }
+.sideIcon { position: relative; z-index: 1; display: inline-flex; width: 16px; height: 16px; align-items: center; justify-content: center; color: var(--c-dark-60); }
+.sideItemActive .sideIcon { color: var(--c-dark); }
 .sideLabel { position: relative; z-index: 1; }
 .sideFoot { margin-top: auto; padding: 0 10px; display: flex; flex-direction: column; gap: 8px; }
 .sellerCol { min-width: 0; display: flex; flex-direction: column; }
@@ -131,9 +133,9 @@
 }
 
 /* App shell additions (buy + sell groups, account menu, sandbox note) */
-.navGroup { display: flex; flex-direction: column; gap: 4px; }
-.navGroup + .navGroup { margin-top: 18px; }
-.groupLabel { padding: 0 12px 4px; font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-dark-40); }
+.navGroup { display: flex; flex-direction: column; gap: 2px; }
+.navGroup + .navGroup { margin-top: 16px; }
+.groupLabel { padding: 0 10px 6px; font-family: var(--font-body); font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-dark-60); }
 .sideSandbox { font-family: var(--font-body); font-size: 12px; line-height: 1.45; color: var(--c-dark-60); margin: 0; padding: 0 12px; }
 .sandboxNote { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-family: var(--font-body); font-size: 13px; color: var(--c-dark-60); }
 .acct { position: relative; flex: none; }

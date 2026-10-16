@@ -5,6 +5,7 @@ import { Skeleton } from "../ui/Skeleton";
 import { Notice } from "../ui/misc";
 import { SandboxNote } from "../layouts/SandboxNote";
 import { walletErrorMessage } from "../lib/wallet";
+import { UsdcMark } from "../ui/Marks";
 import { formatNative, useBalances } from "./useBalances";
 import w from "./wallet.module.css";
 
@@ -21,7 +22,7 @@ export function BalanceCard({ action, poll, title = "Balance" }: { action?: Reac
         ) : (
           <span className={w.balance}>
             <Money micro={q.data?.usdc ?? 0n} />
-            <span className={w.balanceUnit}>USDC</span>
+            <span className={w.balanceUnit}><UsdcMark size={18} /> USDC</span>
           </span>
         )}
       </div>

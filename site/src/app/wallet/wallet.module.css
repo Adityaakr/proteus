@@ -2,7 +2,7 @@
 .balanceRow { min-height: 44px; display: flex; align-items: center; }
 .balance { display: inline-flex; align-items: baseline; gap: 10px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 40px; letter-spacing: -0.8px; color: var(--c-dark); }
 .balance > span:first-child { font-size: inherit; }
-.balanceUnit { font-family: var(--font-body); font-size: 15px; letter-spacing: 0; color: var(--c-dark-60); }
+.balanceUnit { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 15px; letter-spacing: 0; color: var(--c-dark-60); }
 .grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; align-items: start; }
 .stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .addrBox { display: flex; flex-direction: column; gap: 16px; align-items: center; text-align: center; }

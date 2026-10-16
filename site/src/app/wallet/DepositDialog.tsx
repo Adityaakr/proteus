@@ -8,6 +8,7 @@ import { ActionButton } from "../ui/ActionButton";
 import { CopyButton, ExplorerLink } from "../ui/misc";
 import { Money } from "../ui/Money";
 import { Qr } from "./QrCode";
+import { ArcMark } from "../ui/Marks";
 import { useDepositWatch } from "./useDepositWatch";
 import w from "./wallet.module.css";
 
@@ -66,7 +67,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
       <div className={w.sheetHandle} aria-hidden />
       <header className={w.sheetHead}>
         <div className={w.sheetTitleRow}>
-          <span className={w.sheetLabel}>Arc testnet</span>
+          <span className={w.sheetLabel}><ArcMark size={12} style={{ marginRight: 6, verticalAlign: "-1px" }} />Arc testnet</span>
           <h2 id={titleId} className={w.sheetTitle}>Deposit testnet USDC</h2>
         </div>
         <button ref={closeRef} type="button" className={w.sheetClose} onClick={onClose} aria-label="Close">

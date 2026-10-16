@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import s from "./ui.module.css";
+import { ArcMark } from "./Marks";
 
 /**
  * StatusTag: a pill that always carries a text label (never color only).
@@ -96,5 +97,6 @@ export function StatusTag({ network, state, tone, label, icon, className, title 
 
 /** "Arc testnet" network badge used in shells. */
 export function NetworkBadge({ network = "testnet", label }: { network?: NetworkKind; label?: string }) {
-  return <StatusTag network={network} label={label ?? (network === "testnet" ? "Arc testnet" : NETWORK_LABELS[network])} />;
+  const arc = network === "testnet" || network === "mainnet";
+  return <StatusTag network={network} label={label ?? (network === "testnet" ? "Arc testnet" : NETWORK_LABELS[network])} icon={arc ? <ArcMark size={12} /> : undefined} />;
 }
