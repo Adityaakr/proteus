@@ -35,6 +35,8 @@ export function reviveProduct(p: Record<string, unknown>): Product {
     maxUnitsPerDeal: BigInt(String(p.maxUnitsPerDeal)),
     termDays: Number(p.termDays),
     refundPolicy: String(p.refundPolicy),
+    ...(typeof p.summary === "string" && p.summary ? { summary: p.summary } : {}),
+    ...(typeof p.category === "string" && p.category ? { category: p.category } : {}),
   };
 }
 

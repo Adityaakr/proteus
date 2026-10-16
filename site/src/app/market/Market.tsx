@@ -137,12 +137,12 @@ function ProductRow({ seller, p }: { seller: string; p: MarketSellerProduct }) {
         <span className={m.productMain}>
           <span className={m.productName}>{p.name}</span>
           {p.summary && <span className={m.productSummary}>{p.summary}</span>}
-          <span className={m.productFacts}>
-            {p.startingTierUsd && <span>From <strong><Money usd={p.startingTierUsd} digits={0} /></strong> prepaid</span>}
-            {p.bestUnitPriceUsd && <span>as low as <strong><Money usd={p.bestUnitPriceUsd} digits={decimalsFor(p.bestUnitPriceUsd)} /></strong> per {p.unitLabel}</span>}
-            {p.perCallUsd && <span><strong><Money usd={p.perCallUsd} digits={decimalsFor(p.perCallUsd)} /></strong> per call</span>}
-            <span>{p.termDays}-day term</span>
-          </span>
+          <dl className={m.productFacts}>
+            {p.bestUnitPriceUsd && <div><dt>Unit price</dt><dd><Money usd={p.bestUnitPriceUsd} digits={decimalsFor(p.bestUnitPriceUsd)} /><span className={m.factUnit}> / {p.unitLabel}</span></dd></div>}
+            {p.startingTierUsd && <div><dt>Prepaid from</dt><dd><Money usd={p.startingTierUsd} digits={0} /></dd></div>}
+            {p.perCallUsd && <div><dt>Per call</dt><dd><Money usd={p.perCallUsd} digits={decimalsFor(p.perCallUsd)} /></dd></div>}
+            <div><dt>Term</dt><dd>{p.termDays} days</dd></div>
+          </dl>
         </span>
         <ArrowRight size={16} strokeWidth={2} aria-hidden className={m.productArrow} />
       </Link>
