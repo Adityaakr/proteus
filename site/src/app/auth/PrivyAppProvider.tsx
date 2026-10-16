@@ -11,6 +11,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createWalletClient, getAddress, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arcTestnet } from "@proteus/domain";
+
+/**
+ * The chain the embedded wallet talks to. Its RPC goes through the same-origin relay (POST /api/rpc,
+ * reads plus eth_sendRawTransaction) so browser content blockers that block rpc.testnet.arc.io cannot
+ * stop a signature or a broadcast. Chain id, currency and explorer are unchanged.
+ */
+const walletChain = typeof window !== "undefined" ? { ...arcTestnet, rpcUrls: { default: { http: [`${window.location.origin}/api/rpc`] } } } : arcTestnet;
 import { ApiError, api, isMock, qk, setAccessTokenGetter } from "../lib/api";
 import { WalletError, walletClientFor } from "../lib/wallet";
 import { walletKind, walletLinkMessage, type Address, type MeResponse } from "../lib/types";
@@ -31,8 +38,8 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
       config={{
         loginMethods: ["email", "google", "wallet"],
         embeddedWallets: { ethereum: { createOnLogin: "all-users" } },
-        defaultChain: arcTestnet,
-        supportedChains: [arcTestnet],
+        defaultChain: walletChain,
+        supportedChains: [walletChain],
         appearance: {
           theme: "light",
           accentColor: "#012BFF",

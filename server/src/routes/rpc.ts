@@ -5,7 +5,7 @@ import { HttpError } from "../lib/http";
 /**
  * Same-origin, read-only JSON-RPC relay to Arc testnet. The browser reads balances and receipts through
  * this when its direct request to the public RPC is blocked (CORS, bot challenge, corporate proxy).
- * Only read methods pass; nothing here signs or submits transactions.
+ * Read methods and eth_sendRawTransaction pass (a broadcast of a transaction the user already signed); nothing here signs.
  */
 const READ_METHODS = new Set([
   "eth_chainId",
@@ -24,6 +24,8 @@ const READ_METHODS = new Set([
   "eth_getLogs",
   "eth_getCode",
   "net_version",
+  // A signed transaction can be broadcast through the relay; the relay never holds a key.
+  "eth_sendRawTransaction",
 ]);
 
 interface RpcReq { jsonrpc?: string; id?: unknown; method?: string; params?: unknown }
