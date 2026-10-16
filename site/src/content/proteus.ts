@@ -1,7 +1,7 @@
 /** All page copy for PROTEUS. Edit here, not in sections. Source: "PROTEUS" copy doc ("Your business should be able to make a deal" draft). */
 
 export const links = {
-  explore: "/s/northwind-support/order-support",
+  explore: "/app/market",
   howItWorks: "/#how-it-works",
   earlyAccess: "/app",
   record: "/review",
