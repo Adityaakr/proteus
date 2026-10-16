@@ -44,7 +44,7 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
           theme: "light",
           accentColor: "#012BFF",
           logo: "/assets/proteus-wordmark.png",
-          landingHeader: "Sign in to PROTEUS",
+          landingHeader: "Sign in to Proteus AI",
           showWalletLoginFirst: false,
           walletChainType: "ethereum-only",
         },

@@ -50,8 +50,8 @@ export default function LoginPage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={T_DEFAULT} className={s.cardWrap}>
           <Card>
             <div className={s.head}>
-              <h1 className={s.title}>Sign in to PROTEUS</h1>
-              <p className="body2">One account to buy and sell AI services, with a wallet created for you at sign-in.</p>
+              <h1 className={s.title}>Sign in to Proteus AI</h1>
+              <p className="body2">Buy and sell AI services from one account. Your wallet is ready the moment you sign in.</p>
             </div>
             <ActionButton size="lg" fullWidth onClick={go} loading={!ready} loadingLabel="Loading" iconLeft={<LogIn size={16} strokeWidth={2} />}>
               {mock ? "Continue as the demo user" : "Sign in"}
