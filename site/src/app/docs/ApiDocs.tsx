@@ -12,6 +12,7 @@ const TOC = [
   ["settle", "Settling usage"],
   ["paypercall", "Pay per call"],
   ["seller", "For sellers: your endpoint"],
+  ["units", "What counts as a unit"],
 ] as const;
 
 /** The API reference a funded deal links to: how a buyer calls the service, what is billed, how usage settles, and the seller endpoint contract. */
@@ -129,6 +130,19 @@ X-Proteus-Request-Id: order-10421
             <div className={`${s.callout} ${s.calloutWarn}`}>
               Non-2xx responses, non-JSON bodies and anything slower than 20 seconds are recorded as <b>failed</b> and not billed. Treat <code>requestId</code> as idempotent on your side too.
             </div>
+          </section>
+
+          <section id="units" className={s.section}>
+            <h2 className={s.h2}><span className={s.num}>07</span>What counts as a unit</h2>
+            <p>Buyers countersign units, so a unit must be a finished, checkable event your endpoint can report as delivered. Time, effort and standing states cannot be delivered or signed. Examples by category:</p>
+            <ul className={s.rules}>
+              <li><BadgeCheck size={15} strokeWidth={1.9} /><span><b>AP and AR</b>: one invoice read, matched and scheduled, or routed to a human with a reason.</span></li>
+              <li><BadgeCheck size={15} strokeWidth={1.9} /><span><b>Compliance</b>: one counterparty screened with result, sources and reason codes, monitored until the term ends.</span></li>
+              <li><BadgeCheck size={15} strokeWidth={1.9} /><span><b>Vendor management</b>: one vendor evaluated with a scorecard and a recommendation.</span></li>
+              <li><BadgeCheck size={15} strokeWidth={1.9} /><span><b>Operations</b>: one defined task completed under policy with a written record. "We ran your business" is not a unit; "one bill paid under your rules" is.</span></li>
+              <li><BadgeCheck size={15} strokeWidth={1.9} /><span><b>Treasury</b>: one completed run that reconciles balances and executes approved sweeps with a signed report. Not "cash managed".</span></li>
+              <li><BadgeCheck size={15} strokeWidth={1.9} /><span><b>Voice, support, data, inference</b>: one booking, one resolution, one enriched record, one million tokens served.</span></li>
+            </ul>
           </section>
         </article>
       </div>

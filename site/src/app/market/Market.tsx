@@ -13,7 +13,7 @@ import { api, qk, type MarketSeller, type MarketSellerProduct } from "../lib/api
 import { ErrorState, PageHeader, fmtDate } from "../buyer/common";
 import m from "./market.module.css";
 
-const CATEGORY_ORDER = ["support", "voice", "logistics", "data", "legal", "risk", "media", "finance", "health", "other"];
+const CATEGORY_ORDER = ["support", "voice", "infra", "devtools", "treasury", "payables", "vendors", "operations", "compliance", "logistics", "data", "legal", "risk", "media", "finance", "health", "other"];
 
 export default function Market() {
   const { sellerSlug } = useParams();

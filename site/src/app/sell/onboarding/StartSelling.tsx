@@ -90,6 +90,9 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
               <div className={s.grid2}>
                 <Field label="Product name" placeholder="AI order support" {...input("productName")} />
                 <Field label="One-line summary" placeholder="Order status and delivery answers from the order record." hint="Shown on your market card." {...input("summary")} maxLength={160} />
+                <Notice tone="info" title="What counts as one unit">
+                  The buyer countersigns units, so define one as a finished, checkable event: one invoice matched and scheduled, one counterparty screened, one vendor evaluated, one treasury run completed, one task done with a record. Avoid units that are time or effort ("one hour of work") or standing states ("cash managed"); those cannot be delivered and signed.
+                </Notice>
                 <Field label="Unit label" placeholder="resolution" hint="The word for one billable unit." {...input("unitLabel")} />
               </div>
               <Field
