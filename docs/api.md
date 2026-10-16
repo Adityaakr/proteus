@@ -222,3 +222,10 @@ The endpoint answers with JSON: `{ "answer": "...", "billable": true | false, "s
 - `POST /api/orgs` accepts `brand`; `PATCH /api/app/org` (owner session) updates `name` and `brand`. Logos: an https URL, a `/assets/...` path, or a PNG/JPEG/WebP/SVG data URL under 96 KB (SVGs with scripts are rejected). Empty strings clear a field.
 - Negotiation views carry `sellerName`, `sellerBrand`, `productName`, `productSummary`, `termDays`; `/api/me/negotiations` and `/api/me/deals` carry `sellerBrand`.
 - Demo sellers were removed on 2026-10-16 (`pnpm --filter @proteus/server db:remove-demo`). Every listed product runs on its seller's own endpoint (`service: "seller-endpoint"`); `sample-store` remains only for hidden legacy rows.
+
+### Seller console v2 (owner session)
+
+- `GET /api/app/dashboard`: `revenueEarned` (settled), `fulfilledDeals`, `activeNegotiations`, `needsAttention` (pending approvals), `marginBps` (revenue-weighted contribution margin over accepted quotes, falling back to all quotes; `marginBasis` says which), `fundsHeld` (deposit minus settled minus refunded on funded or active deals), `attention[]` (pending approvals with buyer, product, tier, units, prepaid total, margin and rule ids), `recentDeals[]`.
+- `GET /api/app/customers`: one row per buyer wallet with negotiation and deal counts, funded, settled, in escrow, products and first/last activity.
+- `GET /api/app/usage`: totals plus the latest 300 service requests with outcome, billed units, cumulative charge, latency and whether the seller receipt is signed.
+- `GET /api/app/insights`: a 30-day daily series (negotiations, deals funded, USDC funded, USDC settled from confirmed usage acceptances, requests, billable units) plus conversion and delivery counts. Counts and sums only.

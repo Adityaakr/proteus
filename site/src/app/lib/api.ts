@@ -215,6 +215,10 @@ export const api = {
     signer: () => request<T.SignerInfo>("GET", "/app/signer"),
     revokeSigner: () => request<{ revokedAt: T.IsoTime; note?: string; [k: string]: unknown }>("POST", "/app/signer/revoke", { body: {} }),
     createProduct: (body: T.ProductCreateBody) => request<T.ProductWithPrivate>("POST", "/app/products", { body }),
+    dashboard: () => request<import("../seller/console").Dashboard>("GET", "/app/dashboard"),
+    customers: () => request<import("../seller/console").Customer[]>("GET", "/app/customers"),
+    usage: () => request<import("../seller/console").Usage>("GET", "/app/usage"),
+    insights: () => request<import("../seller/console").Insights>("GET", "/app/insights"),
     updateOrg: (body: { name?: string; brand?: Partial<T.SellerBrand> }) => request<{ slug: string; name: string; label: T.SellerLabel; brand: T.SellerBrand }>("PATCH", "/app/org", { body }),
   },
 };

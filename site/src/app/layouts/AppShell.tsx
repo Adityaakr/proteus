@@ -9,7 +9,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
-import { Briefcase, ChevronDown, Handshake, Home, KeyRound, Landmark, LogOut, MessagesSquare, Package, Settings, ShieldCheck, Store, Wallet } from "lucide-react";
+import { Activity, BarChart3, Briefcase, ChevronDown, Handshake, Home, KeyRound, Landmark, LayoutDashboard, LogOut, MessagesSquare, Package, Settings, ShieldCheck, SlidersHorizontal, Store, Users, Wallet } from "lucide-react";
 import { T_DEFAULT } from "../../lib/motion";
 import { NetworkBadge, StatusTag } from "../ui/StatusTag";
 import { CopyButton, shortHex } from "../ui/misc";
@@ -53,11 +53,16 @@ export const BUY_NAV: AppNavItem[] = [
 export const SELL_NAV_START: AppNavItem[] = [{ label: "Start selling", to: "/app/sell", icon: ic(Briefcase), short: "Sell" }];
 
 export const SELL_NAV_ORG: AppNavItem[] = [
-  { label: "Products", to: "/app/sell/products", icon: ic(Package) },
+  { label: "Overview", to: "/app/sell", icon: ic(LayoutDashboard), end: true },
   { label: "Negotiations", to: "/app/sell/negotiations", icon: ic(MessagesSquare) },
-  { label: "Approvals", to: "/app/sell/approvals", icon: ic(ShieldCheck) },
   { label: "Deals", to: "/app/sell/deals", icon: ic(Handshake) },
-  { label: "Finance", to: "/app/sell/finance", icon: ic(Landmark) },
+  { label: "Customers", to: "/app/sell/customers", icon: ic(Users) },
+  { label: "Products & pricing", to: "/app/sell/products", icon: ic(Package) },
+  { label: "Payments", to: "/app/sell/payments", icon: ic(Landmark) },
+  { label: "Usage & delivery", to: "/app/sell/usage", icon: ic(Activity) },
+  { label: "Insights", to: "/app/sell/insights", icon: ic(BarChart3) },
+  { label: "Agent policies", to: "/app/sell/policies", icon: ic(ShieldCheck) },
+  { label: "Settings", to: "/app/sell/settings", icon: ic(SlidersHorizontal) },
 ];
 
 const SETTINGS: AppNavItem = { label: "Settings", to: "/app/settings", icon: ic(Settings) };
@@ -76,7 +81,7 @@ export function AppShell({ children, title, actions }: AppShellProps) {
   // Most specific match wins, so "/app" is not active under "/app/deals". Under /app/sell with an
   // org but no specific section (the sell overview), nothing in the Sell group is forced active.
   const active = all.filter((it) => matches(pathname, it)).sort((a, b) => b.to.length - a.to.length)[0];
-  const heading = title ?? (pathname.startsWith("/app/sell") && hasOrg && active === undefined ? "Selling" : active?.label ?? "PROTEUS");
+  const heading = title ?? active?.label ?? "PROTEUS";
   const tabs: AppNavItem[] = [BUY_NAV[0]!, BUY_NAV[1]!, BUY_NAV[3]!, BUY_NAV[4]!, { label: hasOrg ? "Selling" : "Start selling", short: "Sell", to: "/app/sell", icon: ic(Briefcase) }];
   const tabActive = tabs.filter((it) => matches(pathname, it)).sort((a, b) => b.to.length - a.to.length)[0];
 

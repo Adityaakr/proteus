@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Handshake } from "lucide-react";
 import { ActionButton, DataTable, EmptyState, Money, MonoValue, StatusTag, type DataColumn } from "../kit";
 import { useDeals } from "../api";
@@ -11,6 +11,8 @@ import s from "../seller.module.css";
 export default function Deals() {
   const q = useDeals();
   const nav = useNavigate();
+  const [params] = useSearchParams();
+  const buyer = params.get("buyer")?.toLowerCase() ?? null;
   const go = (d: DealSummary) => nav(`/app/sell/deals/${encodeURIComponent(d.id)}`);
   const cols: DataColumn<DealSummary>[] = [
     {
@@ -31,10 +33,11 @@ export default function Deals() {
   ];
   return (
     <div className={s.page}>
-      <PageHeader description="Signed agreements funded into escrow on Arc testnet." />
+      <PageHeader description={buyer ? <>Deals with buyer <span className={s.mono}>{buyer.slice(0, 6)}…{buyer.slice(-4)}</span>. <Link to="/app/sell/deals" className={s.link}>Show all</Link></> : "Signed agreements funded into escrow on Arc testnet."} />
       <QueryView q={q} label="deals">
-        {(rows) =>
-          rows.length === 0 ? (
+        {(all) => {
+          const rows = buyer ? all.filter((d) => d.buyerAddress?.toLowerCase() === buyer) : all;
+          return rows.length === 0 ? (
             <EmptyState
               icon={<Handshake size={20} />}
               title="No deals yet"
@@ -44,7 +47,7 @@ export default function Deals() {
           ) : (
             <DataTable columns={cols} rows={rows} rowKey={(d) => d.id} onRowClick={go} caption="All deals" />
           )
-        }
+        ;}}
       </QueryView>
     </div>
   );

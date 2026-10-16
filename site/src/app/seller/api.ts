@@ -28,6 +28,10 @@ export const sellerApi = {
   deal: async (id: string) => N.deal(await api.app.deal(id)),
   closeTerm: (id: string) => api.app.closeTerm(id),
   finance: async () => N.finance(await api.app.finance()),
+  dashboard: () => api.app.dashboard(),
+  customers: () => api.app.customers(),
+  usage: () => api.app.usage(),
+  insights: () => api.app.insights(),
 };
 
 const K = {
@@ -41,6 +45,10 @@ const K = {
   deals: ["seller", "deals"] as const,
   deal: (id: string) => ["seller", "deal", id] as const,
   finance: ["seller", "finance"] as const,
+  dashboard: ["seller", "dashboard"] as const,
+  customers: ["seller", "customers"] as const,
+  usage: ["seller", "usage"] as const,
+  insights: ["seller", "insights"] as const,
 };
 
 const retry = (n: number, e: Error) => !isUnauthorized(e) && n < 1;
@@ -54,6 +62,10 @@ export const useApprovals = () => useQuery({ queryKey: K.approvals, queryFn: sel
 export const useDeals = () => useQuery({ queryKey: K.deals, queryFn: sellerApi.deals, retry });
 export const useDeal = (id: string) => useQuery({ queryKey: K.deal(id), queryFn: () => sellerApi.deal(id), retry });
 export const useFinance = () => useQuery({ queryKey: K.finance, queryFn: sellerApi.finance, retry });
+export const useDashboard = () => useQuery({ queryKey: K.dashboard, queryFn: sellerApi.dashboard, retry });
+export const useCustomers = () => useQuery({ queryKey: K.customers, queryFn: sellerApi.customers, retry });
+export const useUsage = () => useQuery({ queryKey: K.usage, queryFn: sellerApi.usage, retry });
+export const useInsights = () => useQuery({ queryKey: K.insights, queryFn: sellerApi.insights, retry });
 
 export function useStartSandbox() {
   const qc = useQueryClient();

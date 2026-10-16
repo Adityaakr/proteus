@@ -58,6 +58,11 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 
 - Rebuilt `site/src/app/market/ProductPage.tsx` with `product.module.css`: plain header (seller wordmark, verified badge, title, summary, quiet inline meta chips), sections separated by rules instead of boxed cards, a pricing table with "Best unit price" inline, deal steps as a numbered list, About as a key/value block, and one sticky rail holding Negotiate and Pay per call. No floating badges, no dotted pills, no icon tiles.
 
+## Seller console v2 (2026-10-16, late)
+
+- Sell navigation: Overview, Negotiations, Deals, Customers, Products & pricing, Payments, Usage & delivery, Insights, Agent policies, Settings.
+- Overview rebuilt on `GET /app/dashboard`: revenue earned, active negotiations (with how many need approval), deal margin, customer funds held; "Needs your attention" cards for pending approvals with the rule that triggered them; recent deals list. New pages: Customers (per-buyer totals, click through to their deals), Usage & delivery (every metered request with billing and receipt state), Insights (30-day bars and funnel from real rows), Agent policies (per-product floor, discount cap, approval threshold, capacity, validity, cost). All numbers are sums over the seller's own rows.
+
 ## Blocked on inputs from Aditya
 
 1. Done: deployer and relayer funded, escrow deployed, loop executed on testnet.

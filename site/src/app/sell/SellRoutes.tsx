@@ -16,6 +16,10 @@ import { useMe } from "./hooks";
 import s from "./sell.module.css";
 
 const Overview = lazy(() => import("../seller/pages/Overview"));
+const Customers = lazy(() => import("../seller/pages/Customers"));
+const Usage = lazy(() => import("../seller/pages/Usage"));
+const Insights = lazy(() => import("../seller/pages/Insights"));
+const AgentPolicies = lazy(() => import("../seller/pages/AgentPolicies"));
 const Products = lazy(() => import("../seller/pages/Products"));
 const ProductDetail = lazy(() => import("../seller/pages/ProductDetail"));
 const Negotiations = lazy(() => import("../seller/pages/Negotiations"));
@@ -120,14 +124,19 @@ export default function SellRoutes() {
       <Routes>
         <Route index element={<SellIndexPage />} />
         <Route path="start" element={<Page title="New product"><AddProduct /></Page>} />
-        <Route path="products" element={<Page title="Products">{guarded(<Products />)}</Page>} />
-        <Route path="products/:id" element={<Page title="Products">{guarded(<ProductDetail />)}</Page>} />
+        <Route path="products" element={<Page title="Products & pricing">{guarded(<Products />)}</Page>} />
+        <Route path="products/:id" element={<Page title="Products & pricing">{guarded(<ProductDetail />)}</Page>} />
         <Route path="negotiations" element={<Page title="Negotiations">{guarded(<Negotiations />)}</Page>} />
         <Route path="negotiations/:id" element={<Page title="Negotiations">{guarded(<NegotiationDetail />)}</Page>} />
         <Route path="approvals" element={<Page title="Approvals">{guarded(<Approvals />)}</Page>} />
         <Route path="deals" element={<Page title="Deals">{guarded(<Deals />)}</Page>} />
         <Route path="deals/:id" element={<Page title="Deals">{guarded(<DealDetail />)}</Page>} />
-        <Route path="finance" element={<Page title="Finance">{guarded(<Finance />)}</Page>} />
+        <Route path="finance" element={<Page title="Payments">{guarded(<Finance />)}</Page>} />
+        <Route path="payments" element={<Page title="Payments">{guarded(<Finance />)}</Page>} />
+        <Route path="customers" element={<Page title="Customers">{guarded(<Customers />)}</Page>} />
+        <Route path="usage" element={<Page title="Usage & delivery">{guarded(<Usage />)}</Page>} />
+        <Route path="insights" element={<Page title="Insights">{guarded(<Insights />)}</Page>} />
+        <Route path="policies" element={<Page title="Agent policies">{guarded(<AgentPolicies />)}</Page>} />
         <Route path="settings" element={<Page title="Settings"><Settings /></Page>} />
         <Route path="*" element={<Page><NotFound /></Page>} />
       </Routes>
