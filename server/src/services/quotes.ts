@@ -114,12 +114,15 @@ export async function quoteView(quoteId: string, buyer?: Address) {
   const lp = await loadProductById(q.productId);
   const c = reviveCandidate(q.candidate as Record<string, unknown>);
   const [approval] = await db.select().from(schema.approvals).where(eq(schema.approvals.quoteId, quoteId));
+  // The deal created from this quote, so a reloaded fund page can resume instead of relying on browser storage.
+  const [deal] = await db.select({ id: schema.deals.id }).from(schema.deals).where(eq(schema.deals.quoteId, quoteId));
   const expired = q.expiresAt.getTime() < Date.now() && !["accepted"].includes(q.status);
   const escrow = env.ESCROW_ADDRESS as Address | undefined;
   const terms = buyer && escrow ? termsFor(q, lp, buyer) : undefined;
   return {
     id: q.id,
     negotiationId: q.negotiationId,
+    dealId: deal?.id ?? null,
     status: expired ? "expired" : q.status,
     offer: toOffer(c),
     expiresAt: q.expiresAt,

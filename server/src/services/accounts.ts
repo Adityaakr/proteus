@@ -1,4 +1,5 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, sql, type SQL } from "drizzle-orm";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { verifyMessage, type Address, type Hex } from "viem";
 import { formatUsd, toMicro } from "@proteus/domain";
 import { ensureOrgSigner } from "../chain/signer";
@@ -101,9 +102,19 @@ export async function walletView(userId: string) {
   return { address, usdc, usdcUsd: formatUsd(usdc), native: native.toString(), faucetUrl: "https://faucet.circle.com", chainId: env.CHAIN_ID, explorerUrl: `https://explorer.testnet.arc.io/address/${address}`, labels: { network: "testnet" } };
 }
 
+/**
+ * Wallet links are stored lowercase while negotiations, deals and payments keep the address as it was signed or
+ * seen onchain (checksum case). Every "mine" query therefore compares case-insensitively; an exact match would hide
+ * a deal the moment its buyer address was written in a different case.
+ */
+function addressIn(col: AnyPgColumn, wallets: string[]): SQL {
+  if (!wallets.length) return sql`false`;
+  return sql`lower(${col}) in (${sql.join(wallets.map((w) => sql`${w.toLowerCase()}`), sql`, `)})`;
+}
+
 export async function myNegotiations(userId: string) {
   const wallets = (await userWallets(userId)).map((w) => w.address);
-  const rows = await db.select().from(schema.negotiations).where(wallets.length ? inArray(schema.negotiations.buyerAddress, wallets) : eq(schema.negotiations.id, "__none__")).orderBy(desc(schema.negotiations.updatedAt)).limit(100);
+  const rows = await db.select().from(schema.negotiations).where(addressIn(schema.negotiations.buyerAddress, wallets)).orderBy(desc(schema.negotiations.updatedAt)).limit(100);
   const out = [];
   for (const n of rows) {
     const lp = await loadProductById(n.productId);
@@ -115,7 +126,7 @@ export async function myNegotiations(userId: string) {
 
 export async function myDeals(userId: string) {
   const wallets = (await userWallets(userId)).map((w) => w.address);
-  const rows = await db.select().from(schema.deals).where(wallets.length ? inArray(schema.deals.buyerAddress, wallets) : eq(schema.deals.id, "__none__")).orderBy(desc(schema.deals.createdAt)).limit(100);
+  const rows = await db.select().from(schema.deals).where(addressIn(schema.deals.buyerAddress, wallets)).orderBy(desc(schema.deals.createdAt)).limit(100);
   const out = [];
   for (const d of rows) {
     const lp = await loadProductById(d.productId);
@@ -128,7 +139,7 @@ export async function myActivity(userId: string) {
   const wallets = (await userWallets(userId)).map((w) => w.address);
   const negotiations = await myNegotiations(userId);
   const deals = await myDeals(userId);
-  const ppc = wallets.length ? await db.select().from(schema.payPerCallPayments).where(and(inArray(schema.payPerCallPayments.payer, wallets), eq(schema.payPerCallPayments.status, "settled"))) : [];
+  const ppc = await db.select().from(schema.payPerCallPayments).where(and(addressIn(schema.payPerCallPayments.payer, wallets), eq(schema.payPerCallPayments.status, "settled")));
   const org = await userOrg(userId);
   const sell = org ? { negotiations: (await listNegotiations(org.id)).length, deals: await listDeals(org.id) } : undefined;
   return { negotiations, deals, payPerCall: { calls: ppc.length, spent: ppc.reduce((s, p) => s + p.amount, 0n) }, sell: sell ? { negotiations: sell.negotiations, dealsFunded: sell.deals.filter((d) => d.deposit > 0n).length, settled: sell.deals.reduce((s, d) => s + d.settled, 0n) } : undefined };

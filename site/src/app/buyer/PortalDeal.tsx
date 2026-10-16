@@ -21,21 +21,24 @@ import { ErrorState, FLOW_STAGES, fmtDate, fmtDateTime, fmtUnits } from "./commo
 import f from "./fund.module.css";
 import d from "./deal.module.css";
 
-const keyStore = (dealId: string) => `proteus:deal-key:${dealId}`;
-function loadKey(dealId: string): string | null {
+/** Per-device memory that survives closing the tab; session storage is read once for anything saved before this change. */
+function readStore(key: string): string | null {
   try {
-    return sessionStorage.getItem(keyStore(dealId));
+    return localStorage.getItem(key) ?? sessionStorage.getItem(key);
   } catch {
     return null;
   }
 }
-function saveKey(dealId: string, key: string) {
+function writeStore(key: string, value: string) {
   try {
-    sessionStorage.setItem(keyStore(dealId), key);
+    localStorage.setItem(key, value);
   } catch {
     /* ignore */
   }
 }
+const keyStore = (dealId: string) => `proteus:deal-key:${dealId}`;
+const loadKey = (dealId: string) => readStore(keyStore(dealId));
+const saveKey = (dealId: string, key: string) => writeStore(keyStore(dealId), key);
 
 export default function PortalDeal() {
   const { dealId = "" } = useParams();

@@ -221,6 +221,8 @@ export type QuoteStatus = "draft" | "approval_required" | "approved" | "declined
 export interface Quote {
   id: string;
   negotiationId: string;
+  /** The deal created from this quote once it was accepted, else null. */
+  dealId?: string | null;
   status: QuoteStatus;
   offer: Offer;
   expiresAt: IsoTime;

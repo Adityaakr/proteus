@@ -45,7 +45,7 @@ function OfferView({ quote }: { quote: Quote }) {
   // The public terms hash the contract stores is the keccak of the canonical JSON of these terms; recompute it here so the buyer can see it matches.
   const hashMatches = Boolean(quote.terms && pt && publicTermsHash(pt as unknown as Record<string, unknown>).toLowerCase() === quote.terms.publicTermsHash.toLowerCase());
   const acceptable = quote.status === "draft" || quote.status === "approved";
-  const knownDealId = rememberedDealFor(quote.id);
+  const knownDealId = quote.dealId ?? rememberedDealFor(quote.id);
   const dealQ = useQuery({ queryKey: qk.deal(knownDealId ?? "none"), queryFn: () => api.deal(knownDealId!), enabled: Boolean(knownDealId) && quote.status === "accepted" });
   const backToChat = `/app/negotiations/${quote.negotiationId}`;
   const unitDigits = (o.unitPriceUsd.split(".")[1]?.replace(/0+$/, "").length ?? 0) > 2 ? 4 : 2;

@@ -25,21 +25,24 @@ const PLACEHOLDER_SIG = ("0x" + "00".repeat(65)) as Hex;
 type StepId = "sign" | "accept" | "approve" | "fund" | "confirm";
 const UNFUNDED = ["awaiting_funding", "funding_pending"];
 
-const dealMapKey = (quoteId: string) => `proteus:quote-deal:${quoteId}`;
-export function rememberedDealFor(quoteId: string): string | null {
+/** Per-device memory that survives closing the tab; session storage is read once for anything saved before this change. */
+function readStore(key: string): string | null {
   try {
-    return sessionStorage.getItem(dealMapKey(quoteId));
+    return localStorage.getItem(key) ?? sessionStorage.getItem(key);
   } catch {
     return null;
   }
 }
-function rememberDeal(quoteId: string, dealId: string) {
+function writeStore(key: string, value: string) {
   try {
-    sessionStorage.setItem(dealMapKey(quoteId), dealId);
+    localStorage.setItem(key, value);
   } catch {
     /* ignore */
   }
 }
+const dealMapKey = (quoteId: string) => `proteus:quote-deal:${quoteId}`;
+export const rememberedDealFor = (quoteId: string): string | null => readStore(dealMapKey(quoteId));
+const rememberDeal = (quoteId: string, dealId: string) => writeStore(dealMapKey(quoteId), dealId);
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
