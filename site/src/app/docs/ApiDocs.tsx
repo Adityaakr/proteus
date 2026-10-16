@@ -200,7 +200,7 @@ function ServiceIndex() {
         <li key={`${m.sellerSlug}/${m.productSlug}`}>
           <Link to={`/docs/${m.sellerSlug}/${m.productSlug}`} className={s.serviceLink}>
             <span className={s.serviceName}>{m.name}</span>
-            <span className={s.serviceMeta}>{m.sellerName} · per {m.unitLabel}{m.perCallUsd ? ` · ${m.perCallUsd} per call` : ""}</span>
+            <span className={s.serviceMeta}>{m.sellerName} · per {m.unitLabel}{m.perCallUsd ? ` · ${m.perCallUsd.replace(/(\.\d*?[1-9])0+$/, "$1").replace(/\.0+$/, "")} per call` : ""}</span>
           </Link>
           <a className={s.serviceSkill} href={`${ORIGIN}/api/public/sellers/${m.sellerSlug}/products/${m.productSlug}/skill.md`} target="_blank" rel="noreferrer">SKILL.md</a>
         </li>
