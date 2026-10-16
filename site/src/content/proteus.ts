@@ -195,6 +195,49 @@ export const comparison = {
   ],
 };
 
+
+/** "How PROTEUS compares": assessed from each vendor's public product pages in October 2026. */
+export type CompareMark = "yes" | "partial" | "not-core" | "planned";
+export interface CompareVendor {
+  name: string;
+  description: string;
+  href: string;
+  marks: CompareMark[];
+  /** Short qualifier shown under a mark when the plain word would overstate it. */
+  notes?: (string | undefined)[];
+}
+export const compare = {
+  tag: "How PROTEUS compares",
+  heading: "Built to close deals, not just manage them.",
+  description:
+    "Great tools exist for quoting, billing, and negotiation. PROTEUS brings the entire commercial workflow together, from understanding customer requirements to closing and executing deals.",
+  capabilities: [
+    "Autonomous customer-facing negotiations",
+    "Cost-aware pricing and margin protection",
+    "Custom packages and commercial terms",
+    "Automated deal closing",
+    "USDC payments and programmable settlement",
+    "Usage-based fulfillment and reconciliation",
+    "Designed for small AI and internet businesses",
+  ],
+  proteus: {
+    name: "PROTEUS",
+    description: "The autonomous deal desk: negotiation, signed terms, escrow and metered delivery in one flow.",
+    href: "/app",
+    marks: ["yes", "yes", "yes", "yes", "yes", "yes", "yes"],
+    notes: [undefined, undefined, undefined, "Both sides sign, escrow funds", "Arc testnet today", undefined, undefined],
+  } as CompareVendor,
+  vendors: [
+    { name: "DealHub", description: "CPQ, DealRoom and billing for midsize and enterprise sales teams.", href: "https://dealhub.io", marks: ["not-core", "partial", "yes", "partial", "not-core", "partial", "not-core"], notes: [undefined, "Discount thresholds, approvals", undefined, "E-signature in DealRoom", undefined, "Usage pricing in billing", undefined] },
+    { name: "Pactum AI", description: "Autonomous supplier negotiations for enterprise procurement.", href: "https://pactum.com", marks: ["yes", "partial", "partial", "partial", "not-core", "not-core", "not-core"], notes: ["Supplier side, for buyers", "Negotiates to savings targets", "Price, payment, rebate terms", "Agreements via ERP integration", undefined, undefined, undefined] },
+    { name: "Nue", description: "Salesforce-native quote-to-revenue with usage billing.", href: "https://www.nue.io", marks: ["not-core", "not-core", "yes", "partial", "not-core", "yes", "partial"], notes: [undefined, undefined, undefined, "Quote to order in Salesforce", undefined, "Rating and billing", "SaaS scale-ups"] },
+    { name: "Sequence", description: "Billing and CPQ for B2B SaaS with custom contracts.", href: "https://www.sequencehq.com", marks: ["not-core", "not-core", "yes", "partial", "not-core", "yes", "partial"], notes: [undefined, undefined, undefined, "Signed quotes auto-execute", undefined, undefined, "Startups and scale-ups"] },
+    { name: "Metronome", description: "Usage-based billing infrastructure, now part of Stripe.", href: "https://metronome.com", marks: ["not-core", "not-core", "yes", "not-core", "not-core", "yes", "partial"], notes: [undefined, undefined, "Contracts and overrides", undefined, undefined, "Metering and invoicing", "Self-serve starter plan"] },
+  ] as CompareVendor[],
+  closing: "Others help you quote, negotiate, or bill. PROTEUS is built to take a deal from the first conversation to the final transaction.",
+  footnote: "Assessed from each vendor's public product pages in October 2026; names belong to their owners. PROTEUS marks reflect what is implemented today. USDC settlement runs on Arc testnet.",
+};
+
 export interface Plan {
   name: string;
   value: number;

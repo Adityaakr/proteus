@@ -1,0 +1,57 @@
+/* How PROTEUS compares. Light section between the dark Differentiation and Security blocks. */
+.section { position: relative; width: 100%; display: flex; justify-content: center; align-items: center; overflow: clip; background: var(--c-white); }
+.container { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; padding: 100px 40px; }
+.content { position: relative; width: 100%; max-width: 1200px; display: flex; flex-direction: column; align-items: center; gap: 56px; }
+
+.tableWrap { width: 100%; overflow-x: auto; }
+.table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-family: var(--font-body); }
+.table th, .table td { vertical-align: top; text-align: left; padding: 18px 16px; border-bottom: 1px solid var(--c-dark-10); }
+.table thead th { padding-top: 0; padding-bottom: 22px; }
+.table tbody tr:last-child th, .table tbody tr:last-child td { border-bottom: 0; }
+.capHead { width: 24%; color: var(--c-dark-60); }
+.cap { font-size: 15px; line-height: 1.45; font-weight: 500; color: var(--c-dark); padding-left: 0 !important; }
+.colAccent { background: rgba(1, 43, 255, 0.035); }
+.table thead .colAccent { border-radius: 14px 14px 0 0; }
+.table tbody tr:last-child .colAccent { border-radius: 0 0 14px 14px; }
+
+.vendor { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.vendorName { display: inline-flex; align-items: center; gap: 3px; font-family: var(--font-heading); font-weight: 500; font-size: 17px; line-height: 1.2; color: var(--c-dark); }
+.vendorName:hover { color: var(--c-primary); }
+.vendorAccent .vendorName { color: var(--c-primary); letter-spacing: 0.02em; }
+.vendorDesc { color: var(--c-dark-60); line-height: 1.45; }
+
+.mark { display: flex; flex-direction: column; gap: 3px; font-size: 14px; line-height: 1.4; }
+.markRow { display: inline-flex; align-items: center; gap: 7px; }
+.mark_yes { color: var(--c-dark); }
+.mark_yes svg { color: var(--c-dark); }
+.markAccent, .markAccent svg { color: var(--c-primary); }
+.mark_partial { color: var(--c-dark); }
+.mark_partial svg { color: var(--c-dark-60); }
+.mark_not_core { color: var(--c-dark-60); }
+.mark_not_core svg { color: var(--c-dark-20); }
+.mark_planned { color: var(--c-dark-60); }
+.note { font-size: 12px; line-height: 1.4; color: var(--c-dark-60); }
+
+.cards { display: none; }
+.foot { display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 720px; text-align: center; }
+.closing { color: var(--c-dark); font-weight: 500; }
+.footnote { color: var(--c-dark-60); }
+
+@media (max-width: 1199.98px) {
+  .container { padding: 60px 40px; }
+  .content { gap: 40px; }
+  .table th, .table td { padding: 14px 12px; }
+  .vendorName { font-size: 15px; }
+  .vendorDesc { display: none; }
+}
+@media (max-width: 809.98px) {
+  .container { padding: 60px 16px; }
+  .tableWrap { display: none; }
+  .cards { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .card { display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 16px; background: var(--c-white); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+  .cardAccent { background: rgba(1, 43, 255, 0.035); box-shadow: inset 0 0 0 1px rgba(1, 43, 255, 0.18); }
+  .cardRows { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+  .cardRows li { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 10px 0; border-top: 1px solid var(--c-dark-10); }
+  .cardCap { color: var(--c-dark); flex: 1 1 auto; }
+  .cardRows .mark { align-items: flex-end; text-align: right; flex: none; max-width: 48%; }
+}

@@ -63,6 +63,10 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 - Sell navigation: Overview, Negotiations, Deals, Customers, Products & pricing, Payments, Usage & delivery, Insights, Agent policies, Settings.
 - Overview rebuilt on `GET /app/dashboard`: revenue earned, active negotiations (with how many need approval), deal margin, customer funds held; "Needs your attention" cards for pending approvals with the rule that triggered them; recent deals list. New pages: Customers (per-buyer totals, click through to their deals), Usage & delivery (every metered request with billing and receipt state), Insights (30-day bars and funnel from real rows), Agent policies (per-product floor, discount cap, approval threshold, capacity, validity, cost). All numbers are sums over the seller's own rows.
 
+## "How PROTEUS compares" on the marketing page (2026-10-16, late)
+
+- New light section `site/src/sections/Compare.tsx` between Differentiation and Security: headline, seven capabilities, PROTEUS in a faint accent first column, then DealHub, Pactum AI, Nue, Sequence, Metronome as plain typographic names linking to their sites (no third-party logos). Marks are Yes / Partial / Not core focus with a short qualifier where the plain word would overstate; assessed from each vendor's public product pages (searched 2026-10-16). PROTEUS marks only what is implemented; USDC is labeled Arc testnet. Phone layout is one card per product. Closing line and footnote included.
+
 ## Blocked on inputs from Aditya
 
 1. Done: deployer and relayer funded, escrow deployed, loop executed on testnet.
