@@ -138,5 +138,8 @@
 
 /* Pay per call inside the product rail */
 .bareWrap { display: flex; flex-direction: column; gap: 12px; }
-.bareTitle { margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: 17px; color: var(--c-dark); }
-.bareText { margin: 0; font-family: var(--font-body); font-size: 13.5px; line-height: 1.5; color: var(--c-dark-60); }
+.bareLabel { font-family: var(--font-body); font-size: 11.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-dark-60); }
+.bareTitle { margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: 20px; line-height: 1.2; color: var(--c-dark); }
+.bareText { margin: 0; font-family: var(--font-body); font-size: 14px; line-height: 1.5; color: var(--c-dark-60); }
+.priceInline { font-size: 18px; letter-spacing: -0.2px; }
+.fine { font-size: 12.5px; color: var(--c-dark-60); }

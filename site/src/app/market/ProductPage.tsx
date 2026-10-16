@@ -195,13 +195,14 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
 
       <aside className={d.rail} aria-label="Buy">
         <div className={d.railBlock}>
-          <h2 className={d.railTitle}>Negotiate a prepaid deal</h2>
+          <span className={d.railLabel}>Negotiate</span>
+          <h2 className={d.railTitle}>A prepaid deal on your terms</h2>
           <p className={d.railText}>Committed volume, a better unit price, funds held in escrow until you countersign usage.</p>
           <ActionButton size="lg" fullWidth icon loading={start.isPending && pendingStarter === null} loadingLabel="Opening the chat" onClick={() => begin(null)}>
             Talk to {possessive(seller.name)} agent
           </ActionButton>
           {product.starters.length > 0 && (
-            <ul className={d.starters}>
+            <ul className={d.starters} aria-label="Open with">
               {product.starters.map((st) => (
                 <li key={st}>
                   <button type="button" className={d.starter} disabled={start.isPending} onClick={() => begin(st)}>

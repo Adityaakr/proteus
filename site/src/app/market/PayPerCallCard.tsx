@@ -20,6 +20,12 @@ function asRequired(e: unknown): PayRequired | null {
   if (e instanceof ApiError && e.status === 402 && e.body && typeof e.body === "object" && Array.isArray((e.body as PayRequired).accepts)) return e.body as PayRequired;
   return null;
 }
+/** 2 decimals unless the micro amount has sub-cent precision (then up to 4). */
+function decimalsForMicro(micro?: string | bigint): number {
+  if (micro === undefined) return 2;
+  const v = BigInt(micro);
+  return v % 10_000n === 0n ? 2 : 4;
+}
 const notAvailable = (e: unknown) => e instanceof ApiError && (e.status === 404 || e.status === 501);
 
 /** x402 pay per call: one signed USDC authorization per request, settled through Circle's facilitator. */
@@ -91,8 +97,8 @@ export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "
         </div>
       ) : (
         <form className={m.purchase} onSubmit={submit} noValidate>
-          <span className={m.price}>
-            <Money micro={price} digits={4} /> <span className="body3">per call</span>
+          <span className={`${m.price} ${bare ? m.priceInline : ""}`}>
+            <Money micro={price} digits={decimalsForMicro(price)} /> <span className="body3">per call</span>
           </span>
           <Field label={sampleStore ? "Question" : "Request"} placeholder={sampleStore ? "Where is my order?" : `Describe the ${unitLabel} you want`} value={question} onChange={(e) => setQuestion(e.target.value)} maxLength={2000} />
           <Field label={sampleStore ? "Order id" : "Reference"} hint={sampleStore ? "Sample store orders A1001 to A1004" : "Optional. Your own id, echoed in the receipt."} value={orderId} onChange={(e) => setOrderId(e.target.value)} />
@@ -101,7 +107,7 @@ export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "
               Pay and run
             </ActionButton>
           </div>
-          <p className="body3">You sign one USDC authorization for exactly this price. It expires in two minutes and can settle only once. Failed answers are not charged.</p>
+          <p className={`body3 ${m.fine}`}>One signed USDC authorization for exactly this price. Valid two minutes, settles once. Failed answers are not charged.</p>
           {run.isError && <Notice tone="danger">{run.error instanceof ApiError ? errorMessage(run.error) : walletErrorMessage(run.error)}</Notice>}
           {run.data && (
             <div className={m.purchase} aria-live="polite">
@@ -120,8 +126,9 @@ export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "
   if (bare) {
     return (
       <div className={m.bareWrap}>
-        <h2 className={m.bareTitle}>Pay per call</h2>
-        <p className={m.bareText}>Try one {unitLabel} before committing, or use it at low volume. Each request is paid on its own from your balance.</p>
+        <span className={m.bareLabel}>Pay per call</span>
+        <h2 className={m.bareTitle}>One {unitLabel} at a time</h2>
+        <p className={m.bareText}>Try it before committing, or use it at low volume. Each request is paid on its own from your balance.</p>
         {body}
       </div>
     );
