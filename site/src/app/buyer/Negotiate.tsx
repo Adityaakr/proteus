@@ -17,8 +17,9 @@ import { Notice } from "../ui/misc";
 import { api, errorMessage, qk, type Negotiation, type Offer, type Turn } from "../lib/api";
 import { OfferCard } from "./OfferCard";
 import { ErrorState, FLOW_STAGES, fmtUnits, prettyIntegration } from "./common";
-import s from "./buyer.module.css";
 import n from "./negotiate.module.css";
+import { Message, MessageAvatar, MessageBubble, MessageBubbleCollapsible, MessageBubbleContent, MessageContent, MessageFooter, MessageGroup, MessageHeader } from "../agentic/MessageBubble";
+import { relTime } from "../seller/format";
 
 const WORKING_STEPS = ["Reading your message", "Extracting requirements", "Checking the seller's pricing rules", "Preparing offers"];
 const COUNTER_STEPS = ["Reading your counteroffer", "Checking margin and discount rules", "Looking for an alternative", "Writing a decision"];
@@ -105,10 +106,24 @@ export default function Negotiate() {
   }, [location.state, location.pathname, negQ.data, navigate, send]);
 
   const turns = negQ.data?.turns ?? [];
+  const seenIds = useRef<Set<string> | null>(null);
+  if (seenIds.current === null && negQ.data) seenIds.current = new Set(turns.map((t) => t.id));
+  useEffect(() => {
+    const t = window.setTimeout(() => turns.forEach((x) => seenIds.current?.add(x.id)), 1200);
+    return () => window.clearTimeout(t);
+  }, [turns]);
   const working = send.isPending || counter.isPending;
   useEffect(() => {
     const el = threadRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: reduce ? "auto" : "smooth" });
+    if (!el) return;
+    const toBottom = () => el.scrollTo({ top: el.scrollHeight, behavior: reduce ? "auto" : "smooth" });
+    toBottom();
+    const t1 = window.setTimeout(toBottom, 320);
+    const t2 = window.setTimeout(toBottom, 900);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
   }, [turns.length, working, reduce]);
 
   const submit = (e?: FormEvent) => {
@@ -201,30 +216,41 @@ export default function Negotiate() {
       <div className={n.grid}>
         <section ref={chatRef} className={n.chat} style={chatHeight ? { height: chatHeight, minHeight: 0, maxHeight: "none" } : undefined} aria-label="Conversation with the seller's agent">
           <div ref={threadRef} className={n.thread} role="log" aria-live="polite" aria-relevant="additions" aria-label="Messages" tabIndex={0}>
-            <AnimatePresence initial={false}>
-              {turns.map((t) => (
-                <TurnView key={t.id} turn={t} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
-              ))}
-              {pendingText && (
-                <TurnView key="pending-buyer" turn={{ id: "pending", role: "buyer", content: pendingText, createdAt: new Date().toISOString() }} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
-              )}
-              {working && (
-                <motion.div key="working" className={`${n.turn} ${n.turnAgent}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={T_DEFAULT}>
-                  <span className={n.who}><SellerMark name={sellerName} brand={neg.sellerBrand} size="sm" /> {agentName}</span>
-                  <ol className={n.working} aria-live="polite" aria-label="The seller's agent is working">
-                    {(counter.isPending ? COUNTER_STEPS : WORKING_STEPS).map((label, i) => {
-                      const st = steps[i]?.state ?? "pending";
-                      return (
-                        <li key={label} className={`${n.workStep} ${st === "done" ? n.workDone : st === "running" ? n.workNow : ""}`}>
-                          <span className={n.workIcon} aria-hidden>{st === "done" ? <Check size={12} strokeWidth={3} /> : st === "running" ? <Loader2 size={13} strokeWidth={2.25} className={n.spin} /> : null}</span>
-                          <span>{label}</span>
-                        </li>
-                      );
-                    })}
-                  </ol>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <MessageGroup spacing="default">
+              <AnimatePresence initial={false}>
+                {turns.map((t, i) => (
+                  <TurnView key={t.id} turn={t} grouped={i > 0 && turns[i - 1]!.role === t.role && t.role !== "system"} isNew={!(seenIds.current?.has(t.id) ?? true)} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
+                ))}
+                {pendingText && (
+                  <TurnView key="pending-buyer" turn={{ id: "pending", role: "buyer", content: pendingText, createdAt: new Date().toISOString() }} isNew agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
+                )}
+                {working && (
+                  <motion.div key="working" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={T_DEFAULT}>
+                    <Message from="assistant">
+                      <MessageAvatar className={n.agentAvatar}><SellerMark name={sellerName} brand={neg.sellerBrand} size="sm" /></MessageAvatar>
+                      <MessageContent>
+                        <MessageHeader><span>{agentName}</span><span>Working</span></MessageHeader>
+                        <MessageBubble variant="soft" animateIn>
+                          <MessageBubbleContent>
+                            <ol className={n.working} aria-live="polite" aria-label="The seller's agent is working">
+                              {(counter.isPending ? COUNTER_STEPS : WORKING_STEPS).map((label, i) => {
+                                const st = steps[i]?.state ?? "pending";
+                                return (
+                                  <li key={label} className={`${n.workStep} ${st === "done" ? n.workDone : st === "running" ? n.workNow : ""}`}>
+                                    <span className={n.workIcon} aria-hidden>{st === "done" ? <Check size={12} strokeWidth={3} /> : st === "running" ? <Loader2 size={13} strokeWidth={2.25} className={n.spin} /> : null}</span>
+                                    <span>{label}</span>
+                                  </li>
+                                );
+                              })}
+                            </ol>
+                          </MessageBubbleContent>
+                        </MessageBubble>
+                      </MessageContent>
+                    </Message>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </MessageGroup>
           </div>
           {mutationError && (
             <div style={{ padding: "0 12px 8px" }}>
@@ -344,38 +370,45 @@ function prettyName(slug: string) {
   return v ? v[0]!.toUpperCase() + v.slice(1) : slug;
 }
 
-function TurnView({ turn, agentName, sellerName, brand }: { turn: Turn; agentName: string; sellerName: string; brand?: SellerBrand }) {
+function TurnView({ turn, grouped = false, isNew = false, agentName, sellerName, brand }: { turn: Turn; grouped?: boolean; isNew?: boolean; agentName: string; sellerName: string; brand?: SellerBrand }) {
   const buyer = turn.role === "buyer";
   const system = turn.role === "system";
-  const cls = buyer ? n.turnBuyer : system ? n.turnSystem : n.turnAgent;
-  const bubble = buyer ? n.bubbleBuyer : system ? n.bubbleSystem : n.bubbleAgent;
+  // Only clamp genuinely long prose; replies that carry offers stay fully visible.
+  const long = !turn.offers?.length && (turn.content.length > 1400 || turn.content.split("\n").length > 14);
   return (
-    <motion.div className={`${n.turn} ${cls}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={T_DEFAULT}>
-      {!system && (
-        <span className={n.who}>
-          {buyer ? <span className={n.youMark} aria-hidden><User size={11} /></span> : <SellerMark name={sellerName} brand={brand} size="sm" />}
-          {buyer ? "You" : agentName}
-        </span>
-      )}
-      <div className={`${n.bubble} ${bubble}`}>{turn.content}</div>
-      {turn.decision && (
-        <div className={s.row}>
-          <StatusTag
-            tone={turn.decision.decision === "approved" ? "success" : turn.decision.decision === "approval_required" ? "warn" : "danger"}
-            label={turn.decision.decision === "approved" ? "Counter accepted" : turn.decision.decision === "approval_required" ? "Needs seller approval" : "Counter declined"}
-          />
-          {turn.decision.alternative && (
-            <span className="body3">
-              Alternative: {fmtUnits(turn.decision.alternative.units)} for <Money usd={turn.decision.alternative.prepaidTotalUsd} />
-            </span>
+    <motion.div initial={isNew ? { opacity: 0, y: 6 } : false} animate={{ opacity: 1, y: 0 }} transition={T_DEFAULT}>
+      <Message from={buyer ? "user" : system ? "system" : "assistant"}>
+        {!system && (grouped ? <MessageAvatar placeholder /> : buyer ? <MessageAvatar><User size={14} strokeWidth={2.25} /></MessageAvatar> : <MessageAvatar className={n.agentAvatar}><SellerMark name={sellerName} brand={brand} size="sm" /></MessageAvatar>)}
+        <MessageContent>
+          {!system && !grouped && (
+            <MessageHeader>
+              <span>{buyer ? "You" : agentName}</span>
+              <span>{turn.id === "pending" ? "Sending" : relTime(turn.createdAt)}</span>
+            </MessageHeader>
           )}
-        </div>
-      )}
-      {turn.offers && turn.offers.length > 0 && !turn.decision && (
-        <span className={n.note}>
-          <Check size={12} strokeWidth={2.5} aria-hidden /> {turn.offers.length} {turn.offers.length === 1 ? "offer" : "offers"} added to the offers panel
-        </span>
-      )}
+          <MessageBubble variant={buyer ? "solid" : system ? "ghost" : "soft"} animateIn={isNew}>
+            <MessageBubbleContent className={system ? n.systemText : undefined}>
+              {long ? <MessageBubbleCollapsible collapsedLines={6}>{turn.content}</MessageBubbleCollapsible> : turn.content}
+            </MessageBubbleContent>
+          </MessageBubble>
+          {turn.decision && (
+            <MessageFooter>
+              <StatusTag
+                tone={turn.decision.decision === "approved" ? "success" : turn.decision.decision === "approval_required" ? "warn" : "danger"}
+                label={turn.decision.decision === "approved" ? "Counter accepted" : turn.decision.decision === "approval_required" ? "Needs seller approval" : "Counter declined"}
+              />
+              {turn.decision.alternative && (
+                <span>Alternative: {fmtUnits(turn.decision.alternative.units)} for <Money usd={turn.decision.alternative.prepaidTotalUsd} /></span>
+              )}
+            </MessageFooter>
+          )}
+          {turn.offers && turn.offers.length > 0 && !turn.decision && (
+            <MessageFooter>
+              <Check size={12} strokeWidth={2.5} aria-hidden /> {turn.offers.length} {turn.offers.length === 1 ? "offer" : "offers"} added to the offers panel
+            </MessageFooter>
+          )}
+        </MessageContent>
+      </Message>
     </motion.div>
   );
 }
