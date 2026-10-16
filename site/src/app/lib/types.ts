@@ -441,3 +441,134 @@ export interface ApprovalDecision {
   reason?: string;
   ownerSignature?: Hex;
 }
+
+/* ------------------------------------------------------------------ */
+/* v1 additions: accounts, dashboard, pay per call (docs/api.md)       */
+/* ------------------------------------------------------------------ */
+
+export interface MeWallet {
+  address: Address;
+  /** Server field name. `type` is accepted too (earlier draft of the contract). */
+  kind?: "embedded" | "external";
+  type?: "embedded" | "external";
+  primary: boolean;
+}
+
+export function walletKind(w: MeWallet): "embedded" | "external" {
+  return w.kind ?? w.type ?? "embedded";
+}
+
+/** The exact message signed (personal_sign) to link a wallet to the account. */
+export function walletLinkMessage(address: string, nonce: string): string {
+  return `PROTEUS wallet link\naddress: ${address}\nnonce: ${nonce}`;
+}
+
+export interface MeOrg {
+  id: string;
+  slug: string;
+  name: string;
+  label: SellerLabel;
+  role: "owner";
+}
+
+export interface MeResponse {
+  userId: string;
+  email?: string;
+  wallets: MeWallet[];
+  org?: MeOrg;
+  labels: { network: "testnet" };
+}
+
+export interface MeWalletBalance {
+  address: Address;
+  /** micro-USDC (6 decimals, ERC-20 view of the native balance). */
+  usdc: MicroStr;
+  /** native balance in wei (18 decimals), as a decimal string. */
+  native: string;
+  faucetUrl: string;
+  chainId: number;
+  explorerUrl: string;
+}
+
+export interface MeActivity {
+  negotiations: NegotiationSummary[];
+  deals: DealSummary[];
+  payPerCall: { calls: number; spent: MicroStr };
+}
+
+export interface SignerInfo {
+  address: Address;
+  scope: "terms+delivery";
+  createdAt: IsoTime;
+  revokedAt?: IsoTime;
+}
+
+export interface ProductCreateBody {
+  name: string;
+  slug?: string;
+  unitLabel: string;
+  billableUnit: string;
+  capabilities: string[];
+  supportedIntegrations: string[];
+  tiers: { name: string; includedUnits: UnitsStr | number; unitPriceUsd: string; includes: string[] }[];
+  maxUnitsPerDeal: UnitsStr | number;
+  termDays: number;
+  refundPolicy: string;
+  cost: { variableCostPerUnitUsd: string; directCostPerDealUsd: string; txCostBps: number };
+  policy: { minMarginBps: number; maxDiscountBps: number; approvalThresholdUsd: string; prepaidMinimumUsd: string; availableCapacityUnits: UnitsStr | number; quoteTtlSeconds: number };
+  payPerCall?: { priceUsd: string };
+}
+
+export interface MarketItem {
+  sellerSlug: string;
+  sellerName: string;
+  sellerLabel: SellerLabel;
+  productSlug: string;
+  name: string;
+  unitLabel: string;
+  startingTierUsd: string;
+  perCallUsd?: string;
+}
+
+export interface PayAccept {
+  scheme: "exact";
+  network: string;
+  asset: Address;
+  payTo: Address;
+  /** micro-USDC */
+  amount: MicroStr;
+  maxTimeoutSeconds: number;
+  resource: string;
+  extra: { name: string; version: string };
+}
+
+/** Body of the 402 response from POST /api/pay/:seller/:product/execute. */
+export interface PayRequired {
+  x402Version: number;
+  accepts: PayAccept[];
+  requestId: string;
+  nonce?: Hex;
+}
+
+export interface PayAuthorization {
+  from: Address;
+  to: Address;
+  value: MicroStr;
+  validAfter: string;
+  validBefore: string;
+  nonce: Hex;
+}
+
+export interface PayExecuteBody {
+  requestId: string;
+  input: ExecuteInput;
+  payer?: Address;
+  payment?: { signature: Hex; authorization: PayAuthorization };
+}
+
+export type PayExecuteResponse = Partial<ExecuteResponse> & {
+  requestId: string;
+  answer: string;
+  status: ReceiptStatus;
+  payment: { paymentId: string; settleTxHash?: Hex; status: "settled" | "pending" };
+};

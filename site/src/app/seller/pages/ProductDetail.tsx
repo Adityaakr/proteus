@@ -18,7 +18,7 @@ export default function ProductDetail() {
   const q = useProduct(id);
   return (
     <div className={s.page}>
-      <PageHeader title={q.data?.name ?? "Product"} back={{ to: "/app/products", label: "Products" }} description={q.data?.billableUnit} />
+      <PageHeader title={q.data?.name ?? "Product"} back={{ to: "/app/sell/products", label: "Products" }} description={q.data?.billableUnit} />
       <QueryView q={q} label="product">
         {(p) => <ProductBody p={p} />}
       </QueryView>

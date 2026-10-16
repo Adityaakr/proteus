@@ -29,7 +29,7 @@ export function ApprovalCard({ a, showNegotiationLink = true, floorBps }: { a: A
           {showNegotiationLink && a.negotiationId && (
             <>
               {" · "}
-              <Link className={s.link} to={`/app/negotiations/${encodeURIComponent(a.negotiationId)}`}>
+              <Link className={s.link} to={`/app/sell/negotiations/${encodeURIComponent(a.negotiationId)}`}>
                 Open negotiation
               </Link>
             </>

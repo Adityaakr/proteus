@@ -18,7 +18,7 @@ export default function Overview() {
         sellerLabel={q.data?.labels.seller ?? "sandbox"}
         actions={
           q.data && (
-            <ActionButton to="/app/approvals" icon>
+            <ActionButton to="/app/sell/approvals" icon>
               Review approvals{pending ? ` (${pending})` : ""}
             </ActionButton>
           )
@@ -50,10 +50,10 @@ export default function Overview() {
                 <Card title="Where things are">
                   <ul className={s.stack} style={{ gap: 10 }}>
                     {[
-                      { to: "/app/products", t: "Pricing policy and cost model", d: "Set the margin floor the agent can never cross" },
-                      { to: "/app/negotiations", t: "Negotiations", d: "Transcripts with the private economics behind each offer" },
-                      { to: "/app/deals", t: "Deals", d: "Signed terms, escrow balances and settlements" },
-                      { to: "/app/finance", t: "Finance", d: "Journal and reconciliation against the chain" },
+                      { to: "/app/sell/products", t: "Pricing policy and cost model", d: "Set the margin floor the agent can never cross" },
+                      { to: "/app/sell/negotiations", t: "Negotiations", d: "Transcripts with the private economics behind each offer" },
+                      { to: "/app/sell/deals", t: "Deals", d: "Signed terms, escrow balances and settlements" },
+                      { to: "/app/sell/finance", t: "Finance", d: "Journal and reconciliation against the chain" },
                     ].map((l) => (
                       <li key={l.to}>
                         <Link to={l.to} className={s.between} style={{ flexWrap: "nowrap" }}>

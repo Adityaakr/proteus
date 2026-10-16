@@ -21,7 +21,7 @@ export default function NegotiationDetail() {
     <div className={s.page}>
       <PageHeader
         title={q.data?.buyerLabel ?? "Negotiation"}
-        back={{ to: "/app/negotiations", label: "Negotiations" }}
+        back={{ to: "/app/sell/negotiations", label: "Negotiations" }}
         status={q.data && <StatusTag state={q.data.status} />}
         description={q.data ? `${q.data.productName ?? q.data.productSlug} · ${q.data.publicId}` : undefined}
       />

@@ -50,9 +50,9 @@ async function main() {
 
   let [product] = await db.select().from(schema.products).where(eq(schema.products.orgId, orgId));
   if (!product) {
-    [product] = await db.insert(schema.products).values({ id: id("prod"), orgId, slug: "order-support", public: { ...publicProduct }, starters, adapter: "order-support" }).returning();
+    [product] = await db.insert(schema.products).values({ id: id("prod"), orgId, slug: "order-support", public: { ...publicProduct }, starters, adapter: "order-support", payPerCallPrice: toMicro("1.50") }).returning();
   } else {
-    [product] = await db.update(schema.products).set({ public: { ...publicProduct, id: product.id }, starters }).where(eq(schema.products.id, product.id)).returning();
+    [product] = await db.update(schema.products).set({ public: { ...publicProduct, id: product.id }, starters, payPerCallPrice: toMicro("1.50") }).where(eq(schema.products.id, product.id)).returning();
   }
   const productId = product!.id;
   await db.update(schema.products).set({ public: { ...publicProduct, id: productId } }).where(eq(schema.products.id, productId));

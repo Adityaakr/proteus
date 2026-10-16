@@ -1,5 +1,5 @@
 /**
- * Typed client for docs/api.md (v0). Every route in the contract has a function here.
+ * Typed client for docs/api.md (v0 plus the v1 account routes). Every route in the contract has a function here.
  * Money and units stay strings end to end; JSON is parsed with a guard that quotes any bare
  * integer too large for a JS number so precision is never lost.
  * Mock mode (VITE_MOCK=1, or localStorage "proteus:mock" = "1") routes the same calls to an
@@ -78,6 +78,26 @@ export function stringifyBigSafe(v: unknown): string {
 
 type Method = "GET" | "POST" | "PATCH";
 
+/**
+ * Access token source for `Authorization: Bearer`. PrivyAppProvider registers Privy's
+ * getAccessToken here; requests that pass their own Authorization header (service API keys) keep it.
+ */
+type TokenGetter = () => Promise<string | null>;
+let tokenGetter: TokenGetter | null = null;
+export function setAccessTokenGetter(fn: TokenGetter | null): void {
+  tokenGetter = fn;
+}
+const DEV_USER_HEADER: Record<string, string> = import.meta.env.DEV && import.meta.env.VITE_DEV_USER ? { "x-dev-user": String(import.meta.env.VITE_DEV_USER) } : {};
+async function authHeader(): Promise<Record<string, string>> {
+  if (!tokenGetter) return { ...DEV_USER_HEADER };
+  try {
+    const t = await tokenGetter();
+    return t ? { Authorization: `Bearer ${t}` } : {};
+  } catch {
+    return {};
+  }
+}
+
 export interface RequestOpts {
   body?: unknown;
   headers?: Record<string, string>;
@@ -89,13 +109,15 @@ async function request<R>(method: Method, path: string, opts: RequestOpts = {}):
     const { mockRequest } = await import("./mock");
     return mockRequest<R>(method, path, opts.body === undefined ? undefined : JSON.parse(stringifyBigSafe(opts.body)), opts.headers ?? {});
   }
+  const hasAuth = Object.keys(opts.headers ?? {}).some((k) => k.toLowerCase() === "authorization");
+  const auth = hasAuth ? {} : await authHeader();
   let res: Response;
   try {
     res = await fetch(BASE + path, {
       method,
       credentials: "include",
       signal: opts.signal,
-      headers: { Accept: "application/json", ...(opts.body !== undefined ? { "Content-Type": "application/json" } : {}), ...opts.headers },
+      headers: { Accept: "application/json", ...(opts.body !== undefined ? { "Content-Type": "application/json" } : {}), ...auth, ...opts.headers },
       body: opts.body !== undefined ? stringifyBigSafe(opts.body) : undefined,
     });
   } catch (e) {
@@ -150,6 +172,21 @@ export const api = {
   execute: (productSlug: string, apiKey: string, body: { requestId: string; input: T.ExecuteInput }) =>
     request<T.ExecuteResponse>("POST", `/services/${enc(productSlug)}/execute`, { body, headers: { Authorization: `Bearer ${apiKey}` } }),
 
+  /* Pay per call (x402). A 402 response throws ApiError with status 402 and body PayRequired. */
+  payExecute: (sellerSlug: string, productSlug: string, body: T.PayExecuteBody) =>
+    request<T.PayExecuteResponse>("POST", `/pay/${enc(sellerSlug)}/${enc(productSlug)}/execute`, { body }),
+
+  /* Account (v1, Bearer auth) */
+  me: () => request<T.MeResponse>("GET", "/me"),
+  walletLinkNonce: () => request<{ nonce: string; [k: string]: unknown }>("GET", "/me/wallets/nonce"),
+  linkWallet: (body: { address: string; kind: "embedded" | "external"; nonce: string; signature: string }) => request<T.MeResponse | { ok: boolean; [k: string]: unknown }>("POST", "/me/wallets/link", { body }),
+  meWallet: () => request<T.MeWalletBalance>("GET", "/me/wallet"),
+  meNegotiations: () => request<T.NegotiationSummary[]>("GET", "/me/negotiations"),
+  meDeals: () => request<T.DealSummary[]>("GET", "/me/deals"),
+  meActivity: () => request<T.MeActivity>("GET", "/me/activity"),
+  createOrg: (body: { name: string; slug?: string }) => request<T.MeOrg>("POST", "/orgs", { body }),
+  market: () => request<T.MarketItem[]>("GET", "/market"),
+
   /* Review */
   reviewList: () => request<T.ReviewListItem[]>("GET", "/review"),
   reviewRecord: (publicId: string) => request<T.ReviewRecord>("GET", `/review/${enc(publicId)}`),
@@ -173,6 +210,9 @@ export const api = {
     deal: (id: string) => request<T.SellerDeal>("GET", `/app/deals/${enc(id)}`),
     closeTerm: (id: string) => request<{ txHash: T.Hex }>("POST", `/app/deals/${enc(id)}/close-term`, { body: {} }),
     finance: () => request<T.SellerFinance>("GET", "/app/finance"),
+    signer: () => request<T.SignerInfo>("GET", "/app/signer"),
+    revokeSigner: () => request<{ revokedAt: T.IsoTime; note?: string; [k: string]: unknown }>("POST", "/app/signer/revoke", { body: {} }),
+    createProduct: (body: T.ProductCreateBody) => request<T.ProductWithPrivate>("POST", "/app/products", { body }),
   },
 };
 
@@ -180,6 +220,11 @@ export const api = {
 export function newRequestId(prefix = "req"): string {
   const rnd = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
   return `${prefix}_${rnd}`;
+}
+
+/** True for 401/403 from the API (the account routes before the server verifies Privy tokens). */
+export function isAuthError(e: unknown): boolean {
+  return e instanceof ApiError && (e.status === 401 || e.status === 403);
 }
 
 export function errorMessage(e: unknown): string {
@@ -198,5 +243,12 @@ export const qk = {
   deal: (id: string) => ["deal", id] as const,
   usage: (id: string) => ["usage", id] as const,
   review: ["review"] as const,
+  me: ["me"] as const,
+  meWallet: ["me", "wallet"] as const,
+  meNegotiations: ["me", "negotiations"] as const,
+  meDeals: ["me", "deals"] as const,
+  meActivity: ["me", "activity"] as const,
+  market: ["market"] as const,
+  balances: (address: string) => ["balances", address.toLowerCase()] as const,
   record: (id: string) => ["record", id] as const,
 };

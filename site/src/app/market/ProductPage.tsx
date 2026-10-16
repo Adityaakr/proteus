@@ -2,47 +2,50 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Check, MessageSquareText } from "lucide-react";
-import { BuyerShell } from "../layouts/BuyerShell";
+import { AppShell } from "../layouts/AppShell";
 import { ActionButton } from "../ui/ActionButton";
 import { Card } from "../ui/Card";
 import { LoadingCard } from "../ui/Skeleton";
 import { Money } from "../ui/Money";
 import { StatusTag } from "../ui/StatusTag";
 import { Notice } from "../ui/misc";
+import { useAuth } from "../auth/useAuth";
 import { api, errorMessage, qk, type PublicProduct } from "../lib/api";
-import { ErrorState, PageHeader, fmtUnits, prettyIntegration } from "./common";
-import s from "./buyer.module.css";
+import { ErrorState, PageHeader, fmtUnits, prettyIntegration } from "../buyer/common";
+import { PayPerCallCard } from "./PayPerCallCard";
+import s from "../buyer/buyer.module.css";
+import m from "./market.module.css";
 
-export default function Storefront() {
-  const { sellerSlug = "", productSlug } = useParams();
+export default function ProductPage() {
+  const { sellerSlug = "", productSlug = "" } = useParams();
   const seller = useQuery({ queryKey: qk.seller(sellerSlug), queryFn: () => api.seller(sellerSlug) });
-  const productQ = useQuery({ queryKey: qk.product(sellerSlug, productSlug ?? ""), queryFn: () => api.product(sellerSlug, productSlug!), enabled: Boolean(productSlug) });
-  const product: PublicProduct | undefined = productSlug ? productQ.data : seller.data?.products[0];
-  const loading = seller.isLoading || (productSlug ? productQ.isLoading : false);
+  const productQ = useQuery({ queryKey: qk.product(sellerSlug, productSlug), queryFn: () => api.product(sellerSlug, productSlug) });
+  const loading = seller.isLoading || productQ.isLoading;
   const error = seller.error ?? productQ.error;
 
   return (
-    <BuyerShell sellerLabel={seller.data?.label}>
+    <AppShell title="Market">
       {loading ? (
         <>
-          <LoadingCard label="Loading the storefront" lines={3} />
+          <LoadingCard label="Loading the product" lines={3} />
           <LoadingCard lines={5} />
         </>
-      ) : error || !product || !seller.data ? (
-        <ErrorState error={error ?? new Error("This seller has no products yet.")} onRetry={() => { seller.refetch(); productQ.refetch(); }} />
+      ) : error || !productQ.data || !seller.data ? (
+        <ErrorState error={error ?? new Error("This product is not available.")} onRetry={() => { seller.refetch(); productQ.refetch(); }} />
       ) : (
-        <ProductView sellerSlug={sellerSlug} sellerName={seller.data.name} sellerLabel={seller.data.label} product={product} />
+        <ProductView sellerSlug={sellerSlug} sellerName={seller.data.name} sellerLabel={seller.data.label} product={productQ.data} />
       )}
-    </BuyerShell>
+    </AppShell>
   );
 }
 
 function ProductView({ sellerSlug, sellerName, sellerLabel, product }: { sellerSlug: string; sellerName: string; sellerLabel: "sandbox" | "live"; product: PublicProduct }) {
   const navigate = useNavigate();
+  const { wallet } = useAuth();
   const [pendingStarter, setPendingStarter] = useState<string | null>(null);
   const start = useMutation({
-    mutationFn: () => api.startNegotiation({ sellerSlug, productSlug: product.slug }),
-    onSuccess: (neg, _v) => navigate(`/negotiate/${neg.id}`, { state: pendingStarter ? { starter: pendingStarter } : undefined }),
+    mutationFn: () => api.startNegotiation({ sellerSlug, productSlug: product.slug, buyerAddress: wallet?.address }),
+    onSuccess: (neg) => navigate(`/app/negotiations/${neg.id}`, { state: pendingStarter ? { starter: pendingStarter } : undefined }),
   });
   const begin = (starter: string | null) => {
     setPendingStarter(starter);
@@ -59,7 +62,7 @@ function ProductView({ sellerSlug, sellerName, sellerLabel, product }: { sellerS
           </>
         }
         title={product.name}
-        lede={`Prepaid ${product.termDays}-day agreements, settled in testnet USDC on Arc. You only pay for ${product.billableUnit}.`}
+        lede={`Prepaid ${product.termDays}-day agreements or single paid calls, settled in testnet USDC on Arc. You only pay for ${product.billableUnit}.`}
       />
 
       <div className={s.grid2}>
@@ -88,11 +91,7 @@ function ProductView({ sellerSlug, sellerName, sellerLabel, product }: { sellerS
             </div>
           </Card>
 
-          <Card
-            title="Published tiers"
-            subtitle="Starting points only. The agent can fit an offer to your volume and budget within the seller's rules."
-            actions={<StatusTag network="illustrative" label="List prices, illustrative" />}
-          >
+          <Card title="Published tiers" subtitle="Starting points only. The agent can fit an offer to your volume and budget within the seller's rules." actions={<StatusTag network="illustrative" label="Illustrative list prices" />}>
             <ul className={s.tiers}>
               {product.tiers.map((t) => (
                 <li key={t.id} className={s.tier}>
@@ -118,27 +117,29 @@ function ProductView({ sellerSlug, sellerName, sellerLabel, product }: { sellerS
           </Card>
         </div>
 
-        <div className={`${s.stack} ${s.sticky}`}>
-          <Card title="Negotiate a deal" subtitle="Tell the seller's agent what you need. It replies with offers you can accept, counter or walk away from.">
+        <div className={`${s.stack} ${s.sticky} ${m.buyFirst}`}>
+          <Card title="Negotiate a prepaid deal" subtitle="For committed volume or a better price. Funds sit in escrow, the seller is paid only for usage you sign, and unused balance is refundable.">
             <ActionButton size="lg" fullWidth icon={<MessageSquareText size={16} strokeWidth={2} />} loading={start.isPending && pendingStarter === null} loadingLabel="Opening the chat" onClick={() => begin(null)}>
-              Negotiate a deal
+              Negotiate a prepaid deal
             </ActionButton>
-            <div className={s.stackTight}>
-              <span className="label" style={{ color: "var(--c-dark-60)" }}>Or start with</span>
-              <ul className={s.starters}>
-                {product.starters.map((st) => (
-                  <li key={st}>
-                    <button type="button" className={s.starter} disabled={start.isPending} onClick={() => begin(st)}>
-                      <span>{st}</span>
-                      <ArrowUpRight size={16} strokeWidth={2} aria-hidden style={{ flex: "none" }} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {product.starters.length > 0 && (
+              <div className={s.stackTight}>
+                <span className="label" style={{ color: "var(--c-dark-60)" }}>Or start with</span>
+                <ul className={s.starters}>
+                  {product.starters.map((st) => (
+                    <li key={st}>
+                      <button type="button" className={s.starter} disabled={start.isPending} onClick={() => begin(st)}>
+                        <span>{st}</span>
+                        <ArrowUpRight size={16} strokeWidth={2} aria-hidden style={{ flex: "none" }} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {start.isError && <Notice tone="danger">{errorMessage(start.error)}</Notice>}
-            <p className="body3">No account needed. Your wallet is only asked for when you accept an offer.</p>
           </Card>
+          <PayPerCallCard sellerSlug={sellerSlug} productSlug={product.slug} />
         </div>
       </div>
     </>

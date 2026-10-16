@@ -49,3 +49,11 @@ export function prettyIntegration(id: string) {
   const map: Record<string, string> = { "rest-api": "REST API", webhook: "Webhooks", zendesk: "Zendesk", shopify: "Shopify", gorgias: "Gorgias", intercom: "Intercom", salesforce: "Salesforce" };
   return map[id] ?? id;
 }
+
+/** Buyer flow stages for the Stepper (offer and checkout are one screen now). */
+export const FLOW_STAGES = ["Negotiate", "Sign and fund", "Use", "Receipt"] as const;
+
+export function prettySlug(slug: string): string {
+  const s = slug.replace(/[-_]+/g, " ").trim();
+  return s ? s[0]!.toUpperCase() + s.slice(1) : slug;
+}

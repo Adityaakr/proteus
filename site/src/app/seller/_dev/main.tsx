@@ -1,18 +1,21 @@
 /**
- * Dev-only harness for the seller console (not part of the app bundle).
- * Open /src/app/seller/_dev/index.html?path=/app/products with VITE_MOCK=1.
+ * Dev-only harness for the sell side (not part of the app bundle).
+ * Open /src/app/seller/_dev/index.html?path=/app/sell/products with VITE_MOCK=1.
+ *   &mockOrg=none  start without a seller org (Start selling onboarding)
  *   &seed=1   create a sandbox session plus sample negotiations, an approval and a funded deal
  *             through the shared mock's buyer API before rendering.
  */
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PrivyAppProvider } from "../../auth/PrivyAppProvider";
 import "../../../styles/base.css";
 import { api } from "../../lib/api";
-import SellerRoutes from "../SellerRoutes";
+import SellRoutes from "../../sell/SellRoutes";
 
 const params = new URLSearchParams(location.search);
-const path = params.get("path") ?? "/app";
+const path = params.get("path") ?? "/app/sell";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function seed() {
@@ -48,19 +51,23 @@ async function main() {
   }
   let initial = path;
   if (params.get("first")) {
-    // Resolve "first" placeholders for detail routes: ?path=/app/deals/first
+    // Resolve "first" placeholders for detail routes: ?first=deal
     const kind = params.get("first");
-    if (kind === "deal") initial = `/app/deals/${(await api.app.deals())[0]?.id ?? "none"}`;
-    if (kind === "negotiation") initial = `/app/negotiations/${(await api.app.negotiations())[params.get("i") ? Number(params.get("i")) : 0]?.id ?? "none"}`;
+    if (kind === "deal") initial = `/app/sell/deals/${(await api.app.deals())[0]?.id ?? "none"}`;
+    if (kind === "negotiation") initial = `/app/sell/negotiations/${(await api.app.negotiations())[params.get("i") ? Number(params.get("i")) : 0]?.id ?? "none"}`;
   }
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
-      <MemoryRouter initialEntries={[initial]}>
-        <Routes>
-          <Route path="/app/*" element={<SellerRoutes />} />
-          <Route path="*" element={<p style={{ padding: 40 }}>Left the seller console (harness).</p>} />
-        </Routes>
-      </MemoryRouter>
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false, staleTime: 5_000 } } })}>
+        <PrivyAppProvider>
+          <MemoryRouter initialEntries={[initial]}>
+            <Routes>
+              <Route path="/app/sell/*" element={<SellRoutes />} />
+              <Route path="*" element={<p style={{ padding: 40 }}>Left the sell side (harness).</p>} />
+            </Routes>
+          </MemoryRouter>
+        </PrivyAppProvider>
+      </QueryClientProvider>
     </StrictMode>,
   );
   (window as unknown as { __ready: boolean }).__ready = true;

@@ -11,6 +11,7 @@
     "shot": "node scripts/shot.mjs"
   },
   "dependencies": {
+    "@privy-io/react-auth": "^3.49.1",
     "@proteus/domain": "workspace:*",
     "@tanstack/react-query": "^5.104.3",
     "framer-motion": "^14.3.0",

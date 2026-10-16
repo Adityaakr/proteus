@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Package } from "lucide-react";
-import { Card, EmptyState, Money, StatusTag } from "../kit";
+import { ActionButton, Card, EmptyState, Money, StatusTag } from "../kit";
+import { Plus } from "lucide-react";
+import { SELL } from "../paths";
 import { useProducts } from "../api";
 import { QueryView } from "../parts/QueryView";
 import { PageHeader } from "../parts/PageHeader";
@@ -12,18 +14,18 @@ export default function Products() {
   const q = useProducts();
   return (
     <div className={s.page}>
-      <PageHeader description="What buyers can negotiate for, and the private floor your agent prices against." />
+      <PageHeader description="What buyers can negotiate for, and the private floor your agent prices against." actions={<ActionButton variant="secondary" size="sm" to={`${SELL}/start`} iconLeft={<Plus size={14} />}>New product</ActionButton>} />
       <QueryView q={q} label="products">
         {(products) =>
           products.length === 0 ? (
-            <EmptyState icon={<Package size={20} />} title="No products yet" description="Products are configured on the server for this build. Start the API with the seed data to see the sandbox product." />
+            <EmptyState icon={<Package size={20} />} title="No products yet" description="Publish a product to start negotiating. One screen: public tiers for buyers and the private floor your agent prices against." action={<ActionButton to={`${SELL}/start`} icon>Start selling</ActionButton>} />
           ) : (
             <div className={s.stack}>
               {products.map((p) => {
                 const tiers = p.tiers;
                 const minPrice = tiers.reduce((m, t) => (BigInt(t.unitPrice.num) / BigInt(t.unitPrice.den) < m ? BigInt(t.unitPrice.num) / BigInt(t.unitPrice.den) : m), BigInt(tiers[0]?.unitPrice.num ?? 0));
                 return (
-                  <Link key={p.id} to={`/app/products/${encodeURIComponent(p.id)}`} aria-label={`Open ${p.name}`}>
+                  <Link key={p.id} to={`/app/sell/products/${encodeURIComponent(p.id)}`} aria-label={`Open ${p.name}`}>
                     <Card
                       title={p.name}
                       subtitle={p.billableUnit}

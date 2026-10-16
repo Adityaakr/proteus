@@ -24,7 +24,7 @@ export default function Approvals() {
                   icon={<ShieldCheck size={20} />}
                   title="Nothing waiting on you"
                   description="Quotes above your approval threshold land here. You can raise or lower the threshold in the product policy."
-                  action={<ActionButton variant="secondary" to="/app/products">Open pricing policy</ActionButton>}
+                  action={<ActionButton variant="secondary" to="/app/sell/products">Open pricing policy</ActionButton>}
                 />
               ) : (
                 <div className={s.approvals}>

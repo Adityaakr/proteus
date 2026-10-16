@@ -22,7 +22,7 @@ export default function DealDetail() {
     <div className={s.page}>
       <PageHeader
         title={q.data ? q.data.productName ?? `Deal ${q.data.publicId}` : "Deal"}
-        back={{ to: "/app/deals", label: "Deals" }}
+        back={{ to: "/app/sell/deals", label: "Deals" }}
         status={
           q.data && (
             <>

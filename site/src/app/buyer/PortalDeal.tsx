@@ -1,10 +1,14 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { KeyRound, PenLine, RotateCcw, Send } from "lucide-react";
 import { explorerTx } from "@proteus/domain";
 import type { Hex } from "viem";
-import { BuyerShell } from "../layouts/BuyerShell";
+import { AppShell } from "../layouts/AppShell";
+import { SandboxNote } from "../layouts/SandboxNote";
+import { Stepper } from "../ui/Stepper";
+import { useAuth } from "../auth/useAuth";
+import { FundFlow } from "./FundFlow";
 import { TodoList, type TodoItem } from "../agentic/TodoList";
 import { ToolApproval, type ToolApprovalStatus } from "../agentic/ToolApproval";
 import { ActionButton } from "../ui/ActionButton";
@@ -18,9 +22,8 @@ import { StatCard } from "../ui/StatCard";
 import { StatusTag } from "../ui/StatusTag";
 import { CopyButton, ExplorerLink, KeyValue, MonoValue, Notice, shortHex } from "../ui/misc";
 import { api, errorMessage, isMock, newRequestId, qk, type Deal, type ExecuteResponse, type Receipt, type UsageResponse } from "../lib/api";
-import { signAcceptance, useWallet, walletErrorMessage } from "../lib/wallet";
-import { ErrorState, PageHeader, fmtDate, fmtDateTime, fmtUnits } from "./common";
-import { WalletLine } from "./walletParts";
+import { signAcceptance, walletErrorMessage } from "../lib/wallet";
+import { ErrorState, FLOW_STAGES, PageHeader, fmtDate, fmtDateTime, fmtUnits } from "./common";
 import s from "./buyer.module.css";
 
 const keyStore = (dealId: string) => `proteus:deal-key:${dealId}`;
@@ -46,23 +49,24 @@ export default function PortalDeal() {
     queryFn: () => api.deal(dealId),
     refetchInterval: (q) => (q.state.data && (q.state.data.status === "funding_pending" || q.state.data.service.status === "pending") ? 2500 : false),
   });
-  const [stage, setStage] = useState<"Use" | "Receipt">("Use");
+  const [stage, setStage] = useState<2 | 3>(2);
   return (
-    <BuyerShell stage={stage} sellerLabel={dealQ.data?.labels.seller}>
+    <AppShell title="Deal">
       {dealQ.isLoading ? (
         <LoadingCard label="Loading your deal" lines={6} />
       ) : dealQ.error || !dealQ.data ? (
         <ErrorState error={dealQ.error} onRetry={() => dealQ.refetch()} />
       ) : (
-        <PortalView deal={dealQ.data} onSettled={() => setStage("Receipt")} />
+        <PortalView deal={dealQ.data} stage={stage} onSettled={() => setStage(3)} />
       )}
-    </BuyerShell>
+    </AppShell>
   );
 }
 
-function PortalView({ deal, onSettled }: { deal: Deal; onSettled: () => void }) {
+function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSettled: () => void }) {
   const qc = useQueryClient();
-  const w = useWallet();
+  const navigate = useNavigate();
+  const { wallet, getWalletClient } = useAuth();
   const mock = isMock();
   const [apiKey, setApiKey] = useState<string | null>(() => loadKey(deal.id));
   const [freshKey, setFreshKey] = useState<string | null>(null);
@@ -126,11 +130,15 @@ function PortalView({ deal, onSettled }: { deal: Deal; onSettled: () => void }) 
   });
   const signUsage = async () => {
     setAckErr(null);
-    if (!w.account) return void (await w.connect());
-    if (!w.onArc) return void (await w.switchToArc());
     setAckPhase("approving");
     try {
-      const sig = await signAcceptance(w.account, usage!.pendingAcceptance!.typedData);
+      if (mock) {
+        setAckPhase("running");
+        ack.mutate("0x" + "00".repeat(65));
+        return;
+      }
+      const client = await getWalletClient();
+      const sig = await signAcceptance(client, usage!.pendingAcceptance!.typedData);
       setAckPhase("running");
       ack.mutate(sig);
     } catch (e) {
@@ -155,7 +163,7 @@ function PortalView({ deal, onSettled }: { deal: Deal; onSettled: () => void }) 
   ];
 
   const pa = usage?.pendingAcceptance;
-  const walletLabel = !w.account ? "Connect wallet" : !w.onArc ? "Switch to Arc testnet" : "Sign usage";
+  const walletLabel = mock ? "Sign usage (mock signature)" : "Sign usage";
 
   return (
     <>
@@ -169,7 +177,16 @@ function PortalView({ deal, onSettled }: { deal: Deal; onSettled: () => void }) 
         }
         title="Your deal"
         lede="Use the service, review every metered request, and sign usage so the seller is paid from escrow. Unused funds stay yours."
+        actions={<Stepper current={fundedish ? stage : 1} steps={FLOW_STAGES} />}
       />
+
+      {!fundedish && (
+        <div className={s.grid2}>
+          <FundFlow deal={deal} onFunded={(d) => { qc.setQueryData(qk.deal(d.id), d); navigate(`/app/deals/${d.id}`, { replace: true }); }} onCancel={() => navigate("/app/deals")} />
+        </div>
+      )}
+
+      <SandboxNote />
 
       <div className={s.stats}>
         <StatCard label="Deposited" value={<Money micro={deal.balances.deposit} />} />
@@ -240,22 +257,15 @@ function PortalView({ deal, onSettled }: { deal: Deal; onSettled: () => void }) 
               ]}
               approveLabel={walletLabel}
               onApprove={signUsage}
-              disabled={!w.available}
-              disabledReason={
-                !w.available ? (
-                  <span style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    <span>No browser wallet found, so signing is unavailable.</span>
-                    {mock && (
-                      <ActionButton variant="secondary" onClick={() => { setAckPhase("running"); ack.mutate("0x" + "00".repeat(65)); }} loading={ack.isPending}>
-                        Continue with a demo signature
-                      </ActionButton>
-                    )}
-                  </span>
-                ) : undefined
-              }
-              error={ackErr ?? w.error}
+              disabled={!wallet}
+              disabledReason={!wallet ? "Your wallet is still being set up." : undefined}
+              error={ackErr}
             >
-              <WalletLine w={w} />
+              {wallet && (
+                <p className="body3">
+                  Signing with <MonoValue value={wallet.address} short /> on Arc testnet. No gas.
+                </p>
+              )}
             </ToolApproval>
           )}
           {settlement && (

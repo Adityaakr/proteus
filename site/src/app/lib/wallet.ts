@@ -1,17 +1,11 @@
 /**
- * Injected wallet (window.ethereum) helpers built on viem. Every transaction hash shown in the UI
- * comes back from the wallet; nothing here fabricates one.
+ * Embedded wallet (Privy) helpers built on viem. The account's wallet is a Privy ConnectedWallet;
+ * `walletClientFor` wraps its EIP-1193 provider in a viem WalletClient pinned to Arc testnet.
+ * Every transaction hash shown in the UI comes back from the wallet; nothing here fabricates one.
  */
-import { useCallback, useEffect, useState } from "react";
-import { createPublicClient, createWalletClient, custom, erc20Abi, getAddress, http, type Address, type EIP1193Provider, type Hex, type WalletClient } from "viem";
+import { createPublicClient, createWalletClient, custom, erc20Abi, getAddress, http, type Address, type Hex, type WalletClient } from "viem";
 import { ACCEPTANCE_TYPES, ARC_TESTNET_USDC, TERMS_TYPES, arcTestnet, domain } from "@proteus/domain";
-import type { AcceptanceWire, TermsWire, TypedDataWire } from "./types";
-
-declare global {
-  interface Window {
-    ethereum?: EIP1193Provider & { isMetaMask?: boolean };
-  }
-}
+import type { AcceptanceWire, PayAccept, PayAuthorization, TermsWire, TypedDataWire } from "./types";
 
 export const ESCROW_ABI = [
   {
@@ -40,73 +34,40 @@ export class WalletError extends Error {
   }
 }
 
-export function hasInjectedWallet(): boolean {
-  return typeof window !== "undefined" && Boolean(window.ethereum);
-}
-
-function provider(): EIP1193Provider {
-  if (!hasInjectedWallet()) throw new WalletError("No browser wallet found. Install a wallet such as MetaMask or Rabby to continue.");
-  return window.ethereum!;
-}
-
-let wallet: WalletClient | null = null;
-function walletClient(): WalletClient {
-  if (!wallet) wallet = createWalletClient({ chain: arcTestnet, transport: custom(provider()) });
-  return wallet;
-}
-
 export const publicClient = createPublicClient({ chain: arcTestnet, transport: http() });
 
 /** Turn wallet / RPC errors into short, human copy. */
 export function walletErrorMessage(e: unknown): string {
   const err = e as { code?: number; shortMessage?: string; message?: string; cause?: { code?: number } };
   const code = err?.code ?? err?.cause?.code;
-  if (code === 4001 || /user rejected|denied/i.test(err?.message ?? "")) return "You declined the request in your wallet.";
+  if (code === 4001 || /user rejected|denied|cancel/i.test(err?.message ?? "")) return "You declined the request.";
   if (code === -32002) return "Your wallet already has a pending request. Open it to continue.";
+  if (/insufficient funds/i.test(err?.message ?? "")) return "Not enough testnet USDC for this transaction and its gas.";
   return err?.shortMessage ?? err?.message ?? "The wallet request failed.";
 }
 
-export async function connectWallet(): Promise<Address> {
-  const accounts = (await provider().request({ method: "eth_requestAccounts" })) as string[];
-  if (!accounts?.[0]) throw new WalletError("No account was shared by the wallet.");
-  return getAddress(accounts[0]);
+/** The parts of a Privy ConnectedWallet these helpers need (kept structural so lib stays SDK free). */
+export interface EmbeddedWalletLike {
+  address: string;
+  switchChain: (chainId: number) => Promise<void>;
+  getEthereumProvider: () => Promise<{ request: (args: { method: string; params?: unknown }) => Promise<unknown> }>;
 }
 
-export async function currentAccount(): Promise<Address | null> {
-  if (!hasInjectedWallet()) return null;
-  const accounts = (await provider().request({ method: "eth_accounts" })) as string[];
-  return accounts?.[0] ? getAddress(accounts[0]) : null;
-}
-
-export async function currentChainId(): Promise<number | null> {
-  if (!hasInjectedWallet()) return null;
-  const hex = (await provider().request({ method: "eth_chainId" })) as string;
-  return parseInt(hex, 16);
-}
-
-/** Switch to Arc testnet, adding it to the wallet (wallet_addEthereumChain) if unknown. */
-export async function ensureArcTestnet(): Promise<void> {
-  const id = await currentChainId();
-  if (id === arcTestnet.id) return;
-  const chainIdHex = `0x${arcTestnet.id.toString(16)}`;
+/** Switch the wallet to Arc testnet and return a viem WalletClient bound to its address. */
+export async function walletClientFor(w: EmbeddedWalletLike): Promise<WalletClient> {
   try {
-    await provider().request({ method: "wallet_switchEthereumChain", params: [{ chainId: chainIdHex }] });
+    await w.switchChain(arcTestnet.id);
   } catch (e) {
-    const code = (e as { code?: number; data?: { originalError?: { code?: number } } }).code ?? (e as { data?: { originalError?: { code?: number } } }).data?.originalError?.code;
-    if (code !== 4902 && code !== -32603) throw e;
-    await provider().request({
-      method: "wallet_addEthereumChain",
-      params: [
-        {
-          chainId: chainIdHex,
-          chainName: arcTestnet.name,
-          nativeCurrency: arcTestnet.nativeCurrency,
-          rpcUrls: [...arcTestnet.rpcUrls.default.http],
-          blockExplorerUrls: [arcTestnet.blockExplorers!.default.url],
-        },
-      ],
-    });
+    throw new WalletError(`Could not switch the wallet to Arc testnet. ${walletErrorMessage(e)}`);
   }
+  const provider = await w.getEthereumProvider();
+  return createWalletClient({ account: getAddress(w.address), chain: arcTestnet, transport: custom(provider as never) });
+}
+
+function accountOf(client: WalletClient): Address {
+  const a = client.account?.address;
+  if (!a) throw new WalletError("The wallet has no account.");
+  return a;
 }
 
 const big = (v: string | number | bigint) => BigInt(v);
@@ -145,10 +106,9 @@ export function acceptanceToMessage(a: AcceptanceWire) {
 }
 
 /** EIP-712 sign the Terms. Uses the canonical TERMS_TYPES from @proteus/domain, not server-sent types. */
-export async function signTerms(account: Address, td: TypedDataWire<"Terms", TermsWire>): Promise<Hex> {
-  await ensureArcTestnet();
-  return walletClient().signTypedData({
-    account,
+export async function signTerms(client: WalletClient, td: TypedDataWire<"Terms", TermsWire>): Promise<Hex> {
+  return client.signTypedData({
+    account: client.account ?? accountOf(client),
     domain: domain(Number(td.domain.chainId), getAddress(td.domain.verifyingContract)),
     types: TERMS_TYPES,
     primaryType: "Terms",
@@ -156,10 +116,9 @@ export async function signTerms(account: Address, td: TypedDataWire<"Terms", Ter
   });
 }
 
-export async function signAcceptance(account: Address, td: TypedDataWire<"Acceptance", AcceptanceWire>): Promise<Hex> {
-  await ensureArcTestnet();
-  return walletClient().signTypedData({
-    account,
+export async function signAcceptance(client: WalletClient, td: TypedDataWire<"Acceptance", AcceptanceWire>): Promise<Hex> {
+  return client.signTypedData({
+    account: client.account ?? accountOf(client),
     domain: domain(Number(td.domain.chainId), getAddress(td.domain.verifyingContract)),
     types: ACCEPTANCE_TYPES,
     primaryType: "Acceptance",
@@ -171,21 +130,24 @@ export async function readUsdcBalance(owner: Address, usdc: Address = ARC_TESTNE
   return publicClient.readContract({ address: usdc, abi: erc20Abi, functionName: "balanceOf", args: [owner] });
 }
 
+/** Native USDC balance in wei (18 decimals). Same funds as the ERC-20 view, which uses 6 decimals. */
+export async function readNativeBalance(owner: Address): Promise<bigint> {
+  return publicClient.getBalance({ address: owner });
+}
+
 export async function readUsdcAllowance(owner: Address, spender: Address, usdc: Address = ARC_TESTNET_USDC): Promise<bigint> {
   return publicClient.readContract({ address: usdc, abi: erc20Abi, functionName: "allowance", args: [owner, spender] });
 }
 
 /** ERC-20 approve(escrow, amount) on the Arc testnet USDC interface (6 decimals). Returns the wallet's tx hash. */
-export async function approveUsdc(account: Address, spender: Address, amount: bigint, usdc: Address = ARC_TESTNET_USDC): Promise<Hex> {
-  await ensureArcTestnet();
-  return walletClient().writeContract({ account, chain: arcTestnet, address: usdc, abi: erc20Abi, functionName: "approve", args: [spender, amount] });
+export async function approveUsdc(client: WalletClient, spender: Address, amount: bigint, usdc: Address = ARC_TESTNET_USDC): Promise<Hex> {
+  return client.writeContract({ account: client.account ?? accountOf(client), chain: arcTestnet, address: usdc, abi: erc20Abi, functionName: "approve", args: [spender, amount] });
 }
 
 /** Buyer submits createAndFundDeal(terms, buyerSig, sellerSig) on the escrow. Returns the wallet's tx hash. */
-export async function createAndFundDeal(account: Address, escrow: Address, terms: TermsWire, buyerSig: Hex, sellerSig: Hex): Promise<Hex> {
-  await ensureArcTestnet();
-  return walletClient().writeContract({
-    account,
+export async function createAndFundDeal(client: WalletClient, escrow: Address, terms: TermsWire, buyerSig: Hex, sellerSig: Hex): Promise<Hex> {
+  return client.writeContract({
+    account: client.account ?? accountOf(client),
     chain: arcTestnet,
     address: escrow,
     abi: ESCROW_ABI,
@@ -200,71 +162,31 @@ export async function waitForReceipt(hash: Hex) {
 }
 
 /* ------------------------------------------------------------------ */
-/* React hook                                                          */
+/* x402 exact scheme: EIP-3009 TransferWithAuthorization               */
 /* ------------------------------------------------------------------ */
 
-export interface WalletState {
-  available: boolean;
-  account: Address | null;
-  chainId: number | null;
-  onArc: boolean;
-  connecting: boolean;
-  error: string | null;
-  connect: () => Promise<Address | null>;
-  switchToArc: () => Promise<boolean>;
-}
+export const TRANSFER_WITH_AUTHORIZATION_TYPES = {
+  TransferWithAuthorization: [
+    { name: "from", type: "address" },
+    { name: "to", type: "address" },
+    { name: "value", type: "uint256" },
+    { name: "validAfter", type: "uint256" },
+    { name: "validBefore", type: "uint256" },
+    { name: "nonce", type: "bytes32" },
+  ],
+} as const;
 
-export function useWallet(): WalletState {
-  const available = hasInjectedWallet();
-  const [account, setAccount] = useState<Address | null>(null);
-  const [chainId, setChainId] = useState<number | null>(null);
-  const [connecting, setConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!available) return;
-    let live = true;
-    currentAccount().then((a) => live && setAccount(a)).catch(() => {});
-    currentChainId().then((c) => live && setChainId(c)).catch(() => {});
-    const eth = window.ethereum!;
-    const onAccounts = (accs: string[]) => setAccount(accs?.[0] ? getAddress(accs[0]) : null);
-    const onChain = (hex: string) => setChainId(parseInt(hex, 16));
-    eth.on?.("accountsChanged", onAccounts as never);
-    eth.on?.("chainChanged", onChain as never);
-    return () => {
-      live = false;
-      eth.removeListener?.("accountsChanged", onAccounts as never);
-      eth.removeListener?.("chainChanged", onChain as never);
-    };
-  }, [available]);
-
-  const connect = useCallback(async () => {
-    setError(null);
-    setConnecting(true);
-    try {
-      const a = await connectWallet();
-      setAccount(a);
-      setChainId(await currentChainId());
-      return a;
-    } catch (e) {
-      setError(walletErrorMessage(e));
-      return null;
-    } finally {
-      setConnecting(false);
-    }
-  }, []);
-
-  const switchToArc = useCallback(async () => {
-    setError(null);
-    try {
-      await ensureArcTestnet();
-      setChainId(await currentChainId());
-      return true;
-    } catch (e) {
-      setError(walletErrorMessage(e));
-      return false;
-    }
-  }, []);
-
-  return { available, account, chainId, onArc: chainId === arcTestnet.id, connecting, error, connect, switchToArc };
+/** Sign the payment authorization for one x402 requirement. The nonce comes from the server. */
+export async function signTransferAuthorization(client: WalletClient, req: PayAccept, nonce: Hex, chainId: number = arcTestnet.id): Promise<{ signature: Hex; authorization: PayAuthorization }> {
+  const from = accountOf(client);
+  const validBefore = BigInt(Math.floor(Date.now() / 1000) + Math.min(120, req.maxTimeoutSeconds || 120));
+  const authorization: PayAuthorization = { from, to: getAddress(req.payTo), value: req.amount, validAfter: "0", validBefore: validBefore.toString(), nonce };
+  const signature = await client.signTypedData({
+    account: from,
+    domain: { name: req.extra?.name ?? "USDC", version: req.extra?.version ?? "2", chainId, verifyingContract: getAddress(req.asset) },
+    types: TRANSFER_WITH_AUTHORIZATION_TYPES,
+    primaryType: "TransferWithAuthorization",
+    message: { from, to: authorization.to, value: BigInt(req.amount), validAfter: 0n, validBefore, nonce },
+  });
+  return { signature, authorization };
 }

@@ -27,7 +27,10 @@ export function issueLinkNonce(userId: string) {
 export async function linkWallet(userId: string, address: Address, kind: "embedded" | "external", nonce: string, signature: Hex) {
   const n = LINK_NONCES.get(userId);
   if (!n || n.nonce !== nonce || n.expires < Date.now()) throw new HttpError(400, "link nonce missing or expired; request a new one");
-  const ok = await verifyMessage({ address, message: linkMessage(address, nonce), signature });
+  // Accept the message built with either the checksummed or the lower-cased address.
+  const candidates = Array.from(new Set([linkMessage(address, nonce), `PROTEUS wallet link\naddress: ${address}\nnonce: ${nonce}`]));
+  let ok = false;
+  for (const message of candidates) if (await verifyMessage({ address, message, signature })) ok = true;
   if (!ok) throw new HttpError(400, "signature does not prove control of that address");
   LINK_NONCES.delete(userId);
   const existing = await db.select().from(schema.walletLinks).where(eq(schema.walletLinks.userId, userId));

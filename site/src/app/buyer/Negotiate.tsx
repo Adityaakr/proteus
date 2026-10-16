@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Bot, SendHorizontal, User } from "lucide-react";
 import { T_DEFAULT } from "../../lib/motion";
-import { BuyerShell } from "../layouts/BuyerShell";
+import { AppShell } from "../layouts/AppShell";
+import { Stepper } from "../ui/Stepper";
 import { AgentActivity, type ActivityLine } from "../agentic/AgentActivity";
 import { ReasoningText } from "../agentic/ReasoningText";
 import { ActionButton } from "../ui/ActionButton";
@@ -16,7 +17,7 @@ import { StatusTag } from "../ui/StatusTag";
 import { Notice } from "../ui/misc";
 import { api, errorMessage, qk, type Negotiation, type Offer, type Turn } from "../lib/api";
 import { OfferCard } from "./OfferCard";
-import { ErrorState, PageHeader, fmtUnits, prettyIntegration } from "./common";
+import { ErrorState, FLOW_STAGES, PageHeader, fmtUnits, prettyIntegration } from "./common";
 import s from "./buyer.module.css";
 
 const WORKING_STEPS = ["Reading your message", "Extracting requirements", "Checking the seller's pricing rules", "Preparing offers"];
@@ -89,7 +90,7 @@ export default function Negotiate() {
     onMutate: (offer) => setAcceptingId(offer.candidateId),
     onSuccess: (q) => {
       qc.setQueryData(qk.quote(q.id), q);
-      navigate(`/offer/${q.id}`);
+      navigate(`/app/offers/${q.id}`);
     },
     onSettled: () => setAcceptingId(null),
   });
@@ -125,15 +126,15 @@ export default function Negotiate() {
 
   if (negQ.isLoading)
     return (
-      <BuyerShell stage="Negotiate">
+      <AppShell title="Negotiation">
         <LoadingCard label="Loading the negotiation" lines={6} />
-      </BuyerShell>
+      </AppShell>
     );
   if (negQ.error || !negQ.data)
     return (
-      <BuyerShell stage="Negotiate">
+      <AppShell title="Negotiation">
         <ErrorState error={negQ.error} onRetry={() => negQ.refetch()} />
-      </BuyerShell>
+      </AppShell>
     );
 
   const neg = negQ.data;
@@ -144,7 +145,7 @@ export default function Negotiate() {
   const mutationError = send.error ?? counter.error ?? accept.error;
 
   return (
-    <BuyerShell stage="Negotiate">
+    <AppShell title="Negotiation">
       <PageHeader
         eyebrow={
           <>
@@ -153,6 +154,7 @@ export default function Negotiate() {
           </>
         }
         title="Negotiate your agreement"
+        actions={<Stepper current={0} steps={FLOW_STAGES} />}
         lede="Describe your volume, tools and budget. Offers come from the seller's pricing rules, so the agent cannot be talked past them."
       />
 
@@ -265,7 +267,7 @@ export default function Negotiate() {
           )}
         </div>
       </div>
-    </BuyerShell>
+    </AppShell>
   );
 }
 

@@ -11,13 +11,13 @@ import s from "../seller.module.css";
 export default function Deals() {
   const q = useDeals();
   const nav = useNavigate();
-  const go = (d: DealSummary) => nav(`/app/deals/${encodeURIComponent(d.id)}`);
+  const go = (d: DealSummary) => nav(`/app/sell/deals/${encodeURIComponent(d.id)}`);
   const cols: DataColumn<DealSummary>[] = [
     {
       key: "deal",
       header: "Deal",
       render: (d) => (
-        <a href={`/app/deals/${encodeURIComponent(d.id)}`} onClick={(e) => { e.preventDefault(); go(d); }}>
+        <a href={`/app/sell/deals/${encodeURIComponent(d.id)}`} onClick={(e) => { e.preventDefault(); go(d); }}>
           <span className={s.strong}>{d.productName}</span>
           <span className={s.sub}>{d.publicId} · {dateTime(d.createdAt)}</span>
         </a>
@@ -39,7 +39,7 @@ export default function Deals() {
               icon={<Handshake size={20} />}
               title="No deals yet"
               description="A deal appears once a buyer signs a quote. Approving pending quotes is the fastest way to get one."
-              action={<ActionButton variant="secondary" to="/app/approvals">Review approvals</ActionButton>}
+              action={<ActionButton variant="secondary" to="/app/sell/approvals">Review approvals</ActionButton>}
             />
           ) : (
             <DataTable columns={cols} rows={rows} rowKey={(d) => d.id} onRowClick={go} caption="All deals" />

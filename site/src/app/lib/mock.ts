@@ -105,6 +105,13 @@ interface Store {
   deals: Record<string, DealRec>;
   approvals: Record<string, T.Approval>;
   session: boolean;
+  /** v1 account mock: undefined = not initialised yet, null = no seller org. */
+  org?: T.MeOrg | null;
+  /** Mock wallet balance in micro-USDC. */
+  walletUsdc?: string;
+  ppcCalls?: number;
+  signerCreatedAt?: string;
+  signerRevokedAt?: string;
 }
 
 const KEY = "proteus:mock:v1";
@@ -575,6 +582,8 @@ async function fundingIntent(id: string, body: Body): Promise<T.Deal> {
   const d = store.deals[id] ?? notFound("Deal");
   if (d.deal.status !== "awaiting_funding") return dealView(d);
   await sleep(500);
+  const bal = BigInt(store.walletUsdc ?? MOCK_START_USDC) - BigInt(d.deal.terms.prepaid);
+  store.walletUsdc = (bal < 0n ? 0n : bal).toString();
   const tx = body?.txHash ? (String(body.txHash) as Hex) : undefined;
   d.deal.status = "funding_pending";
   if (tx) d.deal.funding = { txHash: tx };
@@ -775,7 +784,7 @@ function reviewRecord(publicId: string): T.ReviewRecord {
 
 /* Seller console mocks */
 function requireSession() {
-  if (!store.session) throw new ApiError(401, "Sign in to the seller console", { error: "unauthorized" });
+  if (!store.session && !accountOrg()) throw new ApiError(401, "Sign in to the seller console", { error: "unauthorized" });
 }
 
 function productWithPrivate(): T.ProductWithPrivate {
@@ -829,6 +838,119 @@ function journalFor(d: DealRec): T.JournalEntry[] {
   return out;
 }
 
+
+/* ------------------------------------------------------------------ */
+/* v1 account mocks: /me, /me/*, /orgs, /market, /pay, signer          */
+/* ------------------------------------------------------------------ */
+
+export const MOCK_BUYER_ADDRESS = "0x5af3107a4000ec2b6c3c3d6c1ae0cb2f7ae91b42" as Address;
+const MOCK_START_USDC = "2500000000";
+const NO_ORG_KEY = "proteus:mock:no-org";
+
+/** Default: the mock user owns the Northwind sandbox org. `?mockOrg=none` starts without one. */
+function accountOrg(): T.MeOrg | null {
+  if (store.org === undefined) {
+    let none = false;
+    try {
+      const q = new URLSearchParams(window.location.search).get("mockOrg");
+      if (q === "none") sessionStorage.setItem(NO_ORG_KEY, "1");
+      if (q === "default") sessionStorage.removeItem(NO_ORG_KEY);
+      none = sessionStorage.getItem(NO_ORG_KEY) === "1";
+    } catch {
+      /* ignore */
+    }
+    store.org = none ? null : { id: "org_northwind", slug: SELLER_SLUG, name: "Northwind Commerce", label: "sandbox", role: "owner" };
+    save();
+  }
+  return store.org ?? null;
+}
+
+function meView(): T.MeResponse {
+  const org = accountOrg();
+  return { userId: "did:privy:mock-buyer", email: "demo@proteus.dev", wallets: [{ address: MOCK_BUYER_ADDRESS, kind: "embedded", primary: true }], ...(org ? { org } : {}), labels: { network: "testnet" } };
+}
+
+function negSummaries(): T.NegotiationSummary[] {
+  return Object.values(store.negs)
+    .reverse()
+    .map((n) => ({ id: n.neg.id, publicId: n.neg.publicId, productSlug: n.neg.productSlug, sellerSlug: n.neg.sellerSlug, status: n.neg.status, createdAt: n.createdAt, updatedAt: n.neg.turns.at(-1)?.createdAt, turns: n.neg.turns.length, bestOfferUsd: n.neg.offers[0]?.prepaidTotalUsd }));
+}
+
+function dealSummaries(): T.DealSummary[] {
+  return Object.values(store.deals)
+    .reverse()
+    .map((d) => (refreshDeal(d), { id: d.deal.id, publicId: d.deal.publicId, status: d.deal.status, productSlug: product.slug, sellerSlug: SELLER_SLUG, deposit: d.deal.balances.deposit, settled: d.deal.balances.settled, remaining: d.deal.balances.remaining, createdAt: d.createdAt }));
+}
+
+function marketItems(): T.MarketItem[] {
+  const pp = publicProduct();
+  return [{ sellerSlug: SELLER_SLUG, sellerName: "Northwind Commerce", sellerLabel: "sandbox", productSlug: pp.slug, name: pp.name, unitLabel: pp.unitLabel, startingTierUsd: pp.tiers[0]?.prepaidTotalUsd ?? "0" }];
+}
+
+async function mockV1(method: string, p: string[], body: Body): Promise<unknown | typeof NO_MATCH> {
+  const is = (m: string, ...parts: (string | null)[]) => method === m && p.length === parts.length && parts.every((x, i) => x === null || x === p[i]);
+  if (is("GET", "me")) {
+    await sleep(120);
+    return meView();
+  }
+  if (is("GET", "me", "wallet")) {
+    await sleep(150);
+    const usdc = store.walletUsdc ?? MOCK_START_USDC;
+    return { address: MOCK_BUYER_ADDRESS, usdc, native: (BigInt(usdc) * 1_000_000_000_000n).toString(), faucetUrl: "https://faucet.circle.com", chainId: ARC_TESTNET_CHAIN_ID, explorerUrl: `https://explorer.testnet.arc.io/address/${MOCK_BUYER_ADDRESS}` } satisfies T.MeWalletBalance;
+  }
+  if (is("GET", "me", "wallets", "nonce")) return { nonce: rid("nonce") };
+  if (is("POST", "me", "wallets", "link")) return meView();
+  if (is("GET", "me", "negotiations")) {
+    await sleep(150);
+    return negSummaries();
+  }
+  if (is("GET", "me", "deals")) {
+    await sleep(150);
+    return dealSummaries();
+  }
+  if (is("GET", "me", "activity")) {
+    await sleep(150);
+    return { negotiations: negSummaries(), deals: dealSummaries(), payPerCall: { calls: store.ppcCalls ?? 0, spent: "0" } } satisfies T.MeActivity;
+  }
+  if (is("POST", "orgs")) {
+    const name = String(body?.name ?? "").trim() || "My business";
+    const slug = String(body?.slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+    store.org = { id: rid("org"), slug, name, label: "sandbox", role: "owner" };
+    store.session = true;
+    try {
+      sessionStorage.removeItem(NO_ORG_KEY);
+    } catch {
+      /* ignore */
+    }
+    save();
+    return clone(store.org);
+  }
+  if (is("GET", "app", "signer")) {
+    if (!accountOrg()) throw new ApiError(404, "No seller org yet", { error: "no_org" }, "not_found");
+    return { address: "0x00000000000000000000000000000000005e11e7", scope: "terms+delivery", createdAt: store.signerCreatedAt ?? (store.signerCreatedAt = now()), ...(store.signerRevokedAt ? { revokedAt: store.signerRevokedAt } : {}) } satisfies T.SignerInfo;
+  }
+  if (is("POST", "app", "signer", "revoke")) {
+    store.signerRevokedAt = now();
+    save();
+    return { revokedAt: store.signerRevokedAt, note: "Revocation stops future signing only. Funded deals keep accepting this signer." };
+  }
+  if (is("POST", "app", "products")) {
+    if (!accountOrg()) throw new ApiError(409, "Create a seller org first", { error: "no_org" });
+    await sleep(400);
+    return { ...productWithPrivate(), name: String(body?.name ?? product.name) };
+  }
+  if (is("GET", "market")) {
+    await sleep(200);
+    return marketItems();
+  }
+  if (method === "POST" && p[0] === "pay" && p.length === 4 && p[3] === "execute") {
+    await sleep(200);
+    throw new ApiError(501, "Pay per call is not available in mock mode", { error: "not_implemented" }, "not_implemented");
+  }
+  return NO_MATCH;
+}
+const NO_MATCH = Symbol("no-match");
+
 /* ------------------------------------------------------------------ */
 /* Router                                                              */
 /* ------------------------------------------------------------------ */
@@ -838,6 +960,9 @@ export async function mockRequest<R>(method: string, path: string, body: Body, h
   const p = path.split("?")[0]!.split("/").filter(Boolean).map(decodeURIComponent);
   const r = (v: unknown) => v as R;
   const is = (m: string, ...parts: (string | null)[]) => method === m && p.length === parts.length && parts.every((x, i) => x === null || x === p[i]);
+
+  const v1 = await mockV1(method, p, body);
+  if (v1 !== NO_MATCH) return r(v1);
 
   if (is("GET", "health")) return r({ ok: true, network: "illustrative", chainId: ARC_TESTNET_CHAIN_ID, escrowAddress: ESCROW, usdcAddress: ARC_TESTNET_USDC, agentAdapter: "rule-based", relayer: "none" } satisfies T.Health as T.Health);
   if (is("GET", "public", "sellers", null)) {
@@ -981,6 +1106,11 @@ export async function mockRequest<R>(method: string, path: string, body: Body, h
 /** Clears the mock store (handy in the console: window.__proteusMockReset()). */
 export function resetMock() {
   store = { negs: {}, quotes: {}, deals: {}, approvals: {}, session: false };
+  try {
+    sessionStorage.removeItem(NO_ORG_KEY);
+  } catch {
+    /* ignore */
+  }
   save();
 }
 if (typeof window !== "undefined") (window as unknown as Record<string, unknown>).__proteusMockReset = resetMock;
