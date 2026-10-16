@@ -84,7 +84,7 @@ export const howItWorks = {
 
 export const decisions = {
   tag: "Intelligence",
-  heading: "It knows the price. More importantly, it knows why.",
+  heading: "It knows the price.\nMore importantly, it knows why.",
   description:
     "A customer asks for 30% off. Is there volume behind it? Spare capacity? Margin left? Those are the calls Proteus AI makes. Not every opportunity is a good deal, and it can tell the difference.",
   tabs: [

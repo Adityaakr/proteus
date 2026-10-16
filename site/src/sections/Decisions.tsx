@@ -90,7 +90,7 @@ export function Decisions() {
             icon={<LayoutGrid size={16} strokeWidth={2} />}
             gap={32}
             textGap={16}
-            headingMaxWidth={500}
+            headingMaxWidth={720}
             descriptionMaxWidth={500}
           />
 

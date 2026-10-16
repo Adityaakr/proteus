@@ -436,3 +436,8 @@
   .automation { left: 24px; right: 24px; gap: 16px; }
   .approvals { left: 24px; right: 24px; top: 32px; }
 }
+
+/* Two sentences, two lines, at every width. */
+.header h2 { white-space: pre-line; }
+@media (max-width: 809.98px) { .header h2 { font-size: 30px; } }
+@media (max-width: 419.98px) { .header h2 { font-size: 24px; line-height: 1.2em; } }
