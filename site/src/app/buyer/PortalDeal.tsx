@@ -5,7 +5,6 @@ import { KeyRound, PenLine, RotateCcw, Send } from "lucide-react";
 import { explorerTx } from "@proteus/domain";
 import type { Hex } from "viem";
 import { AppShell } from "../layouts/AppShell";
-import { SandboxNote } from "../layouts/SandboxNote";
 import { Stepper } from "../ui/Stepper";
 import { useAuth } from "../auth/useAuth";
 import { FundFlow } from "./FundFlow";
@@ -202,8 +201,6 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
           <FundFlow deal={deal} onFunded={(d) => { qc.setQueryData(qk.deal(d.id), d); navigate(`/app/deals/${d.id}`, { replace: true }); }} onCancel={() => navigate("/app/deals")} />
         </div>
       )}
-
-      <SandboxNote />
 
       <div className={s.stats}>
         <StatCard label="Deposited" value={<Money micro={deal.balances.deposit} />} />

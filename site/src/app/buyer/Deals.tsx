@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Handshake } from "lucide-react";
 import { AppShell } from "../layouts/AppShell";
-import { SandboxNote } from "../layouts/SandboxNote";
 import { ActionButton } from "../ui/ActionButton";
 import { Card } from "../ui/Card";
 import { DataTable } from "../ui/DataTable";
@@ -21,7 +20,6 @@ export default function Deals() {
   return (
     <AppShell title="Deals">
       <PageHeader title="Deals" lede="Prepaid agreements held in escrow. The seller is paid only for usage you sign." />
-      <SandboxNote />
       {q.isLoading ? (
         <LoadingCard lines={4} />
       ) : q.error && isAuthError(q.error) ? (
