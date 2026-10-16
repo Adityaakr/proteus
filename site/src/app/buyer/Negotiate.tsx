@@ -146,6 +146,7 @@ export default function Negotiate() {
   const agentName = `${possessive(sellerName)} agent`;
   const offers = neg.offers;
   const topId = offers.find((o) => o.status === "eligible")?.candidateId;
+  const unsupported = Array.from(new Set(offers.flatMap((o) => o.unsupportedIntegrations)));
   const req = neg.requirements;
   const closed = neg.status === "closed" || neg.status === "accepted";
   const mutationError = send.error ?? counter.error ?? accept.error;
@@ -245,7 +246,10 @@ export default function Negotiate() {
               <p className={n.blockNote}>No offers yet. Share your expected volume or budget and the agent will propose options.</p>
             ) : (
               <>
-                <p className={n.blockNote}>Accept one to see the full terms. Nothing is binding until you sign.</p>
+                <p className={n.blockNote}>
+                  Accept one to see the full terms. Nothing is binding until you sign.
+                  {unsupported.length > 0 && <> {unsupported.map(prettyIntegration).join(", ")} {unsupported.length > 1 ? "are" : "is"} not offered by this seller and {unsupported.length > 1 ? "are" : "is"} excluded from every offer.</>}
+                </p>
                 <div className={n.offers}>
                   {offers.map((o) => (
                     <OfferCard

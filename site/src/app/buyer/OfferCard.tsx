@@ -5,7 +5,6 @@ import { T_DEFAULT } from "../../lib/motion";
 import { ActionButton } from "../ui/ActionButton";
 import { Field } from "../ui/Field";
 import { Money } from "../ui/Money";
-import { Notice } from "../ui/misc";
 import type { Offer } from "../lib/api";
 import { fmtUnits, prettyIntegration } from "./common";
 import n from "./negotiate.module.css";
@@ -68,11 +67,6 @@ export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAc
         {" "}<span className={n.offerTagMuted}>{origins.map((o) => ORIGIN_LABEL[o]).join(", ")}</span>
       </p>
       {offer.includes.length > 0 && <p className={n.offerIncl}>Includes {offer.includes.join(", ")}.</p>}
-      {offer.unsupportedIntegrations.length > 0 && (
-        <Notice tone="warn">
-          {offer.unsupportedIntegrations.map(prettyIntegration).join(", ")} {offer.unsupportedIntegrations.length > 1 ? "are" : "is"} not supported and is excluded from these terms.
-        </Notice>
-      )}
       {reasons.map((r) => <p key={r} className={n.offerReason}>{r}</p>)}
       <div className={n.offerActions}>
         <ActionButton size="sm" variant={top ? "primary" : "secondary"} onClick={() => onAccept(offer)} loading={busy} disabled={offer.status === "rejected"} loadingLabel="Preparing the quote">
