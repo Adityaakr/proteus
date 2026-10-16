@@ -608,7 +608,7 @@ async function execute(slug: string, body: Body, headers: Record<string, string>
   if (d.executions[requestId]) return clone(d.executions[requestId]!);
   await sleep(900);
   const input = (body?.input ?? {}) as T.ExecuteInput;
-  const orderId = (input.orderId ?? "").replace(/[^0-9a-z]/gi, "");
+  const orderId = String(input.orderId ?? "").replace(/[^0-9a-z]/gi, "");
   const order = orderId ? ORDERS[orderId] : undefined;
   let status: T.ReceiptStatus;
   let answer: string;

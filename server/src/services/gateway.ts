@@ -20,7 +20,41 @@ import { loadDeal, reviveTerms } from "./deals";
 export interface ServiceInput {
   orderId?: string;
   email?: string;
-  question: string;
+  question?: string;
+  /** Seller-defined request fields (see the product's request spec). Files arrive as { name, type, size, dataBase64 }. */
+  [key: string]: unknown;
+}
+
+/** A plain-text view of a request for the first-party adapters: the question if present, else the string fields joined. */
+export function textOf(input: ServiceInput): string {
+  if (typeof input.question === "string" && input.question.trim()) return input.question.trim();
+  const parts: string[] = [];
+  for (const [k, v] of Object.entries(input)) {
+    if (k === "question") continue;
+    if (typeof v === "string" && v.trim()) parts.push(`${k}: ${v.trim()}`);
+    else if (typeof v === "number") parts.push(`${k}: ${v}`);
+    else if (v && typeof v === "object" && "name" in (v as object)) parts.push(`${k}: file ${(v as { name?: string }).name ?? ""}`);
+  }
+  return parts.join("; ");
+}
+
+/** Human summary of a request's fields, for example answers: files by name and size, text trimmed. */
+export function describeInput(input: ServiceInput): string {
+  const parts: string[] = [];
+  for (const [k, v] of Object.entries(input)) {
+    if (typeof v === "string" && v.trim()) parts.push(`${k} "${v.trim().slice(0, 60)}${v.trim().length > 60 ? "…" : ""}"`);
+    else if (typeof v === "number") parts.push(`${k} ${v}`);
+    else if (v && typeof v === "object" && "name" in (v as object)) {
+      const f = v as { name?: string; size?: number };
+      parts.push(`${k} ${f.name ?? "file"}${typeof f.size === "number" ? ` (${Math.max(1, Math.round(f.size / 1024))} KB)` : ""}`);
+    }
+  }
+  return parts.join(", ") || "an empty request";
+}
+
+const MAX_INPUT_BYTES = 700_000;
+export function assertInputSize(input: unknown) {
+  if (JSON.stringify(input).length > MAX_INPUT_BYTES) throw new HttpError(413, "request input is too large; files must be under 512 KB");
 }
 
 export interface ServiceOutput {
@@ -32,7 +66,7 @@ export interface ServiceOutput {
 
 /** First-party adapter: AI-assisted e-commerce order support over a labeled sample store. */
 export async function orderSupport(orgId: string, input: ServiceInput): Promise<ServiceOutput> {
-  const q = input.question.toLowerCase();
+  const q = textOf(input).toLowerCase();
   const wantsRefund = /refund|return|chargeback|cancel/.test(q);
   if (wantsRefund) {
     return { status: "handoff", billable: false, answer: "Refunds and returns are handled by a human on the support team. I have flagged this conversation for them; no automated answer was given.", source: { store: "sample-store", orderId: input.orderId, fields: [] } };
@@ -115,10 +149,10 @@ export async function runAdapter(lp: Awaited<ReturnType<typeof loadProductById>>
   if (lp.row.adapter === "order-support") return orderSupport(lp.org.id, input);
   if (lp.row.adapter === "demo") {
     // Example sellers: a deterministic, labeled answer so the money loop can be exercised end to end on testnet.
-    const q = input.question.trim();
+    const q = textOf(input);
     if (!q) return { status: "failed", billable: false, answer: "Send a request to get an example answer. This request was not charged.", source: { store: "example", fields: [] } };
     if (/refund|cancel|complain|lawyer|escalat/i.test(q)) return { status: "handoff", billable: false, answer: `Example seller ${lp.org.name}: this request is routed to a human. Not charged.`, source: { store: "example", fields: [] } };
-    return { status: "delivered", billable: true, answer: `Example seller ${lp.org.name}, ${lp.product.name}: delivered one ${lp.product.unitLabel} for "${q.slice(0, 120)}". A live seller answers this from its own endpoint; this answer is illustrative and the charge is testnet USDC.`, source: { store: "example", fields: ["answer"] } };
+    return { status: "delivered", billable: true, answer: `Example seller ${lp.org.name}, ${lp.product.name}: delivered one ${lp.product.unitLabel}. Received ${describeInput(input)}. A live seller answers this from its own endpoint; this answer is illustrative and the charge is testnet USDC.`, source: { store: "example", fields: Object.keys(input).slice(0, 8) } };
   }
   return { status: "failed", billable: false, answer: "No service endpoint is configured for this product. This request was not charged.", source: { store: "none", fields: [] } };
 }
@@ -136,6 +170,7 @@ export async function authenticateDeal(bearer: string | undefined, productSlug: 
 }
 
 export async function execute(dealId: string, requestId: string, input: ServiceInput) {
+  assertInputSize(input);
   const started = Date.now();
   const deal = await loadDeal(dealId);
   const lp = await loadProductById(deal.productId);

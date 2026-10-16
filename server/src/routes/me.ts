@@ -73,6 +73,7 @@ const ProductBody = z.object({
   payPerCall: z.object({ priceUsd: z.string().regex(/^\d+(\.\d+)?$/) }).optional(),
   summary: z.string().max(160).optional(),
   category: z.string().max(32).optional(),
+  request: z.object({ intro: z.string().max(200).optional(), fields: z.array(z.object({ key: z.string().max(32).optional(), label: z.string().min(1).max(60), type: z.enum(["text", "textarea", "number", "file"]), required: z.boolean().optional(), placeholder: z.string().max(120).optional(), hint: z.string().max(160).optional() })).max(6) }).optional(),
   adapter: z.enum(["http", "order-support"]).optional(),
   upstream: z.object({ url: z.string().min(8).max(2048), authHeader: z.string().max(64).optional(), secret: z.string().max(4096).optional() }).optional(),
 });

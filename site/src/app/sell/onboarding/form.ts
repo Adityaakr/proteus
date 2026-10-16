@@ -1,3 +1,4 @@
+import type { RequestFieldType } from "../../lib/types";
 /**
  * Start selling form: state, validation, the POST body and the engine inputs for the live preview.
  * Money is parsed to integer micro-USDC with toMicro from @proteus/domain; nothing uses JS floats for money.
@@ -15,8 +16,18 @@ export interface TierRow {
   includes: string;
 }
 
+export interface RequestRow {
+  key: string;
+  label: string;
+  type: RequestFieldType;
+  required: boolean;
+  hint: string;
+}
+
 export interface FormState {
   businessName: string;
+  requestIntro: string;
+  requestFields: RequestRow[];
   brand: BrandFormState;
   summary: string;
   productName: string;
@@ -44,10 +55,14 @@ export interface FormState {
 }
 
 let k = 0;
+let rk = 0;
+export const newRequestRow = (r: Partial<RequestRow> = {}): RequestRow => ({ key: `r${++rk}`, label: "", type: "text", required: true, hint: "", ...r });
 export const newTier = (t: Partial<TierRow> = {}): TierRow => ({ key: `t${++k}`, name: "", includedUnits: "", unitPriceUsd: "", includes: "", ...t });
 
 export const EMPTY: FormState = {
   businessName: "",
+  requestIntro: "",
+  requestFields: [newRequestRow({ label: "Request", type: "textarea" })],
   brand: EMPTY_BRAND,
   summary: "",
   productName: "",
@@ -75,6 +90,8 @@ export const EMPTY: FormState = {
 };
 
 export const EXAMPLE: FormState = {
+  requestIntro: "Send the customer's question and, when you have it, the order id.",
+  requestFields: [newRequestRow({ label: "Question", type: "textarea" }), newRequestRow({ label: "Order id", type: "text", required: false, hint: "Your store's order number." })],
   businessName: "Northwind Commerce",
   brand: { ...EMPTY_BRAND, tagline: "Order support for online stores, answered from the order record.", category: "support" },
   summary: "Order status, delivery and tracking answers sourced from the store\'s order record; refunds go to a human.",
@@ -127,11 +144,28 @@ export function pctBps(v: string): number | undefined {
 
 export type Errors = Partial<Record<string, string>>;
 
+/** The JSON key a field label becomes in the request body (mirrors the server). */
+export function requestKey(label: string): string {
+  return label.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 32);
+}
+
 export function validate(f: FormState, hasOrg: boolean): Errors {
   const e: Errors = {};
   if (!hasOrg && !f.businessName.trim()) e.businessName = "Enter your business name. Buyers see it on your market page.";
   if (!hasOrg) for (const [k, v] of Object.entries(validateBrandState(f.brand))) e[`brand.${k}`] = v;
   if (f.summary.trim().length > 160) e.summary = "Keep the summary under 160 characters.";
+  if (f.requestFields.length === 0) e.requestFields = "Add at least one field so buyers know what to send.";
+  {
+    const seen = new Set<string>();
+    f.requestFields.forEach((r) => {
+      const label = r.label.trim();
+      if (!label) e[`req.${r.key}.label`] = "Name this field.";
+      else if (label.length > 60) e[`req.${r.key}.label`] = "Keep the field name short.";
+      const key = requestKey(label);
+      if (key && seen.has(key)) e[`req.${r.key}.label`] = "Field names must be different.";
+      if (key) seen.add(key);
+    });
+  }
   if (!f.productName.trim()) e.productName = "Enter a product name.";
   if (!f.unitLabel.trim()) e.unitLabel = "Enter the unit you bill for, such as resolution.";
   else if (f.unitLabel.trim().length > 32) e.unitLabel = "Keep the unit label short, one or two words.";
@@ -190,6 +224,10 @@ export function toBody(f: FormState): ProductCreateBody {
     name: f.productName.trim(),
     ...(f.summary.trim() ? { summary: f.summary.trim() } : {}),
     ...(f.brand.category ? { category: f.brand.category } : {}),
+    request: {
+      ...(f.requestIntro.trim() ? { intro: f.requestIntro.trim() } : {}),
+      fields: f.requestFields.map((r) => ({ key: requestKey(r.label), label: r.label.trim(), type: r.type, required: r.required, ...(r.hint.trim() ? { hint: r.hint.trim() } : {}) })),
+    },
     unitLabel: f.unitLabel.trim(),
     billableUnit: f.billableUnit.trim(),
     capabilities: f.capabilities,

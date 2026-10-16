@@ -54,6 +54,20 @@ export interface SellerStats {
 
 export type ServiceKind = "seller-endpoint" | "sample-store" | "example";
 
+export type RequestFieldType = "text" | "textarea" | "number" | "file";
+export interface RequestField {
+  key: string;
+  label: string;
+  type: RequestFieldType;
+  required?: boolean;
+  placeholder?: string;
+  hint?: string;
+}
+export interface RequestSpec {
+  intro?: string;
+  fields: RequestField[];
+}
+
 export interface PublicProduct {
   slug: string;
   name: string;
@@ -62,6 +76,7 @@ export interface PublicProduct {
   maxUnitsPerDeal?: UnitsStr;
   payPerCallUsd?: string | null;
   service?: ServiceKind;
+  request?: RequestSpec | null;
   billableUnit: string;
   unitLabel: string;
   capabilities: string[];
@@ -236,7 +251,7 @@ export interface Deal {
   sellerPayee: Address;
   funding: { txHash?: Hex; confirmedAt?: IsoTime; explorerUrl?: string };
   balances: { deposit: MicroStr; settled: MicroStr; refunded: MicroStr; remaining: MicroStr; source: "chain" | "pending" };
-  service: { status: "pending" | "provisioned" | "suspended"; endpoint: string; apiKey?: string; docsUrl: string };
+  service: { status: "pending" | "provisioned" | "suspended"; endpoint: string; apiKey?: string; docsUrl: string; request?: RequestSpec | null; sampleStore?: { label: string; orderIds: string[] } };
   usage: { units: UnitsStr; charged: MicroStr; settled: MicroStr };
   refundableAt: IsoTime;
   explorer: { escrow: string; funding?: string; settlements: string[]; refund?: string };
@@ -288,11 +303,8 @@ export interface RefundResponse {
   txHash?: Hex;
 }
 
-export interface ExecuteInput {
-  orderId?: string;
-  email?: string;
-  question: string;
-}
+/** Free-form request body for a service call. The product's request spec says which keys the seller expects. */
+export type ExecuteInput = Record<string, unknown>;
 
 export interface ExecuteResponse {
   requestId: string;
@@ -566,6 +578,7 @@ export interface ProductCreateBody {
   payPerCall?: { priceUsd: string };
   summary?: string;
   category?: string;
+  request?: { intro?: string; fields: { key?: string; label: string; type: RequestFieldType; required?: boolean; placeholder?: string; hint?: string }[] };
   /** "http": the seller's own HTTPS endpoint (real). "order-support": first-party sample store (demo). */
   adapter?: "http" | "order-support";
   upstream?: { url: string; authHeader?: string; secret?: string };

@@ -37,6 +37,7 @@ export function reviveProduct(p: Record<string, unknown>): Product {
     refundPolicy: String(p.refundPolicy),
     ...(typeof p.summary === "string" && p.summary ? { summary: p.summary } : {}),
     ...(typeof p.category === "string" && p.category ? { category: p.category } : {}),
+    ...(p.request && typeof p.request === "object" && Array.isArray((p.request as { fields?: unknown }).fields) ? { request: p.request as Product["request"] } : {}),
   };
 }
 
@@ -105,6 +106,7 @@ export function publicProduct(lp: LoadedProduct) {
     refundPolicy: p.refundPolicy,
     summary: p.summary ?? null,
     category: p.category ?? null,
+    request: p.request ?? null,
     maxUnitsPerDeal: p.maxUnitsPerDeal.toString(),
     payPerCallUsd: lp.row.payPerCallPrice ? formatUsd(lp.row.payPerCallPrice, 4) : null,
     service: lp.row.adapter === "http" ? "seller-endpoint" : lp.row.adapter === "demo" ? "example" : "sample-store",

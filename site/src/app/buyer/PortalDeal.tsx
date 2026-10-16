@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Send } from "lucide-react";
@@ -10,12 +10,12 @@ import { FundFlow } from "./FundFlow";
 import type { TodoItem } from "../agentic/TodoList";
 import type { ToolApprovalStatus } from "../agentic/ToolApproval";
 import { ActionButton } from "../ui/ActionButton";
-import { Field } from "../ui/Field";
 import { LoadingCard } from "../ui/Skeleton";
 import { Money } from "../ui/Money";
 import { statusLabel } from "../ui/StatusTag";
 import { CopyButton, ExplorerLink, MonoValue, Notice, shortHex } from "../ui/misc";
-import { api, errorMessage, isMock, newRequestId, qk, type Deal, type ExecuteResponse } from "../lib/api";
+import { api, errorMessage, isMock, newRequestId, qk, type Deal, type ExecuteInput, type ExecuteResponse, type RequestSpec } from "../lib/api";
+import { DEFAULT_SPEC, SAMPLE_SPEC, RequestForm, emptyValues, missingRequired, toInput, type RequestValues } from "./RequestForm";
 import { signAcceptance, walletErrorMessage } from "../lib/wallet";
 import { ErrorState, FLOW_STAGES, fmtDate, fmtDateTime, fmtUnits } from "./common";
 import f from "./fund.module.css";
@@ -79,14 +79,14 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
   const usage = usageQ.data;
 
   /* test request */
-  const [question, setQuestion] = useState("");
-  const [orderId, setOrderId] = useState("");
+  const spec = useMemo<RequestSpec>(() => deal.service.request ?? (deal.service.sampleStore ? SAMPLE_SPEC : DEFAULT_SPEC), [deal.service.request, deal.service.sampleStore]);
+  const [values, setValues] = useState<RequestValues>(() => emptyValues(spec));
   const [qErr, setQErr] = useState<string | null>(null);
-  const [lastReq, setLastReq] = useState<{ requestId: string; input: { question: string; orderId?: string } } | null>(null);
+  const [lastReq, setLastReq] = useState<{ requestId: string; input: ExecuteInput } | null>(null);
   const [result, setResult] = useState<ExecuteResponse | null>(null);
   const [replayed, setReplayed] = useState(false);
   const exec = useMutation({
-    mutationFn: (v: { requestId: string; input: { question: string; orderId?: string } }) => api.execute(productSlugFrom(deal), apiKey ?? "", v),
+    mutationFn: (v: { requestId: string; input: ExecuteInput }) => api.execute(productSlugFrom(deal), apiKey ?? "", v),
     onSuccess: (r, v) => {
       setReplayed(lastReq?.requestId === v.requestId);
       setResult(r);
@@ -98,8 +98,9 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
   const submitTest = (e: FormEvent) => {
     e.preventDefault();
     setQErr(null);
-    if (!question.trim()) return setQErr("Enter a customer question.");
-    exec.mutate({ requestId: newRequestId(), input: { question: question.trim(), orderId: orderId.trim() || undefined } });
+    const missing = missingRequired(spec, values);
+    if (missing) return setQErr(missing);
+    exec.mutate({ requestId: newRequestId(), input: toInput(spec, values) });
   };
 
   /* usage acknowledgment */
@@ -232,10 +233,8 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
             </>
           ) : (
             <form onSubmit={submitTest} noValidate style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div className={d.formGrid}>
-                <Field label="Request" placeholder="What the service should do" value={question} onChange={(e) => setQuestion(e.target.value)} error={qErr} maxLength={2000} />
-                <Field label="Reference" hint="Optional. Echoed in the receipt." value={orderId} onChange={(e) => setOrderId(e.target.value)} />
-              </div>
+              <RequestForm spec={spec} values={values} onChange={(v) => { setValues(v); setQErr(null); }} />
+              {qErr && <Notice tone="danger">{qErr}</Notice>}
               <div className={f.actions}>
                 <ActionButton type="submit" size="sm" loading={exec.isPending && exec.variables?.requestId !== lastReq?.requestId} loadingLabel="Sending" icon={<Send size={14} strokeWidth={2} />}>
                   Send request

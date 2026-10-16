@@ -1,16 +1,16 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Zap } from "lucide-react";
 import { explorerTx } from "@proteus/domain";
 import { ActionButton } from "../ui/ActionButton";
 import { Card } from "../ui/Card";
-import { Field } from "../ui/Field";
 import { Money } from "../ui/Money";
 import { Skeleton } from "../ui/Skeleton";
 import { StatusTag } from "../ui/StatusTag";
 import { ExplorerLink, Notice } from "../ui/misc";
 import { useAuth } from "../auth/useAuth";
-import { ApiError, api, errorMessage, newRequestId, type PayExecuteResponse, type PayRequired, type ServiceKind } from "../lib/api";
+import { ApiError, api, errorMessage, newRequestId, type PayExecuteResponse, type PayRequired, type RequestSpec, type ServiceKind } from "../lib/api";
+import { DEFAULT_SPEC, SAMPLE_SPEC, RequestForm, emptyValues, missingRequired, toInput, type RequestValues } from "../buyer/RequestForm";
 import { signTransferAuthorization, walletErrorMessage } from "../lib/wallet";
 import m from "./market.module.css";
 
@@ -29,8 +29,9 @@ function decimalsForMicro(micro?: string | bigint): number {
 const notAvailable = (e: unknown) => e instanceof ApiError && (e.status === 404 || e.status === 501);
 
 /** x402 pay per call: one signed USDC authorization per request, settled through Circle's facilitator. */
-export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "unit", bare }: { sellerSlug: string; productSlug: string; service?: ServiceKind; unitLabel?: string; /** Render without the Card frame (inside a rail). */ bare?: boolean }) {
+export function PayPerCallCard({ sellerSlug, productSlug, service, request, unitLabel = "unit", bare }: { sellerSlug: string; productSlug: string; service?: ServiceKind; request?: RequestSpec | null; unitLabel?: string; /** Render without the Card frame (inside a rail). */ bare?: boolean }) {
   const sampleStore = service === "sample-store" || service === undefined;
+  const spec = useMemo<RequestSpec>(() => request ?? (sampleStore ? SAMPLE_SPEC : DEFAULT_SPEC), [request, sampleStore]);
   const { wallet, getWalletClient, mock } = useAuth();
   const payer = wallet?.address;
   const probe = useQuery<Probe>({
@@ -50,13 +51,13 @@ export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "
     },
   });
 
-  const [question, setQuestion] = useState(sampleStore ? "Where is my order?" : "");
-  const [orderId, setOrderId] = useState(sampleStore ? "A1001" : "");
+  const [values, setValues] = useState<RequestValues>(() => (sampleStore && !request ? { question: "Where is my order?", orderId: "A1001" } : emptyValues(spec)));
+  const [formErr, setFormErr] = useState<string | null>(null);
   const [phase, setPhase] = useState<string | null>(null);
   const run = useMutation({
     mutationFn: async (): Promise<PayExecuteResponse> => {
       const requestId = newRequestId("ppc");
-      const input = { question: question.trim(), orderId: orderId.trim() || undefined };
+      const input = toInput(spec, values);
       let req: PayRequired | null = null;
       setPhase("Getting the price");
       try {
@@ -78,7 +79,9 @@ export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!question.trim()) return;
+    const missing = missingRequired(spec, values);
+    setFormErr(missing);
+    if (missing) return;
     run.mutate();
   };
 
@@ -100,8 +103,8 @@ export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "
           <span className={`${m.price} ${bare ? m.priceInline : ""}`}>
             <Money micro={price} digits={decimalsForMicro(price)} /> <span className="body3">per call</span>
           </span>
-          <Field label={sampleStore ? "Question" : "Request"} placeholder={sampleStore ? "Where is my order?" : `Describe the ${unitLabel} you want`} value={question} onChange={(e) => setQuestion(e.target.value)} maxLength={2000} />
-          <Field label={sampleStore ? "Order id" : "Reference"} hint={sampleStore ? "Sample store orders A1001 to A1004" : "Optional. Your own id, echoed in the receipt."} value={orderId} onChange={(e) => setOrderId(e.target.value)} />
+          <RequestForm spec={spec} values={values} onChange={(v) => { setValues(v); setFormErr(null); }} />
+          {formErr && <Notice tone="danger">{formErr}</Notice>}
           <div>
             <ActionButton type="submit" variant="secondary" loading={run.isPending} loadingLabel={phase ?? "Working"} disabled={!wallet}>
               Pay and run

@@ -105,6 +105,21 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
           <p className={d.callout}>
             <strong>One billable {product.unitLabel}</strong> is {unitDef[0]!.toLowerCase() + unitDef.slice(1)}. Failed requests and human handoffs are never billed.
           </p>
+          {product.request && product.request.fields.length > 0 && (
+            <div className={d.sendBlock}>
+              <span className={d.lineKey}>What to send</span>
+              {product.request.intro && <p className={d.sendIntro}>{product.request.intro}</p>}
+              <ul className={d.sendList}>
+                {product.request.fields.map((fl) => (
+                  <li key={fl.key}>
+                    <span className={d.sendLabel}>{fl.label}</span>
+                    <span className={d.sendMeta}>{fieldTypeLabel(fl.type)}{fl.required ? "" : ", optional"}</span>
+                    {fl.hint && <span className={d.sendHint}>{fl.hint}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </section>
 
         <section className={d.section} aria-labelledby="h-pricing">
@@ -212,9 +227,13 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
           {start.isError && <Notice tone="danger">{errorMessage(start.error)}</Notice>}
         </div>
         <div className={d.railBlock}>
-          <PayPerCallCard sellerSlug={seller.slug} productSlug={product.slug} service={product.service} unitLabel={product.unitLabel} bare />
+          <PayPerCallCard sellerSlug={seller.slug} productSlug={product.slug} service={product.service} request={product.request} unitLabel={product.unitLabel} bare />
         </div>
       </aside>
     </div>
   );
+}
+
+function fieldTypeLabel(t: string): string {
+  return t === "file" ? "File" : t === "number" ? "Number" : t === "textarea" ? "Text" : "Short text";
 }

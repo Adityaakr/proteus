@@ -3,13 +3,14 @@ import type { Address, Hex } from "viem";
 import { z } from "zod";
 import { json } from "../lib/http";
 import { payAndExecute, requirementsFor, type Authorization } from "../services/x402";
+import { assertInputSize } from "../services/gateway";
 
 export const payRoutes = new Hono();
 
 const Body = z.object({
   requestId: z.string().min(8).max(128),
   payer: z.string().regex(/^0x[0-9a-fA-F]{40}$/),
-  input: z.object({ orderId: z.string().optional(), email: z.string().optional(), question: z.string().min(1).max(2000) }),
+  input: z.object({ orderId: z.string().optional(), email: z.string().optional(), question: z.string().max(4000).optional() }).catchall(z.unknown()),
   payment: z
     .object({
       signature: z.string().regex(/^0x[0-9a-fA-F]+$/),
@@ -26,6 +27,8 @@ payRoutes.post("/pay/:sellerSlug/:productSlug/execute", async (c) => {
   const b = Body.parse(await c.req.json());
   const sellerSlug = c.req.param("sellerSlug");
   const productSlug = c.req.param("productSlug");
+  // Refuse oversize input before the buyer is asked to sign a payment for it.
+  assertInputSize(b.input);
   if (!b.payment) {
     const r = await requirementsFor(sellerSlug, productSlug, b.payer as Address, b.requestId);
     const body = { x402Version: 2, accepts: [r.accepts], requestId: b.requestId, nonce: r.nonce, payer: b.payer, signing: { domain: { name: "USDC", version: "2", chainId: r.accepts.network.split(":")[1], verifyingContract: r.accepts.asset }, primaryType: "TransferWithAuthorization" }, labels: { network: "testnet" } };

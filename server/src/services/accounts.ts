@@ -168,9 +168,25 @@ export interface ProductCreateInput {
   payPerCall?: { priceUsd: string };
   summary?: string;
   category?: string;
+  request?: { intro?: string; fields: { key?: string; label: string; type: "text" | "textarea" | "number" | "file"; required?: boolean; placeholder?: string; hint?: string }[] };
   /** "http": the seller's own endpoint (real). "order-support": first-party sample store (demo). */
   adapter?: "http" | "order-support";
   upstream?: { url: string; authHeader?: string; secret?: string };
+}
+
+/** Seller-defined request fields: at most 6, keys derived from labels when missing, types restricted. */
+export function normalizeRequestSpec(spec: { intro?: string; fields: { key?: string; label: string; type: string; required?: boolean; placeholder?: string; hint?: string }[] }) {
+  const types = new Set(["text", "textarea", "number", "file"]);
+  const fields = spec.fields.slice(0, 6).map((f, i) => {
+    const label = String(f.label ?? "").trim().slice(0, 60);
+    if (!label) throw new HttpError(400, `request field ${i + 1} needs a label`);
+    const key = (f.key?.trim() || label).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 32) || `field_${i + 1}`;
+    if (!types.has(f.type)) throw new HttpError(400, `request field "${label}" has an unknown type`);
+    return { key, label, type: f.type as "text" | "textarea" | "number" | "file", required: Boolean(f.required), ...(f.placeholder?.trim() ? { placeholder: f.placeholder.trim().slice(0, 120) } : {}), ...(f.hint?.trim() ? { hint: f.hint.trim().slice(0, 160) } : {}) };
+  });
+  const keys = new Set(fields.map((f) => f.key));
+  if (keys.size !== fields.length) throw new HttpError(400, "request fields must have distinct names");
+  return { ...(spec.intro?.trim() ? { intro: spec.intro.trim().slice(0, 200) } : {}), fields };
 }
 
 /** Only https endpoints, except loopback for local development. */
@@ -205,6 +221,7 @@ export async function createProduct(orgId: string, input: ProductCreateInput) {
     refundPolicy: input.refundPolicy,
     ...(input.summary?.trim() ? { summary: input.summary.trim().slice(0, 160) } : {}),
     ...(input.category ? { category: input.category } : {}),
+    ...(input.request?.fields?.length ? { request: normalizeRequestSpec(input.request) } : {}),
   };
   const adapter = "http" as const;
   if (!input.upstream?.url) throw new HttpError(400, "an endpoint URL is required; every product runs on the seller's own service");

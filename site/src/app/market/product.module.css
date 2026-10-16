@@ -83,3 +83,14 @@
   .table th:nth-child(5), .table td:nth-child(5) { display: none; }
   .table td { padding: 12px 8px 12px 0; }
 }
+
+/* What to send (seller-defined request fields) */
+.sendBlock { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--c-dark-10); font-family: var(--font-body); font-size: 14px; }
+.sendIntro { margin: 0; color: var(--c-dark-80); line-height: 1.5; }
+.sendList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.sendList li { display: grid; grid-template-columns: minmax(0, 180px) auto; column-gap: 14px; row-gap: 2px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--c-dark-5); }
+.sendList li:last-child { border-bottom: 0; }
+.sendLabel { color: var(--c-dark); font-weight: 500; }
+.sendMeta { color: var(--c-dark-60); font-size: 13px; }
+.sendHint { grid-column: 1 / -1; color: var(--c-dark-60); font-size: 13px; line-height: 1.45; }
+@media (max-width: 640px) { .sendList li { grid-template-columns: 1fr; } }

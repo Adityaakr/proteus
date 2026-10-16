@@ -116,7 +116,9 @@ Receipt = { requestId, status: "delivered"|"failed"|"handoff", units, chargedCum
 
 ```
 POST /api/services/:productSlug/execute     Authorization: Bearer <dealApiKey>
-  { requestId, input: { orderId?, email?, question } }
+  { requestId, input: { ...the fields the seller defined under "What buyers send" } }
+  Text and numbers are JSON values. A file is { name, type, size, dataBase64 }, at most 512 KB per file and 700 KB per request (413 otherwise).
+  Products without a request spec accept { question, orderId? }.
   -> { requestId, status: "delivered"|"failed"|"handoff", billable: boolean, units, answer, source: { store, orderId?, fields[] }, receipt: { digest, sellerSignature }, deal: { cumulativeUnits, cumulativeCharged, remaining } }
 ```
 Retrying the same `requestId` returns the original result and never charges twice. Failed or handoff requests are not billable.
@@ -209,7 +211,7 @@ content-type: application/json
 authorization: Bearer <secret>            (or <authHeader>: <secret> when a header name is set)
 x-proteus-request-id: <requestId>
 
-{ "requestId": "...", "dealId": "deal_... | null", "orgId": "org_...", "productSlug": "...", "input": { "question": "...", "orderId": "...", "email": "..." } }
+{ "requestId": "...", "dealId": "deal_... | null", "orgId": "org_...", "productSlug": "...", "input": { ...the buyer's fields as defined by the seller, files as { name, type, size, dataBase64 } } }
 ```
 
 The endpoint answers with JSON: `{ "answer": "...", "billable": true | false, "status": "delivered" | "failed" | "handoff" }`. A 2xx with `billable` not `false` is one delivered unit and is metered against the deal (or settled through x402 for pay per call). `handoff`, `failed`, any non-2xx status, non-JSON bodies and timeouts (20 s) are never charged. Retries with the same `requestId` return the stored receipt. Products on the sample store carry a "Demo seller" label to buyers; endpoint-backed products on a live org do not.

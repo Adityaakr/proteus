@@ -74,6 +74,7 @@ export async function dealView(dealId: string, opts: { apiKeyOnce?: string } = {
       apiKey: opts.apiKeyOnce ?? undefined,
       docsUrl: "/docs#service",
       adapter: lp.row.adapter,
+      request: lp.product.request ?? null,
       sampleStore: lp.row.adapter === "order-support" ? { label: "sample store (demo data)", orderIds: ["A1001", "A1002", "A1003"] } : undefined,
     },
     usage: { units: cumulativeUnits, charged: cumulativeCharged, accepted: deal.acceptedAmount, acceptedUnits: deal.acceptedUnits, settled: deal.settled, requests: reqs.length, billableRequests: billable.length },

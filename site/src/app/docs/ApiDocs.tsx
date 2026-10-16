@@ -61,7 +61,10 @@ export default function ApiDocs() {
     "requestId": "order-10421",
     "input": { "question": "Book a callback for Jane Doe tomorrow at 10am", "orderId": "10421" }
   }'`}</Code>
-            <p>The shape of <code>input</code> is up to the seller. The product page says what one billable unit is; that sentence is the contract for what a request must contain.</p>
+            <p>The keys inside <code>input</code> are the fields the seller lists under "What to send" on the product page. Text and numbers go as JSON values. A file goes as an object with <code>name</code>, <code>type</code>, <code>size</code> and <code>dataBase64</code>, up to 512 KB per file and 700 KB per request.</p>
+            <Code lang="json">{`{ "requestId": "inv-0412",
+  "input": { "invoice": { "name": "acme-0412.pdf", "type": "application/pdf", "size": 48213, "dataBase64": "JVBERi0xLjcK…" },
+             "reference": "PO-2026-0412" } }`}</Code>
             <Code lang="ts">{`const res = await fetch("${ORIGIN}/api/services/callback-booking/execute", {
   method: "POST",
   headers: { Authorization: \`Bearer \${PROTEUS_KEY}\`, "Content-Type": "application/json" },
@@ -117,7 +120,7 @@ const r = await res.json();`}</Code>
 
           <section id="seller" className={s.section}>
             <h2 className={s.h2}><span className={s.num}>06</span>For sellers: your endpoint</h2>
-            <p>Your product runs on your own HTTPS endpoint. For every metered request PROTEUS sends:</p>
+            <p>Your product runs on your own HTTPS endpoint. For every metered request PROTEUS sends the buyer's fields as <code>input</code>, exactly as you defined them under "What buyers send", files as base64 envelopes:</p>
             <Code lang="http">{`POST https://api.yourcompany.com/proteus
 Authorization: Bearer <your secret>
 X-Proteus-Request-Id: order-10421

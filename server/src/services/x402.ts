@@ -1,3 +1,4 @@
+import { assertInputSize } from "./gateway";
 import { and, eq } from "drizzle-orm";
 import { encodePacked, keccak256, toHex, verifyTypedData, type Address, type Hex } from "viem";
 import { orgSignerAccount } from "../chain/signer";
@@ -150,6 +151,7 @@ export async function payAndExecute(sellerSlug: string, productSlug: string, pay
   await db.update(schema.payPerCallPayments).set({ status: "verified", updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, rowId));
 
   // Execute the service against a synthetic pay-per-call deal id (metering lives in the payment row, not escrow).
+  assertInputSize(input);
   const out = await executePayPerCall(lp, requestId, input);
   if (!out.billable) {
     await db.update(schema.payPerCallPayments).set({ status: "failed", error: "not billable: " + out.status, response: out as unknown as Record<string, unknown>, updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, rowId));

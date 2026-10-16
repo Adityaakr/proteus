@@ -9,7 +9,7 @@ import { usePublishProduct } from "../hooks";
 import type { MeOrg } from "../types";
 import { ChipInput } from "./ChipInput";
 import { Preview } from "./Preview";
-import { EMPTY, EXAMPLE, newTier, toBody, toBrand, validate, type FormState, type TierRow } from "./form";
+import { EMPTY, EXAMPLE, newRequestRow, newTier, requestKey, toBody, toBrand, validate, type FormState, type RequestRow, type TierRow } from "./form";
 import { BrandFields } from "../BrandFields";
 import s from "../sell.module.css";
 
@@ -36,6 +36,7 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
     error: err(key),
   });
   const setTier = (key: string, patch: Partial<TierRow>) => set("tiers", f.tiers.map((t) => (t.key === key ? { ...t, ...patch } : t)));
+  const setReq = (key: string, patch: Partial<RequestRow>) => set("requestFields", f.requestFields.map((r) => (r.key === key ? { ...r, ...patch } : r)));
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -180,6 +181,49 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
               <Field label="Endpoint URL" placeholder="https://api.yourcompany.com/proteus" hint="POST, JSON in, JSON out. Contract in docs/api.md under Bring your own endpoint." {...input("upstreamUrl")} inputMode="url" autoComplete="off" />
               <Field label="Secret" type="password" placeholder="Optional" hint="Sent on every call. Stored encrypted, never shown again." {...input("upstreamSecret")} autoComplete="new-password" />
               <Field label="Secret header" placeholder="Authorization" hint="Leave empty to send it as a Bearer token." {...input("upstreamAuthHeader")} autoComplete="off" />
+            </div>
+          </Card>
+
+          <Card title="What buyers send" subtitle="The fields a buyer fills in for each request. PROTEUS forwards them to your endpoint as JSON, files as base64.">
+            <div className={s.fields}>
+              <Field label="Intro" placeholder="Send the invoice as PDF or JSON." hint="Optional. One sentence shown above the request form." {...input("requestIntro")} maxLength={200} />
+              <div className={s.reqHead} aria-hidden>
+                <span>Field name</span>
+                <span>Type</span>
+                <span>Required</span>
+                <span>Hint</span>
+                <span />
+              </div>
+              <ol className={s.tierList}>
+                {f.requestFields.map((r, i) => (
+                  <li key={r.key} className={s.reqRow}>
+                    <Field id={`f-req.${r.key}.label`} label="Field name" className={s.tierCell} placeholder={i === 0 ? "Invoice" : "Reference"} value={r.label} onChange={(e) => setReq(r.key, { label: e.target.value })} onBlur={touch(`req.${r.key}.label`)} error={err(`req.${r.key}.label`)} hint={r.label.trim() ? `Sent as "${requestKey(r.label) || "field"}"` : undefined} />
+                    <label className={s.tierCell}>
+                      <span className="sr-only">Type</span>
+                      <select className={s.select} value={r.type} onChange={(e) => setReq(r.key, { type: e.target.value as RequestRow["type"] })}>
+                        <option value="text">Short text</option>
+                        <option value="textarea">Text</option>
+                        <option value="number">Number</option>
+                        <option value="file">File</option>
+                      </select>
+                    </label>
+                    <label className={s.checkCell}>
+                      <input type="checkbox" checked={r.required} onChange={(e) => setReq(r.key, { required: e.target.checked })} />
+                      <span className="sr-only">Required</span>
+                    </label>
+                    <Field id={`f-req.${r.key}.hint`} label="Hint" className={s.tierCell} placeholder="PDF or JSON, up to 512 KB" value={r.hint} onChange={(e) => setReq(r.key, { hint: e.target.value })} maxLength={160} />
+                    <button type="button" className={s.iconBtn} aria-label={`Remove field ${r.label || i + 1}`} disabled={f.requestFields.length === 1} onClick={() => set("requestFields", f.requestFields.filter((x) => x.key !== r.key))}>
+                      <Trash2 size={16} aria-hidden />
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              {err("requestFields") && <Notice tone="danger">{err("requestFields")}</Notice>}
+              <div>
+                <ActionButton variant="secondary" size="sm" iconLeft={<Plus size={14} />} onClick={() => set("requestFields", [...f.requestFields, newRequestRow({ required: false })])} disabled={f.requestFields.length >= 6}>
+                  Add field
+                </ActionButton>
+              </div>
             </div>
           </Card>
 

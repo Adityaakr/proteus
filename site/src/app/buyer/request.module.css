@@ -1,0 +1,14 @@
+.form { display: flex; flex-direction: column; gap: 12px; }
+.intro { margin: 0; font-family: var(--font-body); font-size: 13.5px; line-height: 1.5; color: var(--c-dark-80); }
+.opt { font-weight: 400; color: var(--c-dark-60); }
+.fileField { display: flex; flex-direction: column; gap: 6px; }
+.fileLabel { font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--c-dark); }
+.fileDrop { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px dashed var(--c-dark-20); font-family: var(--font-body); font-size: 14px; color: var(--c-dark-60); cursor: pointer; background: var(--c-white); }
+.fileDrop:hover { border-color: var(--c-primary); color: var(--c-dark); }
+.fileChip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 12px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); font-family: var(--font-body); font-size: 14px; color: var(--c-dark); }
+.fileName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+.fileSize { font-size: 12px; color: var(--c-dark-60); }
+.fileRemove { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 6px; color: var(--c-dark-60); }
+.fileRemove:hover { background: var(--c-dark-5); color: var(--c-dark); }
+.fileHint { font-family: var(--font-body); font-size: 12px; color: var(--c-dark-60); }
+.fileErr { font-family: var(--font-body); font-size: 12.5px; color: var(--c-danger); }

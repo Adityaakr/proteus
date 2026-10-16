@@ -5,6 +5,22 @@ import { BPS, bpsOf, mulDivFloor, type Micro, type UnitPrice } from "./money";
 /* ------------------------------------------------------------------ */
 
 /** Public product definition. Safe to show buyers. */
+export type RequestFieldType = "text" | "textarea" | "number" | "file";
+export interface RequestField {
+  /** Key in the request `input` object, e.g. "invoice". */
+  key: string;
+  label: string;
+  type: RequestFieldType;
+  required?: boolean;
+  placeholder?: string;
+  hint?: string;
+}
+export interface RequestSpec {
+  /** One sentence shown above the form, e.g. "Send the invoice as PDF or JSON." */
+  intro?: string;
+  fields: RequestField[];
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -20,6 +36,8 @@ export interface Product {
   summary?: string;
   /** Market category id, e.g. "support", "voice", "data" (optional). */
   category?: string;
+  /** What a buyer sends per request. Drives the request form and documents the contract. */
+  request?: RequestSpec;
   tiers: Tier[];
   /** Hard ceiling for a single deal, in units per term. */
   maxUnitsPerDeal: bigint;

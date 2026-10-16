@@ -46,11 +46,8 @@ export const UsageAckBody = z.object({
 export const ServiceExecuteBody = z.object({
   /** Canonical client request id; retries with the same id never double-charge. */
   requestId: z.string().min(8).max(128),
-  input: z.object({
-    orderId: z.string().optional(),
-    email: z.string().optional(),
-    question: z.string().min(1).max(2000),
-  }),
+  /** Free-form per product: the seller's request spec defines the keys. `question` stays for the first-party adapters. */
+  input: z.object({ orderId: z.string().optional(), email: z.string().optional(), question: z.string().max(4000).optional() }).catchall(z.unknown()),
 });
 
 export const ApprovalDecisionBody = z.object({
