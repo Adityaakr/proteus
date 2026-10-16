@@ -73,6 +73,9 @@ export interface ProductWithPrivate {
   id: string;
   slug: string;
   name: string;
+  /** Service adapter key from the API ("http" or "order-support"). */
+  adapter?: string;
+  service?: { kind: "http"; url: string | null; authHeader: string | null; hasSecret: boolean } | { kind: "sample-store" };
   billableUnit: string;
   unitLabel: string;
   supportedIntegrations: string[];
@@ -156,7 +159,6 @@ export interface AgentRun {
   id: string;
   at: string;
   adapter: string;
-  service?: { kind: "http"; url: string | null; authHeader: string | null; hasSecret: boolean } | { kind: "sample-store" };
   steps: { at: string; label: string; state: "done" | "working" | "blocked"; detail?: string }[];
   durationMs: number;
 }
