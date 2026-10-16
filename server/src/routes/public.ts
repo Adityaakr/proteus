@@ -9,7 +9,7 @@ import { addBuyerMessage, counter, negotiationView, startNegotiation } from "../
 import { acceptQuote, createQuote, quoteView } from "../services/quotes";
 import { listRecords, recordView } from "../services/review";
 import { resolveAuth } from "./auth";
-import { userOwnsAddress, userWallets } from "../services/accounts";
+import { insertWalletLink, userOwnsAddress, userWallets } from "../services/accounts";
 import { sellerCard, sellerStats } from "../services/brand";
 
 export const publicRoutes = new Hono();
@@ -67,8 +67,10 @@ publicRoutes.get("/quotes/:id", async (c) => {
 publicRoutes.post("/quotes/:id/accept", async (c) => {
   const body = AcceptBody.parse(await c.req.json());
   const a = await resolveAuth(c);
-  if (a && !(await userOwnsAddress(a.userId, body.buyerAddress))) throw new HttpError(403, "that wallet is not linked to your account");
+  // acceptQuote verifies the buyer's EIP-712 signature over the terms. For a signed-in user that is proof of
+  // control, so a wallet the account has not linked yet (a freshly created embedded wallet) is linked here.
   const dealId = await acceptQuote(c.req.param("id"), body.buyerAddress as Address, body.buyerSignature as Hex);
+  if (a && !(await userOwnsAddress(a.userId, body.buyerAddress))) await insertWalletLink(a.userId, body.buyerAddress as Address, "embedded", body.buyerSignature as Hex);
   const { dealView } = await import("../services/deals");
   return json(c, await dealView(dealId), 201);
 });

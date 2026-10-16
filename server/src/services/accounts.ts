@@ -35,14 +35,19 @@ export async function linkWallet(userId: string, address: Address, kind: "embedd
   for (const message of candidates) if (await verifyMessage({ address, message, signature })) ok = true;
   if (!ok) throw new HttpError(400, "signature does not prove control of that address");
   LINK_NONCES.delete(userId);
+  await insertWalletLink(userId, address, kind, signature);
+  return meView(userId);
+}
+
+/** Records a wallet as the user's once control has been proven by any signature the caller verified. */
+export async function insertWalletLink(userId: string, address: Address, kind: "embedded" | "external", proof: Hex) {
   const existing = await db.select().from(schema.walletLinks).where(eq(schema.walletLinks.userId, userId));
   const primary = existing.length === 0 || kind === "embedded";
   if (primary) await db.update(schema.walletLinks).set({ primary: false }).where(eq(schema.walletLinks.userId, userId));
   await db
     .insert(schema.walletLinks)
-    .values({ id: id("wl"), userId, address: address.toLowerCase(), kind, primary, proof: signature })
-    .onConflictDoUpdate({ target: [schema.walletLinks.userId, schema.walletLinks.address], set: { kind, primary, proof: signature } });
-  return meView(userId);
+    .values({ id: id("wl"), userId, address: address.toLowerCase(), kind, primary, proof })
+    .onConflictDoUpdate({ target: [schema.walletLinks.userId, schema.walletLinks.address], set: { kind, primary, proof } });
 }
 
 export async function userWallets(userId: string) {
