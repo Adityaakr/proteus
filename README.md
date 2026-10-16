@@ -47,11 +47,17 @@ Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. S
 
 ## The problem
 
-A pricing page can quote. It cannot make a deal.
+Businesses that sell by the unit cannot close a custom deal without a person in the loop, and the person is the bottleneck.
 
-When a customer says "we have about 600 invoices a month and a $150 budget, can you do it for $0.20 each with a trial first", a human has to work out whether that clears the margin, what package to offer instead, how to get it signed, how to get paid up front, and how to prove what was delivered when the bill is disputed. For small internet businesses that person is the founder, and the deal waits. For AI services sold by the unit (a resolved ticket, a processed invoice, a screened counterparty, a million tokens) the problem is worse: volume is negotiable, delivery is metered, and both sides need proof per unit.
+**Every non-standard request stalls.** A customer writes "we do about 600 invoices a month, budget $150, can you start with a trial". Someone has to check the margin at that price, pick a package, write back, get terms signed, collect the prepayment, and later argue about what was actually delivered. For a small internet business that someone is the founder. The request waits days, and a share of them is lost. The same is true when the buyer is an AI agent that would happily close in a minute.
 
-The usual answers each cover one piece. CPQ tools quote. Negotiation agents negotiate. Billing platforms meter and invoice. None of them connects a negotiated agreement to money that moves only when the work is delivered and acknowledged.
+**The price has no guardrail.** The moment a human or a model negotiates freely, the margin floor is one persuasive message away from being crossed. Discounting by feel is how unit-economics businesses quietly lose money on their largest customers.
+
+**Prepayment and delivery are not connected.** Today the money sits with the seller (buyer takes the risk of non-delivery) or is invoiced after the fact (seller takes the credit risk, then chases). Neither side has a record of each delivered unit that both signed, so disputes come down to whose spreadsheet wins.
+
+**Nothing about this is agent-ready.** Billing platforms meter but do not negotiate. Negotiation tools negotiate but do not hold money. CPQ tools quote but do not deliver. An agent that wants to buy a service for its business has no API where it can discover, negotiate within a mandate, pay into escrow, consume, and settle, with proof at every step.
+
+Proteus AI exists to turn that stalled request into a closed, funded, metered and settled deal, with the seller's margin enforced by code and every unit countersigned before money moves.
 
 ## What Proteus AI does
 
