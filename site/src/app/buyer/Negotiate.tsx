@@ -2,14 +2,13 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { BadgeCheck, ChevronRight, SendHorizontal, User } from "lucide-react";
+import { BadgeCheck, Check, ChevronRight, Loader2, SendHorizontal, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SellerMark, possessive, useLogoShape } from "../ui/SellerMark";
 import type { SellerBrand } from "../lib/types";
 import { T_DEFAULT } from "../../lib/motion";
 import { AppShell } from "../layouts/AppShell";
 import { AgentActivity, type ActivityLine } from "../agentic/AgentActivity";
-import { ReasoningText } from "../agentic/ReasoningText";
 import { ActionButton } from "../ui/ActionButton";
 import { LoadingCard } from "../ui/Skeleton";
 import { Money } from "../ui/Money";
@@ -191,12 +190,19 @@ export default function Negotiate() {
                 <TurnView key="pending-buyer" turn={{ id: "pending", role: "buyer", content: pendingText, createdAt: new Date().toISOString() }} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
               )}
               {working && (
-                <motion.div key="working" className={`${n.turn} ${n.turnAgent}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={T_DEFAULT} style={{ width: "min(420px, 100%)" }}>
+                <motion.div key="working" className={`${n.turn} ${n.turnAgent}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={T_DEFAULT}>
                   <span className={n.who}><SellerMark name={sellerName} brand={neg.sellerBrand} size="sm" /> {agentName}</span>
-                  <div className={`${n.bubble} ${n.bubbleAgent}`}>
-                    <ReasoningText phrases={counter.isPending ? COUNTER_STEPS : WORKING_STEPS} variant="cascade" srLabel="The seller's agent is working" />
-                  </div>
-                  <AgentActivity items={steps} status="working" maxHeight={120} workingLabel="Working" />
+                  <ol className={n.working} aria-live="polite" aria-label="The seller's agent is working">
+                    {(counter.isPending ? COUNTER_STEPS : WORKING_STEPS).map((label, i) => {
+                      const st = steps[i]?.state ?? "pending";
+                      return (
+                        <li key={label} className={`${n.workStep} ${st === "done" ? n.workDone : st === "running" ? n.workNow : ""}`}>
+                          <span className={n.workIcon} aria-hidden>{st === "done" ? <Check size={12} strokeWidth={3} /> : st === "running" ? <Loader2 size={13} strokeWidth={2.25} className={n.spin} /> : null}</span>
+                          <span>{label}</span>
+                        </li>
+                      );
+                    })}
+                  </ol>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -207,6 +213,7 @@ export default function Negotiate() {
             </div>
           )}
           <form className={n.composer} onSubmit={submit}>
+            <div className={n.composerRow}>
             <label htmlFor="composer" className="sr-only">Message the seller's agent</label>
             <textarea
               id="composer"
@@ -222,6 +229,8 @@ export default function Negotiate() {
             <ActionButton type="submit" variant="primary" aria-label="Send message" disabled={!draft.trim() || closed} loading={send.isPending} icon={<SendHorizontal size={16} strokeWidth={2} />}>
               Send
             </ActionButton>
+            </div>
+            {!closed && <span className={n.composerHint}>Enter to send. Shift+Enter for a new line.</span>}
           </form>
         </section>
 
@@ -344,8 +353,8 @@ function TurnView({ turn, agentName, sellerName, brand }: { turn: Turn; agentNam
         </div>
       )}
       {turn.offers && turn.offers.length > 0 && !turn.decision && (
-        <span className="body3">
-          {turn.offers.length} {turn.offers.length === 1 ? "offer" : "offers"} added to the offers panel
+        <span className={n.note}>
+          <Check size={12} strokeWidth={2.5} aria-hidden /> {turn.offers.length} {turn.offers.length === 1 ? "offer" : "offers"} added to the offers panel
         </span>
       )}
     </motion.div>
