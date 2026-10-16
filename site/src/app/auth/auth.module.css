@@ -13,3 +13,18 @@
 .lede { margin: 0; font-family: var(--font-body); font-size: 15px; line-height: 1.5; color: var(--c-dark-60); }
 .form { display: flex; flex-direction: column; gap: 12px; }
 .code input { font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace); font-size: 18px; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; }
+
+/* Invite page: the card opens from the middle of the viewport over a faint brand glow. */
+.inviteMain { position: relative; overflow: hidden; }
+.glow { position: absolute; inset: 0; margin: auto; width: 720px; height: 720px; border-radius: 50%; pointer-events: none; background: radial-gradient(circle at center, rgba(1, 43, 255, 0.10) 0%, rgba(1, 43, 255, 0.04) 38%, rgba(1, 43, 255, 0) 68%); }
+.inviteCard { position: relative; width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 22px; padding: 36px 32px 28px; border-radius: 20px; background: var(--c-white); box-shadow: inset 0 0 0 1px var(--c-dark-10), 0 30px 80px -30px rgba(10, 20, 60, 0.28), 0 8px 24px -12px rgba(10, 20, 60, 0.12); text-align: center; will-change: transform, opacity, filter; }
+.inviteHead { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.inviteHead .title { font-size: 30px; letter-spacing: -0.01em; }
+.inviteCard .form { gap: 12px; }
+.inviteCard .code input { height: 56px; font-size: 19px; border-radius: 14px; }
+.inviteCard .code input:focus { box-shadow: 0 0 0 4px rgba(1, 43, 255, 0.14); border-color: var(--c-primary); }
+.inviteCard .builtOn { margin-top: 2px; }
+.okBadge { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.okRing { display: inline-flex; align-items: center; justify-content: center; width: 72px; height: 72px; border-radius: 50%; color: var(--c-white); background: var(--c-primary); box-shadow: 0 18px 40px -16px rgba(1, 43, 255, 0.6); }
+.okText { font-family: var(--font-heading); font-weight: 500; font-size: 22px; color: var(--c-dark); }
+@media (max-width: 809.98px) { .inviteCard { padding: 28px 20px 22px; border-radius: 16px; } .inviteHead .title { font-size: 26px; } .glow { width: 420px; height: 420px; } }
