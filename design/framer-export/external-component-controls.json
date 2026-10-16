@@ -1,0 +1,611 @@
+{
+ "Typewriter": {
+  "controls": {
+   "$control__text1": {
+    "type": "string",
+    "defaultValue": "Welcome to my website"
+   },
+   "$control__text2": {
+    "type": "string",
+    "defaultValue": "I create amazing designs"
+   },
+   "$control__text3": {
+    "type": "string",
+    "defaultValue": "Let's work together"
+   },
+   "$control__typingSpeed": {
+    "type": "number",
+    "defaultValue": 100
+   },
+   "$control__pauseDuration": {
+    "type": "number",
+    "defaultValue": 2000
+   },
+   "$control__textColor": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#000000"
+   },
+   "$control__font": {
+    "type": "fontSelector | { fontSelector: string; fontSize?: number | \"${number}px\" | \"${number}rem\"; lineHeight?: [number, \"px\" | \"em\" | \"%\"]; letterSpacing?: number | [number, \"px\" | \"em\"]; openTypeFontFeatures?: string[]; variationAxes?: Record<string, number> }"
+   },
+   "$control__showCursor": {
+    "type": "boolean",
+    "defaultValue": true
+   },
+   "$control__cursorColor": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#000000"
+   },
+   "$control__cursorBlink": {
+    "type": "number",
+    "defaultValue": 530
+   }
+  }
+ },
+ "UICardContainer": {
+  "controls": {
+   "$control__variant": {
+    "type": "enum",
+    "options": [
+     "Desktop",
+     "Variant 2",
+     "Variant 3",
+     "Variant 4"
+    ]
+   }
+  }
+ },
+ "Lenis": {
+  "controls": {
+   "$control__smooth": {
+    "type": "boolean",
+    "defaultValue": true
+   },
+   "$control__intensity": {
+    "type": "number",
+    "defaultValue": 12
+   },
+   "$control__infinite": {
+    "type": "boolean",
+    "defaultValue": false
+   },
+   "$control__orientation": {
+    "type": "enum",
+    "options": [
+     "vertical",
+     "horizontal"
+    ],
+    "defaultValue": "vertical"
+   },
+   "$control__content": {
+    "type": "slot",
+    "maxCount": 1
+   }
+  }
+ },
+ "SVGPathShimmer": {
+  "controls": {
+   "$control__mode": {
+    "type": "enum",
+    "options": [
+     "layer",
+     "svg"
+    ],
+    "defaultValue": "layer"
+   },
+   "$control__layer": {
+    "type": "slot",
+    "maxCount": 1
+   },
+   "$control__sVGType": {
+    "type": "enum",
+    "options": [
+     "image",
+     "file"
+    ],
+    "defaultValue": "image"
+   },
+   "$control__sVG": {
+    "type": "responsiveimage"
+   },
+   "$control__sVG1": {
+    "type": "file",
+    "allowedFileTypes": [
+     "svg"
+    ]
+   },
+   "$control__color": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})"
+   },
+   "$control__shimmer": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#0099FF"
+   },
+   "$control__length": {
+    "type": "number",
+    "defaultValue": 20
+   },
+   "$control__trigger": {
+    "type": "enum",
+    "options": [
+     "appear",
+     "layerInView"
+    ],
+    "defaultValue": "appear"
+   },
+   "$control__animation": {
+    "type": "enum",
+    "options": [
+     "loop",
+     "mirror",
+     "once"
+    ],
+    "defaultValue": "loop"
+   },
+   "$control__loopDelay": {
+    "type": "number",
+    "defaultValue": 0
+   },
+   "$control__replay": {
+    "type": "boolean",
+    "defaultValue": true
+   },
+   "$control__direction": {
+    "type": "enum",
+    "options": [
+     "default",
+     "reverse"
+    ],
+    "defaultValue": "default"
+   }
+  }
+ },
+ "AgentPixelField": {
+  "controls": {
+   "$control__background": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#02030A"
+   },
+   "$control__midColor": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#0E2457"
+   },
+   "$control__pixelColor": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#3BC9FF"
+   },
+   "$control__pixelSize": {
+    "type": "number",
+    "defaultValue": 8
+   },
+   "$control__speed": {
+    "type": "number",
+    "defaultValue": 0.22
+   },
+   "$control__intensity": {
+    "type": "number",
+    "defaultValue": 0.72
+   },
+   "$control__grain": {
+    "type": "number",
+    "defaultValue": 0.65
+   },
+   "$control__vignette": {
+    "type": "number",
+    "defaultValue": 0.78
+   }
+  }
+ },
+ "FlowFieldBackground": {
+  "controls": {
+   "$control__background": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#000000"
+   },
+   "$control__particles": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#818CF8"
+   },
+   "$control__trailFade": {
+    "type": "number",
+    "defaultValue": 0.1
+   },
+   "$control__count": {
+    "type": "number",
+    "defaultValue": 600
+   },
+   "$control__size": {
+    "type": "number",
+    "defaultValue": 1.5
+   },
+   "$control__speed": {
+    "type": "number",
+    "defaultValue": 0.8
+   },
+   "$control__flowScale": {
+    "type": "number",
+    "defaultValue": 0.005
+   },
+   "$control__cursorPush": {
+    "type": "boolean",
+    "defaultValue": true
+   },
+   "$control__pushRadius": {
+    "type": "number",
+    "defaultValue": 150
+   }
+  }
+ },
+ "BlinkingSquares": {
+  "controls": {
+   "$control__direction": {
+    "type": "enum",
+    "options": [
+     "right",
+     "left",
+     "top",
+     "bottom"
+    ],
+    "defaultValue": "right"
+   },
+   "$control__gridSize": {
+    "type": "number",
+    "defaultValue": 52
+   },
+   "$control__squareSize": {
+    "type": "number",
+    "defaultValue": 0.57
+   },
+   "$control__fadeStart": {
+    "type": "number",
+    "defaultValue": 0.33
+   },
+   "$control__fadeEnd": {
+    "type": "number",
+    "defaultValue": 1
+   },
+   "$control__falloff": {
+    "type": "number",
+    "defaultValue": 1.25
+   },
+   "$control__minBright": {
+    "type": "number",
+    "defaultValue": 0.55
+   },
+   "$control__speed": {
+    "type": "number",
+    "defaultValue": 1.4
+   },
+   "$control__twinkle": {
+    "type": "number",
+    "defaultValue": 0.94
+   },
+   "$control__intensity": {
+    "type": "number",
+    "defaultValue": 1
+   },
+   "$control__opacity": {
+    "type": "number",
+    "defaultValue": 1
+   },
+   "$control__squares": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#315BE8"
+   },
+   "$control__background": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#F6F8F7"
+   },
+   "$control__quality": {
+    "type": "number",
+    "defaultValue": 1.5
+   }
+  }
+ },
+ "AdvancedParallaxImage": {
+  "controls": {
+   "$control__image": {
+    "type": "responsiveimage"
+   },
+   "$control__altText": {
+    "type": "string",
+    "defaultValue": ""
+   },
+   "$control__radius": {
+    "type": "number",
+    "defaultValue": 0
+   },
+   "$control__parallax": {
+    "type": "number",
+    "defaultValue": 30
+   },
+   "$control__zoomReveal": {
+    "type": "boolean",
+    "defaultValue": false
+   },
+   "$control__zoom": {
+    "type": "number",
+    "defaultValue": 1.15
+   },
+   "$control__mouseTilt": {
+    "type": "boolean",
+    "defaultValue": false
+   },
+   "$control__tilt": {
+    "type": "number",
+    "defaultValue": 10
+   },
+   "$control__clip": {
+    "type": "boolean",
+    "defaultValue": true
+   }
+  }
+ },
+ "TextWave": {
+  "controls": {
+   "$control__text": {
+    "type": "string",
+    "defaultValue": "Learn Framer With Framer University"
+   },
+   "$control__font": {
+    "type": "fontSelector | { fontSelector: string; fontSize?: number | \"${number}px\" | \"${number}rem\"; lineHeight?: [number, \"px\" | \"em\" | \"%\"]; letterSpacing?: number | [number, \"px\" | \"em\"]; openTypeFontFeatures?: string[]; variationAxes?: Record<string, number> }"
+   },
+   "$control__per": {
+    "type": "enum",
+    "options": [
+     "character",
+     "word"
+    ]
+   },
+   "$control__waveWidth": {
+    "type": "number",
+    "defaultValue": 10
+   },
+   "$control__scale": {
+    "type": "number",
+    "defaultValue": 1.2
+   },
+   "$control__origin": {
+    "type": "enum",
+    "options": [
+     "center",
+     "bottom"
+    ],
+    "defaultValue": "center"
+   },
+   "$control__resize": {
+    "type": "boolean",
+    "defaultValue": true
+   },
+   "$control__direction": {
+    "type": "enum",
+    "options": [
+     "left",
+     "right"
+    ],
+    "defaultValue": "right"
+   },
+   "$control__speed": {
+    "type": "number",
+    "defaultValue": 50
+   },
+   "$control__userSelect": {
+    "type": "boolean",
+    "defaultValue": false
+   },
+   "$control__tag": {
+    "type": "enum",
+    "options": [
+     "h1",
+     "h2",
+     "h3",
+     "p"
+    ],
+    "defaultValue": "p"
+   }
+  }
+ },
+ "RippleLoader": {
+  "controls": {
+   "$control__cellSize": {
+    "type": "number",
+    "defaultValue": 52
+   },
+   "$control__spacing": {
+    "type": "number",
+    "defaultValue": 1
+   },
+   "$control__radius": {
+    "type": "number",
+    "defaultValue": 4
+   },
+   "$control__duration": {
+    "type": "number",
+    "defaultValue": 1.5
+   },
+   "$control__cellDelay": {
+    "type": "number",
+    "defaultValue": 0.1
+   },
+   "$control__start": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#00FF87"
+   },
+   "$control__end": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#60EFFF"
+   },
+   "$control__background": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "rgba(0, 0, 0, 0)"
+   }
+  }
+ },
+ "UICardLoadingExt": {
+  "controls": {
+   "$control__variant": {
+    "type": "enum",
+    "options": [
+     "Loading",
+     "Completed"
+    ]
+   },
+   "$control__title": {
+    "type": "string",
+    "defaultValue": "Collecting recent updates"
+   }
+  }
+ },
+ "ArcSpinner": {
+  "controls": {
+   "$control__color": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "#111111"
+   },
+   "$control__track": {
+    "type": "number",
+    "defaultValue": 0.1
+   },
+   "$control__stroke": {
+    "type": "number",
+    "defaultValue": 5
+   },
+   "$control__animate": {
+    "type": "boolean",
+    "defaultValue": true
+   },
+   "$control__duration": {
+    "type": "number",
+    "defaultValue": 1
+   },
+   "$control__direction": {
+    "type": "enum",
+    "options": [
+     "clockwise",
+     "counterclockwise"
+    ],
+    "defaultValue": "clockwise"
+   },
+   "$control__label": {
+    "type": "string",
+    "defaultValue": "Loading"
+   }
+  }
+ },
+ "Video": {
+  "controls": {
+   "$control__source": {
+    "type": "enum",
+    "options": [
+     "URL",
+     "Upload"
+    ]
+   },
+   "$control__uRL": {
+    "type": "string",
+    "defaultValue": "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4"
+   },
+   "$control__file": {
+    "type": "file",
+    "allowedFileTypes": [
+     "mp4",
+     "webm"
+    ]
+   },
+   "$control__radius": {
+    "type": "${number}px | ${number}px ${number}px | ${number}px ${number}px ${number}px ${number}px",
+    "onlyPresets": true
+   },
+   "$control__loop": {
+    "type": "boolean"
+   },
+   "$control__poster": {
+    "type": "boolean",
+    "defaultValue": true
+   },
+   "$control__image": {
+    "type": "responsiveimage"
+   },
+   "$control__controls": {
+    "type": "boolean",
+    "defaultValue": false
+   },
+   "$control__muted": {
+    "type": "boolean"
+   },
+   "$control__fit": {
+    "type": "enum",
+    "options": [
+     "cover",
+     "fill",
+     "contain",
+     "scale-down",
+     "none"
+    ]
+   },
+   "$control__playing": {
+    "type": "boolean"
+   },
+   "$control__background": {
+    "type": "rgba(r, g, b, a) | color(display-p3 r g b / a) | #rrggbb | var(--token-${id})",
+    "defaultValue": "rgba(0,0,0,0)",
+    "onlyPresets": true
+   },
+   "$control__startTime": {
+    "type": "number"
+   },
+   "$control__volume": {
+    "type": "number",
+    "defaultValue": 25
+   },
+   "$control__onEnd": {
+    "type": "eventhandler",
+    "eventKey": "onEnd"
+   },
+   "$control__onSeeked": {
+    "type": "eventhandler",
+    "eventKey": "onSeeked"
+   },
+   "$control__onPause": {
+    "type": "eventhandler",
+    "eventKey": "onPause"
+   },
+   "$control__onPlay": {
+    "type": "eventhandler",
+    "eventKey": "onPlay"
+   },
+   "$control__onClick": {
+    "type": "eventhandler",
+    "eventKey": "onClick"
+   },
+   "$control__onMouseEnter": {
+    "type": "eventhandler",
+    "eventKey": "onMouseEnter"
+   },
+   "$control__onMouseLeave": {
+    "type": "eventhandler",
+    "eventKey": "onMouseLeave"
+   }
+  }
+ },
+ "DitherWave": {
+  "controls": {
+   "$control__intensity": {
+    "type": "number",
+    "defaultValue": 4
+   },
+   "$control__pixelSize": {
+    "type": "number",
+    "defaultValue": 1
+   },
+   "$control__preview": {
+    "type": "boolean",
+    "defaultValue": true
+   },
+   "$control__animation": {
+    "type": "boolean",
+    "defaultValue": true
+   }
+  }
+ }
+}

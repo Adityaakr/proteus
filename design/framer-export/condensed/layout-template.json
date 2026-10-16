@@ -1,0 +1,301 @@
+{
+ "id": "mtyzCt7Qt",
+ "type": "LayoutTemplateNode",
+ "name": "Template",
+ "$breakpoints": [
+  {
+   "id": "RLTfkiHXi",
+   "name": "Desktop",
+   "mediaQueryRange": "(min-width: 1200px)"
+  },
+  {
+   "id": "uAMdJyeIB",
+   "name": "Tablet",
+   "mediaQueryRange": "(min-width: 810px) and (max-width: 1199.98px)"
+  },
+  {
+   "id": "XwSqz4f0x",
+   "name": "Phone",
+   "mediaQueryRange": "(max-width: 809.98px)"
+  }
+ ],
+ "variables": [],
+ "children": [
+  {
+   "id": "RLTfkiHXi",
+   "type": "FrameNode",
+   "name": "Desktop",
+   "a": {
+    "fill": "rgba(255,255,255,1)",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "0px",
+    "overflow": "clip",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "width": "1200px",
+    "height": "1468px"
+   },
+   "children": [
+    {
+     "id": "m4r1F18z_",
+     "type": "FrameNode",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "10px",
+      "padding": "16px",
+      "position": "fixed",
+      "left": "0px",
+      "right": "0px",
+      "top": "0px",
+      "bottom": "null",
+      "width": "1200px",
+      "height": "auto",
+      "zIndex": "10"
+     },
+     "children": [
+      {
+       "id": "bRRFYdGDe",
+       "type": "ComponentInstanceNode",
+       "component": "UXHe4J1PZ",
+       "componentName": "Navigation bar",
+       "a": {
+        "$control__variant": "Desktop",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "maxWidth": "1200px",
+        "zIndex": "10"
+       }
+      }
+     ]
+    },
+    {
+     "id": "GIV7sv2xu",
+     "type": "PlaceholderNode"
+    },
+    {
+     "id": "V61JDu2Dv",
+     "type": "ComponentInstanceNode",
+     "component": "HSAs7QY3s",
+     "componentName": "Footer",
+     "a": {
+      "$control__variant": "Desktop",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "id": "acFYxmBWU",
+     "type": "ComponentInstanceNode",
+     "name": "Lenis",
+     "component": "bSeEZJm22jsjERCOGQvq",
+     "componentName": "Lenis",
+     "a": {
+      "$control__smooth": "true",
+      "$control__intensity": "18",
+      "$control__infinite": "false",
+      "$control__orientation": "Vertical",
+      "$control__content": [],
+      "$control__snap": "null",
+      "position": "relative",
+      "width": "auto",
+      "height": "auto"
+     }
+    }
+   ]
+  },
+  {
+   "id": "uAMdJyeIB",
+   "type": "FrameNode",
+   "name": "Tablet",
+   "a": {
+    "fill": "rgba(255,255,255,1)",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "0px",
+    "overflow": "clip",
+    "left": "1300px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "width": "810px",
+    "height": "1468px"
+   },
+   "children": [
+    {
+     "id": "uAMdJyeIBm4r1F18z_",
+     "type": "FrameNode",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "10px",
+      "padding": "16px",
+      "position": "fixed",
+      "left": "0px",
+      "right": "0px",
+      "top": "0px",
+      "bottom": "null",
+      "width": "1200px",
+      "height": "auto",
+      "zIndex": "10"
+     },
+     "children": [
+      {
+       "id": "uAMdJyeIBbRRFYdGDe",
+       "type": "ComponentInstanceNode",
+       "component": "UXHe4J1PZ",
+       "componentName": "Navigation bar",
+       "a": {
+        "$control__variant": "Phone Closed",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "maxWidth": "1000px",
+        "zIndex": "10"
+       }
+      }
+     ]
+    },
+    {
+     "id": "uAMdJyeIBGIV7sv2xu",
+     "type": "PlaceholderNode"
+    },
+    {
+     "id": "uAMdJyeIBV61JDu2Dv",
+     "type": "ComponentInstanceNode",
+     "component": "HSAs7QY3s",
+     "componentName": "Footer",
+     "a": {
+      "$control__variant": "Tablet",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "id": "uAMdJyeIBacFYxmBWU",
+     "type": "ComponentInstanceNode",
+     "name": "Lenis",
+     "component": "bSeEZJm22jsjERCOGQvq",
+     "componentName": "Lenis",
+     "a": {
+      "$control__smooth": "true",
+      "$control__intensity": "18",
+      "$control__infinite": "false",
+      "$control__orientation": "Vertical",
+      "$control__content": [],
+      "$control__snap": "null",
+      "position": "relative",
+      "width": "auto",
+      "height": "auto"
+     }
+    }
+   ]
+  },
+  {
+   "id": "XwSqz4f0x",
+   "type": "FrameNode",
+   "name": "Phone",
+   "a": {
+    "fill": "rgba(255,255,255,1)",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "0px",
+    "overflow": "clip",
+    "left": "2210px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "width": "390px",
+    "height": "1664px"
+   },
+   "children": [
+    {
+     "id": "XwSqz4f0xm4r1F18z_",
+     "type": "FrameNode",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "10px",
+      "padding": "16px",
+      "position": "fixed",
+      "left": "0px",
+      "right": "0px",
+      "top": "0px",
+      "bottom": "null",
+      "width": "1200px",
+      "height": "auto",
+      "zIndex": "10"
+     },
+     "children": [
+      {
+       "id": "XwSqz4f0xbRRFYdGDe",
+       "type": "ComponentInstanceNode",
+       "component": "UXHe4J1PZ",
+       "componentName": "Navigation bar",
+       "a": {
+        "$control__variant": "Phone Closed",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "maxWidth": "500px",
+        "zIndex": "10"
+       }
+      }
+     ]
+    },
+    {
+     "id": "XwSqz4f0xGIV7sv2xu",
+     "type": "PlaceholderNode"
+    },
+    {
+     "id": "XwSqz4f0xV61JDu2Dv",
+     "type": "ComponentInstanceNode",
+     "component": "HSAs7QY3s",
+     "componentName": "Footer",
+     "a": {
+      "$control__variant": "Mobile",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "id": "XwSqz4f0xacFYxmBWU",
+     "type": "ComponentInstanceNode",
+     "name": "Lenis",
+     "component": "bSeEZJm22jsjERCOGQvq",
+     "componentName": "Lenis",
+     "a": {
+      "$control__smooth": "true",
+      "$control__intensity": "18",
+      "$control__infinite": "false",
+      "$control__orientation": "Vertical",
+      "$control__content": [],
+      "$control__snap": "null",
+      "position": "relative",
+      "width": "auto",
+      "height": "auto"
+     }
+    }
+   ]
+  }
+ ]
+}

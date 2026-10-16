@@ -1,0 +1,410 @@
+{
+ "id": "B5ge51dPW",
+ "type": "ComponentNode",
+ "name": "Toggle button",
+ "$variants": [
+  {
+   "id": "GAg5SR5ki",
+   "name": "Annual"
+  },
+  {
+   "id": "S9sCjusuZ",
+   "name": "Monthly"
+  }
+ ],
+ "variables": [
+  {
+   "key": "onAnnual",
+   "id": "mS_bNnQ2j",
+   "name": "Annual",
+   "node": "EventHandlerVariable",
+   "type": "eventhandler"
+  },
+  {
+   "key": "onMonthly",
+   "id": "SjtMRoM3M",
+   "name": "Monthly",
+   "node": "EventHandlerVariable",
+   "type": "eventhandler"
+  }
+ ],
+ "children": [
+  {
+   "id": "GAg5SR5ki",
+   "type": "FrameNode",
+   "name": "Annual",
+   "a": {
+    "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+    "fill": "var(--token-3482e7f4-ca60-466f-aa1f-53d45aca05d9)",
+    "layout": "stack",
+    "stackDirection": "horizontal",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "4px",
+    "padding": "4px",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "100px",
+    "width": "auto",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "vwVrmek0p",
+     "type": "FrameNode",
+     "name": "Monthly",
+     "a": {
+      "onTap": [
+       {
+        "action": "TRIGGER_EVENT",
+        "controls": {
+         "id": "var(--variable-SjtMRoM3M)"
+        }
+       }
+      ],
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "0px",
+      "padding": "10px 16px 10px 16px",
+      "position": "relative",
+      "radius": "100px",
+      "width": "auto",
+      "height": "40px"
+     },
+     "children": [
+      {
+       "id": "nP_FQgIVq",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "auto",
+        "height": "auto",
+        "textStylePreset": "Label",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:nP_FQgIVq:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:nP_FQgIVq:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Testnet"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "ejkXg8TFn",
+     "type": "FrameNode",
+     "name": "Annual selected",
+     "a": {
+      "fill": "var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+      "onTap": [
+       {
+        "action": "TRIGGER_EVENT",
+        "controls": {
+         "id": "var(--variable-mS_bNnQ2j)"
+        }
+       }
+      ],
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "8px",
+      "padding": "8px 10px 8px 16px",
+      "position": "relative",
+      "radius": "100px",
+      "width": "auto",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "wlpmW6_Xz",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "auto",
+        "height": "auto",
+        "textStylePreset": "Label",
+        "textAlignment": "start",
+        "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+       },
+       "children": [
+        {
+         "id": "v:wlpmW6_Xz:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:wlpmW6_Xz:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Mainnet"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "lC3eMAqa8",
+       "type": "FrameNode",
+       "name": "Integrated discount",
+       "a": {
+        "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "0px",
+        "padding": "4px 7px 4px 7px",
+        "position": "relative",
+        "radius": "100px",
+        "width": "auto",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "NmUXQNrq7",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Label",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:NmUXQNrq7:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:NmUXQNrq7:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "$100 cap"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "S9sCjusuZ",
+   "type": "FrameNode",
+   "name": "Monthly",
+   "a": {
+    "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+    "fill": "var(--token-3482e7f4-ca60-466f-aa1f-53d45aca05d9)",
+    "layout": "stack",
+    "stackDirection": "horizontal",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "4px",
+    "padding": "4px",
+    "left": "308px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "100px",
+    "width": "auto",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "S9sCjusuZvwVrmek0p",
+     "type": "FrameNode",
+     "name": "Monthly",
+     "a": {
+      "fill": "var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+      "onTap": [
+       {
+        "action": "TRIGGER_EVENT",
+        "controls": {
+         "id": "var(--variable-SjtMRoM3M)"
+        }
+       }
+      ],
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "0px",
+      "padding": "10px 16px 10px 16px",
+      "position": "relative",
+      "radius": "100px",
+      "width": "auto",
+      "height": "40px"
+     },
+     "children": [
+      {
+       "id": "S9sCjusuZnP_FQgIVq",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "auto",
+        "height": "auto",
+        "textStylePreset": "Label",
+        "textAlignment": "start",
+        "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+       },
+       "children": [
+        {
+         "id": "v:S9sCjusuZnP_FQgIVq:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:S9sCjusuZnP_FQgIVq:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Testnet"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S9sCjusuZejkXg8TFn",
+     "type": "FrameNode",
+     "name": "Annual selected",
+     "a": {
+      "onTap": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "GAg5SR5ki"
+        }
+       }
+      ],
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "8px",
+      "padding": "8px 10px 8px 16px",
+      "position": "relative",
+      "radius": "100px",
+      "width": "auto",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "S9sCjusuZwlpmW6_Xz",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "auto",
+        "height": "auto",
+        "textStylePreset": "Label",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:S9sCjusuZwlpmW6_Xz:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:S9sCjusuZwlpmW6_Xz:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Mainnet"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "S9sCjusuZlC3eMAqa8",
+       "type": "FrameNode",
+       "name": "Integrated discount",
+       "a": {
+        "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+        "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "0px",
+        "padding": "4px 7px 4px 7px",
+        "position": "relative",
+        "radius": "100px",
+        "width": "auto",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "S9sCjusuZNmUXQNrq7",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Label",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:S9sCjusuZNmUXQNrq7:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:S9sCjusuZNmUXQNrq7:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "$100 cap"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

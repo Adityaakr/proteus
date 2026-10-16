@@ -1,0 +1,159 @@
+{
+ "id": "aNz2PKAdS",
+ "type": "FrameNode",
+ "name": "logos",
+ "a": {
+  "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+  "htmlTag": "section",
+  "layout": "stack",
+  "stackDirection": "horizontal",
+  "stackDistribution": "center",
+  "stackAlignment": "center",
+  "gap": "10px",
+  "overflow": "clip",
+  "position": "relative",
+  "width": "1fr",
+  "height": "auto"
+ },
+ "children": [
+  {
+   "id": "Fz0DcFKFG",
+   "type": "FrameNode",
+   "name": "Content container",
+   "a": {
+    "fill": "var(--token-3482e7f4-ca60-466f-aa1f-53d45aca05d9)",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "60px",
+    "overflow": "clip",
+    "padding": "0px 40px 0px 40px",
+    "position": "relative",
+    "width": "1fr",
+    "height": "auto"
+   },
+   "children": [
+    {
+     "id": "svas4Zk7k",
+     "type": "FrameNode",
+     "name": "Content",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "24px",
+      "overflow": "clip",
+      "padding": "100px 0px 100px 0px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1200px",
+      "zIndex": "1"
+     },
+     "children": [
+      {
+       "id": "YbiohYlL4",
+       "type": "FrameNode",
+       "name": "Heading + tag",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "32px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "FnVHRszgy",
+         "type": "FrameNode",
+         "name": "Heading + description",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "overflow": "clip",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "b5I7PGS0r",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Body 2",
+            "textAlignment": "center"
+           },
+           "children": [
+            {
+             "id": "v:b5I7PGS0r:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:b5I7PGS0r:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Built for the Tameion Agents Hackathon by Canteen, Circle and Arc. Open source. The first campaign is live now."
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "r5gAyaGS2",
+       "type": "ComponentInstanceNode",
+       "component": "codeFile/eElkml8:default",
+       "componentName": "LogoGrid",
+       "a": {
+        "$control__logoPairs": "[\"https://framerusercontent.com/images/E2jy0ZHmhdcVGO0t3fdDc6iIr4.png\",\"https://framerusercontent.com/images/tgfAUxm27j5JfnNyyl0TgtuF5k.png\",\"https://framerusercontent.com/images/pKleiU1dLwqbXfqB5rMlOVqD0.png\",\"https://framerusercontent.com/images/hu7IopqEy6WDoKjcYbHRtOvxBSc.png\",\"https://framerusercontent.com/images/enmHzgJpCvhbJQ5ryhxpN6BPwM.png\"]",
+        "$control__autoplay": "true",
+        "$control__rows": "1",
+        "$control__columns": "4",
+        "$control__direction": "Up",
+        "$control__interval": "2000",
+        "$control__stagger": "150",
+        "$control__springStrength": "230",
+        "$control__springDamping": "19",
+        "$control__transitionBlur": "6",
+        "$control__desaturate": "100",
+        "$control__surface": "rgba(247, 247, 246, 0)",
+        "$control__cardFill": "rgba(255, 255, 255, 0)",
+        "$control__border": "rgba(17, 17, 17, 0)",
+        "$control__radius": "16px",
+        "$control__gridGap": "0",
+        "$control__outerPadding": "0",
+        "$control__cellPadding": "0",
+        "$control__logoHeight": "16",
+        "$control__logoScale": "45",
+        "$control__alignment": "Center",
+        "position": "relative",
+        "width": "1fr",
+        "height": "63px"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

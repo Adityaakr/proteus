@@ -1,0 +1,269 @@
+{
+ "id": "s5OyI1mS0",
+ "type": "FrameNode",
+ "name": "Testimonial",
+ "a": {
+  "fill": "var(--token-3482e7f4-ca60-466f-aa1f-53d45aca05d9)",
+  "htmlTag": "section",
+  "layout": "stack",
+  "stackDirection": "vertical",
+  "stackDistribution": "center",
+  "stackAlignment": "center",
+  "gap": "60px",
+  "overflow": "clip",
+  "padding": "0px 0px 100px 0px",
+  "position": "relative",
+  "scrollTargetEnabled": true,
+  "elementId": "record",
+  "width": "1fr",
+  "height": "auto"
+ },
+ "children": [
+  {
+   "id": "N4ZCTvlNU",
+   "type": "FrameNode",
+   "name": "Content container",
+   "a": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "60px",
+    "overflow": "clip",
+    "padding": "100px 40px 0px 40px",
+    "position": "relative",
+    "width": "1fr",
+    "height": "auto"
+   },
+   "children": [
+    {
+     "id": "CScbE64Ls",
+     "type": "FrameNode",
+     "name": "Content",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "60px",
+      "overflow": "clip",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1200px",
+      "zIndex": "1"
+     },
+     "children": [
+      {
+       "id": "hE3tbgcVC",
+       "type": "FrameNode",
+       "name": "Heading + tag",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "32px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "FGTE2y1_7",
+         "type": "ComponentInstanceNode",
+         "component": "PR2FImO_h",
+         "componentName": "Tag",
+         "a": {
+          "$control__variant": "Inactive",
+          "$control__title": "The record",
+          "$control__iconText": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+          "$control__border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+          "position": "relative",
+          "scrollVariantEffect": {
+           "trigger": "onInView",
+           "replay": false,
+           "threshold": 0.5,
+           "fromVariant": "BYnhqdO_k",
+           "toVariant": "c_qE4utIC"
+          },
+          "width": "auto",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "VwoA6wiOC",
+         "type": "FrameNode",
+         "name": "Heading + description",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "overflow": "clip",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "RRTym3nQw",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Heading 2",
+            "textAlignment": "center"
+           },
+           "children": [
+            {
+             "id": "v:RRTym3nQw:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "h2"
+             },
+             "children": [
+              {
+               "id": "v:RRTym3nQw:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "A receipt proves money moved. The record proves why."
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "GHUjXSinX",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Body 1",
+            "textAlignment": "center"
+           },
+           "children": [
+            {
+             "id": "v:GHUjXSinX:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:GHUjXSinX:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Every decision writes a record: the event, who it was attributed to, the signals scored, the cooling clock, the budget before and after, the policy line, and the transaction. Its hash is stored with the payment. Partner addresses are screened against the OpenSanctions crypto-wallet list at application and before every payout. Below, the record format in the words the bot uses."
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "WCBHCUmQr",
+   "type": "ComponentInstanceNode",
+   "component": "codeFile/VFHgbX7:default",
+   "componentName": "StaggerTestimonials",
+   "a": {
+    "$control__testimonials": [
+     {
+      "quote": "Paid 6 USDC to @maya for activation 0x7f…a2. Attributed to R-118, first touch, no conflict. Fraud score 10. Cooling done.",
+      "name": "Payout record",
+      "role": "Record hash stored with the payment",
+      "company": "Arc",
+      "initials": "PA",
+      "id": "WufIzAXcu"
+     },
+     {
+      "quote": "Held 6 USDC for @kai, activation 0x91…c4. Referred wallet funded by partner wallet (30), event 40 s after click (10). Score 40, threshold 40.",
+      "name": "Hold record",
+      "role": "Partner stays active, voided if reversed in cooling",
+      "company": "GUILD",
+      "initials": "HO",
+      "id": "HMtSNZVSh"
+     },
+     {
+      "quote": "Needs you: @devrel_sam’s last 10 events are 60% held. Fraud rate 25%, threshold 20%. New payouts paused, 2 cooling events voided.",
+      "name": "Escalation",
+      "role": "Two buttons in your chat",
+      "company": "Telegram",
+      "initials": "ES",
+      "id": "FV2ij3T_J"
+     },
+     {
+      "quote": "New partner application: @maya. Shares in the Solana devs group (1.2k) and a weekly newsletter. Screening clear. Accept at 6 USDC per activation.",
+      "name": "Partner decision",
+      "role": "Accepted in 10 min unless you say otherwise",
+      "company": "GUILD",
+      "initials": "PD",
+      "id": "vJY0uD3ap"
+     },
+     {
+      "quote": "At this rate the budget runs out Saturday 21:00, before the Sunday 09:00 deadline. New events moved to the 5 USDC tier.",
+      "name": "Pacing notice",
+      "role": "Say hold the tier to keep 6",
+      "company": "GUILD",
+      "initials": "PN",
+      "id": "Iuek7wVq6"
+     },
+     {
+      "quote": "Screening hit on 0x3c…9e against the OpenSanctions crypto-wallet list. Partner blocked. No agent decision can override this.",
+      "name": "Screening record",
+      "role": "Checked at application and before every payout",
+      "company": "OpenSanctions",
+      "initials": "SC",
+      "id": "fmVWg69ZP"
+     },
+     {
+      "quote": "Day 1: 7 partners accepted, 2 declined. 23 activations: 19 paid, 3 held, 1 void. 114 USDC paid, 86 remaining. Cost per verified activation 6.0 USDC.",
+      "name": "Daily summary",
+      "role": "1 escalation, you agreed with the agent",
+      "company": "GUILD",
+      "initials": "DS",
+      "id": "oa8HIa0mH"
+     }
+    ],
+    "$control__autoplay": "true",
+    "$control__pauseOnHover": "false",
+    "$control__interval": "2000",
+    "$control__surface": "rgb(250, 250, 250)",
+    "$control__backCards": "rgb(250, 250, 250)",
+    "$control__activeCard": "rgb(255, 255, 255)",
+    "$control__border": "rgba(0, 0, 0, 0.1)",
+    "$control__accent": "rgb(1, 43, 255)",
+    "$control__backText": "rgba(0, 0, 0, 0.8)",
+    "$control__activeText": "rgb(0, 0, 0)",
+    "$control__mutedText": "rgba(0, 0, 0, 0.6)",
+    "$control__cardWidth": "350",
+    "$control__cardHeight": "390",
+    "$control__cardGap": "235",
+    "$control__activeLift": "56",
+    "$control__cardRadius": "16px",
+    "$control__previousImage": "https://framerusercontent.com/images/q4tvq9v1Jwu5IR2f2OcwIK3Tdw.png",
+    "$control__nextImage": "https://framerusercontent.com/images/SuVzHcAIqwwM2vGyCxCIrEKMc.png",
+    "$control__quoteFont": "{\"fontSelector\":\"CUSTOMV2;PP Neue Montreal Medium\",\"fontSize\":\"20px\",\"letterSpacing\":[0,\"em\"],\"lineHeight\":[1.3,\"em\"]}",
+    "$control__metaFont": "{\"fontSelector\":\"CUSTOMV2;PP Neue Montreal Book\",\"fontSize\":\"12px\",\"letterSpacing\":[-0.01,\"em\"],\"lineHeight\":[1.35,\"em\"]}",
+    "position": "relative",
+    "width": "1fr",
+    "height": "707px"
+   }
+  }
+ ]
+}

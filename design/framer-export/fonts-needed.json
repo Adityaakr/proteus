@@ -1,0 +1,51 @@
+[
+ {
+  "selector": "GF;Geist-regular",
+  "family": "Geist",
+  "weight": 400,
+  "style": "normal",
+  "url": "https://fonts.gstatic.com/s/geist/v5/gyBhhwUxId8gMGYQMKR3pzfaWI_RnOM4mJPby1QNtA.woff2"
+ },
+ {
+  "selector": "GF;Geist-500",
+  "family": "Geist",
+  "weight": 500,
+  "style": "normal",
+  "url": "https://fonts.gstatic.com/s/geist/v5/gyBhhwUxId8gMGYQMKR3pzfaWI_RruM4mJPby1QNtA.woff2"
+ },
+ {
+  "selector": "GF;Geist-600",
+  "family": "Geist",
+  "weight": 600,
+  "style": "normal",
+  "url": "https://fonts.gstatic.com/s/geist/v5/gyBhhwUxId8gMGYQMKR3pzfaWI_RQuQ4mJPby1QNtA.woff2"
+ },
+ {
+  "selector": "GF;Geist-variable-regular",
+  "family": "Geist",
+  "weight": 400,
+  "style": "normal",
+  "url": "https://fonts.gstatic.com/s/geist/v5/gyByhwUxId8gMHweElSvO5Tc.woff2"
+ },
+ {
+  "selector": "GF;Inter-regular",
+  "family": "Inter",
+  "weight": 400,
+  "style": "normal",
+  "url": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZ1rib2Bg-4.woff2"
+ },
+ {
+  "selector": "GF;Inter-500",
+  "family": "Inter",
+  "weight": 500,
+  "style": "normal",
+  "url": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuI6fMZ1rib2Bg-4.woff2"
+ },
+ {
+  "selector": "GF;Inter-variable-regular",
+  "family": "Inter",
+  "weight": 400,
+  "style": "normal",
+  "url": "https://fonts.gstatic.com/s/inter/v20/UcCo3FwrK3iLTfvgaQc78lA2.woff2"
+ }
+]

@@ -1,0 +1,304 @@
+{
+ "id": "viN7yKCMO",
+ "type": "FrameNode",
+ "name": "Industries",
+ "a": {
+  "htmlTag": "section",
+  "layout": "stack",
+  "stackDirection": "horizontal",
+  "stackDistribution": "center",
+  "stackAlignment": "center",
+  "gap": "10px",
+  "overflow": "clip",
+  "position": "relative",
+  "scrollTargetEnabled": true,
+  "elementId": "comparison",
+  "width": "1fr",
+  "height": "auto"
+ },
+ "children": [
+  {
+   "id": "MFBl4tQFy",
+   "type": "FrameNode",
+   "name": "Content container",
+   "a": {
+    "fill": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "60px",
+    "overflow": "clip",
+    "padding": "100px 40px 100px 40px",
+    "position": "relative",
+    "width": "1fr",
+    "height": "auto"
+   },
+   "children": [
+    {
+     "id": "RJZ2b3eOW",
+     "type": "FrameNode",
+     "name": "Content",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "60px",
+      "overflow": "clip",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1200px"
+     },
+     "children": [
+      {
+       "id": "LTuhOiJev",
+       "type": "FrameNode",
+       "name": "Heading + tag",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "32px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "ZzPq7ZcA9",
+         "type": "ComponentInstanceNode",
+         "component": "PR2FImO_h",
+         "componentName": "Tag",
+         "a": {
+          "$control__variant": "Inactive",
+          "$control__title": "Comparison",
+          "$control__iconText": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "$control__border": "1px solid var(--token-edd43b1b-e1c0-47ab-b700-0fd2dbef2982)",
+          "position": "relative",
+          "scrollVariantEffect": {
+           "trigger": "onInView",
+           "replay": false,
+           "threshold": 0.5,
+           "fromVariant": "BYnhqdO_k",
+           "toVariant": "c_qE4utIC"
+          },
+          "width": "auto",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "xlQqrO2Gl",
+         "type": "FrameNode",
+         "name": "Heading + description",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "overflow": "clip",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "xFMu4kFEc",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Heading 2",
+            "textAlignment": "center",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:xFMu4kFEc:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "h2"
+             },
+             "children": [
+              {
+               "id": "v:xFMu4kFEc:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Tracking tools track. GUILD decides."
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "j0gcZCYgE",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Body 1",
+            "textAlignment": "center",
+            "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+           },
+           "children": [
+            {
+             "id": "v:j0gcZCYgE:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:j0gcZCYgE:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Keep your tracking tool if you like it. GUILD is the thing that was missing on top of it: the part that decides."
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "P2o3p0Mbw",
+       "type": "FrameNode",
+       "a": {
+        "layout": "grid",
+        "gridAlignment": "center",
+        "gridRowHeight": "200px",
+        "gap": "16px 16px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "fBrh6Za2f",
+         "type": "ComponentInstanceNode",
+         "component": "slkat30Sb",
+         "componentName": "Industry card",
+         "a": {
+          "$control__variant": "Desktop",
+          "$control__industryName": "One ceiling, many incentives",
+          "$control__description": "Affiliate software applies the commission you configured to everyone. GUILD takes your ceiling, sets each partner’s incentive, and changes it as results come in.",
+          "$control__pNGSVG": "https://framerusercontent.com/images/JXfbymshMLyfsl2323zgdqBGL4.svg",
+          "$control__density": "18",
+          "$control__pixelSize": "1",
+          "$control__threshold": "0.46",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "j1ylkAE1E",
+         "type": "ComponentInstanceNode",
+         "component": "slkat30Sb",
+         "componentName": "Industry card",
+         "a": {
+          "$control__variant": "Desktop",
+          "$control__industryName": "Payable because your product vouched",
+          "$control__description": "There, a referral is payable because a pixel fired. Here, a result is payable because your product vouched for it, signed, and the fraud score stayed under the line.",
+          "$control__pNGSVG": "https://framerusercontent.com/images/oj7jXSrLMVYLxliKOyzXN6J1ZRs.svg",
+          "$control__density": "18",
+          "$control__pixelSize": "1",
+          "$control__threshold": "0.46",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "KTURlWx4K",
+         "type": "ComponentInstanceNode",
+         "component": "slkat30Sb",
+         "componentName": "Industry card",
+         "a": {
+          "$control__variant": "Desktop",
+          "$control__industryName": "Fraud is a hold, not a report",
+          "$control__description": "There, fraud is a report you read at the end of the month. Here, it is a hold with the signals attached, before any money moves.",
+          "$control__pNGSVG": "https://framerusercontent.com/images/bD52TK3MrelH1Oc6avERVA1JXw4.svg",
+          "$control__density": "18",
+          "$control__pixelSize": "1",
+          "$control__threshold": "0.46",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "LsTACwtwo",
+         "type": "ComponentInstanceNode",
+         "component": "slkat30Sb",
+         "componentName": "Industry card",
+         "a": {
+          "$control__variant": "Desktop",
+          "$control__industryName": "Paid in hours, for about a cent",
+          "$control__description": "There, payouts run on a schedule, through a processor, with a fee. Here, they settle in USDC on Arc within hours of cooling, for about a cent, to a locked address.",
+          "$control__pNGSVG": "https://framerusercontent.com/images/GUrpYsrYM8fPXMf7BXBghK727Bs.svg",
+          "$control__density": "18",
+          "$control__pixelSize": "1",
+          "$control__threshold": "0.71",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "hkaU1xZ_4",
+         "type": "ComponentInstanceNode",
+         "component": "slkat30Sb",
+         "componentName": "Industry card",
+         "a": {
+          "$control__variant": "Desktop",
+          "$control__industryName": "Budget is a cap in a contract",
+          "$control__description": "There, budget is a number in a settings page. Here, it is a cap in a contract the agent cannot raise.",
+          "$control__pNGSVG": "https://framerusercontent.com/images/vBsEOrQoXzW0ffeVyss7E7BMXc.svg",
+          "$control__density": "18",
+          "$control__pixelSize": "1",
+          "$control__threshold": "0.42",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "ju_9Y4jQN",
+         "type": "ComponentInstanceNode",
+         "component": "slkat30Sb",
+         "componentName": "Industry card",
+         "a": {
+          "$control__variant": "Desktop",
+          "$control__industryName": "A log a reviewer can replay",
+          "$control__description": "There, you get a dashboard. Here, you get a decision log a reviewer can replay, with every payout linked to its record.",
+          "$control__pNGSVG": "https://framerusercontent.com/images/fBC0zzbZpTAZaOtfiJwmWF4bgO4.svg",
+          "$control__density": "18",
+          "$control__pixelSize": "1",
+          "$control__threshold": "0.28",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,564 @@
+{
+ "type": "ComponentNode",
+ "id": "qCXDZGj4q",
+ "name": "Multimodal card",
+ "variables": [],
+ "$parentId": "sn7IXw6X9",
+ "$variants": [
+  {
+   "id": "A2p5G7tdE",
+   "name": "1"
+  }
+ ],
+ "children": [
+  {
+   "type": "FrameNode",
+   "name": "1",
+   "id": "A2p5G7tdE",
+   "$isPrimary": true,
+   "attributes": {
+    "fill": "var(--token-a75fb687-8d00-4d08-9407-fce93f119924)",
+    "layout": "null",
+    "overflow": "clip",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "52.71%",
+    "centerAnchorY": "33.4%",
+    "constraintsLocked": false,
+    "radius": "16px 16px 0px 0px",
+    "width": "309.5px",
+    "height": "353px",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "FrameNode",
+     "id": "ZZFQCrzFV",
+     "attributes": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "stackWrapEnabled": false,
+      "gap": "16px",
+      "padding": "24px 0px 24px 0px",
+      "left": "0px",
+      "right": "0px",
+      "top": "null",
+      "bottom": "null",
+      "centerAnchorX": "50%",
+      "centerAnchorY": "50.14%",
+      "constraintsLocked": false,
+      "width": "310px",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "type": "FrameNode",
+       "id": "bEUgkIo5A",
+       "attributes": {
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "start",
+        "stackAlignment": "center",
+        "stackWrapEnabled": false,
+        "gap": "16px",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto",
+        "tickerEffect": {
+         "velocity": 50,
+         "hoverModifier": 100,
+         "directionModifier": "default",
+         "draggable": "false"
+        }
+       },
+       "children": [
+        {
+         "type": "FrameNode",
+         "name": "List",
+         "id": "yDnN2zuri",
+         "attributes": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "stackWrapEnabled": false,
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "IconNode",
+           "id": "OPTJUsbU1",
+           "set": "fiHEoJwBMFnT6QLOcpPz",
+           "$control__icon": "File Text",
+           "attributes": {
+            "$control__stroke": "rgb(237, 149, 17)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "type": "RichTextNode",
+           "id": "N6lb0hqIn",
+           "attributes": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:N6lb0hqIn:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:N6lb0hqIn:0:0",
+               "attributes": {
+                "text": "x402 purchase"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "FrameNode",
+         "name": "List",
+         "id": "xWZusnVPW",
+         "attributes": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "stackWrapEnabled": false,
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "IconNode",
+           "id": "xNcnlk6vl",
+           "set": "fiHEoJwBMFnT6QLOcpPz",
+           "$control__icon": "Music",
+           "attributes": {
+            "$control__stroke": "rgb(230, 58, 28)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "type": "RichTextNode",
+           "id": "vDjBYdalA",
+           "attributes": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:vDjBYdalA:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:vDjBYdalA:0:0",
+               "attributes": {
+                "text": "Onchain action"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "FrameNode",
+         "name": "List",
+         "id": "IhwxxrI2h",
+         "attributes": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "stackWrapEnabled": false,
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "IconNode",
+           "id": "f3SlT9LFZ",
+           "set": "fiHEoJwBMFnT6QLOcpPz",
+           "$control__icon": "Video",
+           "attributes": {
+            "$control__stroke": "rgb(179, 28, 230)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "type": "RichTextNode",
+           "id": "sTo_AKnDt",
+           "attributes": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:sTo_AKnDt:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:sTo_AKnDt:0:0",
+               "attributes": {
+                "text": "Signed event"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "FrameNode",
+         "name": "List",
+         "id": "uub7NHhZJ",
+         "attributes": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "stackWrapEnabled": false,
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "IconNode",
+           "id": "HAOM6Ir41",
+           "set": "fiHEoJwBMFnT6QLOcpPz",
+           "$control__icon": "Compass",
+           "attributes": {
+            "$control__stroke": "rgb(28, 58, 230)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "type": "RichTextNode",
+           "id": "Mx6COL9iJ",
+           "attributes": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:Mx6COL9iJ:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:Mx6COL9iJ:0:0",
+               "attributes": {
+                "text": "Activation"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "type": "FrameNode",
+       "id": "cb7_UVRvV",
+       "attributes": {
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "start",
+        "stackAlignment": "center",
+        "stackWrapEnabled": false,
+        "gap": "16px",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto",
+        "tickerEffect": {
+         "velocity": 50,
+         "hoverModifier": 100,
+         "directionModifier": "reverse",
+         "draggable": "false"
+        }
+       },
+       "children": [
+        {
+         "type": "FrameNode",
+         "name": "List",
+         "id": "vqipm8fqu",
+         "attributes": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "stackWrapEnabled": false,
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "IconNode",
+           "id": "UlCMA7kcX",
+           "set": "fiHEoJwBMFnT6QLOcpPz",
+           "$control__icon": "Edit",
+           "attributes": {
+            "$control__stroke": "rgb(20, 195, 204)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "type": "RichTextNode",
+           "id": "YAtOxi1F6",
+           "attributes": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:YAtOxi1F6:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:YAtOxi1F6:0:0",
+               "attributes": {
+                "text": "API key, 50 calls"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "FrameNode",
+         "name": "List",
+         "id": "VQhKQZhNy",
+         "attributes": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "stackWrapEnabled": false,
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "IconNode",
+           "id": "Spyz4ZL5M",
+           "set": "fiHEoJwBMFnT6QLOcpPz",
+           "$control__icon": "Align Left",
+           "attributes": {
+            "$control__stroke": "rgb(42, 204, 20)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "type": "RichTextNode",
+           "id": "hfvkGoBOR",
+           "attributes": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:hfvkGoBOR:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:hfvkGoBOR:0:0",
+               "attributes": {
+                "text": "Referral match"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "FrameNode",
+         "name": "List",
+         "id": "bpQfHIjiG",
+         "attributes": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "stackWrapEnabled": false,
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "IconNode",
+           "id": "PYqAquyp2",
+           "set": "fiHEoJwBMFnT6QLOcpPz",
+           "$control__icon": "Message Circle",
+           "attributes": {
+            "$control__stroke": "rgb(2, 196, 183)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "type": "RichTextNode",
+           "id": "M7pdqtiKX",
+           "attributes": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:M7pdqtiKX:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:M7pdqtiKX:0:0",
+               "attributes": {
+                "text": "Partner accepted"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

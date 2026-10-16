@@ -1,0 +1,2243 @@
+{
+ "type": "ComponentNode",
+ "id": "HSAs7QY3s",
+ "name": "Footer",
+ "variables": [],
+ "$parentId": "sn7IXw6X9",
+ "$variants": [
+  {
+   "id": "UrowiP65c",
+   "name": "Desktop"
+  },
+  {
+   "id": "idhvJF_M8",
+   "name": "Tablet"
+  },
+  {
+   "id": "jdMPzFghJ",
+   "name": "Mobile"
+  }
+ ],
+ "children": [
+  {
+   "type": "FrameNode",
+   "name": "Desktop",
+   "id": "UrowiP65c",
+   "$isPrimary": true,
+   "$rect": {
+    "height": 866
+   },
+   "attributes": {
+    "fill": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+    "htmlTag": "footer",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "80px",
+    "overflow": "clip",
+    "padding": "100px 40px 100px 40px",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "0%",
+    "centerAnchorY": "0%",
+    "constraintsLocked": false,
+    "width": "1280px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "FrameNode",
+     "name": "Container",
+     "id": "dciV_splI",
+     "$rect": {
+      "x": 40,
+      "y": 100,
+      "width": 1200,
+      "height": 666
+     },
+     "attributes": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "start",
+      "stackWrapEnabled": false,
+      "gap": "80px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1200px"
+     },
+     "children": [
+      {
+       "type": "FrameNode",
+       "name": "Large conversion message",
+       "id": "rnRaMIv34",
+       "$rect": {
+        "x": 0,
+        "y": 0,
+        "width": 800,
+        "height": 251
+       },
+       "attributes": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "stackWrapEnabled": false,
+        "gap": "24px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "maxWidth": "800px"
+       },
+       "children": [
+        {
+         "type": "RichTextNode",
+         "id": "iooSFXQ6L",
+         "attributes": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Heading 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "textWrap": "balance"
+         },
+         "children": [
+          {
+           "type": "TextBlock",
+           "id": "v:iooSFXQ6L:0",
+           "attributes": {
+            "tag": "h2"
+           },
+           "children": [
+            {
+             "type": "TextRun",
+             "id": "v:iooSFXQ6L:0:0",
+             "attributes": {
+              "text": "Give the agent the budget. Keep the keys to the limits."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "RichTextNode",
+         "id": "NpUyCFmKm",
+         "attributes": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "500px",
+          "textStylePreset": "Body 1",
+          "textAlignment": "start",
+          "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)",
+          "textWrap": "balance"
+         },
+         "children": [
+          {
+           "type": "TextBlock",
+           "id": "v:NpUyCFmKm:0",
+           "attributes": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "type": "TextRun",
+             "id": "v:NpUyCFmKm:0:0",
+             "attributes": {
+              "text": "Start with one campaign and one line that defines a real result. Read the first decision record. You will know in a day whether you want a second campaign."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "ComponentInstanceNode",
+         "id": "qYmFtFp71",
+         "component": "Jh9jZPCX6",
+         "$rect": {
+          "x": 0,
+          "y": 205,
+          "width": 183,
+          "height": 46
+         },
+         "$componentDisplayName": "Button",
+         "attributes": {
+          "$control__variant": "Desktop/primary",
+          "$control__label": "Start a campaign",
+          "$control__iconVisible": "true",
+          "$control__link": "/#how-it-works",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         }
+        }
+       ]
+      },
+      {
+       "type": "FrameNode",
+       "name": "Brand and single product column",
+       "id": "DxAbxJGyl",
+       "$rect": {
+        "x": 0,
+        "y": 331,
+        "width": 1200,
+        "height": 207
+       },
+       "attributes": {
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "space-between",
+        "stackAlignment": "start",
+        "stackWrapEnabled": false,
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "type": "FrameNode",
+         "name": "CTA footer brand",
+         "id": "SbfkDY0M_",
+         "$rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 126
+         },
+         "attributes": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "stackWrapEnabled": false,
+          "gap": "24px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "FrameNode",
+           "name": "Logo",
+           "id": "OOUZlfKem",
+           "$rect": {
+            "x": 0,
+            "y": 0,
+            "height": 40
+           },
+           "attributes": {
+            "fill": "https://framerusercontent.com/images/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png",
+            "layout": "null",
+            "overflow": "clip",
+            "position": "relative",
+            "width": "40px",
+            "height": "67px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "type": "FrameNode",
+           "name": "Heading + description",
+           "id": "lNyj079oD",
+           "$rect": {
+            "x": 0,
+            "y": 64,
+            "width": 1000,
+            "height": 62
+           },
+           "attributes": {
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "center",
+            "stackAlignment": "start",
+            "stackWrapEnabled": false,
+            "gap": "8px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "type": "RichTextNode",
+             "id": "D1TjlfYxn",
+             "attributes": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Heading 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+             },
+             "children": [
+              {
+               "type": "TextBlock",
+               "id": "v:D1TjlfYxn:0",
+               "attributes": {
+                "tag": "h3"
+               },
+               "children": [
+                {
+                 "type": "TextRun",
+                 "id": "v:D1TjlfYxn:0:0",
+                 "attributes": {
+                  "text": "GUILD"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "type": "RichTextNode",
+             "id": "v8i2hJoUX",
+             "attributes": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 2",
+              "textAlignment": "start",
+              "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+             },
+             "children": [
+              {
+               "type": "TextBlock",
+               "id": "v:v8i2hJoUX:0",
+               "attributes": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "type": "TextRun",
+                 "id": "v:v8i2hJoUX:0:0",
+                 "attributes": {
+                  "text": "The growth agent that only pays for results it can verify."
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "FrameNode",
+         "name": "CTA product links",
+         "id": "Rm4bQDZYW",
+         "$rect": {
+          "x": 1000,
+          "y": 0,
+          "width": 200,
+          "height": 207
+         },
+         "attributes": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "stackWrapEnabled": false,
+          "gap": "11px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "200px"
+         },
+         "children": [
+          {
+           "type": "RichTextNode",
+           "id": "f2XF04ITg",
+           "$rect": {
+            "x": 0,
+            "y": 0,
+            "width": 69,
+            "height": 24
+           },
+           "attributes": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Heading 5",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:f2XF04ITg:0",
+             "attributes": {
+              "tag": "h5"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:f2XF04ITg:0:0",
+               "attributes": {
+                "text": "Product"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "hEUg_dUKy",
+           "attributes": {
+            "link": {
+             "href": "/#how-it-works",
+             "smoothScroll": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:hEUg_dUKy:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:hEUg_dUKy:0:0",
+               "attributes": {
+                "text": "How it works"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "S1FWYN9N5",
+           "attributes": {
+            "link": {
+             "href": "/#features"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:S1FWYN9N5:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:S1FWYN9N5:0:0",
+               "attributes": {
+                "text": "What it decides"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "assjAvM6D",
+           "attributes": {
+            "link": {
+             "href": "/#partners"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:assjAvM6D:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:assjAvM6D:0:0",
+               "attributes": {
+                "text": "For partners"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "lNssWqDdu",
+           "attributes": {
+            "link": {
+             "href": "/#pricing"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:lNssWqDdu:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:lNssWqDdu:0:0",
+               "attributes": {
+                "text": "Pricing"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "CVfFChqjL",
+           "attributes": {
+            "link": {
+             "href": "/#security"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:CVfFChqjL:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:CVfFChqjL:0:0",
+               "attributes": {
+                "text": "Trust and controls"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "type": "FrameNode",
+       "name": "CTA footer legal rail",
+       "id": "nAx8Ohiff",
+       "$rect": {
+        "x": 0,
+        "y": 618,
+        "width": 1200,
+        "height": 48
+       },
+       "attributes": {
+        "borderStyle": "solid",
+        "borderColor": "var(--token-edd43b1b-e1c0-47ab-b700-0fd2dbef2982)",
+        "borderTop": "1px",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "space-between",
+        "stackAlignment": "center",
+        "stackWrapEnabled": false,
+        "padding": "22px 0px 0px 0px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "type": "RichTextNode",
+         "id": "vBcJZygP7",
+         "attributes": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Body 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "type": "TextBlock",
+           "id": "v:vBcJZygP7:0",
+           "attributes": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "type": "TextRun",
+             "id": "v:vBcJZygP7:0:0",
+             "attributes": {
+              "text": "© 2026 GUILD, built by Merk Labs for the Tameion Agents Hackathon. Unaudited contract, not financial advice."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "FrameNode",
+         "name": "CTA legal links",
+         "id": "osghCcZwJ",
+         "$rect": {
+          "x": 1038,
+          "y": 22,
+          "width": 162,
+          "height": 26
+         },
+         "attributes": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "stackWrapEnabled": false,
+          "gap": "24px",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "RichTextNode",
+           "id": "qbFBQBad9",
+           "attributes": {
+            "link": {
+             "href": "/#record",
+             "openInNewTab": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:qbFBQBad9:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:qbFBQBad9:0:0",
+               "attributes": {
+                "text": "Decision log"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "FrameNode",
+   "name": "Tablet",
+   "id": "idhvJF_M8",
+   "$isReplica": true,
+   "$originalId": "UrowiP65c",
+   "$rect": {
+    "width": 516,
+    "height": 837
+   },
+   "attributes": {
+    "fill": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+    "htmlTag": "footer",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "80px",
+    "overflow": "clip",
+    "padding": "80px 40px 80px 40px",
+    "left": "1347px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "0%",
+    "centerAnchorY": "0%",
+    "constraintsLocked": false,
+    "width": "515.5px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "FrameNode",
+     "name": "Container",
+     "id": "idhvJF_M8dciV_splI",
+     "$replicaId": "idhvJF_M8",
+     "$originalId": "dciV_splI",
+     "$rect": {
+      "x": 40,
+      "y": 80,
+      "width": 436,
+      "height": 677
+     },
+     "attributes": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "start",
+      "stackWrapEnabled": false,
+      "gap": "60px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1000px"
+     },
+     "children": [
+      {
+       "type": "FrameNode",
+       "name": "Large conversion message",
+       "id": "idhvJF_M8rnRaMIv34",
+       "$replicaId": "idhvJF_M8",
+       "$originalId": "rnRaMIv34",
+       "$rect": {
+        "x": 0,
+        "y": 0,
+        "width": 436,
+        "height": 301
+       },
+       "attributes": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "stackWrapEnabled": false,
+        "gap": "24px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "maxWidth": "1000px"
+       },
+       "children": [
+        {
+         "type": "RichTextNode",
+         "id": "idhvJF_M8iooSFXQ6L",
+         "$replicaId": "idhvJF_M8",
+         "$originalId": "iooSFXQ6L",
+         "$rect": {
+          "x": 0,
+          "y": 0,
+          "width": 436,
+          "height": 152
+         },
+         "attributes": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Heading 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "textWrap": "balance"
+         },
+         "children": [
+          {
+           "type": "TextBlock",
+           "id": "v:idhvJF_M8iooSFXQ6L:0",
+           "attributes": {
+            "tag": "h2"
+           },
+           "children": [
+            {
+             "type": "TextRun",
+             "id": "v:idhvJF_M8iooSFXQ6L:0:0",
+             "attributes": {
+              "text": "Give the agent the budget. Keep the keys to the limits."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "RichTextNode",
+         "id": "idhvJF_M8NpUyCFmKm",
+         "$replicaId": "idhvJF_M8",
+         "$originalId": "NpUyCFmKm",
+         "$rect": {
+          "x": 0,
+          "y": 176,
+          "width": 436,
+          "height": 56
+         },
+         "attributes": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "500px",
+          "textStylePreset": "Body 1",
+          "textAlignment": "start",
+          "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)",
+          "textWrap": "balance"
+         },
+         "children": [
+          {
+           "type": "TextBlock",
+           "id": "v:idhvJF_M8NpUyCFmKm:0",
+           "attributes": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "type": "TextRun",
+             "id": "v:idhvJF_M8NpUyCFmKm:0:0",
+             "attributes": {
+              "text": "Start with one campaign and one line that defines a real result. Read the first decision record. You will know in a day whether you want a second campaign."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "ComponentInstanceNode",
+         "id": "idhvJF_M8qYmFtFp71",
+         "component": "Jh9jZPCX6",
+         "$replicaId": "idhvJF_M8",
+         "$originalId": "qYmFtFp71",
+         "$rect": {
+          "x": 0,
+          "y": 256,
+          "width": 183,
+          "height": 45
+         },
+         "$componentDisplayName": "Button",
+         "attributes": {
+          "$control__variant": "Desktop/primary",
+          "$control__label": "Start a campaign",
+          "$control__iconVisible": "true",
+          "$control__link": "/#how-it-works",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         }
+        }
+       ]
+      },
+      {
+       "type": "FrameNode",
+       "name": "Brand and single product column",
+       "id": "idhvJF_M8DxAbxJGyl",
+       "$replicaId": "idhvJF_M8",
+       "$originalId": "DxAbxJGyl",
+       "$rect": {
+        "x": 0,
+        "y": 361,
+        "width": 436,
+        "height": 208
+       },
+       "attributes": {
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "space-between",
+        "stackAlignment": "start",
+        "stackWrapEnabled": false,
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "type": "FrameNode",
+         "name": "CTA footer brand",
+         "id": "idhvJF_M8SbfkDY0M_",
+         "$replicaId": "idhvJF_M8",
+         "$originalId": "SbfkDY0M_",
+         "$rect": {
+          "x": 0,
+          "y": 0,
+          "width": 236,
+          "height": 152
+         },
+         "attributes": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "stackWrapEnabled": false,
+          "gap": "24px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "FrameNode",
+           "name": "Logo",
+           "id": "idhvJF_M8OOUZlfKem",
+           "$replicaId": "idhvJF_M8",
+           "$originalId": "OOUZlfKem",
+           "$rect": {
+            "x": 0,
+            "y": 0,
+            "height": 40
+           },
+           "attributes": {
+            "fill": "https://framerusercontent.com/images/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png",
+            "layout": "null",
+            "overflow": "clip",
+            "position": "relative",
+            "width": "40px",
+            "height": "67px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "type": "FrameNode",
+           "name": "Heading + description",
+           "id": "idhvJF_M8lNyj079oD",
+           "$replicaId": "idhvJF_M8",
+           "$originalId": "lNyj079oD",
+           "$rect": {
+            "x": 0,
+            "y": 64,
+            "width": 236,
+            "height": 88
+           },
+           "attributes": {
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "center",
+            "stackAlignment": "start",
+            "stackWrapEnabled": false,
+            "gap": "8px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "type": "RichTextNode",
+             "id": "idhvJF_M8D1TjlfYxn",
+             "$replicaId": "idhvJF_M8",
+             "$originalId": "D1TjlfYxn",
+             "$rect": {
+              "x": 0,
+              "y": 0,
+              "width": 105,
+              "height": 29
+             },
+             "attributes": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Heading 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+             },
+             "children": [
+              {
+               "type": "TextBlock",
+               "id": "v:idhvJF_M8D1TjlfYxn:0",
+               "attributes": {
+                "tag": "h3"
+               },
+               "children": [
+                {
+                 "type": "TextRun",
+                 "id": "v:idhvJF_M8D1TjlfYxn:0:0",
+                 "attributes": {
+                  "text": "GUILD"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "type": "RichTextNode",
+             "id": "idhvJF_M8v8i2hJoUX",
+             "$replicaId": "idhvJF_M8",
+             "$originalId": "v8i2hJoUX",
+             "$rect": {
+              "x": 0,
+              "y": 37,
+              "width": 236,
+              "height": 51
+             },
+             "attributes": {
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto",
+              "textStylePreset": "Body 2",
+              "textAlignment": "start",
+              "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+             },
+             "children": [
+              {
+               "type": "TextBlock",
+               "id": "v:idhvJF_M8v8i2hJoUX:0",
+               "attributes": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "type": "TextRun",
+                 "id": "v:idhvJF_M8v8i2hJoUX:0:0",
+                 "attributes": {
+                  "text": "The growth agent that only pays for results it can verify."
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "FrameNode",
+         "name": "CTA product links",
+         "id": "idhvJF_M8Rm4bQDZYW",
+         "$replicaId": "idhvJF_M8",
+         "$originalId": "Rm4bQDZYW",
+         "$rect": {
+          "x": 236,
+          "y": 0,
+          "width": 200,
+          "height": 208
+         },
+         "attributes": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "stackWrapEnabled": false,
+          "gap": "11px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "200px"
+         },
+         "children": [
+          {
+           "type": "RichTextNode",
+           "id": "idhvJF_M8f2XF04ITg",
+           "$replicaId": "idhvJF_M8",
+           "$originalId": "f2XF04ITg",
+           "$rect": {
+            "x": 0,
+            "y": 0,
+            "width": 69,
+            "height": 25
+           },
+           "attributes": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Heading 5",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:idhvJF_M8f2XF04ITg:0",
+             "attributes": {
+              "tag": "h5"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:idhvJF_M8f2XF04ITg:0:0",
+               "attributes": {
+                "text": "Product"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "idhvJF_M8hEUg_dUKy",
+           "$replicaId": "idhvJF_M8",
+           "$originalId": "hEUg_dUKy",
+           "$rect": {
+            "x": 0,
+            "y": 36,
+            "width": 93,
+            "height": 26
+           },
+           "attributes": {
+            "link": {
+             "href": "/#how-it-works",
+             "smoothScroll": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:idhvJF_M8hEUg_dUKy:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:idhvJF_M8hEUg_dUKy:0:0",
+               "attributes": {
+                "text": "How it works"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "idhvJF_M8S1FWYN9N5",
+           "$replicaId": "idhvJF_M8",
+           "$originalId": "S1FWYN9N5",
+           "$rect": {
+            "x": 0,
+            "y": 73,
+            "width": 63,
+            "height": 25
+           },
+           "attributes": {
+            "link": {
+             "href": "/#features"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:idhvJF_M8S1FWYN9N5:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:idhvJF_M8S1FWYN9N5:0:0",
+               "attributes": {
+                "text": "What it decides"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "idhvJF_M8assjAvM6D",
+           "$replicaId": "idhvJF_M8",
+           "$originalId": "assjAvM6D",
+           "$rect": {
+            "x": 0,
+            "y": 109,
+            "width": 84,
+            "height": 26
+           },
+           "attributes": {
+            "link": {
+             "href": "/#partners"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:idhvJF_M8assjAvM6D:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:idhvJF_M8assjAvM6D:0:0",
+               "attributes": {
+                "text": "For partners"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "idhvJF_M8lNssWqDdu",
+           "$replicaId": "idhvJF_M8",
+           "$originalId": "lNssWqDdu",
+           "$rect": {
+            "x": 0,
+            "y": 146,
+            "width": 50,
+            "height": 25
+           },
+           "attributes": {
+            "link": {
+             "href": "/#pricing"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:idhvJF_M8lNssWqDdu:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:idhvJF_M8lNssWqDdu:0:0",
+               "attributes": {
+                "text": "Pricing"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "idhvJF_M8CVfFChqjL",
+           "$replicaId": "idhvJF_M8",
+           "$originalId": "CVfFChqjL",
+           "$rect": {
+            "x": 0,
+            "y": 182,
+            "width": 59,
+            "height": 26
+           },
+           "attributes": {
+            "link": {
+             "href": "/#security"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:idhvJF_M8CVfFChqjL:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:idhvJF_M8CVfFChqjL:0:0",
+               "attributes": {
+                "text": "Trust and controls"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "type": "FrameNode",
+       "name": "CTA footer legal rail",
+       "id": "idhvJF_M8nAx8Ohiff",
+       "$replicaId": "idhvJF_M8",
+       "$originalId": "nAx8Ohiff",
+       "$rect": {
+        "x": 0,
+        "y": 629,
+        "width": 436,
+        "height": 48
+       },
+       "attributes": {
+        "borderStyle": "solid",
+        "borderColor": "var(--token-edd43b1b-e1c0-47ab-b700-0fd2dbef2982)",
+        "borderTop": "1px",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "space-between",
+        "stackAlignment": "center",
+        "stackWrapEnabled": false,
+        "padding": "22px 0px 0px 0px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "type": "RichTextNode",
+         "id": "idhvJF_M8vBcJZygP7",
+         "$replicaId": "idhvJF_M8",
+         "$originalId": "vBcJZygP7",
+         "$rect": {
+          "x": 0,
+          "y": 22,
+          "width": 274,
+          "height": 26
+         },
+         "attributes": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Body 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "type": "TextBlock",
+           "id": "v:idhvJF_M8vBcJZygP7:0",
+           "attributes": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "type": "TextRun",
+             "id": "v:idhvJF_M8vBcJZygP7:0:0",
+             "attributes": {
+              "text": "© 2026 GUILD, built by Merk Labs for the Tameion Agents Hackathon. Unaudited contract, not financial advice."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "FrameNode",
+         "name": "CTA legal links",
+         "id": "idhvJF_M8osghCcZwJ",
+         "$replicaId": "idhvJF_M8",
+         "$originalId": "osghCcZwJ",
+         "$rect": {
+          "x": 274,
+          "y": 22,
+          "width": 162,
+          "height": 26
+         },
+         "attributes": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "stackWrapEnabled": false,
+          "gap": "24px",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "RichTextNode",
+           "id": "idhvJF_M8qbFBQBad9",
+           "$replicaId": "idhvJF_M8",
+           "$originalId": "qbFBQBad9",
+           "$rect": {
+            "x": 0,
+            "y": 0,
+            "width": 162,
+            "height": 26
+           },
+           "attributes": {
+            "link": {
+             "href": "/#record",
+             "openInNewTab": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:idhvJF_M8qbFBQBad9:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:idhvJF_M8qbFBQBad9:0:0",
+               "attributes": {
+                "text": "Decision log"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "FrameNode",
+   "name": "Mobile",
+   "id": "jdMPzFghJ",
+   "$isReplica": true,
+   "$originalId": "UrowiP65c",
+   "$rect": {
+    "height": 1013
+   },
+   "attributes": {
+    "fill": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+    "htmlTag": "footer",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "80px",
+    "overflow": "clip",
+    "padding": "60px 16px 60px 16px",
+    "left": "2346px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "0%",
+    "centerAnchorY": "0%",
+    "constraintsLocked": false,
+    "width": "685px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "FrameNode",
+     "name": "Container",
+     "id": "jdMPzFghJdciV_splI",
+     "$replicaId": "jdMPzFghJ",
+     "$originalId": "dciV_splI",
+     "$rect": {
+      "x": 93,
+      "y": 60,
+      "width": 500,
+      "height": 893
+     },
+     "attributes": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "start",
+      "stackWrapEnabled": false,
+      "gap": "60px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "500px"
+     },
+     "children": [
+      {
+       "type": "FrameNode",
+       "name": "Large conversion message",
+       "id": "jdMPzFghJrnRaMIv34",
+       "$replicaId": "jdMPzFghJ",
+       "$originalId": "rnRaMIv34",
+       "$rect": {
+        "x": 0,
+        "y": 0,
+        "width": 500,
+        "height": 301
+       },
+       "attributes": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "stackWrapEnabled": false,
+        "gap": "24px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "maxWidth": "500px"
+       },
+       "children": [
+        {
+         "type": "RichTextNode",
+         "id": "jdMPzFghJiooSFXQ6L",
+         "$replicaId": "jdMPzFghJ",
+         "$originalId": "iooSFXQ6L",
+         "$rect": {
+          "x": 0,
+          "y": 0,
+          "width": 500,
+          "height": 152
+         },
+         "attributes": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Heading 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "textWrap": "balance"
+         },
+         "children": [
+          {
+           "type": "TextBlock",
+           "id": "v:jdMPzFghJiooSFXQ6L:0",
+           "attributes": {
+            "tag": "h2"
+           },
+           "children": [
+            {
+             "type": "TextRun",
+             "id": "v:jdMPzFghJiooSFXQ6L:0:0",
+             "attributes": {
+              "text": "Give the agent the budget. Keep the keys to the limits."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "RichTextNode",
+         "id": "jdMPzFghJNpUyCFmKm",
+         "$replicaId": "jdMPzFghJ",
+         "$originalId": "NpUyCFmKm",
+         "$rect": {
+          "x": 0,
+          "y": 176,
+          "width": 500,
+          "height": 56
+         },
+         "attributes": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "500px",
+          "textStylePreset": "Body 1",
+          "textAlignment": "start",
+          "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)",
+          "textWrap": "balance"
+         },
+         "children": [
+          {
+           "type": "TextBlock",
+           "id": "v:jdMPzFghJNpUyCFmKm:0",
+           "attributes": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "type": "TextRun",
+             "id": "v:jdMPzFghJNpUyCFmKm:0:0",
+             "attributes": {
+              "text": "Start with one campaign and one line that defines a real result. Read the first decision record. You will know in a day whether you want a second campaign."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "ComponentInstanceNode",
+         "id": "jdMPzFghJqYmFtFp71",
+         "component": "Jh9jZPCX6",
+         "$replicaId": "jdMPzFghJ",
+         "$originalId": "qYmFtFp71",
+         "$rect": {
+          "x": 0,
+          "y": 256,
+          "width": 182,
+          "height": 45
+         },
+         "$componentDisplayName": "Button",
+         "attributes": {
+          "$control__variant": "Desktop/primary",
+          "$control__label": "Start a campaign",
+          "$control__iconVisible": "true",
+          "$control__link": "/#how-it-works",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         }
+        }
+       ]
+      },
+      {
+       "type": "FrameNode",
+       "name": "Brand and single product column",
+       "id": "jdMPzFghJDxAbxJGyl",
+       "$replicaId": "jdMPzFghJ",
+       "$originalId": "DxAbxJGyl",
+       "$rect": {
+        "x": 0,
+        "y": 361,
+        "width": 500,
+        "height": 374
+       },
+       "attributes": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "stackWrapEnabled": false,
+        "gap": "40px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "type": "FrameNode",
+         "name": "CTA footer brand",
+         "id": "jdMPzFghJSbfkDY0M_",
+         "$replicaId": "jdMPzFghJ",
+         "$originalId": "SbfkDY0M_",
+         "$rect": {
+          "x": 0,
+          "y": 0,
+          "width": 500,
+          "height": 127
+         },
+         "attributes": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "stackWrapEnabled": false,
+          "gap": "24px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "FrameNode",
+           "name": "Logo",
+           "id": "jdMPzFghJOOUZlfKem",
+           "$replicaId": "jdMPzFghJ",
+           "$originalId": "OOUZlfKem",
+           "$rect": {
+            "x": 0,
+            "y": 0,
+            "height": 40
+           },
+           "attributes": {
+            "fill": "https://framerusercontent.com/images/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png",
+            "layout": "null",
+            "overflow": "clip",
+            "position": "relative",
+            "width": "40px",
+            "height": "67px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "type": "FrameNode",
+           "name": "Heading + description",
+           "id": "jdMPzFghJlNyj079oD",
+           "$replicaId": "jdMPzFghJ",
+           "$originalId": "lNyj079oD",
+           "$rect": {
+            "x": 0,
+            "y": 64,
+            "width": 500,
+            "height": 63
+           },
+           "attributes": {
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "center",
+            "stackAlignment": "start",
+            "stackWrapEnabled": false,
+            "gap": "8px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "type": "RichTextNode",
+             "id": "jdMPzFghJD1TjlfYxn",
+             "$replicaId": "jdMPzFghJ",
+             "$originalId": "D1TjlfYxn",
+             "$rect": {
+              "x": 0,
+              "y": 0,
+              "width": 104,
+              "height": 29
+             },
+             "attributes": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Heading 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+             },
+             "children": [
+              {
+               "type": "TextBlock",
+               "id": "v:jdMPzFghJD1TjlfYxn:0",
+               "attributes": {
+                "tag": "h3"
+               },
+               "children": [
+                {
+                 "type": "TextRun",
+                 "id": "v:jdMPzFghJD1TjlfYxn:0:0",
+                 "attributes": {
+                  "text": "GUILD"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "type": "RichTextNode",
+             "id": "jdMPzFghJv8i2hJoUX",
+             "$replicaId": "jdMPzFghJ",
+             "$originalId": "v8i2hJoUX",
+             "$rect": {
+              "x": 0,
+              "y": 37,
+              "width": 243,
+              "height": 26
+             },
+             "attributes": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 2",
+              "textAlignment": "start",
+              "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+             },
+             "children": [
+              {
+               "type": "TextBlock",
+               "id": "v:jdMPzFghJv8i2hJoUX:0",
+               "attributes": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "type": "TextRun",
+                 "id": "v:jdMPzFghJv8i2hJoUX:0:0",
+                 "attributes": {
+                  "text": "The growth agent that only pays for results it can verify."
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "FrameNode",
+         "name": "CTA product links",
+         "id": "jdMPzFghJRm4bQDZYW",
+         "$replicaId": "jdMPzFghJ",
+         "$originalId": "Rm4bQDZYW",
+         "$rect": {
+          "x": 0,
+          "y": 167,
+          "width": 200,
+          "height": 207
+         },
+         "attributes": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "stackWrapEnabled": false,
+          "gap": "11px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "200px"
+         },
+         "children": [
+          {
+           "type": "RichTextNode",
+           "id": "jdMPzFghJf2XF04ITg",
+           "$replicaId": "jdMPzFghJ",
+           "$originalId": "f2XF04ITg",
+           "$rect": {
+            "x": 0,
+            "y": 0,
+            "width": 69,
+            "height": 24
+           },
+           "attributes": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Heading 5",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:jdMPzFghJf2XF04ITg:0",
+             "attributes": {
+              "tag": "h5"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:jdMPzFghJf2XF04ITg:0:0",
+               "attributes": {
+                "text": "Product"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "jdMPzFghJhEUg_dUKy",
+           "$replicaId": "jdMPzFghJ",
+           "$originalId": "hEUg_dUKy",
+           "$rect": {
+            "x": 0,
+            "y": 35,
+            "width": 93,
+            "height": 26
+           },
+           "attributes": {
+            "link": {
+             "href": "/#how-it-works",
+             "smoothScroll": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:jdMPzFghJhEUg_dUKy:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:jdMPzFghJhEUg_dUKy:0:0",
+               "attributes": {
+                "text": "How it works"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "jdMPzFghJS1FWYN9N5",
+           "$replicaId": "jdMPzFghJ",
+           "$originalId": "S1FWYN9N5",
+           "$rect": {
+            "x": 0,
+            "y": 72,
+            "width": 63,
+            "height": 26
+           },
+           "attributes": {
+            "link": {
+             "href": "/#features"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:jdMPzFghJS1FWYN9N5:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:jdMPzFghJS1FWYN9N5:0:0",
+               "attributes": {
+                "text": "What it decides"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "jdMPzFghJassjAvM6D",
+           "$replicaId": "jdMPzFghJ",
+           "$originalId": "assjAvM6D",
+           "$rect": {
+            "x": 0,
+            "y": 109,
+            "width": 84,
+            "height": 25
+           },
+           "attributes": {
+            "link": {
+             "href": "/#partners"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:jdMPzFghJassjAvM6D:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:jdMPzFghJassjAvM6D:0:0",
+               "attributes": {
+                "text": "For partners"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "jdMPzFghJlNssWqDdu",
+           "$replicaId": "jdMPzFghJ",
+           "$originalId": "lNssWqDdu",
+           "$rect": {
+            "x": 0,
+            "y": 145,
+            "width": 50,
+            "height": 26
+           },
+           "attributes": {
+            "link": {
+             "href": "/#pricing"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:jdMPzFghJlNssWqDdu:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:jdMPzFghJlNssWqDdu:0:0",
+               "attributes": {
+                "text": "Pricing"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "type": "RichTextNode",
+           "id": "jdMPzFghJCVfFChqjL",
+           "$replicaId": "jdMPzFghJ",
+           "$originalId": "CVfFChqjL",
+           "$rect": {
+            "x": 0,
+            "y": 182,
+            "width": 59,
+            "height": 25
+           },
+           "attributes": {
+            "link": {
+             "href": "/#security"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:jdMPzFghJCVfFChqjL:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:jdMPzFghJCVfFChqjL:0:0",
+               "attributes": {
+                "text": "Trust and controls"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "type": "FrameNode",
+       "name": "CTA footer legal rail",
+       "id": "jdMPzFghJnAx8Ohiff",
+       "$replicaId": "jdMPzFghJ",
+       "$originalId": "nAx8Ohiff",
+       "$rect": {
+        "x": 0,
+        "y": 795,
+        "width": 500,
+        "height": 98
+       },
+       "attributes": {
+        "borderStyle": "solid",
+        "borderColor": "var(--token-edd43b1b-e1c0-47ab-b700-0fd2dbef2982)",
+        "borderTop": "1px",
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "stackWrapEnabled": false,
+        "gap": "24px",
+        "padding": "22px 0px 0px 0px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "type": "RichTextNode",
+         "id": "jdMPzFghJvBcJZygP7",
+         "$replicaId": "jdMPzFghJ",
+         "$originalId": "vBcJZygP7",
+         "$rect": {
+          "x": 0,
+          "y": 22,
+          "width": 273,
+          "height": 26
+         },
+         "attributes": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Body 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "type": "TextBlock",
+           "id": "v:jdMPzFghJvBcJZygP7:0",
+           "attributes": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "type": "TextRun",
+             "id": "v:jdMPzFghJvBcJZygP7:0:0",
+             "attributes": {
+              "text": "© 2026 GUILD, built by Merk Labs for the Tameion Agents Hackathon. Unaudited contract, not financial advice."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "type": "FrameNode",
+         "name": "CTA legal links",
+         "id": "jdMPzFghJosghCcZwJ",
+         "$replicaId": "jdMPzFghJ",
+         "$originalId": "osghCcZwJ",
+         "$rect": {
+          "x": 0,
+          "y": 72,
+          "width": 161,
+          "height": 26
+         },
+         "attributes": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "stackWrapEnabled": false,
+          "gap": "24px",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "type": "RichTextNode",
+           "id": "jdMPzFghJqbFBQBad9",
+           "$replicaId": "jdMPzFghJ",
+           "$originalId": "qbFBQBad9",
+           "$rect": {
+            "x": 0,
+            "y": 0,
+            "width": 161,
+            "height": 26
+           },
+           "attributes": {
+            "link": {
+             "href": "/#record",
+             "openInNewTab": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+           },
+           "children": [
+            {
+             "type": "TextBlock",
+             "id": "v:jdMPzFghJqbFBQBad9:0",
+             "attributes": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "type": "TextRun",
+               "id": "v:jdMPzFghJqbFBQBad9:0:0",
+               "attributes": {
+                "text": "Decision log"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

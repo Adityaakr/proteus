@@ -1,0 +1,128 @@
+/* Design tokens exported from the Framer project (color styles + text styles).
+   Token ids are kept so any value copied from design/framer-export can be pasted as-is. */
+
+@font-face { font-family: "Geist"; font-weight: 400; font-style: normal; font-display: swap; src: url("/fonts/Geist-400.woff2") format("woff2"); }
+@font-face { font-family: "Geist"; font-weight: 500; font-style: normal; font-display: swap; src: url("/fonts/Geist-500.woff2") format("woff2"); }
+@font-face { font-family: "Geist"; font-weight: 600; font-style: normal; font-display: swap; src: url("/fonts/Geist-600.woff2") format("woff2"); }
+/* Headings in the template use PP Neue Montreal (commercial). Satoshi is the free stand-in
+   the PROTEUS copy doc asks for; swap the files here if a PP Neue Montreal licence is available. */
+@font-face { font-family: "Satoshi"; font-weight: 400; font-style: normal; font-display: swap; src: url("/fonts/Satoshi-400.woff2") format("woff2"); }
+@font-face { font-family: "Satoshi"; font-weight: 500; font-style: normal; font-display: swap; src: url("/fonts/Satoshi-500.woff2") format("woff2"); }
+@font-face { font-family: "Satoshi"; font-weight: 700; font-style: normal; font-display: swap; src: url("/fonts/Satoshi-700.woff2") format("woff2"); }
+
+:root {
+  /* Brand */
+  --token-1654a1eb-a2e4-4e7c-82a5-361ad9dc239b: rgb(7, 11, 62);        /* Brand/Hero BG */
+  --token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1: rgb(9, 174, 255);      /* Brand/Secondary */
+  --token-b48b7134-7ad2-4f07-b792-c7a8003d791a: rgb(1, 43, 255);       /* Brand/Primary */
+  --token-52fd1831-77d8-4d28-b23b-c4a80f84cb84: rgb(2, 37, 212);       /* Brand/Primary dark */
+  --token-fd2642e7-ea40-4298-8994-88ab422747df: rgb(9, 153, 224);      /* Brand/Secondary dark */
+  --token-52d49a3a-3ad9-4835-a3cb-87d0d1f6fc06: rgba(1, 43, 255, 0.2); /* Primary 20% */
+  --token-621d9ebc-4113-4c98-9cca-bbc178460970: rgba(9, 174, 255, 0.2);/* Secondary 20% */
+  --token-1be088de-f41b-4031-bae0-a80f52f67dfd: rgba(9, 174, 255, 0.1);/* Secondary 10% */
+  --token-cfa89a90-dbbb-4892-b359-3cd7c161f4ad: rgb(49, 91, 232);      /* Primary (ripple) */
+  /* Neutrals */
+  --token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b: rgb(255, 255, 255);    /* White/100% */
+  --token-53d512fc-9508-4ca7-9593-aa4f8e122f95: rgba(255, 255, 255, 0.8);
+  --token-bfdae1e4-91e8-463a-8cf8-3968004590a9: rgba(255, 255, 255, 0.6);
+  --token-2ac6bb53-ab2a-4b31-addc-1571925f8917: rgba(255, 255, 255, 0.4);
+  --token-edd43b1b-e1c0-47ab-b700-0fd2dbef2982: rgba(255, 255, 255, 0.2);
+  --token-a1edcf55-b80c-4b00-8dc3-d8e4199b18ee: rgba(255, 255, 255, 0.1);
+  --token-22d3f34c-2981-4b25-b181-148f3f405183: rgba(255, 255, 255, 0.05);
+  --token-7ce17e0b-526a-4831-8d21-f7773fb57072: rgb(0, 0, 0);          /* Dark/100% */
+  --token-3e79ca65-ed75-4cd8-98e3-44362831f65e: rgba(0, 0, 0, 0.8);
+  --token-faa83f4b-eb5a-4111-a586-ff3633f4da58: rgba(0, 0, 0, 0.7);    /* Body text color */
+  --token-e8be503c-36d3-4511-8754-07379d8f8757: rgba(0, 0, 0, 0.6);
+  --token-2e8179f9-642e-40f6-a729-9879c38a7c7c: rgba(0, 0, 0, 0.4);
+  --token-e27a17f3-e906-4d22-a82d-877fde504653: rgba(0, 0, 0, 0.2);
+  --token-8144f193-de43-475d-87ea-e22ad062944c: rgba(0, 0, 0, 0.1);
+  --token-5ca9d1a6-60e9-4b58-be95-7cd78704268a: rgba(0, 0, 0, 0.05);
+  --token-3482e7f4-ca60-466f-aa1f-53d45aca05d9: rgb(250, 250, 250);    /* Page BG */
+  --token-a4819c6e-0dd1-4814-8b0b-cbf365a14f1a: rgb(250, 250, 250);    /* Card grey */
+  --token-a75fb687-8d00-4d08-9407-fce93f119924: rgb(246, 248, 247);    /* Page */
+  --token-df2a4e09-79fa-4710-a2fb-6d08ada26ba3: rgb(17, 21, 18);
+  --token-df0d70be-4f83-4b31-86f2-fe7fda12bad9: rgb(255, 255, 255);
+  --token-c944a8de-458a-42cf-a337-7b4acc95851a: rgb(115, 115, 115);    /* Body text */
+  --token-2c5f1bdc-a017-40a2-a05c-51e389e241d9: rgb(23, 23, 23);       /* Primary text */
+  --token-6e1a1ed1-ae7c-48f6-8052-04efff6cc0ab: rgb(11, 186, 26);      /* Green */
+  --token-95520325-8892-45d0-a491-544852415265: rgb(255, 84, 0);       /* Primary color (orange) */
+
+  /* Friendly aliases */
+  --c-primary: var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a);
+  --c-primary-dark: var(--token-52fd1831-77d8-4d28-b23b-c4a80f84cb84);
+  --c-secondary: var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1);
+  --c-secondary-dark: var(--token-fd2642e7-ea40-4298-8994-88ab422747df);
+  --c-primary-20: var(--token-52d49a3a-3ad9-4835-a3cb-87d0d1f6fc06);
+  --c-secondary-20: var(--token-621d9ebc-4113-4c98-9cca-bbc178460970);
+  --c-white: var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b);
+  --c-white-80: var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95);
+  --c-white-60: var(--token-bfdae1e4-91e8-463a-8cf8-3968004590a9);
+  --c-white-20: var(--token-edd43b1b-e1c0-47ab-b700-0fd2dbef2982);
+  --c-white-10: var(--token-a1edcf55-b80c-4b00-8dc3-d8e4199b18ee);
+  --c-dark: var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072);
+  --c-dark-80: var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e);
+  --c-body: var(--token-faa83f4b-eb5a-4111-a586-ff3633f4da58);
+  --c-dark-60: var(--token-e8be503c-36d3-4511-8754-07379d8f8757);
+  --c-dark-40: var(--token-2e8179f9-642e-40f6-a729-9879c38a7c7c);
+  --c-dark-20: var(--token-e27a17f3-e906-4d22-a82d-877fde504653);
+  --c-dark-10: var(--token-8144f193-de43-475d-87ea-e22ad062944c);
+  --c-dark-5: var(--token-5ca9d1a6-60e9-4b58-be95-7cd78704268a);
+  --c-page: var(--token-3482e7f4-ca60-466f-aa1f-53d45aca05d9);
+  --c-card: var(--token-a4819c6e-0dd1-4814-8b0b-cbf365a14f1a);
+  --c-green: var(--token-6e1a1ed1-ae7c-48f6-8052-04efff6cc0ab);
+
+  --font-heading: "Satoshi", "PP Neue Montreal", "Geist", system-ui, sans-serif;
+  --font-body: "Geist", system-ui, sans-serif;
+
+  /* Breakpoints (Framer): Desktop >=1200, Tablet 810-1199.98, Phone <=809.98 */
+  --bp-tablet: 1199.98px;
+  --bp-phone: 809.98px;
+}
+
+/* Text style presets. Class names mirror the Framer preset names. */
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  color: var(--c-dark);
+  margin: 0;
+  font-feature-settings: "cv03", "cv04", "cv09", "cv11";
+}
+.h1 { font-size: 68px; line-height: 1.15em; letter-spacing: 0; }
+.h2 { font-size: 46px; line-height: 1.1em; letter-spacing: 0; }
+.h3 { font-size: 24px; line-height: 1.2em; }
+.h4 { font-size: 22px; line-height: 1.18em; }
+.h5 { font-size: 20px; line-height: 1.24em; }
+.h6 { font-size: 16px; line-height: 1.2em; letter-spacing: 0.1px; }
+
+.body1, .body2, .body3, .label, .btn-text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  color: var(--c-body);
+  margin: 0;
+}
+.body1 { font-size: 18px; line-height: 1.55em; letter-spacing: -0.1px; }
+.body2 { font-size: 16px; line-height: 1.6em; letter-spacing: -0.1px; }
+.body3 { font-size: 14px; line-height: 1.5em; letter-spacing: -0.1px; }
+.label { font-size: 12px; line-height: 1.35em; font-weight: 500; }
+.btn-text { font-size: 16px; line-height: 1.6em; letter-spacing: -0.1px; font-weight: 500; color: var(--c-white); }
+
+@media (max-width: 1199.98px) {
+  .h1 { font-size: 52px; }
+  .h2 { font-size: 42px; line-height: 1.2em; }
+  .h3 { font-size: 22px; }
+  .h4 { font-size: 18px; }
+  .h5 { font-size: 18px; }
+  .h6 { font-size: 14px; letter-spacing: 0; }
+}
+@media (max-width: 809.98px) {
+  .h1 { font-size: 42px; }
+  .h2 { font-size: 36px; }
+}
+
+.text-white { color: var(--c-white); }
+.text-white-80 { color: var(--c-white-80); }
+.text-white-60 { color: var(--c-white-60); }
+.text-dark { color: var(--c-dark); }
+.text-dark-60 { color: var(--c-dark-60); }
+.text-dark-40 { color: var(--c-dark-40); }
+.text-center { text-align: center; }

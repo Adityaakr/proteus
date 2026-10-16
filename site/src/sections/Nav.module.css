@@ -1,0 +1,130 @@
+/* layout-template.json: fixed wrapper (padding 16, z 10) holding the Navigation bar instance,
+   maxWidth 1200 (Desktop) / 1000 (Tablet) / 500 (Phone). Tablet and Phone use the "Phone" variants. */
+.wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.nav {
+  pointer-events: auto;
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  background: var(--c-white);
+  /* Framer draws the 1px Dark/10% border inside the box; reference nav is 54px tall. */
+  box-shadow: inset 0 0 0 1px var(--c-dark-10);
+  overflow: clip;
+  display: flex;
+  box-sizing: border-box;
+}
+@media (max-width: 1199.98px) {
+  .nav { max-width: 1000px; }
+}
+@media (max-width: 809.98px) {
+  .nav { max-width: 500px; }
+}
+
+/* Desktop variant: horizontal, space-between, padding 6px 8px, radius 1000 */
+.desktop {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 1000px;
+}
+/* Phone variants: vertical, gap 4, padding 8, radius 24 (Open adds minHeight 100vh) */
+.phone {
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 24px;
+}
+
+/* Framer: padding 8px 0 8px 4px around a background-image logo with no intrinsic height, so the
+   row never exceeds the 40px actions column (nav = 52px). With a real <img> the vertical padding
+   would add 16px, so it is dropped and the logo is centered in the row instead. */
+.logoRow {
+  flex: 1 1 0%;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0 0 4px;
+}
+.phone .logoRow {
+  flex: none;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 0 0 8px;
+}
+.logo {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+.logo img { width: 131px; height: 26px; display: block; object-fit: contain; object-position: left center; }
+.phone .logo { width: 125px; padding: 10px 0; }
+.phone .logo img { width: 125px; height: auto; }
+
+.trigger {
+  width: 44px;
+  height: 44px;
+  border-radius: 1000px;
+  box-shadow: inset 0 0 0 1px var(--c-dark-10);
+  background: var(--c-white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-dark);
+  cursor: pointer;
+  flex: none;
+  overflow: clip;
+}
+
+.links {
+  flex: 1 1 0%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+}
+.link { color: var(--c-body); transition: color 0.2s ease; display: block; }
+.link:hover { color: var(--c-dark); }
+.phone .links {
+  flex: none;
+  width: 100%;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px 16px;
+  min-height: 100px;
+}
+.phone .links li { width: 100%; }
+
+.actions {
+  flex: 1 1 0%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0;
+}
+.phone .actions {
+  flex: none;
+  width: 100%;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 8px;
+}

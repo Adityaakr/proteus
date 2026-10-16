@@ -1,0 +1,193 @@
+{
+ "id": "UMje28XpX",
+ "type": "FrameNode",
+ "name": "Pricing",
+ "a": {
+  "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+  "htmlTag": "section",
+  "layout": "stack",
+  "stackDirection": "horizontal",
+  "stackDistribution": "center",
+  "stackAlignment": "center",
+  "gap": "10px",
+  "overflow": "clip",
+  "position": "relative",
+  "scrollTargetEnabled": true,
+  "elementId": "pricing",
+  "width": "1fr",
+  "height": "auto"
+ },
+ "children": [
+  {
+   "id": "a6DEf8q3C",
+   "type": "FrameNode",
+   "name": "Content container",
+   "a": {
+    "fill": "var(--token-3482e7f4-ca60-466f-aa1f-53d45aca05d9)",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "60px",
+    "overflow": "clip",
+    "padding": "100px 40px 100px 40px",
+    "position": "relative",
+    "width": "1fr",
+    "height": "auto"
+   },
+   "children": [
+    {
+     "id": "Lq8i6I3p5",
+     "type": "FrameNode",
+     "name": "Content",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "60px",
+      "overflow": "clip",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1200px",
+      "zIndex": "1"
+     },
+     "children": [
+      {
+       "id": "njDy_sWeT",
+       "type": "FrameNode",
+       "name": "Heading + tag",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "32px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "Vjy5OEVGa",
+         "type": "ComponentInstanceNode",
+         "component": "PR2FImO_h",
+         "componentName": "Tag",
+         "a": {
+          "$control__variant": "Inactive",
+          "$control__title": "Pricing",
+          "$control__iconText": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+          "$control__border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+          "position": "relative",
+          "scrollVariantEffect": {
+           "trigger": "onInView",
+           "replay": false,
+           "threshold": 0.5,
+           "fromVariant": "BYnhqdO_k",
+           "toVariant": "c_qE4utIC"
+          },
+          "width": "auto",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "MM5LdHLZ8",
+         "type": "FrameNode",
+         "name": "Heading + description",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "overflow": "clip",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "P3URcoVNg",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Heading 2",
+            "textAlignment": "center"
+           },
+           "children": [
+            {
+             "id": "v:P3URcoVNg:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "h2"
+             },
+             "children": [
+              {
+               "id": "v:P3URcoVNg:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Free during Tameion. Honest after it."
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "mwqp_rLOa",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Body 1",
+            "textAlignment": "center"
+           },
+           "children": [
+            {
+             "id": "v:mwqp_rLOa:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:mwqp_rLOa:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "You fund your own budget; GUILD takes no fee from it. Payouts on Arc cost about a cent each, paid from the campaign. You own the campaign, the partner relationships and the records. Export them any time."
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "Ylk_P2o02",
+       "type": "ComponentInstanceNode",
+       "component": "NOzSvW5Bh",
+       "componentName": "Pricing toggle + cards",
+       "a": {
+        "$control__variant": "Desktop/annual",
+        "$control__direction": "Horizontal",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,88 @@
+{
+ "type": "ComponentNode",
+ "id": "PxRVBBWIS",
+ "name": "Metrics card",
+ "variables": [
+  {
+   "key": "$control__number",
+   "id": "l8krc8cgY",
+   "name": "Number",
+   "node": "Variable",
+   "type": "string",
+   "initialValue": "3.2×"
+  },
+  {
+   "key": "$control__title",
+   "id": "OU5zgLyJt",
+   "name": "Title",
+   "node": "Variable",
+   "type": "string",
+   "initialValue": "workflow throughput"
+  }
+ ],
+ "$parentId": "sn7IXw6X9",
+ "$variants": [
+  {
+   "id": "c67AavYPv",
+   "name": "Desktop"
+  }
+ ],
+ "children": [
+  {
+   "type": "FrameNode",
+   "name": "Desktop",
+   "id": "c67AavYPv",
+   "$isPrimary": true,
+   "attributes": {
+    "borderStyle": "solid",
+    "borderColor": "var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1)",
+    "borderLeft": "2px",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "start",
+    "stackWrapEnabled": false,
+    "gap": "2px",
+    "overflow": "clip",
+    "padding": "2px 0px 2px 16px",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "0%",
+    "centerAnchorY": "0%",
+    "constraintsLocked": false,
+    "width": "248px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "RichTextNode",
+     "id": "MTxbKHh_u",
+     "attributes": {
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "text": "var(--variable-l8krc8cgY)",
+      "textStylePreset": "Heading 3",
+      "textAlignment": "start"
+     }
+    },
+    {
+     "type": "RichTextNode",
+     "id": "nop9jat2o",
+     "attributes": {
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "text": "var(--variable-OU5zgLyJt)",
+      "textStylePreset": "Body 2",
+      "textAlignment": "start",
+      "textColor": "var(--token-e8be503c-36d3-4511-8754-07379d8f8757)"
+     }
+    }
+   ]
+  }
+ ]
+}

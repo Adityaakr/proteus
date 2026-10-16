@@ -1,0 +1,527 @@
+{
+ "id": "qCXDZGj4q",
+ "type": "ComponentNode",
+ "name": "Multimodal card",
+ "$variants": [
+  {
+   "id": "A2p5G7tdE",
+   "name": "1"
+  }
+ ],
+ "variables": [],
+ "children": [
+  {
+   "id": "A2p5G7tdE",
+   "type": "FrameNode",
+   "name": "1",
+   "a": {
+    "fill": "var(--token-a75fb687-8d00-4d08-9407-fce93f119924)",
+    "layout": "null",
+    "overflow": "clip",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "16px 16px 0px 0px",
+    "width": "309.5px",
+    "height": "353px",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "ZZFQCrzFV",
+     "type": "FrameNode",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "16px",
+      "padding": "24px 0px 24px 0px",
+      "left": "0px",
+      "right": "0px",
+      "top": "null",
+      "bottom": "null",
+      "width": "310px",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "bEUgkIo5A",
+       "type": "FrameNode",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "start",
+        "stackAlignment": "center",
+        "gap": "16px",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "yDnN2zuri",
+         "type": "FrameNode",
+         "name": "List",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "OPTJUsbU1",
+           "type": "IconNode",
+           "a": {
+            "$control__stroke": "rgb(237, 149, 17)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           },
+           "set": "fiHEoJwBMFnT6QLOcpPz"
+          },
+          {
+           "id": "N6lb0hqIn",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "id": "v:N6lb0hqIn:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:N6lb0hqIn:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "x402 purchase"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "xWZusnVPW",
+         "type": "FrameNode",
+         "name": "List",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "xNcnlk6vl",
+           "type": "IconNode",
+           "a": {
+            "$control__stroke": "rgb(230, 58, 28)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           },
+           "set": "fiHEoJwBMFnT6QLOcpPz"
+          },
+          {
+           "id": "vDjBYdalA",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "id": "v:vDjBYdalA:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:vDjBYdalA:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Onchain action"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "IhwxxrI2h",
+         "type": "FrameNode",
+         "name": "List",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "f3SlT9LFZ",
+           "type": "IconNode",
+           "a": {
+            "$control__stroke": "rgb(179, 28, 230)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           },
+           "set": "fiHEoJwBMFnT6QLOcpPz"
+          },
+          {
+           "id": "sTo_AKnDt",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "id": "v:sTo_AKnDt:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:sTo_AKnDt:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Signed event"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "uub7NHhZJ",
+         "type": "FrameNode",
+         "name": "List",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "HAOM6Ir41",
+           "type": "IconNode",
+           "a": {
+            "$control__stroke": "rgb(28, 58, 230)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           },
+           "set": "fiHEoJwBMFnT6QLOcpPz"
+          },
+          {
+           "id": "Mx6COL9iJ",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "id": "v:Mx6COL9iJ:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:Mx6COL9iJ:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Activation"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "cb7_UVRvV",
+       "type": "FrameNode",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "start",
+        "stackAlignment": "center",
+        "gap": "16px",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "vqipm8fqu",
+         "type": "FrameNode",
+         "name": "List",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "UlCMA7kcX",
+           "type": "IconNode",
+           "a": {
+            "$control__stroke": "rgb(20, 195, 204)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           },
+           "set": "fiHEoJwBMFnT6QLOcpPz"
+          },
+          {
+           "id": "YAtOxi1F6",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "id": "v:YAtOxi1F6:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:YAtOxi1F6:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "API key, 50 calls"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "VQhKQZhNy",
+         "type": "FrameNode",
+         "name": "List",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "Spyz4ZL5M",
+           "type": "IconNode",
+           "a": {
+            "$control__stroke": "rgb(42, 204, 20)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           },
+           "set": "fiHEoJwBMFnT6QLOcpPz"
+          },
+          {
+           "id": "hfvkGoBOR",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "id": "v:hfvkGoBOR:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:hfvkGoBOR:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Referral match"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "bpQfHIjiG",
+         "type": "FrameNode",
+         "name": "List",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "8px",
+          "overflow": "clip",
+          "padding": "8px 16px 8px 16px",
+          "position": "relative",
+          "radius": "1000px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "PYqAquyp2",
+           "type": "IconNode",
+           "a": {
+            "$control__stroke": "rgb(2, 196, 183)",
+            "position": "relative",
+            "width": "20px",
+            "height": "24px",
+            "aspectRatio": 1
+           },
+           "set": "fiHEoJwBMFnT6QLOcpPz"
+          },
+          {
+           "id": "M7pdqtiKX",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "id": "v:M7pdqtiKX:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:M7pdqtiKX:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Partner accepted"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

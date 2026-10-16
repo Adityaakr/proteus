@@ -1,0 +1,162 @@
+{
+ "id": "PR2FImO_h",
+ "type": "ComponentNode",
+ "name": "Tag",
+ "$variants": [
+  {
+   "id": "BYnhqdO_k",
+   "name": "Inactive"
+  },
+  {
+   "id": "c_qE4utIC",
+   "name": "Active"
+  }
+ ],
+ "variables": [
+  {
+   "key": "$control__title",
+   "id": "X2sPxkebi",
+   "name": "Title",
+   "node": "Variable",
+   "type": "string",
+   "initialValue": "How it works"
+  },
+  {
+   "set": "fiHEoJwBMFnT6QLOcpPz",
+   "initialValue": "Feather",
+   "key": "$control__icon",
+   "id": "yCbtA9Hxn",
+   "name": "Icon",
+   "node": "IconVariable",
+   "type": "icon"
+  },
+  {
+   "key": "$control__iconText",
+   "id": "Y6PDMjjDn",
+   "name": "Icon & text",
+   "node": "Variable",
+   "type": "color",
+   "initialValue": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072, rgb(0, 0, 0)) /* {\"name\":\"Dark\"} */"
+  },
+  {
+   "key": "$control__border",
+   "id": "T23Labgnv",
+   "name": "Border",
+   "node": "Variable",
+   "type": "border",
+   "initialValue": {
+    "borderColor": "var(--token-e27a17f3-e906-4d22-a82d-877fde504653, rgba(0, 0, 0, 0.2)) /* {\"name\":\"Dark 20%\"} */",
+    "borderStyle": "solid",
+    "borderPerSide": false,
+    "borderBottom": 1,
+    "borderLeft": 1,
+    "borderRight": 1,
+    "borderTop": 1,
+    "borderWidth": 1
+   }
+  }
+ ],
+ "children": [
+  {
+   "id": "BYnhqdO_k",
+   "type": "FrameNode",
+   "name": "Inactive",
+   "a": {
+    "border": "var(--variable-T23Labgnv)",
+    "layout": "stack",
+    "stackDirection": "horizontal",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "gap": "10px",
+    "overflow": "clip",
+    "padding": "8px",
+    "left": "2px",
+    "right": "null",
+    "top": "3px",
+    "bottom": "null",
+    "radius": "1000px",
+    "width": "auto",
+    "height": "auto",
+    "transition": "spring-duration 1s 0.2 0.3s"
+   },
+   "children": [
+    {
+     "id": "OB7y22byz",
+     "type": "IconNode",
+     "a": {
+      "$control__stroke": "var(--variable-Y6PDMjjDn)",
+      "position": "relative",
+      "width": "16px",
+      "height": "20px",
+      "aspectRatio": 1
+     },
+     "set": "fiHEoJwBMFnT6QLOcpPz"
+    },
+    {
+     "id": "XAgKXN1PW",
+     "type": "RichTextNode",
+     "a": {
+      "position": "relative",
+      "width": "auto",
+      "height": "auto",
+      "text": "var(--variable-X2sPxkebi)",
+      "textStylePreset": "Body 3",
+      "textAlignment": "start",
+      "textColor": "var(--variable-Y6PDMjjDn)",
+      "visible": "false"
+     }
+    }
+   ]
+  },
+  {
+   "id": "c_qE4utIC",
+   "type": "FrameNode",
+   "name": "Active",
+   "a": {
+    "border": "var(--variable-T23Labgnv)",
+    "layout": "stack",
+    "stackDirection": "horizontal",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "gap": "10px",
+    "overflow": "clip",
+    "padding": "6px 12px 6px 12px",
+    "left": "240px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "1000px",
+    "width": "auto",
+    "height": "auto",
+    "transition": "spring-duration 1s 0.2 0.3s"
+   },
+   "children": [
+    {
+     "id": "c_qE4utICOB7y22byz",
+     "type": "IconNode",
+     "a": {
+      "$control__stroke": "var(--variable-Y6PDMjjDn)",
+      "position": "relative",
+      "width": "16px",
+      "height": "20px",
+      "aspectRatio": 1
+     },
+     "set": "fiHEoJwBMFnT6QLOcpPz"
+    },
+    {
+     "id": "c_qE4utICXAgKXN1PW",
+     "type": "RichTextNode",
+     "a": {
+      "position": "relative",
+      "width": "auto",
+      "height": "auto",
+      "text": "var(--variable-X2sPxkebi)",
+      "textStylePreset": "Body 3",
+      "textAlignment": "start",
+      "textColor": "var(--variable-Y6PDMjjDn)"
+     }
+    }
+   ]
+  }
+ ]
+}

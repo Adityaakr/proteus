@@ -1,0 +1,984 @@
+{
+ "id": "UXHe4J1PZ",
+ "type": "ComponentNode",
+ "name": "Navigation bar",
+ "$variants": [
+  {
+   "id": "SSKhviVYR",
+   "name": "Desktop"
+  },
+  {
+   "id": "VQTwPyCP_",
+   "name": "Phone Closed"
+  },
+  {
+   "id": "bLrSKPEk8",
+   "name": "Phone Open"
+  }
+ ],
+ "variables": [],
+ "children": [
+  {
+   "id": "SSKhviVYR",
+   "type": "FrameNode",
+   "name": "Desktop",
+   "a": {
+    "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+    "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+    "htmlTag": "nav",
+    "layout": "stack",
+    "stackDirection": "horizontal",
+    "stackDistribution": "space-between",
+    "stackAlignment": "center",
+    "overflow": "clip",
+    "padding": "6px 8px 6px 8px",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "1000px",
+    "width": "1200px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "v1CjvD_6m",
+     "type": "FrameNode",
+     "name": "Logo container",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "start",
+      "stackAlignment": "center",
+      "gap": "10px",
+      "padding": "8px 0px 8px 4px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "1fr"
+     },
+     "children": [
+      {
+       "id": "G5HJH2HWZ",
+       "type": "FrameNode",
+       "name": "Company logo placeholder",
+       "a": {
+        "fill": "https://framerusercontent.com/images/17Gk2mO5X3Du2NxZxeGjy1f72TQ.png",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "0px",
+        "link": {
+         "href": "/#hero"
+        },
+        "padding": "12px 18px 12px 18px",
+        "position": "relative",
+        "width": "194.5px",
+        "height": "1fr",
+        "aspectRatio": 5.12
+       }
+      },
+      {
+       "id": "OIdQOqhKN",
+       "type": "FrameNode",
+       "name": "Mobile menu trigger",
+       "a": {
+        "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+        "cursor": "pointer",
+        "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "0px",
+        "overflow": "clip",
+        "position": "relative",
+        "radius": "1000px",
+        "width": "44px",
+        "height": "44px",
+        "transition": "spring-duration 0.3s 0.2 0s",
+        "visible": "false"
+       },
+       "children": [
+        {
+         "id": "zuzY2kc3M",
+         "type": "IconNode",
+         "a": {
+          "$control__color": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+          "$control__width": "2",
+          "position": "relative",
+          "width": "20px",
+          "height": "20px"
+         },
+         "set": "Y7SpbVH16cWqMhj75z1M"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "BnEu9Isys",
+     "type": "FrameNode",
+     "name": "Navigation links",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "32px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "jp2UhyVj5",
+       "type": "RichTextNode",
+       "a": {
+        "link": {
+         "href": "/#how-it-works",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "auto",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:jp2UhyVj5:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:jp2UhyVj5:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "How it works"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "OGbVj23E8",
+       "type": "RichTextNode",
+       "a": {
+        "link": {
+         "href": "/#features",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "auto",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:OGbVj23E8:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:OGbVj23E8:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Decisions"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "dTREWZcfg",
+       "type": "RichTextNode",
+       "a": {
+        "link": {
+         "href": "/#pricing",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "auto",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:dTREWZcfg:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:dTREWZcfg:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Pricing"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "vSuBdhCSN",
+       "type": "RichTextNode",
+       "a": {
+        "link": {
+         "href": "/#security",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "auto",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:vSuBdhCSN:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:vSuBdhCSN:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Trust"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "LvBDopLF8",
+     "type": "FrameNode",
+     "name": "Navigation actions",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "end",
+      "stackAlignment": "center",
+      "gap": "12px",
+      "padding": "2px 0px 2px 0px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "Sf14Jn2AC",
+       "type": "ComponentInstanceNode",
+       "component": "Jh9jZPCX6",
+       "componentName": "Button",
+       "a": {
+        "$control__variant": "Desktop/secondary/small",
+        "$control__label": "Become a partner",
+        "$control__iconVisible": "false",
+        "$control__link": "/#partners",
+        "position": "relative",
+        "width": "auto",
+        "height": "auto"
+       }
+      },
+      {
+       "id": "OWZzdEOKx",
+       "type": "ComponentInstanceNode",
+       "component": "Jh9jZPCX6",
+       "componentName": "Button",
+       "a": {
+        "$control__variant": "Desktop/primary/small",
+        "$control__label": "Start a campaign",
+        "$control__iconVisible": "false",
+        "$control__link": "/#how-it-works",
+        "position": "relative",
+        "width": "auto",
+        "height": "auto"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "VQTwPyCP_",
+   "type": "FrameNode",
+   "name": "Phone Closed",
+   "a": {
+    "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+    "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+    "htmlTag": "nav",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "4px",
+    "overflow": "clip",
+    "padding": "8px",
+    "left": "1300px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "24px",
+    "width": "390px",
+    "height": "auto",
+    "transition": "tween 0.44,0,0.56,1 0.35s 0s"
+   },
+   "children": [
+    {
+     "id": "VQTwPyCP_v1CjvD_6m",
+     "type": "FrameNode",
+     "name": "Logo container",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "space-between",
+      "stackAlignment": "center",
+      "padding": "0px 0px 0px 8px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "VQTwPyCP_G5HJH2HWZ",
+       "type": "FrameNode",
+       "name": "Company logo placeholder",
+       "a": {
+        "cursor": "default",
+        "fill": "https://framerusercontent.com/images/17Gk2mO5X3Du2NxZxeGjy1f72TQ.png",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "0px",
+        "link": {
+         "href": "/#hero"
+        },
+        "padding": "10px 16px 10px 16px",
+        "position": "relative",
+        "width": "125px",
+        "height": "1fr"
+       }
+      },
+      {
+       "id": "VQTwPyCP_OIdQOqhKN",
+       "type": "FrameNode",
+       "name": "Mobile menu trigger",
+       "a": {
+        "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+        "cursor": "pointer",
+        "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+        "onTap": [
+         {
+          "action": "SET_VARIANT",
+          "controls": {
+           "variant": "bLrSKPEk8"
+          }
+         }
+        ],
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "0px",
+        "overflow": "clip",
+        "position": "relative",
+        "radius": "1000px",
+        "width": "44px",
+        "height": "44px",
+        "transition": "spring-duration 0.3s 0.2 0s"
+       },
+       "children": [
+        {
+         "id": "VQTwPyCP_zuzY2kc3M",
+         "type": "IconNode",
+         "a": {
+          "$control__color": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+          "$control__width": "2",
+          "position": "relative",
+          "width": "20px",
+          "height": "20px"
+         },
+         "set": "Y7SpbVH16cWqMhj75z1M"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "VQTwPyCP_BnEu9Isys",
+     "type": "FrameNode",
+     "name": "Navigation links",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "start",
+      "stackAlignment": "start",
+      "gap": "20px",
+      "padding": "20px 16px 20px 16px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "visible": "false"
+     },
+     "children": [
+      {
+       "id": "VQTwPyCP_jp2UhyVj5",
+       "type": "RichTextNode",
+       "a": {
+        "link": {
+         "href": "/#how-it-works",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:VQTwPyCP_jp2UhyVj5:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:VQTwPyCP_jp2UhyVj5:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "How it works"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "VQTwPyCP_OGbVj23E8",
+       "type": "RichTextNode",
+       "a": {
+        "link": {
+         "href": "/#features",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:VQTwPyCP_OGbVj23E8:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:VQTwPyCP_OGbVj23E8:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Decisions"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "VQTwPyCP_dTREWZcfg",
+       "type": "RichTextNode",
+       "a": {
+        "link": {
+         "href": "/#pricing",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:VQTwPyCP_dTREWZcfg:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:VQTwPyCP_dTREWZcfg:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Pricing"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "VQTwPyCP_vSuBdhCSN",
+       "type": "RichTextNode",
+       "a": {
+        "link": {
+         "href": "/#security",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:VQTwPyCP_vSuBdhCSN:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:VQTwPyCP_vSuBdhCSN:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Trust"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "VQTwPyCP_LvBDopLF8",
+     "type": "FrameNode",
+     "name": "Navigation actions",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "start",
+      "stackAlignment": "center",
+      "gap": "8px",
+      "padding": "8px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "visible": "false"
+     },
+     "children": [
+      {
+       "id": "VQTwPyCP_Sf14Jn2AC",
+       "type": "ComponentInstanceNode",
+       "component": "Jh9jZPCX6",
+       "componentName": "Button",
+       "a": {
+        "$control__variant": "Desktop/secondary/small",
+        "$control__label": "Become a partner",
+        "$control__iconVisible": "false",
+        "$control__link": "/#partners",
+        "position": "relative",
+        "width": "auto",
+        "height": "auto"
+       }
+      },
+      {
+       "id": "VQTwPyCP_OWZzdEOKx",
+       "type": "ComponentInstanceNode",
+       "component": "Jh9jZPCX6",
+       "componentName": "Button",
+       "a": {
+        "$control__variant": "Desktop/primary/small",
+        "$control__label": "Start a campaign",
+        "$control__iconVisible": "false",
+        "$control__link": "/#how-it-works",
+        "position": "relative",
+        "width": "auto",
+        "height": "auto"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bLrSKPEk8",
+   "type": "FrameNode",
+   "name": "Phone Open",
+   "a": {
+    "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+    "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+    "htmlTag": "nav",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "4px",
+    "overflow": "clip",
+    "padding": "8px",
+    "left": "1790px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "24px",
+    "width": "390px",
+    "height": "auto",
+    "minHeight": "100vh",
+    "transition": "spring-duration 0.35s 0.25 0s"
+   },
+   "children": [
+    {
+     "id": "bLrSKPEk8v1CjvD_6m",
+     "type": "FrameNode",
+     "name": "Logo container",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "space-between",
+      "stackAlignment": "center",
+      "padding": "0px 0px 0px 8px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "bLrSKPEk8G5HJH2HWZ",
+       "type": "FrameNode",
+       "name": "Company logo placeholder",
+       "a": {
+        "cursor": "default",
+        "fill": "https://framerusercontent.com/images/17Gk2mO5X3Du2NxZxeGjy1f72TQ.png",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "0px",
+        "link": {
+         "href": "/#hero"
+        },
+        "padding": "10px 16px 10px 16px",
+        "position": "relative",
+        "width": "125px",
+        "height": "1fr"
+       }
+      },
+      {
+       "id": "bLrSKPEk8OIdQOqhKN",
+       "type": "FrameNode",
+       "name": "Mobile menu trigger",
+       "a": {
+        "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+        "cursor": "pointer",
+        "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+        "onTap": [
+         {
+          "action": "SET_VARIANT",
+          "controls": {
+           "variant": "VQTwPyCP_"
+          }
+         }
+        ],
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "0px",
+        "overflow": "clip",
+        "position": "relative",
+        "radius": "1000px",
+        "width": "44px",
+        "height": "44px",
+        "transition": "spring-duration 0.3s 0.2 0s"
+       },
+       "children": [
+        {
+         "id": "bLrSKPEk8zuzY2kc3M",
+         "type": "IconNode",
+         "a": {
+          "$control__color": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+          "$control__width": "2",
+          "position": "relative",
+          "width": "20px",
+          "height": "20px"
+         },
+         "set": "Y7SpbVH16cWqMhj75z1M"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "bLrSKPEk8BnEu9Isys",
+     "type": "FrameNode",
+     "name": "Navigation links",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "start",
+      "stackAlignment": "start",
+      "gap": "20px",
+      "padding": "20px 16px 20px 16px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "minHeight": "100px"
+     },
+     "children": [
+      {
+       "id": "bLrSKPEk8jp2UhyVj5",
+       "type": "RichTextNode",
+       "a": {
+        "cursor": "pointer",
+        "onTap": [
+         {
+          "action": "SET_VARIANT",
+          "controls": {
+           "variant": "VQTwPyCP_"
+          }
+         }
+        ],
+        "link": {
+         "href": "/#how-it-works",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:bLrSKPEk8jp2UhyVj5:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:bLrSKPEk8jp2UhyVj5:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "How it works"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "bLrSKPEk8OGbVj23E8",
+       "type": "RichTextNode",
+       "a": {
+        "cursor": "pointer",
+        "onTap": [
+         {
+          "action": "SET_VARIANT",
+          "controls": {
+           "variant": "VQTwPyCP_"
+          }
+         }
+        ],
+        "link": {
+         "href": "/#features",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:bLrSKPEk8OGbVj23E8:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:bLrSKPEk8OGbVj23E8:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Decisions"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "bLrSKPEk8dTREWZcfg",
+       "type": "RichTextNode",
+       "a": {
+        "cursor": "pointer",
+        "onTap": [
+         {
+          "action": "SET_VARIANT",
+          "controls": {
+           "variant": "VQTwPyCP_"
+          }
+         }
+        ],
+        "link": {
+         "href": "/#pricing",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:bLrSKPEk8dTREWZcfg:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:bLrSKPEk8dTREWZcfg:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Pricing"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "bLrSKPEk8vSuBdhCSN",
+       "type": "RichTextNode",
+       "a": {
+        "cursor": "pointer",
+        "onTap": [
+         {
+          "action": "SET_VARIANT",
+          "controls": {
+           "variant": "VQTwPyCP_"
+          }
+         }
+        ],
+        "link": {
+         "href": "/#security",
+         "smoothScroll": true
+        },
+        "linkStylePreset": "Link - Dark",
+        "position": "relative",
+        "width": "100%",
+        "height": "auto",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:bLrSKPEk8vSuBdhCSN:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:bLrSKPEk8vSuBdhCSN:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Trust"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "bLrSKPEk8LvBDopLF8",
+     "type": "FrameNode",
+     "name": "Navigation actions",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "start",
+      "stackAlignment": "center",
+      "gap": "8px",
+      "padding": "8px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "bLrSKPEk8Sf14Jn2AC",
+       "type": "ComponentInstanceNode",
+       "component": "Jh9jZPCX6",
+       "componentName": "Button",
+       "a": {
+        "$control__variant": "Desktop/secondary/small",
+        "$control__label": "Become a partner",
+        "$control__iconVisible": "false",
+        "$control__link": "/#partners",
+        "position": "relative",
+        "width": "auto",
+        "height": "auto"
+       }
+      },
+      {
+       "id": "bLrSKPEk8OWZzdEOKx",
+       "type": "ComponentInstanceNode",
+       "component": "Jh9jZPCX6",
+       "componentName": "Button",
+       "a": {
+        "$control__variant": "Desktop/primary/small",
+        "$control__label": "Start a campaign",
+        "$control__iconVisible": "false",
+        "$control__link": "/#how-it-works",
+        "position": "relative",
+        "width": "auto",
+        "height": "auto"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

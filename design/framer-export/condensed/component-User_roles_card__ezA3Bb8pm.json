@@ -1,0 +1,4951 @@
+{
+ "id": "ezA3Bb8pm",
+ "type": "ComponentNode",
+ "name": "User roles card",
+ "$variants": [
+  {
+   "id": "G2LtWIzMF",
+   "name": "1"
+  },
+  {
+   "id": "oG0O18E0V",
+   "name": "2"
+  },
+  {
+   "id": "zu61aQF44",
+   "name": "3"
+  },
+  {
+   "id": "qUGWbCjZF",
+   "name": "4"
+  }
+ ],
+ "variables": [
+  {
+   "key": "$control__avatarVisible",
+   "id": "N4d4wRM6n",
+   "name": "Avatar visible",
+   "node": "Variable",
+   "type": "boolean",
+   "initialValue": true
+  }
+ ],
+ "children": [
+  {
+   "id": "G2LtWIzMF",
+   "type": "FrameNode",
+   "name": "1",
+   "a": {
+    "border": "1px solid var(--token-a1edcf55-b80c-4b00-8dc3-d8e4199b18ee)",
+    "fill": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "start",
+    "gap": "24px",
+    "overflow": "clip",
+    "padding": "24px",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "24px",
+    "width": "358.5px",
+    "height": "auto",
+    "transition": "spring-duration 2s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "n69plX9oV",
+     "type": "FrameNode",
+     "name": "Folder Header",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "start",
+      "stackAlignment": "center",
+      "gap": "16px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "HBGkbYBMb",
+       "type": "FrameNode",
+       "name": "Meth Lab Folder Icon",
+       "a": {
+        "fill": "https://framerusercontent.com/images/Uwu6oCqaeQirmXZy5Q37Nkh5gE.png",
+        "fillImagePositionX": "center",
+        "fillImagePositionY": "center",
+        "layout": "null",
+        "overflow": "clip",
+        "position": "relative",
+        "radius": "1000px",
+        "width": "44px",
+        "height": "60px",
+        "aspectRatio": 1
+       }
+      },
+      {
+       "id": "EXN5pqFqO",
+       "type": "FrameNode",
+       "name": "Folder Title Group",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "4px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "ncqsZzjfc",
+         "type": "RichTextNode",
+         "name": "Folder Name",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Heading 6",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:ncqsZzjfc:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "h6"
+           },
+           "children": [
+            {
+             "id": "v:ncqsZzjfc:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Acme activations"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "jsY4YOqhW",
+         "type": "RichTextNode",
+         "name": "Folder Item Count",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Body 3",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:jsY4YOqhW:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:jsY4YOqhW:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "23 events, 3 held"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "SeNSIg1vP",
+     "type": "FrameNode",
+     "name": "Invite Controls",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "start",
+      "stackAlignment": "start",
+      "gap": "16px",
+      "padding": "16px 0px 0px 0px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "sECXG5BWy",
+       "type": "RichTextNode",
+       "name": "Invite Heading",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Heading 6",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:sECXG5BWy:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "h6"
+         },
+         "children": [
+          {
+           "id": "v:sECXG5BWy:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Needs you"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "Ky8USarW0",
+     "type": "FrameNode",
+     "name": "Access Section",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "start",
+      "stackAlignment": "start",
+      "gap": "24px",
+      "padding": "8px 0px 0px 0px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "m9yvuAFcN",
+       "type": "FrameNode",
+       "name": "Access List",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "24px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "PgYa6DNK2",
+         "type": "FrameNode",
+         "name": "Jesse Pinkman Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "jmW0h474f",
+           "type": "FrameNode",
+           "name": "Jesse Pinkman Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "EssSN3twx",
+             "type": "FrameNode",
+             "name": "Jesse Pinkman Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/YbIkbpKaq9pmlSfHIsww2gkTTJ4.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "xys7bwxhB",
+             "type": "FrameNode",
+             "name": "Jesse Pinkman Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "vtRMu7IIZ",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:vtRMu7IIZ:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:vtRMu7IIZ:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@devrel_sam"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "vkoXXdYGz",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:vkoXXdYGz:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:vkoXXdYGz:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "fraud rate 25%, threshold 20%"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "ykcVWo0gY",
+           "type": "FrameNode",
+           "name": "Invite Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "HdDe7iwTX",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:HdDe7iwTX:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:HdDe7iwTX:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Keep paused"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "X2DkznBd8",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "ramQ69eFd",
+         "type": "FrameNode",
+         "name": "Gustavo Fring Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "QuUR5LTnh",
+           "type": "FrameNode",
+           "name": "Gustavo Fring Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "hDEhGs4t3",
+             "type": "FrameNode",
+             "name": "Gustavo Fring Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/nKIuCad9RRDJNuMGgFOiKx2ok.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "ZrbxtzzTN",
+             "type": "FrameNode",
+             "name": "Gustavo Fring Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "ExuNjQqWH",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:ExuNjQqWH:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:ExuNjQqWH:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@maya"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "kg0sCS_c_",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:kg0sCS_c_:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:kg0sCS_c_:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "payout address changed"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "OwYkUCpXd",
+           "type": "FrameNode",
+           "name": "Gustavo Fring Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "sz40jFL51",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:sz40jFL51:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:sz40jFL51:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Approve"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "PAj17VIw_",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "ki9wIdbzc",
+         "type": "FrameNode",
+         "name": "Saul Goodman Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "Wfgycy2l8",
+           "type": "FrameNode",
+           "name": "Saul Goodman Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "p5dS720Zo",
+             "type": "FrameNode",
+             "name": "Saul Goodman Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/cs3yZGn9FSQ4XwD6sY1pFBvg0k.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "Qa_Uu_vpP",
+             "type": "FrameNode",
+             "name": "Saul Goodman Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "ZO0DaRGWu",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:ZO0DaRGWu:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:ZO0DaRGWu:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@kai"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "gLRVVmLEm",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:gLRVVmLEm:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:gLRVVmLEm:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "payout 24 USDC, limit 20"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "gfZDM1sdb",
+           "type": "FrameNode",
+           "name": "Saul Goodman Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "dF5n5DWGg",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:dF5n5DWGg:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:dF5n5DWGg:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Approve"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "V181h2FFR",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "pMqQ9nanP",
+         "type": "FrameNode",
+         "name": "Mike Ehrmantraut Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "PDpEqfq0u",
+           "type": "FrameNode",
+           "name": "Mike Ehrmantraut Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "WWUbc24KC",
+             "type": "FrameNode",
+             "name": "Mike Ehrmantraut Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/E6Vvalfnflvfo6p24k9l0apIXc.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "DKGTmUE7p",
+             "type": "FrameNode",
+             "name": "Mike Ehrmantraut Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "iiYgZX0SQ",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:iiYgZX0SQ:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:iiYgZX0SQ:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@lina"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "WM37dBTvx",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:WM37dBTvx:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:WM37dBTvx:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "clean, 9 verified"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "WbKesnt1u",
+           "type": "FrameNode",
+           "name": "Mike Ehrmantraut Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "c1swyxu78",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:c1swyxu78:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:c1swyxu78:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Paid"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "a9JG5ZBpy",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "uuIKzHXZp",
+     "type": "FrameNode",
+     "name": "Cursor",
+     "a": {
+      "layout": "null",
+      "position": "absolute",
+      "left": "null",
+      "right": "-100px",
+      "top": "null",
+      "bottom": "-100px",
+      "width": "90px",
+      "height": "62px"
+     },
+     "children": [
+      {
+       "id": "UVPqJWnev",
+       "type": "SVGNode",
+       "name": "Cursor",
+       "a": {
+        "left": "0px",
+        "right": "null",
+        "top": "0px",
+        "bottom": "null",
+        "width": "26px",
+        "height": "26px"
+       }
+      },
+      {
+       "id": "Jgb2dRo1n",
+       "type": "FrameNode",
+       "name": "Comment",
+       "a": {
+        "border": "2px solid rgba(21, 111, 238, 1)",
+        "fill": "rgba(21, 111, 238, 1)",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "8px",
+        "padding": "8px 16px 8px 16px",
+        "left": "22px",
+        "right": "null",
+        "top": "22px",
+        "bottom": "null",
+        "radius": "24px",
+        "width": "auto",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "xIBCV9sKc",
+         "type": "RichTextNode",
+         "name": "Jake",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Body 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:xIBCV9sKc:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:xIBCV9sKc:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Owner"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "NXaoKzcjl",
+     "type": "FrameNode",
+     "name": "Option container",
+     "a": {
+      "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+      "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "10px",
+      "overflow": "clip",
+      "padding": "16px",
+      "position": "absolute",
+      "left": "null",
+      "right": "8px",
+      "top": "null",
+      "bottom": "158px",
+      "radius": "16px",
+      "width": "138px",
+      "height": "106px",
+      "visible": "false"
+     },
+     "children": [
+      {
+       "id": "q2USChgrg",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:q2USChgrg:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:q2USChgrg:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Keep paused"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "SMke25xLn",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:SMke25xLn:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:SMke25xLn:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Restore partner"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "uYTWht93X",
+       "type": "FrameNode",
+       "name": "Overlay",
+       "a": {
+        "appearEffect": {
+         "threshold": 0.5,
+         "trigger": "onMount",
+         "enter": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "rotate": 0,
+          "rotateX": 0,
+          "rotateY": 0,
+          "skewX": 0,
+          "skewY": 0,
+          "transition": "spring-duration 0.4s 0.2 0.5s",
+          "stagger": "0s"
+         }
+        },
+        "fill": "var(--token-621d9ebc-4113-4c98-9cca-bbc178460970)",
+        "layout": "null",
+        "position": "absolute",
+        "left": "6px",
+        "right": "6px",
+        "top": "null",
+        "bottom": "null",
+        "radius": "8px",
+        "width": "128px",
+        "height": "32px",
+        "zIndex": "0"
+       }
+      },
+      {
+       "id": "Lc5qr94HN",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:Lc5qr94HN:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:Lc5qr94HN:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Decline"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "oG0O18E0V",
+   "type": "FrameNode",
+   "name": "2",
+   "a": {
+    "border": "1px solid var(--token-a1edcf55-b80c-4b00-8dc3-d8e4199b18ee)",
+    "fill": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "start",
+    "gap": "24px",
+    "overflow": "clip",
+    "padding": "24px",
+    "left": "407px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "24px",
+    "width": "359px",
+    "height": "auto",
+    "transition": "spring-duration 2s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "oG0O18E0Vn69plX9oV",
+     "type": "FrameNode",
+     "name": "Folder Header",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "start",
+      "stackAlignment": "center",
+      "gap": "16px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "oG0O18E0VHBGkbYBMb",
+       "type": "FrameNode",
+       "name": "Meth Lab Folder Icon",
+       "a": {
+        "fill": "https://framerusercontent.com/images/Uwu6oCqaeQirmXZy5Q37Nkh5gE.png",
+        "fillImagePositionX": "center",
+        "fillImagePositionY": "center",
+        "layout": "null",
+        "overflow": "clip",
+        "position": "relative",
+        "radius": "1000px",
+        "width": "44px",
+        "height": "60px",
+        "aspectRatio": 1
+       }
+      },
+      {
+       "id": "oG0O18E0VEXN5pqFqO",
+       "type": "FrameNode",
+       "name": "Folder Title Group",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "4px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "oG0O18E0VncqsZzjfc",
+         "type": "RichTextNode",
+         "name": "Folder Name",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Heading 6",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:oG0O18E0VncqsZzjfc:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "h6"
+           },
+           "children": [
+            {
+             "id": "v:oG0O18E0VncqsZzjfc:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Acme activations"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "oG0O18E0VjsY4YOqhW",
+         "type": "RichTextNode",
+         "name": "Folder Item Count",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Body 3",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:oG0O18E0VjsY4YOqhW:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:oG0O18E0VjsY4YOqhW:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "23 events, 3 held"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "oG0O18E0VSeNSIg1vP",
+     "type": "FrameNode",
+     "name": "Invite Controls",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "start",
+      "stackAlignment": "start",
+      "gap": "16px",
+      "padding": "16px 0px 0px 0px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "oG0O18E0VsECXG5BWy",
+       "type": "RichTextNode",
+       "name": "Invite Heading",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Heading 6",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:oG0O18E0VsECXG5BWy:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "h6"
+         },
+         "children": [
+          {
+           "id": "v:oG0O18E0VsECXG5BWy:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Needs you"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "oG0O18E0VKy8USarW0",
+     "type": "FrameNode",
+     "name": "Access Section",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "start",
+      "stackAlignment": "start",
+      "gap": "24px",
+      "padding": "8px 0px 0px 0px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "oG0O18E0Vm9yvuAFcN",
+       "type": "FrameNode",
+       "name": "Access List",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "24px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "oG0O18E0VPgYa6DNK2",
+         "type": "FrameNode",
+         "name": "Jesse Pinkman Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "oG0O18E0VjmW0h474f",
+           "type": "FrameNode",
+           "name": "Jesse Pinkman Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "oG0O18E0VEssSN3twx",
+             "type": "FrameNode",
+             "name": "Jesse Pinkman Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/YbIkbpKaq9pmlSfHIsww2gkTTJ4.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "oG0O18E0Vxys7bwxhB",
+             "type": "FrameNode",
+             "name": "Jesse Pinkman Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "oG0O18E0VvtRMu7IIZ",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0VvtRMu7IIZ:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:oG0O18E0VvtRMu7IIZ:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@devrel_sam"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "oG0O18E0VvkoXXdYGz",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0VvkoXXdYGz:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:oG0O18E0VvkoXXdYGz:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "fraud rate 25%, threshold 20%"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "oG0O18E0VykcVWo0gY",
+           "type": "FrameNode",
+           "name": "Invite Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "oG0O18E0VHdDe7iwTX",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:oG0O18E0VHdDe7iwTX:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0VHdDe7iwTX:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Keep paused"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "oG0O18E0VX2DkznBd8",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "oG0O18E0VramQ69eFd",
+         "type": "FrameNode",
+         "name": "Gustavo Fring Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "oG0O18E0VQuUR5LTnh",
+           "type": "FrameNode",
+           "name": "Gustavo Fring Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "oG0O18E0VhDEhGs4t3",
+             "type": "FrameNode",
+             "name": "Gustavo Fring Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/nKIuCad9RRDJNuMGgFOiKx2ok.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "oG0O18E0VZrbxtzzTN",
+             "type": "FrameNode",
+             "name": "Gustavo Fring Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "oG0O18E0VExuNjQqWH",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0VExuNjQqWH:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:oG0O18E0VExuNjQqWH:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@maya"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "oG0O18E0Vkg0sCS_c_",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0Vkg0sCS_c_:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:oG0O18E0Vkg0sCS_c_:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "payout address changed"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "oG0O18E0VOwYkUCpXd",
+           "type": "FrameNode",
+           "name": "Gustavo Fring Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "oG0O18E0Vsz40jFL51",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:oG0O18E0Vsz40jFL51:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0Vsz40jFL51:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Approve"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "oG0O18E0VPAj17VIw_",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "oG0O18E0Vki9wIdbzc",
+         "type": "FrameNode",
+         "name": "Saul Goodman Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "oG0O18E0VWfgycy2l8",
+           "type": "FrameNode",
+           "name": "Saul Goodman Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "oG0O18E0Vp5dS720Zo",
+             "type": "FrameNode",
+             "name": "Saul Goodman Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/cs3yZGn9FSQ4XwD6sY1pFBvg0k.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "oG0O18E0VQa_Uu_vpP",
+             "type": "FrameNode",
+             "name": "Saul Goodman Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "oG0O18E0VZO0DaRGWu",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0VZO0DaRGWu:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:oG0O18E0VZO0DaRGWu:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@kai"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "oG0O18E0VgLRVVmLEm",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0VgLRVVmLEm:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:oG0O18E0VgLRVVmLEm:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "payout 24 USDC, limit 20"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "oG0O18E0VgfZDM1sdb",
+           "type": "FrameNode",
+           "name": "Saul Goodman Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "oG0O18E0VdF5n5DWGg",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:oG0O18E0VdF5n5DWGg:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0VdF5n5DWGg:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Approve"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "oG0O18E0VV181h2FFR",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "oG0O18E0VpMqQ9nanP",
+         "type": "FrameNode",
+         "name": "Mike Ehrmantraut Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "oG0O18E0VPDpEqfq0u",
+           "type": "FrameNode",
+           "name": "Mike Ehrmantraut Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "oG0O18E0VWWUbc24KC",
+             "type": "FrameNode",
+             "name": "Mike Ehrmantraut Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/E6Vvalfnflvfo6p24k9l0apIXc.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "oG0O18E0VDKGTmUE7p",
+             "type": "FrameNode",
+             "name": "Mike Ehrmantraut Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "oG0O18E0ViiYgZX0SQ",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0ViiYgZX0SQ:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:oG0O18E0ViiYgZX0SQ:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@lina"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "oG0O18E0VWM37dBTvx",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0VWM37dBTvx:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:oG0O18E0VWM37dBTvx:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "clean, 9 verified"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "oG0O18E0VWbKesnt1u",
+           "type": "FrameNode",
+           "name": "Mike Ehrmantraut Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "oG0O18E0Vc1swyxu78",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:oG0O18E0Vc1swyxu78:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:oG0O18E0Vc1swyxu78:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Paid"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "oG0O18E0Va9JG5ZBpy",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "oG0O18E0VuuIKzHXZp",
+     "type": "FrameNode",
+     "name": "Cursor",
+     "a": {
+      "layout": "null",
+      "position": "absolute",
+      "left": "null",
+      "right": "-1px",
+      "top": "null",
+      "bottom": "219px",
+      "width": "90px",
+      "height": "62px"
+     },
+     "children": [
+      {
+       "id": "oG0O18E0VUVPqJWnev",
+       "type": "SVGNode",
+       "name": "Cursor",
+       "a": {
+        "left": "0px",
+        "right": "null",
+        "top": "0px",
+        "bottom": "null",
+        "width": "26px",
+        "height": "26px"
+       }
+      },
+      {
+       "id": "oG0O18E0VJgb2dRo1n",
+       "type": "FrameNode",
+       "name": "Comment",
+       "a": {
+        "border": "2px solid rgba(21, 111, 238, 1)",
+        "fill": "rgba(21, 111, 238, 1)",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "8px",
+        "padding": "8px 16px 8px 16px",
+        "left": "22px",
+        "right": "null",
+        "top": "22px",
+        "bottom": "null",
+        "radius": "24px",
+        "width": "auto",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "oG0O18E0VxIBCV9sKc",
+         "type": "RichTextNode",
+         "name": "Jake",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Body 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:oG0O18E0VxIBCV9sKc:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:oG0O18E0VxIBCV9sKc:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Owner"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "oG0O18E0VNXaoKzcjl",
+     "type": "FrameNode",
+     "name": "Option container",
+     "a": {
+      "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+      "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "10px",
+      "overflow": "clip",
+      "padding": "16px",
+      "position": "absolute",
+      "left": "null",
+      "right": "8px",
+      "top": "null",
+      "bottom": "158px",
+      "radius": "16px",
+      "width": "138px",
+      "height": "106px",
+      "visible": "false"
+     },
+     "children": [
+      {
+       "id": "oG0O18E0Vq2USChgrg",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:oG0O18E0Vq2USChgrg:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:oG0O18E0Vq2USChgrg:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Keep paused"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "oG0O18E0VSMke25xLn",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:oG0O18E0VSMke25xLn:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:oG0O18E0VSMke25xLn:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Restore partner"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "oG0O18E0VuYTWht93X",
+       "type": "FrameNode",
+       "name": "Overlay",
+       "a": {
+        "appearEffect": {
+         "threshold": 0.5,
+         "trigger": "onMount",
+         "enter": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "rotate": 0,
+          "rotateX": 0,
+          "rotateY": 0,
+          "skewX": 0,
+          "skewY": 0,
+          "transition": "spring-duration 0.4s 0.2 0.5s",
+          "stagger": "0s"
+         }
+        },
+        "fill": "var(--token-621d9ebc-4113-4c98-9cca-bbc178460970)",
+        "layout": "null",
+        "position": "absolute",
+        "left": "6px",
+        "right": "6px",
+        "top": "null",
+        "bottom": "null",
+        "radius": "8px",
+        "width": "128px",
+        "height": "32px",
+        "zIndex": "0"
+       }
+      },
+      {
+       "id": "oG0O18E0VLc5qr94HN",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:oG0O18E0VLc5qr94HN:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:oG0O18E0VLc5qr94HN:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Decline"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "zu61aQF44",
+   "type": "FrameNode",
+   "name": "3",
+   "a": {
+    "border": "1px solid var(--token-a1edcf55-b80c-4b00-8dc3-d8e4199b18ee)",
+    "fill": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "start",
+    "gap": "24px",
+    "overflow": "clip",
+    "padding": "24px",
+    "left": "866px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "24px",
+    "width": "359px",
+    "height": "auto",
+    "transition": "spring-duration 2s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "zu61aQF44n69plX9oV",
+     "type": "FrameNode",
+     "name": "Folder Header",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "start",
+      "stackAlignment": "center",
+      "gap": "16px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "zu61aQF44HBGkbYBMb",
+       "type": "FrameNode",
+       "name": "Meth Lab Folder Icon",
+       "a": {
+        "fill": "https://framerusercontent.com/images/Uwu6oCqaeQirmXZy5Q37Nkh5gE.png",
+        "fillImagePositionX": "center",
+        "fillImagePositionY": "center",
+        "layout": "null",
+        "overflow": "clip",
+        "position": "relative",
+        "radius": "1000px",
+        "width": "44px",
+        "height": "60px",
+        "aspectRatio": 1
+       }
+      },
+      {
+       "id": "zu61aQF44EXN5pqFqO",
+       "type": "FrameNode",
+       "name": "Folder Title Group",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "4px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "zu61aQF44ncqsZzjfc",
+         "type": "RichTextNode",
+         "name": "Folder Name",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Heading 6",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:zu61aQF44ncqsZzjfc:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "h6"
+           },
+           "children": [
+            {
+             "id": "v:zu61aQF44ncqsZzjfc:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Acme activations"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "zu61aQF44jsY4YOqhW",
+         "type": "RichTextNode",
+         "name": "Folder Item Count",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Body 3",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:zu61aQF44jsY4YOqhW:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:zu61aQF44jsY4YOqhW:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "23 events, 3 held"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "zu61aQF44SeNSIg1vP",
+     "type": "FrameNode",
+     "name": "Invite Controls",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "start",
+      "stackAlignment": "start",
+      "gap": "16px",
+      "padding": "16px 0px 0px 0px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "zu61aQF44sECXG5BWy",
+       "type": "RichTextNode",
+       "name": "Invite Heading",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Heading 6",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:zu61aQF44sECXG5BWy:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "h6"
+         },
+         "children": [
+          {
+           "id": "v:zu61aQF44sECXG5BWy:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Needs you"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "zu61aQF44Ky8USarW0",
+     "type": "FrameNode",
+     "name": "Access Section",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "start",
+      "stackAlignment": "start",
+      "gap": "24px",
+      "padding": "8px 0px 0px 0px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "zu61aQF44m9yvuAFcN",
+       "type": "FrameNode",
+       "name": "Access List",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "24px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "zu61aQF44PgYa6DNK2",
+         "type": "FrameNode",
+         "name": "Jesse Pinkman Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "zu61aQF44jmW0h474f",
+           "type": "FrameNode",
+           "name": "Jesse Pinkman Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "zu61aQF44EssSN3twx",
+             "type": "FrameNode",
+             "name": "Jesse Pinkman Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/YbIkbpKaq9pmlSfHIsww2gkTTJ4.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "zu61aQF44xys7bwxhB",
+             "type": "FrameNode",
+             "name": "Jesse Pinkman Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "zu61aQF44vtRMu7IIZ",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44vtRMu7IIZ:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:zu61aQF44vtRMu7IIZ:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@devrel_sam"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "zu61aQF44vkoXXdYGz",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44vkoXXdYGz:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:zu61aQF44vkoXXdYGz:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "fraud rate 25%, threshold 20%"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "zu61aQF44ykcVWo0gY",
+           "type": "FrameNode",
+           "name": "Invite Permission Select",
+           "a": {
+            "border": "1px solid var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "zu61aQF44HdDe7iwTX",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:zu61aQF44HdDe7iwTX:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44HdDe7iwTX:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Keep paused"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "zu61aQF44X2DkznBd8",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "zu61aQF44ramQ69eFd",
+         "type": "FrameNode",
+         "name": "Gustavo Fring Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "zu61aQF44QuUR5LTnh",
+           "type": "FrameNode",
+           "name": "Gustavo Fring Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "zu61aQF44hDEhGs4t3",
+             "type": "FrameNode",
+             "name": "Gustavo Fring Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/nKIuCad9RRDJNuMGgFOiKx2ok.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "zu61aQF44ZrbxtzzTN",
+             "type": "FrameNode",
+             "name": "Gustavo Fring Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "zu61aQF44ExuNjQqWH",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44ExuNjQqWH:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:zu61aQF44ExuNjQqWH:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@maya"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "zu61aQF44kg0sCS_c_",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44kg0sCS_c_:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:zu61aQF44kg0sCS_c_:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "payout address changed"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "zu61aQF44OwYkUCpXd",
+           "type": "FrameNode",
+           "name": "Gustavo Fring Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "zu61aQF44sz40jFL51",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:zu61aQF44sz40jFL51:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44sz40jFL51:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Approve"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "zu61aQF44PAj17VIw_",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "zu61aQF44ki9wIdbzc",
+         "type": "FrameNode",
+         "name": "Saul Goodman Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "zu61aQF44Wfgycy2l8",
+           "type": "FrameNode",
+           "name": "Saul Goodman Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "zu61aQF44p5dS720Zo",
+             "type": "FrameNode",
+             "name": "Saul Goodman Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/cs3yZGn9FSQ4XwD6sY1pFBvg0k.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "zu61aQF44Qa_Uu_vpP",
+             "type": "FrameNode",
+             "name": "Saul Goodman Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "zu61aQF44ZO0DaRGWu",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44ZO0DaRGWu:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:zu61aQF44ZO0DaRGWu:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@kai"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "zu61aQF44gLRVVmLEm",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44gLRVVmLEm:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:zu61aQF44gLRVVmLEm:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "payout 24 USDC, limit 20"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "zu61aQF44gfZDM1sdb",
+           "type": "FrameNode",
+           "name": "Saul Goodman Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "zu61aQF44dF5n5DWGg",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:zu61aQF44dF5n5DWGg:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44dF5n5DWGg:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Approve"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "zu61aQF44V181h2FFR",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "zu61aQF44pMqQ9nanP",
+         "type": "FrameNode",
+         "name": "Mike Ehrmantraut Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "zu61aQF44PDpEqfq0u",
+           "type": "FrameNode",
+           "name": "Mike Ehrmantraut Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "zu61aQF44WWUbc24KC",
+             "type": "FrameNode",
+             "name": "Mike Ehrmantraut Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/E6Vvalfnflvfo6p24k9l0apIXc.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "zu61aQF44DKGTmUE7p",
+             "type": "FrameNode",
+             "name": "Mike Ehrmantraut Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "zu61aQF44iiYgZX0SQ",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44iiYgZX0SQ:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:zu61aQF44iiYgZX0SQ:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@lina"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "zu61aQF44WM37dBTvx",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44WM37dBTvx:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:zu61aQF44WM37dBTvx:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "clean, 9 verified"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "zu61aQF44WbKesnt1u",
+           "type": "FrameNode",
+           "name": "Mike Ehrmantraut Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "zu61aQF44c1swyxu78",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:zu61aQF44c1swyxu78:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:zu61aQF44c1swyxu78:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Paid"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "zu61aQF44a9JG5ZBpy",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "zu61aQF44NXaoKzcjl",
+     "type": "FrameNode",
+     "name": "Option container",
+     "a": {
+      "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+      "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "10px",
+      "overflow": "clip",
+      "padding": "16px",
+      "position": "absolute",
+      "left": "null",
+      "right": "8px",
+      "top": "null",
+      "bottom": "158px",
+      "radius": "16px",
+      "width": "138px",
+      "height": "106px"
+     },
+     "children": [
+      {
+       "id": "zu61aQF44q2USChgrg",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:zu61aQF44q2USChgrg:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:zu61aQF44q2USChgrg:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Keep paused"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "zu61aQF44SMke25xLn",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:zu61aQF44SMke25xLn:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:zu61aQF44SMke25xLn:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Restore partner"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "zu61aQF44uYTWht93X",
+       "type": "FrameNode",
+       "name": "Overlay",
+       "a": {
+        "appearEffect": {
+         "threshold": 0.5,
+         "trigger": "onMount",
+         "enter": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "rotate": 0,
+          "rotateX": 0,
+          "rotateY": 0,
+          "skewX": 0,
+          "skewY": 0,
+          "transition": "spring-duration 0.4s 0.2 0.5s",
+          "stagger": "0s"
+         }
+        },
+        "fill": "var(--token-621d9ebc-4113-4c98-9cca-bbc178460970)",
+        "layout": "null",
+        "position": "absolute",
+        "left": "6px",
+        "right": "6px",
+        "top": "null",
+        "bottom": "null",
+        "radius": "8px",
+        "width": "128px",
+        "height": "32px",
+        "zIndex": "0"
+       }
+      },
+      {
+       "id": "zu61aQF44Lc5qr94HN",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:zu61aQF44Lc5qr94HN:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:zu61aQF44Lc5qr94HN:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Decline"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "zu61aQF44uuIKzHXZp",
+     "type": "FrameNode",
+     "name": "Cursor",
+     "a": {
+      "layout": "null",
+      "position": "absolute",
+      "left": "null",
+      "right": "-13px",
+      "top": "null",
+      "bottom": "149px",
+      "width": "90px",
+      "height": "62px",
+      "zIndex": "2"
+     },
+     "children": [
+      {
+       "id": "zu61aQF44UVPqJWnev",
+       "type": "SVGNode",
+       "name": "Cursor",
+       "a": {
+        "left": "0px",
+        "right": "null",
+        "top": "0px",
+        "bottom": "null",
+        "width": "26px",
+        "height": "26px"
+       }
+      },
+      {
+       "id": "zu61aQF44Jgb2dRo1n",
+       "type": "FrameNode",
+       "name": "Comment",
+       "a": {
+        "border": "2px solid rgba(21, 111, 238, 1)",
+        "fill": "rgba(21, 111, 238, 1)",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "8px",
+        "padding": "8px 16px 8px 16px",
+        "left": "22px",
+        "right": "null",
+        "top": "22px",
+        "bottom": "null",
+        "radius": "24px",
+        "width": "auto",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "zu61aQF44xIBCV9sKc",
+         "type": "RichTextNode",
+         "name": "Jake",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Body 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:zu61aQF44xIBCV9sKc:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:zu61aQF44xIBCV9sKc:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Owner"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "qUGWbCjZF",
+   "type": "FrameNode",
+   "name": "4",
+   "a": {
+    "border": "1px solid var(--token-a1edcf55-b80c-4b00-8dc3-d8e4199b18ee)",
+    "fill": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "start",
+    "gap": "24px",
+    "overflow": "clip",
+    "padding": "24px",
+    "left": "1325px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "24px",
+    "width": "359px",
+    "height": "auto",
+    "transition": "spring-duration 2s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "qUGWbCjZFn69plX9oV",
+     "type": "FrameNode",
+     "name": "Folder Header",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "start",
+      "stackAlignment": "center",
+      "gap": "16px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "qUGWbCjZFHBGkbYBMb",
+       "type": "FrameNode",
+       "name": "Meth Lab Folder Icon",
+       "a": {
+        "fill": "https://framerusercontent.com/images/Uwu6oCqaeQirmXZy5Q37Nkh5gE.png",
+        "fillImagePositionX": "center",
+        "fillImagePositionY": "center",
+        "layout": "null",
+        "overflow": "clip",
+        "position": "relative",
+        "radius": "1000px",
+        "width": "44px",
+        "height": "60px",
+        "aspectRatio": 1
+       }
+      },
+      {
+       "id": "qUGWbCjZFEXN5pqFqO",
+       "type": "FrameNode",
+       "name": "Folder Title Group",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "4px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "qUGWbCjZFncqsZzjfc",
+         "type": "RichTextNode",
+         "name": "Folder Name",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Heading 6",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:qUGWbCjZFncqsZzjfc:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "h6"
+           },
+           "children": [
+            {
+             "id": "v:qUGWbCjZFncqsZzjfc:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Acme activations"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "qUGWbCjZFjsY4YOqhW",
+         "type": "RichTextNode",
+         "name": "Folder Item Count",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Body 3",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:qUGWbCjZFjsY4YOqhW:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:qUGWbCjZFjsY4YOqhW:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "23 events, 3 held"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "qUGWbCjZFSeNSIg1vP",
+     "type": "FrameNode",
+     "name": "Invite Controls",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "start",
+      "stackAlignment": "start",
+      "gap": "16px",
+      "padding": "16px 0px 0px 0px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "qUGWbCjZFsECXG5BWy",
+       "type": "RichTextNode",
+       "name": "Invite Heading",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Heading 6",
+        "textAlignment": "start"
+       },
+       "children": [
+        {
+         "id": "v:qUGWbCjZFsECXG5BWy:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "h6"
+         },
+         "children": [
+          {
+           "id": "v:qUGWbCjZFsECXG5BWy:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Needs you"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "qUGWbCjZFKy8USarW0",
+     "type": "FrameNode",
+     "name": "Access Section",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "start",
+      "stackAlignment": "start",
+      "gap": "24px",
+      "padding": "8px 0px 0px 0px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "qUGWbCjZFm9yvuAFcN",
+       "type": "FrameNode",
+       "name": "Access List",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "24px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "qUGWbCjZFPgYa6DNK2",
+         "type": "FrameNode",
+         "name": "Jesse Pinkman Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "qUGWbCjZFjmW0h474f",
+           "type": "FrameNode",
+           "name": "Jesse Pinkman Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "qUGWbCjZFEssSN3twx",
+             "type": "FrameNode",
+             "name": "Jesse Pinkman Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/YbIkbpKaq9pmlSfHIsww2gkTTJ4.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "qUGWbCjZFxys7bwxhB",
+             "type": "FrameNode",
+             "name": "Jesse Pinkman Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "qUGWbCjZFvtRMu7IIZ",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFvtRMu7IIZ:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:qUGWbCjZFvtRMu7IIZ:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@devrel_sam"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "qUGWbCjZFvkoXXdYGz",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFvkoXXdYGz:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:qUGWbCjZFvkoXXdYGz:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "fraud rate 25%, threshold 20%"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "qUGWbCjZFykcVWo0gY",
+           "type": "FrameNode",
+           "name": "Invite Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "qUGWbCjZFHdDe7iwTX",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:qUGWbCjZFHdDe7iwTX:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFHdDe7iwTX:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Keep paused"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "qUGWbCjZFX2DkznBd8",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "qUGWbCjZFramQ69eFd",
+         "type": "FrameNode",
+         "name": "Gustavo Fring Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "qUGWbCjZFQuUR5LTnh",
+           "type": "FrameNode",
+           "name": "Gustavo Fring Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "qUGWbCjZFhDEhGs4t3",
+             "type": "FrameNode",
+             "name": "Gustavo Fring Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/nKIuCad9RRDJNuMGgFOiKx2ok.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "qUGWbCjZFZrbxtzzTN",
+             "type": "FrameNode",
+             "name": "Gustavo Fring Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "qUGWbCjZFExuNjQqWH",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFExuNjQqWH:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:qUGWbCjZFExuNjQqWH:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@maya"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "qUGWbCjZFkg0sCS_c_",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFkg0sCS_c_:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:qUGWbCjZFkg0sCS_c_:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "payout address changed"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "qUGWbCjZFOwYkUCpXd",
+           "type": "FrameNode",
+           "name": "Gustavo Fring Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "qUGWbCjZFsz40jFL51",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:qUGWbCjZFsz40jFL51:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFsz40jFL51:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Approve"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "qUGWbCjZFPAj17VIw_",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "qUGWbCjZFki9wIdbzc",
+         "type": "FrameNode",
+         "name": "Saul Goodman Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "qUGWbCjZFWfgycy2l8",
+           "type": "FrameNode",
+           "name": "Saul Goodman Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "qUGWbCjZFp5dS720Zo",
+             "type": "FrameNode",
+             "name": "Saul Goodman Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/cs3yZGn9FSQ4XwD6sY1pFBvg0k.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "qUGWbCjZFQa_Uu_vpP",
+             "type": "FrameNode",
+             "name": "Saul Goodman Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "qUGWbCjZFZO0DaRGWu",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFZO0DaRGWu:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:qUGWbCjZFZO0DaRGWu:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@kai"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "qUGWbCjZFgLRVVmLEm",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFgLRVVmLEm:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:qUGWbCjZFgLRVVmLEm:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "payout 24 USDC, limit 20"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "qUGWbCjZFgfZDM1sdb",
+           "type": "FrameNode",
+           "name": "Saul Goodman Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "qUGWbCjZFdF5n5DWGg",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:qUGWbCjZFdF5n5DWGg:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFdF5n5DWGg:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Approve"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "qUGWbCjZFV181h2FFR",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "qUGWbCjZFpMqQ9nanP",
+         "type": "FrameNode",
+         "name": "Mike Ehrmantraut Access Row",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "qUGWbCjZFPDpEqfq0u",
+           "type": "FrameNode",
+           "name": "Mike Ehrmantraut Identity",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "start",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "qUGWbCjZFWWUbc24KC",
+             "type": "FrameNode",
+             "name": "Mike Ehrmantraut Avatar",
+             "a": {
+              "fill": "https://framerusercontent.com/images/E6Vvalfnflvfo6p24k9l0apIXc.png",
+              "fillImagePositionX": "center",
+              "fillImagePositionY": "center",
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "radius": "100%",
+              "width": "40px",
+              "height": "60px",
+              "aspectRatio": 1,
+              "visible": "var(--variable-N4d4wRM6n)"
+             }
+            },
+            {
+             "id": "qUGWbCjZFDKGTmUE7p",
+             "type": "FrameNode",
+             "name": "Mike Ehrmantraut Details",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "start",
+              "stackAlignment": "start",
+              "gap": "3px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "qUGWbCjZFiiYgZX0SQ",
+               "type": "RichTextNode",
+               "name": "Person Name",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 6",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFiiYgZX0SQ:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h6"
+                 },
+                 "children": [
+                  {
+                   "id": "v:qUGWbCjZFiiYgZX0SQ:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "@lina"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "qUGWbCjZFWM37dBTvx",
+               "type": "RichTextNode",
+               "name": "Email Address",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 3",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFWM37dBTvx:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:qUGWbCjZFWM37dBTvx:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "clean, 9 verified"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "qUGWbCjZFWbKesnt1u",
+           "type": "FrameNode",
+           "name": "Mike Ehrmantraut Permission Select",
+           "a": {
+            "border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "8px",
+            "overflow": "clip",
+            "padding": "8px 12px 8px 12px",
+            "position": "relative",
+            "radius": "1000px",
+            "width": "auto",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "qUGWbCjZFc1swyxu78",
+             "type": "RichTextNode",
+             "name": "Permission Label",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)"
+             },
+             "children": [
+              {
+               "id": "v:qUGWbCjZFc1swyxu78:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:qUGWbCjZFc1swyxu78:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Paid"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "qUGWbCjZFa9JG5ZBpy",
+             "type": "IconNode",
+             "a": {
+              "$control__stroke": "var(--token-3e79ca65-ed75-4cd8-98e3-44362831f65e)",
+              "position": "relative",
+              "width": "16px",
+              "height": "20px",
+              "aspectRatio": 1
+             },
+             "set": "fiHEoJwBMFnT6QLOcpPz"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "qUGWbCjZFNXaoKzcjl",
+     "type": "FrameNode",
+     "name": "Option container",
+     "a": {
+      "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+      "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "10px",
+      "overflow": "clip",
+      "padding": "16px",
+      "position": "absolute",
+      "left": "null",
+      "right": "8px",
+      "top": "null",
+      "bottom": "158px",
+      "radius": "16px",
+      "width": "138px",
+      "height": "106px",
+      "visible": "false"
+     },
+     "children": [
+      {
+       "id": "qUGWbCjZFq2USChgrg",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:qUGWbCjZFq2USChgrg:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:qUGWbCjZFq2USChgrg:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Keep paused"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "qUGWbCjZFSMke25xLn",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:qUGWbCjZFSMke25xLn:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:qUGWbCjZFSMke25xLn:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Restore partner"
+           }
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "qUGWbCjZFuYTWht93X",
+       "type": "FrameNode",
+       "name": "Overlay",
+       "a": {
+        "appearEffect": {
+         "threshold": 0.5,
+         "trigger": "onMount",
+         "enter": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "rotate": 0,
+          "rotateX": 0,
+          "rotateY": 0,
+          "skewX": 0,
+          "skewY": 0,
+          "transition": "spring-duration 0.4s 0.2 0.5s",
+          "stagger": "0s"
+         }
+        },
+        "fill": "var(--token-621d9ebc-4113-4c98-9cca-bbc178460970)",
+        "layout": "null",
+        "position": "absolute",
+        "left": "6px",
+        "right": "6px",
+        "top": "null",
+        "bottom": "null",
+        "radius": "8px",
+        "width": "128px",
+        "height": "32px",
+        "zIndex": "0"
+       }
+      },
+      {
+       "id": "qUGWbCjZFLc5qr94HN",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "textStylePreset": "Body 3",
+        "textAlignment": "start",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "v:qUGWbCjZFLc5qr94HN:0",
+         "type": "TextBlock",
+         "a": {
+          "tag": "p"
+         },
+         "children": [
+          {
+           "id": "v:qUGWbCjZFLc5qr94HN:0:0",
+           "type": "TextRun",
+           "a": {
+            "text": "Decline"
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "qUGWbCjZFuuIKzHXZp",
+     "type": "FrameNode",
+     "name": "Cursor",
+     "a": {
+      "layout": "null",
+      "position": "absolute",
+      "left": "null",
+      "right": "-100px",
+      "top": "null",
+      "bottom": "-100px",
+      "width": "90px",
+      "height": "62px"
+     },
+     "children": [
+      {
+       "id": "qUGWbCjZFUVPqJWnev",
+       "type": "SVGNode",
+       "name": "Cursor",
+       "a": {
+        "left": "0px",
+        "right": "null",
+        "top": "0px",
+        "bottom": "null",
+        "width": "26px",
+        "height": "26px"
+       }
+      },
+      {
+       "id": "qUGWbCjZFJgb2dRo1n",
+       "type": "FrameNode",
+       "name": "Comment",
+       "a": {
+        "border": "2px solid rgba(21, 111, 238, 1)",
+        "fill": "rgba(21, 111, 238, 1)",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "8px",
+        "padding": "8px 16px 8px 16px",
+        "left": "22px",
+        "right": "null",
+        "top": "22px",
+        "bottom": "null",
+        "radius": "24px",
+        "width": "auto",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "qUGWbCjZFxIBCV9sKc",
+         "type": "RichTextNode",
+         "name": "Jake",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Body 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:qUGWbCjZFxIBCV9sKc:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:qUGWbCjZFxIBCV9sKc:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Owner"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1789 @@
+{
+ "type": "ComponentNode",
+ "id": "dGKghXMEe",
+ "name": "FAQs card container",
+ "variables": [],
+ "$parentId": "sn7IXw6X9",
+ "$variants": [
+  {
+   "id": "cg7FGWEgd",
+   "name": "1"
+  },
+  {
+   "id": "KdJm5iPlT",
+   "name": "2"
+  },
+  {
+   "id": "gxBNZoCcR",
+   "name": "3"
+  },
+  {
+   "id": "i_V17yF6U",
+   "name": "4"
+  },
+  {
+   "id": "LtmEGzhnP",
+   "name": "5"
+  },
+  {
+   "id": "FQPzLvxDf",
+   "name": "6"
+  },
+  {
+   "id": "uPTjwSK2T",
+   "name": "7"
+  },
+  {
+   "id": "S64KlAQXQ",
+   "name": "8"
+  }
+ ],
+ "children": [
+  {
+   "type": "FrameNode",
+   "name": "1",
+   "id": "cg7FGWEgd",
+   "$isPrimary": true,
+   "$rect": {
+    "height": 621
+   },
+   "attributes": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "16px",
+    "overflow": "clip",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "50%",
+    "centerAnchorY": "64.65%",
+    "constraintsLocked": false,
+    "width": "600px",
+    "height": "auto",
+    "maxWidth": "600px",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "ComponentInstanceNode",
+     "id": "YgSKZSGiL",
+     "component": "eWWSXuZM8",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "$control__variant": "Expanded",
+      "$control__question": "What counts as a result?",
+      "$control__answers": "Whatever line you wrote in the mandate, as long as your product can vouch for it: a purchase settled over x402 on Arc, an onchain action, or a signed event from your backend such as creating an API key and making 50 calls. GUILD never decides that something happened; it decides what to do once your product says it did.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "p6nXnLFrE",
+     "component": "eWWSXuZM8",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "KdJm5iPlT"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Can the agent spend more than I gave it?",
+      "$control__answers": "No. The budget, the per-result ceiling, the per-partner cap and the approval limit are in the contract. The agent’s key cannot call the functions that change them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "pyMJNbx4k",
+     "component": "eWWSXuZM8",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "gxBNZoCcR"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What if a partner games it?",
+      "$control__answers": "Every result is scored for self-referral, bursts, duplicates and timing before cooling ends. Over the line, it is held with the signals listed and the partner is paused. Nothing paid can be clawed back, which is why nothing pays before cooling.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "lFyelMciy",
+     "component": "eWWSXuZM8",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "i_V17yF6U"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "How fast do partners get paid?",
+      "$control__answers": "Within the hour after the cooling window, on Arc, for about a cent in fees. A partner on Base, Arbitrum or Ethereum is paid there through CCTP.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "Mi0mzQR66",
+     "component": "eWWSXuZM8",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "LtmEGzhnP"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to approve every payout?",
+      "$control__answers": "No. You approve only what crosses a policy line: a payout above your approval limit, a fraud rate above your threshold, a partner’s changed payout address. Everything else is a log entry you can read later.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "E2MCSWS1h",
+     "component": "eWWSXuZM8",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "FQPzLvxDf"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Is this live on mainnet?",
+      "$control__answers": "Yes, with small budgets. The contract is unaudited hackathon code; the page labels every number as testnet or mainnet, and the first mainnet campaign is capped at $100.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "wRcWsECbc",
+     "component": "eWWSXuZM8",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "uPTjwSK2T"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to use crypto?",
+      "$control__answers": "You need USDC to fund a campaign, on Arc or bridged from Base, Arbitrum or Ethereum. Partners do not need anything; an email creates a wallet for them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "gznTOBqWa",
+     "component": "eWWSXuZM8",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "S64KlAQXQ"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Who built this?",
+      "$control__answers": "Merk Labs, for the Tameion Agents Hackathon by Canteen, Circle and Arc. The repo is public.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    }
+   ]
+  },
+  {
+   "type": "FrameNode",
+   "name": "2",
+   "id": "KdJm5iPlT",
+   "$isReplica": true,
+   "$originalId": "cg7FGWEgd",
+   "attributes": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "16px",
+    "overflow": "clip",
+    "left": "700px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "50%",
+    "centerAnchorY": "64.65%",
+    "constraintsLocked": false,
+    "width": "600px",
+    "height": "auto",
+    "maxWidth": "600px",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "ComponentInstanceNode",
+     "id": "KdJm5iPlTYgSKZSGiL",
+     "component": "eWWSXuZM8",
+     "$replicaId": "KdJm5iPlT",
+     "$originalId": "YgSKZSGiL",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "cg7FGWEgd"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What counts as a result?",
+      "$control__answers": "Whatever line you wrote in the mandate, as long as your product can vouch for it: a purchase settled over x402 on Arc, an onchain action, or a signed event from your backend such as creating an API key and making 50 calls. GUILD never decides that something happened; it decides what to do once your product says it did.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "KdJm5iPlTp6nXnLFrE",
+     "component": "eWWSXuZM8",
+     "$replicaId": "KdJm5iPlT",
+     "$originalId": "p6nXnLFrE",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "KdJm5iPlT"
+        }
+       }
+      ],
+      "$control__variant": "Expanded",
+      "$control__question": "Can the agent spend more than I gave it?",
+      "$control__answers": "No. The budget, the per-result ceiling, the per-partner cap and the approval limit are in the contract. The agent’s key cannot call the functions that change them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "KdJm5iPlTpyMJNbx4k",
+     "component": "eWWSXuZM8",
+     "$replicaId": "KdJm5iPlT",
+     "$originalId": "pyMJNbx4k",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "gxBNZoCcR"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What if a partner games it?",
+      "$control__answers": "Every result is scored for self-referral, bursts, duplicates and timing before cooling ends. Over the line, it is held with the signals listed and the partner is paused. Nothing paid can be clawed back, which is why nothing pays before cooling.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "KdJm5iPlTlFyelMciy",
+     "component": "eWWSXuZM8",
+     "$replicaId": "KdJm5iPlT",
+     "$originalId": "lFyelMciy",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "i_V17yF6U"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "How fast do partners get paid?",
+      "$control__answers": "Within the hour after the cooling window, on Arc, for about a cent in fees. A partner on Base, Arbitrum or Ethereum is paid there through CCTP.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "KdJm5iPlTMi0mzQR66",
+     "component": "eWWSXuZM8",
+     "$replicaId": "KdJm5iPlT",
+     "$originalId": "Mi0mzQR66",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "LtmEGzhnP"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to approve every payout?",
+      "$control__answers": "No. You approve only what crosses a policy line: a payout above your approval limit, a fraud rate above your threshold, a partner’s changed payout address. Everything else is a log entry you can read later.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "KdJm5iPlTE2MCSWS1h",
+     "component": "eWWSXuZM8",
+     "$replicaId": "KdJm5iPlT",
+     "$originalId": "E2MCSWS1h",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "FQPzLvxDf"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Is this live on mainnet?",
+      "$control__answers": "Yes, with small budgets. The contract is unaudited hackathon code; the page labels every number as testnet or mainnet, and the first mainnet campaign is capped at $100.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "KdJm5iPlTwRcWsECbc",
+     "component": "eWWSXuZM8",
+     "$replicaId": "KdJm5iPlT",
+     "$originalId": "wRcWsECbc",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "uPTjwSK2T"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to use crypto?",
+      "$control__answers": "You need USDC to fund a campaign, on Arc or bridged from Base, Arbitrum or Ethereum. Partners do not need anything; an email creates a wallet for them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "KdJm5iPlTgznTOBqWa",
+     "component": "eWWSXuZM8",
+     "$replicaId": "KdJm5iPlT",
+     "$originalId": "gznTOBqWa",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "S64KlAQXQ"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Who built this?",
+      "$control__answers": "Merk Labs, for the Tameion Agents Hackathon by Canteen, Circle and Arc. The repo is public.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    }
+   ]
+  },
+  {
+   "type": "FrameNode",
+   "name": "3",
+   "id": "gxBNZoCcR",
+   "$isReplica": true,
+   "$originalId": "cg7FGWEgd",
+   "attributes": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "16px",
+    "overflow": "clip",
+    "left": "1400px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "50%",
+    "centerAnchorY": "64.65%",
+    "constraintsLocked": false,
+    "width": "600px",
+    "height": "auto",
+    "maxWidth": "600px",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "ComponentInstanceNode",
+     "id": "gxBNZoCcRYgSKZSGiL",
+     "component": "eWWSXuZM8",
+     "$replicaId": "gxBNZoCcR",
+     "$originalId": "YgSKZSGiL",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "cg7FGWEgd"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What counts as a result?",
+      "$control__answers": "Whatever line you wrote in the mandate, as long as your product can vouch for it: a purchase settled over x402 on Arc, an onchain action, or a signed event from your backend such as creating an API key and making 50 calls. GUILD never decides that something happened; it decides what to do once your product says it did.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "gxBNZoCcRp6nXnLFrE",
+     "component": "eWWSXuZM8",
+     "$replicaId": "gxBNZoCcR",
+     "$originalId": "p6nXnLFrE",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "KdJm5iPlT"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Can the agent spend more than I gave it?",
+      "$control__answers": "No. The budget, the per-result ceiling, the per-partner cap and the approval limit are in the contract. The agent’s key cannot call the functions that change them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "gxBNZoCcRpyMJNbx4k",
+     "component": "eWWSXuZM8",
+     "$replicaId": "gxBNZoCcR",
+     "$originalId": "pyMJNbx4k",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "gxBNZoCcR"
+        }
+       }
+      ],
+      "$control__variant": "Expanded",
+      "$control__question": "What if a partner games it?",
+      "$control__answers": "Every result is scored for self-referral, bursts, duplicates and timing before cooling ends. Over the line, it is held with the signals listed and the partner is paused. Nothing paid can be clawed back, which is why nothing pays before cooling.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "gxBNZoCcRlFyelMciy",
+     "component": "eWWSXuZM8",
+     "$replicaId": "gxBNZoCcR",
+     "$originalId": "lFyelMciy",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "i_V17yF6U"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "How fast do partners get paid?",
+      "$control__answers": "Within the hour after the cooling window, on Arc, for about a cent in fees. A partner on Base, Arbitrum or Ethereum is paid there through CCTP.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "gxBNZoCcRMi0mzQR66",
+     "component": "eWWSXuZM8",
+     "$replicaId": "gxBNZoCcR",
+     "$originalId": "Mi0mzQR66",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "LtmEGzhnP"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to approve every payout?",
+      "$control__answers": "No. You approve only what crosses a policy line: a payout above your approval limit, a fraud rate above your threshold, a partner’s changed payout address. Everything else is a log entry you can read later.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "gxBNZoCcRE2MCSWS1h",
+     "component": "eWWSXuZM8",
+     "$replicaId": "gxBNZoCcR",
+     "$originalId": "E2MCSWS1h",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "FQPzLvxDf"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Is this live on mainnet?",
+      "$control__answers": "Yes, with small budgets. The contract is unaudited hackathon code; the page labels every number as testnet or mainnet, and the first mainnet campaign is capped at $100.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "gxBNZoCcRwRcWsECbc",
+     "component": "eWWSXuZM8",
+     "$replicaId": "gxBNZoCcR",
+     "$originalId": "wRcWsECbc",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "uPTjwSK2T"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to use crypto?",
+      "$control__answers": "You need USDC to fund a campaign, on Arc or bridged from Base, Arbitrum or Ethereum. Partners do not need anything; an email creates a wallet for them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "gxBNZoCcRgznTOBqWa",
+     "component": "eWWSXuZM8",
+     "$replicaId": "gxBNZoCcR",
+     "$originalId": "gznTOBqWa",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "S64KlAQXQ"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Who built this?",
+      "$control__answers": "Merk Labs, for the Tameion Agents Hackathon by Canteen, Circle and Arc. The repo is public.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    }
+   ]
+  },
+  {
+   "type": "FrameNode",
+   "name": "4",
+   "id": "i_V17yF6U",
+   "$isReplica": true,
+   "$originalId": "cg7FGWEgd",
+   "attributes": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "16px",
+    "overflow": "clip",
+    "left": "2100px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "50%",
+    "centerAnchorY": "64.65%",
+    "constraintsLocked": false,
+    "width": "600px",
+    "height": "auto",
+    "maxWidth": "600px",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "ComponentInstanceNode",
+     "id": "i_V17yF6UYgSKZSGiL",
+     "component": "eWWSXuZM8",
+     "$replicaId": "i_V17yF6U",
+     "$originalId": "YgSKZSGiL",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "cg7FGWEgd"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What counts as a result?",
+      "$control__answers": "Whatever line you wrote in the mandate, as long as your product can vouch for it: a purchase settled over x402 on Arc, an onchain action, or a signed event from your backend such as creating an API key and making 50 calls. GUILD never decides that something happened; it decides what to do once your product says it did.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "i_V17yF6Up6nXnLFrE",
+     "component": "eWWSXuZM8",
+     "$replicaId": "i_V17yF6U",
+     "$originalId": "p6nXnLFrE",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "KdJm5iPlT"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Can the agent spend more than I gave it?",
+      "$control__answers": "No. The budget, the per-result ceiling, the per-partner cap and the approval limit are in the contract. The agent’s key cannot call the functions that change them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "i_V17yF6UpyMJNbx4k",
+     "component": "eWWSXuZM8",
+     "$replicaId": "i_V17yF6U",
+     "$originalId": "pyMJNbx4k",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "gxBNZoCcR"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What if a partner games it?",
+      "$control__answers": "Every result is scored for self-referral, bursts, duplicates and timing before cooling ends. Over the line, it is held with the signals listed and the partner is paused. Nothing paid can be clawed back, which is why nothing pays before cooling.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "i_V17yF6UlFyelMciy",
+     "component": "eWWSXuZM8",
+     "$replicaId": "i_V17yF6U",
+     "$originalId": "lFyelMciy",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "i_V17yF6U"
+        }
+       }
+      ],
+      "$control__variant": "Expanded",
+      "$control__question": "How fast do partners get paid?",
+      "$control__answers": "Within the hour after the cooling window, on Arc, for about a cent in fees. A partner on Base, Arbitrum or Ethereum is paid there through CCTP.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "i_V17yF6UMi0mzQR66",
+     "component": "eWWSXuZM8",
+     "$replicaId": "i_V17yF6U",
+     "$originalId": "Mi0mzQR66",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "LtmEGzhnP"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to approve every payout?",
+      "$control__answers": "No. You approve only what crosses a policy line: a payout above your approval limit, a fraud rate above your threshold, a partner’s changed payout address. Everything else is a log entry you can read later.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "i_V17yF6UE2MCSWS1h",
+     "component": "eWWSXuZM8",
+     "$replicaId": "i_V17yF6U",
+     "$originalId": "E2MCSWS1h",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "FQPzLvxDf"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Is this live on mainnet?",
+      "$control__answers": "Yes, with small budgets. The contract is unaudited hackathon code; the page labels every number as testnet or mainnet, and the first mainnet campaign is capped at $100.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "i_V17yF6UwRcWsECbc",
+     "component": "eWWSXuZM8",
+     "$replicaId": "i_V17yF6U",
+     "$originalId": "wRcWsECbc",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "uPTjwSK2T"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to use crypto?",
+      "$control__answers": "You need USDC to fund a campaign, on Arc or bridged from Base, Arbitrum or Ethereum. Partners do not need anything; an email creates a wallet for them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "i_V17yF6UgznTOBqWa",
+     "component": "eWWSXuZM8",
+     "$replicaId": "i_V17yF6U",
+     "$originalId": "gznTOBqWa",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "S64KlAQXQ"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Who built this?",
+      "$control__answers": "Merk Labs, for the Tameion Agents Hackathon by Canteen, Circle and Arc. The repo is public.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    }
+   ]
+  },
+  {
+   "type": "FrameNode",
+   "name": "5",
+   "id": "LtmEGzhnP",
+   "$isReplica": true,
+   "$originalId": "cg7FGWEgd",
+   "attributes": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "16px",
+    "overflow": "clip",
+    "left": "2800px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "50%",
+    "centerAnchorY": "64.65%",
+    "constraintsLocked": false,
+    "width": "600px",
+    "height": "auto",
+    "maxWidth": "600px",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "ComponentInstanceNode",
+     "id": "LtmEGzhnPYgSKZSGiL",
+     "component": "eWWSXuZM8",
+     "$replicaId": "LtmEGzhnP",
+     "$originalId": "YgSKZSGiL",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "cg7FGWEgd"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What counts as a result?",
+      "$control__answers": "Whatever line you wrote in the mandate, as long as your product can vouch for it: a purchase settled over x402 on Arc, an onchain action, or a signed event from your backend such as creating an API key and making 50 calls. GUILD never decides that something happened; it decides what to do once your product says it did.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "LtmEGzhnPp6nXnLFrE",
+     "component": "eWWSXuZM8",
+     "$replicaId": "LtmEGzhnP",
+     "$originalId": "p6nXnLFrE",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "KdJm5iPlT"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Can the agent spend more than I gave it?",
+      "$control__answers": "No. The budget, the per-result ceiling, the per-partner cap and the approval limit are in the contract. The agent’s key cannot call the functions that change them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "LtmEGzhnPpyMJNbx4k",
+     "component": "eWWSXuZM8",
+     "$replicaId": "LtmEGzhnP",
+     "$originalId": "pyMJNbx4k",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "gxBNZoCcR"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What if a partner games it?",
+      "$control__answers": "Every result is scored for self-referral, bursts, duplicates and timing before cooling ends. Over the line, it is held with the signals listed and the partner is paused. Nothing paid can be clawed back, which is why nothing pays before cooling.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "LtmEGzhnPlFyelMciy",
+     "component": "eWWSXuZM8",
+     "$replicaId": "LtmEGzhnP",
+     "$originalId": "lFyelMciy",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "i_V17yF6U"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "How fast do partners get paid?",
+      "$control__answers": "Within the hour after the cooling window, on Arc, for about a cent in fees. A partner on Base, Arbitrum or Ethereum is paid there through CCTP.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "LtmEGzhnPMi0mzQR66",
+     "component": "eWWSXuZM8",
+     "$replicaId": "LtmEGzhnP",
+     "$originalId": "Mi0mzQR66",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "LtmEGzhnP"
+        }
+       }
+      ],
+      "$control__variant": "Expanded",
+      "$control__question": "Do I need to approve every payout?",
+      "$control__answers": "No. You approve only what crosses a policy line: a payout above your approval limit, a fraud rate above your threshold, a partner’s changed payout address. Everything else is a log entry you can read later.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "LtmEGzhnPE2MCSWS1h",
+     "component": "eWWSXuZM8",
+     "$replicaId": "LtmEGzhnP",
+     "$originalId": "E2MCSWS1h",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "FQPzLvxDf"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Is this live on mainnet?",
+      "$control__answers": "Yes, with small budgets. The contract is unaudited hackathon code; the page labels every number as testnet or mainnet, and the first mainnet campaign is capped at $100.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "LtmEGzhnPwRcWsECbc",
+     "component": "eWWSXuZM8",
+     "$replicaId": "LtmEGzhnP",
+     "$originalId": "wRcWsECbc",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "uPTjwSK2T"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to use crypto?",
+      "$control__answers": "You need USDC to fund a campaign, on Arc or bridged from Base, Arbitrum or Ethereum. Partners do not need anything; an email creates a wallet for them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "LtmEGzhnPgznTOBqWa",
+     "component": "eWWSXuZM8",
+     "$replicaId": "LtmEGzhnP",
+     "$originalId": "gznTOBqWa",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "S64KlAQXQ"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Who built this?",
+      "$control__answers": "Merk Labs, for the Tameion Agents Hackathon by Canteen, Circle and Arc. The repo is public.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    }
+   ]
+  },
+  {
+   "type": "FrameNode",
+   "name": "6",
+   "id": "FQPzLvxDf",
+   "$isReplica": true,
+   "$originalId": "cg7FGWEgd",
+   "attributes": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "16px",
+    "overflow": "clip",
+    "left": "3500px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "50%",
+    "centerAnchorY": "64.65%",
+    "constraintsLocked": false,
+    "width": "600px",
+    "height": "auto",
+    "maxWidth": "600px",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "ComponentInstanceNode",
+     "id": "FQPzLvxDfYgSKZSGiL",
+     "component": "eWWSXuZM8",
+     "$replicaId": "FQPzLvxDf",
+     "$originalId": "YgSKZSGiL",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "cg7FGWEgd"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What counts as a result?",
+      "$control__answers": "Whatever line you wrote in the mandate, as long as your product can vouch for it: a purchase settled over x402 on Arc, an onchain action, or a signed event from your backend such as creating an API key and making 50 calls. GUILD never decides that something happened; it decides what to do once your product says it did.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "FQPzLvxDfp6nXnLFrE",
+     "component": "eWWSXuZM8",
+     "$replicaId": "FQPzLvxDf",
+     "$originalId": "p6nXnLFrE",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "KdJm5iPlT"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Can the agent spend more than I gave it?",
+      "$control__answers": "No. The budget, the per-result ceiling, the per-partner cap and the approval limit are in the contract. The agent’s key cannot call the functions that change them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "FQPzLvxDfpyMJNbx4k",
+     "component": "eWWSXuZM8",
+     "$replicaId": "FQPzLvxDf",
+     "$originalId": "pyMJNbx4k",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "gxBNZoCcR"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What if a partner games it?",
+      "$control__answers": "Every result is scored for self-referral, bursts, duplicates and timing before cooling ends. Over the line, it is held with the signals listed and the partner is paused. Nothing paid can be clawed back, which is why nothing pays before cooling.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "FQPzLvxDflFyelMciy",
+     "component": "eWWSXuZM8",
+     "$replicaId": "FQPzLvxDf",
+     "$originalId": "lFyelMciy",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "i_V17yF6U"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "How fast do partners get paid?",
+      "$control__answers": "Within the hour after the cooling window, on Arc, for about a cent in fees. A partner on Base, Arbitrum or Ethereum is paid there through CCTP.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "FQPzLvxDfMi0mzQR66",
+     "component": "eWWSXuZM8",
+     "$replicaId": "FQPzLvxDf",
+     "$originalId": "Mi0mzQR66",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "LtmEGzhnP"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to approve every payout?",
+      "$control__answers": "No. You approve only what crosses a policy line: a payout above your approval limit, a fraud rate above your threshold, a partner’s changed payout address. Everything else is a log entry you can read later.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "FQPzLvxDfE2MCSWS1h",
+     "component": "eWWSXuZM8",
+     "$replicaId": "FQPzLvxDf",
+     "$originalId": "E2MCSWS1h",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "FQPzLvxDf"
+        }
+       }
+      ],
+      "$control__variant": "Expanded",
+      "$control__question": "Is this live on mainnet?",
+      "$control__answers": "Yes, with small budgets. The contract is unaudited hackathon code; the page labels every number as testnet or mainnet, and the first mainnet campaign is capped at $100.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "FQPzLvxDfwRcWsECbc",
+     "component": "eWWSXuZM8",
+     "$replicaId": "FQPzLvxDf",
+     "$originalId": "wRcWsECbc",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "uPTjwSK2T"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to use crypto?",
+      "$control__answers": "You need USDC to fund a campaign, on Arc or bridged from Base, Arbitrum or Ethereum. Partners do not need anything; an email creates a wallet for them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "FQPzLvxDfgznTOBqWa",
+     "component": "eWWSXuZM8",
+     "$replicaId": "FQPzLvxDf",
+     "$originalId": "gznTOBqWa",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "S64KlAQXQ"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Who built this?",
+      "$control__answers": "Merk Labs, for the Tameion Agents Hackathon by Canteen, Circle and Arc. The repo is public.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    }
+   ]
+  },
+  {
+   "type": "FrameNode",
+   "name": "7",
+   "id": "uPTjwSK2T",
+   "$isReplica": true,
+   "$originalId": "cg7FGWEgd",
+   "attributes": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "16px",
+    "overflow": "clip",
+    "left": "4200px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "50%",
+    "centerAnchorY": "64.65%",
+    "constraintsLocked": false,
+    "width": "600px",
+    "height": "auto",
+    "maxWidth": "600px",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "ComponentInstanceNode",
+     "id": "uPTjwSK2TYgSKZSGiL",
+     "component": "eWWSXuZM8",
+     "$replicaId": "uPTjwSK2T",
+     "$originalId": "YgSKZSGiL",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "cg7FGWEgd"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What counts as a result?",
+      "$control__answers": "Whatever line you wrote in the mandate, as long as your product can vouch for it: a purchase settled over x402 on Arc, an onchain action, or a signed event from your backend such as creating an API key and making 50 calls. GUILD never decides that something happened; it decides what to do once your product says it did.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "uPTjwSK2Tp6nXnLFrE",
+     "component": "eWWSXuZM8",
+     "$replicaId": "uPTjwSK2T",
+     "$originalId": "p6nXnLFrE",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "KdJm5iPlT"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Can the agent spend more than I gave it?",
+      "$control__answers": "No. The budget, the per-result ceiling, the per-partner cap and the approval limit are in the contract. The agent’s key cannot call the functions that change them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "uPTjwSK2TpyMJNbx4k",
+     "component": "eWWSXuZM8",
+     "$replicaId": "uPTjwSK2T",
+     "$originalId": "pyMJNbx4k",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "gxBNZoCcR"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What if a partner games it?",
+      "$control__answers": "Every result is scored for self-referral, bursts, duplicates and timing before cooling ends. Over the line, it is held with the signals listed and the partner is paused. Nothing paid can be clawed back, which is why nothing pays before cooling.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "uPTjwSK2TlFyelMciy",
+     "component": "eWWSXuZM8",
+     "$replicaId": "uPTjwSK2T",
+     "$originalId": "lFyelMciy",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "i_V17yF6U"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "How fast do partners get paid?",
+      "$control__answers": "Within the hour after the cooling window, on Arc, for about a cent in fees. A partner on Base, Arbitrum or Ethereum is paid there through CCTP.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "uPTjwSK2TMi0mzQR66",
+     "component": "eWWSXuZM8",
+     "$replicaId": "uPTjwSK2T",
+     "$originalId": "Mi0mzQR66",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "LtmEGzhnP"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to approve every payout?",
+      "$control__answers": "No. You approve only what crosses a policy line: a payout above your approval limit, a fraud rate above your threshold, a partner’s changed payout address. Everything else is a log entry you can read later.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "uPTjwSK2TE2MCSWS1h",
+     "component": "eWWSXuZM8",
+     "$replicaId": "uPTjwSK2T",
+     "$originalId": "E2MCSWS1h",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "FQPzLvxDf"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Is this live on mainnet?",
+      "$control__answers": "Yes, with small budgets. The contract is unaudited hackathon code; the page labels every number as testnet or mainnet, and the first mainnet campaign is capped at $100.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "uPTjwSK2TwRcWsECbc",
+     "component": "eWWSXuZM8",
+     "$replicaId": "uPTjwSK2T",
+     "$originalId": "wRcWsECbc",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "uPTjwSK2T"
+        }
+       }
+      ],
+      "$control__variant": "Expanded",
+      "$control__question": "Do I need to use crypto?",
+      "$control__answers": "You need USDC to fund a campaign, on Arc or bridged from Base, Arbitrum or Ethereum. Partners do not need anything; an email creates a wallet for them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "uPTjwSK2TgznTOBqWa",
+     "component": "eWWSXuZM8",
+     "$replicaId": "uPTjwSK2T",
+     "$originalId": "gznTOBqWa",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "S64KlAQXQ"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Who built this?",
+      "$control__answers": "Merk Labs, for the Tameion Agents Hackathon by Canteen, Circle and Arc. The repo is public.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    }
+   ]
+  },
+  {
+   "type": "FrameNode",
+   "name": "8",
+   "id": "S64KlAQXQ",
+   "$isReplica": true,
+   "$originalId": "cg7FGWEgd",
+   "attributes": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "16px",
+    "overflow": "clip",
+    "left": "4900px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "50%",
+    "centerAnchorY": "64.65%",
+    "constraintsLocked": false,
+    "width": "600px",
+    "height": "auto",
+    "maxWidth": "600px",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "ComponentInstanceNode",
+     "id": "S64KlAQXQYgSKZSGiL",
+     "component": "eWWSXuZM8",
+     "$replicaId": "S64KlAQXQ",
+     "$originalId": "YgSKZSGiL",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "cg7FGWEgd"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What counts as a result?",
+      "$control__answers": "Whatever line you wrote in the mandate, as long as your product can vouch for it: a purchase settled over x402 on Arc, an onchain action, or a signed event from your backend such as creating an API key and making 50 calls. GUILD never decides that something happened; it decides what to do once your product says it did.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "S64KlAQXQp6nXnLFrE",
+     "component": "eWWSXuZM8",
+     "$replicaId": "S64KlAQXQ",
+     "$originalId": "p6nXnLFrE",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "KdJm5iPlT"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Can the agent spend more than I gave it?",
+      "$control__answers": "No. The budget, the per-result ceiling, the per-partner cap and the approval limit are in the contract. The agent’s key cannot call the functions that change them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "S64KlAQXQpyMJNbx4k",
+     "component": "eWWSXuZM8",
+     "$replicaId": "S64KlAQXQ",
+     "$originalId": "pyMJNbx4k",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "gxBNZoCcR"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "What if a partner games it?",
+      "$control__answers": "Every result is scored for self-referral, bursts, duplicates and timing before cooling ends. Over the line, it is held with the signals listed and the partner is paused. Nothing paid can be clawed back, which is why nothing pays before cooling.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "S64KlAQXQlFyelMciy",
+     "component": "eWWSXuZM8",
+     "$replicaId": "S64KlAQXQ",
+     "$originalId": "lFyelMciy",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "i_V17yF6U"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "How fast do partners get paid?",
+      "$control__answers": "Within the hour after the cooling window, on Arc, for about a cent in fees. A partner on Base, Arbitrum or Ethereum is paid there through CCTP.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "S64KlAQXQMi0mzQR66",
+     "component": "eWWSXuZM8",
+     "$replicaId": "S64KlAQXQ",
+     "$originalId": "Mi0mzQR66",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "LtmEGzhnP"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to approve every payout?",
+      "$control__answers": "No. You approve only what crosses a policy line: a payout above your approval limit, a fraud rate above your threshold, a partner’s changed payout address. Everything else is a log entry you can read later.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "S64KlAQXQE2MCSWS1h",
+     "component": "eWWSXuZM8",
+     "$replicaId": "S64KlAQXQ",
+     "$originalId": "E2MCSWS1h",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "FQPzLvxDf"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Is this live on mainnet?",
+      "$control__answers": "Yes, with small budgets. The contract is unaudited hackathon code; the page labels every number as testnet or mainnet, and the first mainnet campaign is capped at $100.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "S64KlAQXQwRcWsECbc",
+     "component": "eWWSXuZM8",
+     "$replicaId": "S64KlAQXQ",
+     "$originalId": "wRcWsECbc",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "uPTjwSK2T"
+        }
+       }
+      ],
+      "$control__variant": "Collapsed",
+      "$control__question": "Do I need to use crypto?",
+      "$control__answers": "You need USDC to fund a campaign, on Arc or bridged from Base, Arbitrum or Ethereum. Partners do not need anything; an email creates a wallet for them.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "S64KlAQXQgznTOBqWa",
+     "component": "eWWSXuZM8",
+     "$replicaId": "S64KlAQXQ",
+     "$originalId": "gznTOBqWa",
+     "$componentDisplayName": "FAQ card",
+     "attributes": {
+      "onClick": [
+       {
+        "action": "SET_VARIANT",
+        "controls": {
+         "variant": "S64KlAQXQ"
+        }
+       }
+      ],
+      "$control__variant": "Expanded",
+      "$control__question": "Who built this?",
+      "$control__answers": "Merk Labs, for the Tameion Agents Hackathon by Canteen, Circle and Arc. The repo is public.",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     }
+    }
+   ]
+  }
+ ]
+}

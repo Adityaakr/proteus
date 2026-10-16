@@ -1,0 +1,105 @@
+/* Industries section (Framer node viN7yKCMO), elementId "comparison". */
+
+.section {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  overflow: clip;
+}
+
+/* MFBl4tQFy: Dark fill */
+.container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+  padding: 100px 40px;
+  overflow: clip;
+  background: var(--c-dark);
+}
+
+/* RJZ2b3eOW */
+.content {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 60px;
+  overflow: clip;
+}
+
+/* P2o3p0Mbw: 3 columns, gap 16 */
+.grid {
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(50px, 1fr));
+  gap: 16px;
+  overflow: clip;
+}
+
+/* Industry card (slkat30Sb / Desktop) */
+.card {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  padding: 32px;
+  border-radius: 16px;
+  overflow: clip;
+}
+
+/* Dotted Icon: 80px square on desktop, 60 tablet, 40 phone */
+.icon {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex: none;
+}
+
+.text {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  overflow: clip;
+}
+.title {
+  width: 100%;
+  color: var(--c-white);
+}
+.body {
+  width: 100%;
+  color: var(--c-white-60);
+}
+
+@media (max-width: 1199.98px) {
+  .container { padding: 60px 40px; }
+  .content { gap: 40px; max-width: 1000px; }
+  .grid { grid-template-columns: repeat(2, minmax(50px, 1fr)); }
+  .card { gap: 32px; padding: 24px; }
+  .icon { width: 60px; height: 60px; }
+}
+
+@media (max-width: 809.98px) {
+  .container { padding: 60px 16px; }
+  .content { gap: 40px; max-width: 500px; }
+  .grid { grid-template-columns: minmax(50px, 1fr); }
+  .card { gap: 24px; padding: 24px; }
+  .icon { width: 40px; height: 40px; }
+}

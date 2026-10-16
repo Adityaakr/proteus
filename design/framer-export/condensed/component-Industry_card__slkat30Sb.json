@@ -1,0 +1,393 @@
+{
+ "id": "slkat30Sb",
+ "type": "ComponentNode",
+ "name": "Industry card",
+ "$variants": [
+  {
+   "id": "IOFRMGkFA",
+   "name": "Desktop"
+  },
+  {
+   "id": "brhoJTL4S",
+   "name": "Tablet"
+  },
+  {
+   "id": "RguhoTqFw",
+   "name": "phone"
+  }
+ ],
+ "variables": [
+  {
+   "key": "$control__industryName",
+   "id": "I2tQz0P2f",
+   "name": "Industry name",
+   "node": "Variable",
+   "type": "string",
+   "initialValue": "Financial services"
+  },
+  {
+   "key": "$control__description",
+   "id": "BbwBbkHIn",
+   "name": "Description",
+   "node": "Variable",
+   "type": "string",
+   "initialValue": "Organize information, support reviews, and streamline recurring reporting."
+  },
+  {
+   "key": "$control__density",
+   "id": "Z5vgYAPQH",
+   "name": "Density",
+   "node": "Variable",
+   "type": "number",
+   "initialValue": 18
+  },
+  {
+   "key": "$control__pixelSize",
+   "id": "tXbZtYZqx",
+   "name": "Pixel Size",
+   "node": "Variable",
+   "type": "number",
+   "initialValue": 1
+  },
+  {
+   "key": "$control__threshold",
+   "id": "tsG1XIgR5",
+   "name": "Threshold",
+   "node": "Variable",
+   "type": "number",
+   "initialValue": 0.46
+  }
+ ],
+ "children": [
+  {
+   "id": "IOFRMGkFA",
+   "type": "FrameNode",
+   "name": "Desktop",
+   "a": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "start",
+    "gap": "40px",
+    "overflow": "clip",
+    "padding": "32px",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "16px",
+    "width": "362.5px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "NR1hg8rBU",
+     "type": "ComponentInstanceNode",
+     "component": "codeFile/AdYu3Lq:default",
+     "componentName": "Dotted Icon",
+     "a": {
+      "$control__pNGSVG": "var(--variable-qsf_jzvJo)",
+      "$control__fit": "Contain",
+      "$control__style": "Pixels",
+      "$control__color": "Gradient",
+      "$control__density": "var(--variable-Z5vgYAPQH)",
+      "$control__dotSize": "0.61",
+      "$control__pixelSize": "var(--variable-tXbZtYZqx)",
+      "$control__pixelRadius": "0",
+      "$control__gradient1": "#00E5FF",
+      "$control__gradient2": "var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+      "$control__gradient3": "var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1)",
+      "$control__gradient4": "var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1)",
+      "$control__gradient5": "var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1)",
+      "$control__gradientAngle": "16",
+      "$control__detect": "Alpha",
+      "$control__threshold": "var(--variable-tsG1XIgR5)",
+      "$control__invert": "false",
+      "$control__active": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+      "$control__inactive": "var(--token-22d3f34c-2981-4b25-b181-148f3f405183)",
+      "$control__idleOpacity": "0",
+      "$control__glow": "0",
+      "$control__shimmer": "true",
+      "$control__shimmerColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+      "$control__intensity": "0.4",
+      "$control__bandWidth": "0.5",
+      "$control__duration": "1.8",
+      "$control__angle": "-50",
+      "$control__background": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+      "$control__radius": "0",
+      "$control__padding": "0",
+      "$control__altText": "Dotted icon",
+      "position": "relative",
+      "width": "80px",
+      "height": "100px",
+      "aspectRatio": 1
+     }
+    },
+    {
+     "id": "LK2Ck6LIi",
+     "type": "FrameNode",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "8px",
+      "overflow": "clip",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "WlDd498Va",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "text": "var(--variable-I2tQz0P2f)",
+        "textStylePreset": "Heading 5",
+        "textAlignment": "start",
+        "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+       }
+      },
+      {
+       "id": "iGCEXLeqm",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "text": "var(--variable-BbwBbkHIn)",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start",
+        "textColor": "var(--token-bfdae1e4-91e8-463a-8cf8-3968004590a9)"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "brhoJTL4S",
+   "type": "FrameNode",
+   "name": "Tablet",
+   "a": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "start",
+    "gap": "32px",
+    "overflow": "clip",
+    "padding": "24px",
+    "left": "462.5px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "16px",
+    "width": "362.5px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "brhoJTL4SNR1hg8rBU",
+     "type": "ComponentInstanceNode",
+     "component": "codeFile/AdYu3Lq:default",
+     "componentName": "Dotted Icon",
+     "a": {
+      "$control__pNGSVG": "var(--variable-qsf_jzvJo)",
+      "$control__fit": "Contain",
+      "$control__style": "Pixels",
+      "$control__color": "Gradient",
+      "$control__density": "var(--variable-Z5vgYAPQH)",
+      "$control__dotSize": "0.61",
+      "$control__pixelSize": "var(--variable-tXbZtYZqx)",
+      "$control__pixelRadius": "0",
+      "$control__gradient1": "#00E5FF",
+      "$control__gradient2": "var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+      "$control__gradient3": "var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1)",
+      "$control__gradient4": "var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1)",
+      "$control__gradient5": "var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1)",
+      "$control__gradientAngle": "16",
+      "$control__detect": "Alpha",
+      "$control__threshold": "var(--variable-tsG1XIgR5)",
+      "$control__invert": "false",
+      "$control__active": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+      "$control__inactive": "var(--token-22d3f34c-2981-4b25-b181-148f3f405183)",
+      "$control__idleOpacity": "0",
+      "$control__glow": "0",
+      "$control__shimmer": "true",
+      "$control__shimmerColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+      "$control__intensity": "0.4",
+      "$control__bandWidth": "0.5",
+      "$control__duration": "1.8",
+      "$control__angle": "-50",
+      "$control__background": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+      "$control__radius": "0",
+      "$control__padding": "0",
+      "$control__altText": "Dotted icon",
+      "position": "relative",
+      "width": "60px",
+      "height": "100px",
+      "aspectRatio": 1
+     }
+    },
+    {
+     "id": "brhoJTL4SLK2Ck6LIi",
+     "type": "FrameNode",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "8px",
+      "overflow": "clip",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "brhoJTL4SWlDd498Va",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "text": "var(--variable-I2tQz0P2f)",
+        "textStylePreset": "Heading 5",
+        "textAlignment": "start",
+        "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+       }
+      },
+      {
+       "id": "brhoJTL4SiGCEXLeqm",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "text": "var(--variable-BbwBbkHIn)",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start",
+        "textColor": "var(--token-bfdae1e4-91e8-463a-8cf8-3968004590a9)"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "RguhoTqFw",
+   "type": "FrameNode",
+   "name": "phone",
+   "a": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "start",
+    "gap": "24px",
+    "overflow": "clip",
+    "padding": "24px",
+    "left": "925px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "radius": "16px",
+    "width": "362.5px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "RguhoTqFwNR1hg8rBU",
+     "type": "ComponentInstanceNode",
+     "component": "codeFile/AdYu3Lq:default",
+     "componentName": "Dotted Icon",
+     "a": {
+      "$control__pNGSVG": "var(--variable-qsf_jzvJo)",
+      "$control__fit": "Contain",
+      "$control__style": "Pixels",
+      "$control__color": "Gradient",
+      "$control__density": "var(--variable-Z5vgYAPQH)",
+      "$control__dotSize": "0.61",
+      "$control__pixelSize": "var(--variable-tXbZtYZqx)",
+      "$control__pixelRadius": "0",
+      "$control__gradient1": "#00E5FF",
+      "$control__gradient2": "var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+      "$control__gradient3": "var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1)",
+      "$control__gradient4": "var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1)",
+      "$control__gradient5": "var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1)",
+      "$control__gradientAngle": "16",
+      "$control__detect": "Alpha",
+      "$control__threshold": "var(--variable-tsG1XIgR5)",
+      "$control__invert": "false",
+      "$control__active": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+      "$control__inactive": "var(--token-22d3f34c-2981-4b25-b181-148f3f405183)",
+      "$control__idleOpacity": "0",
+      "$control__glow": "0",
+      "$control__shimmer": "true",
+      "$control__shimmerColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+      "$control__intensity": "0.4",
+      "$control__bandWidth": "0.5",
+      "$control__duration": "1.8",
+      "$control__angle": "-50",
+      "$control__background": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+      "$control__radius": "0",
+      "$control__padding": "0",
+      "$control__altText": "Dotted icon",
+      "position": "relative",
+      "width": "40px",
+      "height": "60px",
+      "aspectRatio": 1
+     }
+    },
+    {
+     "id": "RguhoTqFwLK2Ck6LIi",
+     "type": "FrameNode",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "8px",
+      "overflow": "clip",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "RguhoTqFwWlDd498Va",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "text": "var(--variable-I2tQz0P2f)",
+        "textStylePreset": "Heading 5",
+        "textAlignment": "start",
+        "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+       }
+      },
+      {
+       "id": "RguhoTqFwiGCEXLeqm",
+       "type": "RichTextNode",
+       "a": {
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "text": "var(--variable-BbwBbkHIn)",
+        "textStylePreset": "Body 2",
+        "textAlignment": "start",
+        "textColor": "var(--token-bfdae1e4-91e8-463a-8cf8-3968004590a9)"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,76 @@
+{
+ "type": "ComponentNode",
+ "id": "EuWUBM8Ks",
+ "name": "Pricing list",
+ "variables": [
+  {
+   "key": "$control__title",
+   "id": "N8q45UF5o",
+   "name": "Title",
+   "node": "Variable",
+   "type": "string",
+   "initialValue": "Personal workspace"
+  }
+ ],
+ "$parentId": "sn7IXw6X9",
+ "$variants": [
+  {
+   "id": "eMHHFcdHm",
+   "name": "List"
+  }
+ ],
+ "children": [
+  {
+   "type": "FrameNode",
+   "name": "List",
+   "id": "eMHHFcdHm",
+   "$isPrimary": true,
+   "attributes": {
+    "layout": "stack",
+    "stackDirection": "horizontal",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "10px",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "0%",
+    "centerAnchorY": "0%",
+    "constraintsLocked": false,
+    "width": "423.5px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "IconNode",
+     "id": "prSSWesc0",
+     "set": "omX0gWFPqDwhaiWwf6ab",
+     "$control__icon": "Check Circle",
+     "attributes": {
+      "$control__color": "var(--token-6e1a1ed1-ae7c-48f6-8052-04efff6cc0ab)",
+      "$control__width": "1.5",
+      "$control__alpha": "0",
+      "position": "relative",
+      "width": "20px",
+      "height": "20px"
+     }
+    },
+    {
+     "type": "RichTextNode",
+     "id": "tljcFHJTw",
+     "attributes": {
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "text": "var(--variable-N8q45UF5o)",
+      "textStylePreset": "Body 2",
+      "textAlignment": "start"
+     }
+    }
+   ]
+  }
+ ]
+}

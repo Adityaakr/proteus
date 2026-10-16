@@ -1,0 +1,369 @@
+{
+ "id": "B5_U9VCRp",
+ "type": "FrameNode",
+ "name": "Hero",
+ "a": {
+  "htmlTag": "section",
+  "layout": "stack",
+  "stackDirection": "horizontal",
+  "stackDistribution": "center",
+  "stackAlignment": "center",
+  "gap": "10px",
+  "overflow": "clip",
+  "position": "relative",
+  "scrollTargetEnabled": true,
+  "elementId": "hero",
+  "width": "1fr",
+  "height": "auto",
+  "minHeight": "100vh"
+ },
+ "children": [
+  {
+   "id": "uTCjSTl1r",
+   "type": "FrameNode",
+   "name": "Content container",
+   "a": {
+    "fill": "var(--token-3482e7f4-ca60-466f-aa1f-53d45aca05d9)",
+    "layout": "stack",
+    "stackDirection": "horizontal",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "gap": "10px",
+    "overflow": "clip",
+    "padding": "150px 40px 80px 40px",
+    "position": "relative",
+    "width": "1fr",
+    "height": "1fr"
+   },
+   "children": [
+    {
+     "id": "CsUAr_5SK",
+     "type": "FrameNode",
+     "name": "Container",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "60px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1400px"
+     },
+     "children": [
+      {
+       "id": "VuU4kS0IL",
+       "type": "FrameNode",
+       "name": "Text + button + UI",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "60px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "zIndex": "1"
+       },
+       "children": [
+        {
+         "id": "ejs4L09KH",
+         "type": "FrameNode",
+         "name": "Text + button",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "32px",
+          "overflow": "clip",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "JO8zCOREu",
+           "type": "FrameNode",
+           "name": "Heading + body",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "mA8xjBeCO",
+             "type": "FrameNode",
+             "name": "Tag",
+             "a": {
+              "appearEffect": {
+               "threshold": 0.5,
+               "trigger": "onMount",
+               "enter": {
+                "opacity": 0,
+                "x": 0,
+                "y": 0,
+                "scale": 1,
+                "rotate": 0,
+                "rotateX": 0,
+                "rotateY": 0,
+                "skewX": 0,
+                "skewY": 0,
+                "transition": "spring-duration 1s 0 0s",
+                "stagger": "0s"
+               }
+              },
+              "layout": "stack",
+              "stackDirection": "horizontal",
+              "stackDistribution": "center",
+              "stackAlignment": "center",
+              "gap": "8px",
+              "overflow": "clip",
+              "padding": "0px 0px 8px 0px",
+              "position": "relative",
+              "width": "auto",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "Ql5bnto0Z",
+               "type": "FrameNode",
+               "name": "Image",
+               "a": {
+                "fill": "https://framerusercontent.com/images/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png",
+                "layout": "null",
+                "position": "relative",
+                "width": "20px",
+                "height": "16px",
+                "aspectRatio": 1
+               }
+              },
+              {
+               "id": "WyoitpMPK",
+               "type": "RichTextNode",
+               "a": {
+                "position": "relative",
+                "width": "auto",
+                "height": "auto",
+                "textStylePreset": "Body 2",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:WyoitpMPK:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:WyoitpMPK:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "Built for the Tameion Agents Hackathon on Arc"
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "VBoplZJkl",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "maxWidth": "600px",
+              "textStylePreset": "Heading 1",
+              "textAlignment": "center",
+              "zIndex": "1"
+             },
+             "children": [
+              {
+               "id": "v:VBoplZJkl:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "h1"
+               },
+               "children": [
+                {
+                 "id": "v:VBoplZJkl:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "The growth agent that only pays for results it can verify."
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "jahnnx1UG",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "maxWidth": "500px",
+              "textStylePreset": "Body 1",
+              "textAlignment": "center"
+             },
+             "children": [
+              {
+               "id": "v:jahnnx1UG:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:jahnnx1UG:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "GUILD recruits partners, sets each one’s incentive inside your cost ceiling, verifies every outcome they bring, holds the suspicious ones, and pays the rest in USDC on Arc within hours. Your budget, your ceiling and your approval limit are enforced by a contract the agent cannot change."
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "wa2U1JITG",
+           "type": "FrameNode",
+           "name": "Button container",
+           "a": {
+            "appearEffect": {
+             "threshold": 0.5,
+             "trigger": "onMount",
+             "enter": {
+              "opacity": 0,
+              "x": 0,
+              "y": 0,
+              "scale": 1,
+              "rotate": 0,
+              "rotateX": 0,
+              "rotateY": 0,
+              "skewX": 0,
+              "skewY": 0,
+              "transition": "spring-duration 1s 0 0.8s",
+              "stagger": "0s"
+             }
+            },
+            "layout": "stack",
+            "stackDirection": "horizontal",
+            "stackDistribution": "center",
+            "stackAlignment": "center",
+            "gap": "16px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "NXrWdrcVz",
+             "type": "ComponentInstanceNode",
+             "component": "Jh9jZPCX6",
+             "componentName": "Button",
+             "a": {
+              "$control__variant": "Desktop/Secondary",
+              "$control__label": "Become a partner",
+              "$control__iconVisible": "false",
+              "$control__link": "/#partners",
+              "position": "relative",
+              "width": "auto",
+              "height": "auto"
+             }
+            },
+            {
+             "id": "n_W5fCt_I",
+             "type": "ComponentInstanceNode",
+             "component": "Jh9jZPCX6",
+             "componentName": "Button",
+             "a": {
+              "$control__variant": "Desktop/primary",
+              "$control__label": "Start a campaign",
+              "$control__iconVisible": "true",
+              "$control__link": "/#how-it-works",
+              "position": "relative",
+              "width": "auto",
+              "height": "auto"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "McyCsXoTB",
+       "type": "FrameNode",
+       "name": "BG",
+       "a": {
+        "appearEffect": {
+         "threshold": 0.5,
+         "trigger": "onMount",
+         "enter": {
+          "opacity": 0,
+          "x": 0,
+          "y": 0,
+          "scale": 1,
+          "rotate": 0,
+          "rotateX": 0,
+          "rotateY": 0,
+          "skewX": 0,
+          "skewY": 0,
+          "transition": "spring-duration 1s 0 1s",
+          "stagger": "0s"
+         }
+        },
+        "fill": "https://framerusercontent.com/images/7hinuK1ca5NnE0jxQx6Xp0Rgc.png",
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "10px",
+        "overflow": "clip",
+        "padding": "100px",
+        "position": "relative",
+        "radius": "24px",
+        "width": "1fr",
+        "height": "auto",
+        "maxWidth": "1200px"
+       },
+       "children": [
+        {
+         "id": "peHoeKoCI",
+         "type": "ComponentInstanceNode",
+         "component": "WiYRi7zrg",
+         "componentName": "Prompt Card",
+         "a": {
+          "$control__variant": "1",
+          "position": "relative",
+          "width": "466px",
+          "height": "593px",
+          "zIndex": "1"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

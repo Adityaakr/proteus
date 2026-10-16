@@ -1,0 +1,181 @@
+{
+ "type": "ComponentNode",
+ "id": "XQfVZNDnD",
+ "name": "UI card loading",
+ "variables": [
+  {
+   "key": "$control__title",
+   "id": "KgjdZtq9i",
+   "name": "Title",
+   "node": "Variable",
+   "type": "string",
+   "initialValue": "Collecting recent updates"
+  }
+ ],
+ "$parentId": "sn7IXw6X9",
+ "$variants": [
+  {
+   "id": "NC3Xo0Bz6",
+   "name": "Loading"
+  },
+  {
+   "id": "vmxl0WyGY",
+   "name": "Completed"
+  }
+ ],
+ "children": [
+  {
+   "type": "FrameNode",
+   "name": "Loading",
+   "id": "NC3Xo0Bz6",
+   "$isPrimary": true,
+   "attributes": {
+    "layout": "stack",
+    "stackDirection": "horizontal",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "16px",
+    "overflow": "clip",
+    "padding": "12px 16px 12px 16px",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "49.17%",
+    "centerAnchorY": "47.3%",
+    "constraintsLocked": false,
+    "width": "221.5px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "ComponentInstanceNode",
+     "id": "nxS1fczRc",
+     "component": "jyy408XAd9UK5qih91fR",
+     "$componentDisplayName": "ArcSpinner",
+     "attributes": {
+      "$control__color": "var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+      "$control__track": "0.1",
+      "$control__stroke": "2",
+      "$control__animate": "true",
+      "$control__duration": "1",
+      "$control__direction": "Clockwise",
+      "$control__label": "Loading",
+      "position": "relative",
+      "width": "24px",
+      "height": "48px",
+      "aspectRatio": 1
+     }
+    },
+    {
+     "type": "RichTextNode",
+     "id": "e10PlXqrk",
+     "attributes": {
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "text": "var(--variable-KgjdZtq9i)",
+      "textStylePreset": "Body 3",
+      "textAlignment": "start"
+     }
+    },
+    {
+     "type": "IconNode",
+     "id": "OVx0oYCa4",
+     "set": "fiHEoJwBMFnT6QLOcpPz",
+     "$control__icon": "Check",
+     "attributes": {
+      "$control__stroke": "var(--token-03157c8f-9190-4af0-ae5c-b10d22f4922d, rgb(43, 182, 115)) /* {\"name\":\"Active\"} */",
+      "position": "relative",
+      "width": "24px",
+      "height": "20px",
+      "aspectRatio": 1,
+      "visible": "false"
+     }
+    }
+   ]
+  },
+  {
+   "type": "FrameNode",
+   "name": "Completed",
+   "id": "vmxl0WyGY",
+   "$isReplica": true,
+   "$originalId": "NC3Xo0Bz6",
+   "attributes": {
+    "layout": "stack",
+    "stackDirection": "horizontal",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "stackWrapEnabled": false,
+    "gap": "16px",
+    "overflow": "clip",
+    "padding": "12px 16px 12px 16px",
+    "left": "321.5px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "centerAnchorX": "49.17%",
+    "centerAnchorY": "47.3%",
+    "constraintsLocked": false,
+    "width": "221.5px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "type": "IconNode",
+     "id": "vmxl0WyGYOVx0oYCa4",
+     "set": "fiHEoJwBMFnT6QLOcpPz",
+     "$control__icon": "Check",
+     "$replicaId": "vmxl0WyGY",
+     "$originalId": "OVx0oYCa4",
+     "attributes": {
+      "$control__stroke": "var(--token-03157c8f-9190-4af0-ae5c-b10d22f4922d, rgb(43, 182, 115)) /* {\"name\":\"Active\"} */",
+      "position": "relative",
+      "width": "24px",
+      "height": "20px",
+      "aspectRatio": 1
+     }
+    },
+    {
+     "type": "RichTextNode",
+     "id": "vmxl0WyGYe10PlXqrk",
+     "$replicaId": "vmxl0WyGY",
+     "$originalId": "e10PlXqrk",
+     "attributes": {
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "text": "var(--variable-KgjdZtq9i)",
+      "textStylePreset": "Body 3",
+      "textAlignment": "start"
+     }
+    },
+    {
+     "type": "ComponentInstanceNode",
+     "id": "vmxl0WyGYnxS1fczRc",
+     "component": "jyy408XAd9UK5qih91fR",
+     "$replicaId": "vmxl0WyGY",
+     "$originalId": "nxS1fczRc",
+     "$componentDisplayName": "ArcSpinner",
+     "attributes": {
+      "$control__color": "var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+      "$control__track": "0.1",
+      "$control__stroke": "2",
+      "$control__animate": "true",
+      "$control__duration": "1",
+      "$control__direction": "Clockwise",
+      "$control__label": "Loading",
+      "position": "relative",
+      "width": "24px",
+      "height": "48px",
+      "aspectRatio": 1,
+      "visible": "false"
+     }
+    }
+   ]
+  }
+ ]
+}

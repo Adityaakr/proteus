@@ -1,0 +1,1019 @@
+{
+ "id": "Nhcw0DMsN",
+ "type": "FrameNode",
+ "name": "How it works",
+ "a": {
+  "htmlTag": "section",
+  "layout": "stack",
+  "stackDirection": "horizontal",
+  "stackDistribution": "center",
+  "stackAlignment": "center",
+  "gap": "10px",
+  "overflow": "clip",
+  "position": "relative",
+  "scrollTargetEnabled": true,
+  "elementId": "how-it-works",
+  "width": "1fr",
+  "height": "auto"
+ },
+ "children": [
+  {
+   "id": "CMlo7y5mm",
+   "type": "FrameNode",
+   "name": "Content container",
+   "a": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "60px",
+    "overflow": "clip",
+    "padding": "100px 40px 100px 40px",
+    "position": "relative",
+    "width": "1fr",
+    "height": "auto"
+   },
+   "children": [
+    {
+     "id": "udnOSKiUw",
+     "type": "FrameNode",
+     "name": "Content",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "60px",
+      "overflow": "clip",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1200px"
+     },
+     "children": [
+      {
+       "id": "yPBWLup6b",
+       "type": "FrameNode",
+       "name": "Heading + tag",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "32px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "GiXcmbZcr",
+         "type": "ComponentInstanceNode",
+         "component": "PR2FImO_h",
+         "componentName": "Tag",
+         "a": {
+          "$control__variant": "Inactive",
+          "$control__title": "How it works",
+          "$control__iconText": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+          "$control__border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+          "position": "relative",
+          "scrollVariantEffect": {
+           "trigger": "onInView",
+           "replay": false,
+           "threshold": 0.5,
+           "fromVariant": "BYnhqdO_k",
+           "toVariant": "c_qE4utIC"
+          },
+          "width": "auto",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "gqys37YUs",
+         "type": "FrameNode",
+         "name": "Heading + description",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "overflow": "clip",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "DOgzK5nX2",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Heading 2",
+            "textAlignment": "center"
+           },
+           "children": [
+            {
+             "id": "v:DOgzK5nX2:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "h2"
+             },
+             "children": [
+              {
+               "id": "v:DOgzK5nX2:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Three steps, one message"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "rnTKOvKhp",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Body 1",
+            "textAlignment": "center"
+           },
+           "children": [
+            {
+             "id": "v:rnTKOvKhp:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:rnTKOvKhp:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "You read a log, not a dashboard. Every payout, hold and decline has its reasons attached and its transaction linked."
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "LGtlTH64D",
+       "type": "FrameNode",
+       "name": "Card content",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "24px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "gdtRrc8Sj",
+         "type": "FrameNode",
+         "name": "How it works card",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "24px",
+          "overflow": "clip",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "e90RFZl3f",
+           "type": "FrameNode",
+           "name": "Content",
+           "a": {
+            "fill": "https://framerusercontent.com/images/svSq1hHi3TFnZce7BPcnb7uXyFw.png",
+            "layout": "null",
+            "overflow": "clip",
+            "position": "relative",
+            "radius": "24px",
+            "width": "1fr",
+            "height": "320px",
+            "aspectRatio": 0.94
+           },
+           "children": [
+            {
+             "id": "YL6gfLsTV",
+             "type": "FrameNode",
+             "name": "Prompt Card",
+             "a": {
+              "fill": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)",
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "space-between",
+              "stackAlignment": "start",
+              "padding": "22px 22px 16px 22px",
+              "left": "40px",
+              "right": "null",
+              "top": "null",
+              "bottom": "null",
+              "radius": "18px",
+              "width": "600px",
+              "height": "228px",
+              "zIndex": "1"
+             },
+             "children": [
+              {
+               "id": "EeGn74y4S",
+               "type": "ComponentInstanceNode",
+               "component": "codeFile/fwzffGJ:default",
+               "componentName": "Typewriter",
+               "a": {
+                "$control__text1": "Developers who activate on Acme. 200 USDC. Up to 8 per activation.",
+                "$control__text2": "Paid signups on Lumen. 500 USDC. No more than 12 per purchase.",
+                "$control__text3": "Wallets that complete one swap on Arc. 150 USDC. Up to 5 each.",
+                "$control__typingSpeed": "50",
+                "$control__pauseDuration": "500",
+                "$control__textColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+                "$control__font": "{\"fontSelector\":\"GF;Geist-regular\",\"fontSize\":\"16px\",\"textAlignment\":\"left\",\"letterSpacing\":[-0.01,\"em\"],\"lineHeight\":[1.1,\"em\"],\"openTypeFontFeatures\":[\"ss01\"]}",
+                "$control__showCursor": "true",
+                "$control__cursorColor": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+                "$control__cursorBlink": "530",
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto"
+               }
+              },
+              {
+               "id": "m06pSV8KF",
+               "type": "FrameNode",
+               "name": "Prompt Bar",
+               "a": {
+                "layout": "stack",
+                "stackDirection": "horizontal",
+                "stackDistribution": "space-between",
+                "stackAlignment": "center",
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto"
+               },
+               "children": [
+                {
+                 "id": "ksL1J8YNK",
+                 "type": "FrameNode",
+                 "name": "New Suggestion",
+                 "a": {
+                  "cursor": "pointer",
+                  "layout": "stack",
+                  "stackDirection": "horizontal",
+                  "stackDistribution": "start",
+                  "stackAlignment": "center",
+                  "gap": "6px",
+                  "position": "relative",
+                  "width": "auto",
+                  "height": "auto"
+                 },
+                 "children": [
+                  {
+                   "id": "KM7Q5PWl_",
+                   "type": "IconNode",
+                   "a": {
+                    "$control__color": "rgba(17,22,46,0.6)",
+                    "$control__width": "2",
+                    "position": "relative",
+                    "width": "14px",
+                    "height": "auto"
+                   },
+                   "set": "Y7SpbVH16cWqMhj75z1M"
+                  },
+                  {
+                   "id": "kcngxomwt",
+                   "type": "RichTextNode",
+                   "a": {
+                    "position": "relative",
+                    "width": "auto",
+                    "height": "auto",
+                    "textStylePreset": "Body 3",
+                    "textAlignment": "start"
+                   },
+                   "children": [
+                    {
+                     "id": "v:kcngxomwt:0",
+                     "type": "TextBlock",
+                     "a": {
+                      "tag": "p"
+                     },
+                     "children": [
+                      {
+                       "id": "v:kcngxomwt:0:0",
+                       "type": "TextRun",
+                       "a": {
+                        "text": "Example mandate"
+                       }
+                      }
+                     ]
+                    }
+                   ]
+                  }
+                 ]
+                },
+                {
+                 "id": "A2iZjOLx1",
+                 "type": "FrameNode",
+                 "name": "Bar Right",
+                 "a": {
+                  "layout": "stack",
+                  "stackDirection": "horizontal",
+                  "stackDistribution": "end",
+                  "stackAlignment": "center",
+                  "gap": "14px",
+                  "position": "relative",
+                  "width": "auto",
+                  "height": "auto"
+                 },
+                 "children": [
+                  {
+                   "id": "kdjHi110g",
+                   "type": "IconNode",
+                   "a": {
+                    "$control__color": "rgba(17,22,46,0.45)",
+                    "$control__width": "2",
+                    "position": "relative",
+                    "width": "16px",
+                    "height": "auto"
+                   },
+                   "set": "Y7SpbVH16cWqMhj75z1M"
+                  },
+                  {
+                   "id": "dljDkDW6W",
+                   "type": "IconNode",
+                   "a": {
+                    "$control__color": "rgba(17,22,46,0.45)",
+                    "$control__width": "2",
+                    "position": "relative",
+                    "width": "16px",
+                    "height": "auto"
+                   },
+                   "set": "Y7SpbVH16cWqMhj75z1M"
+                  },
+                  {
+                   "id": "cYwAXjiQX",
+                   "type": "FrameNode",
+                   "name": "Run Agent",
+                   "a": {
+                    "cursor": "pointer",
+                    "fill": "var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+                    "hoverEffect": {
+                     "opacity": 0.9,
+                     "x": "0px",
+                     "y": "0px",
+                     "scale": 1,
+                     "skewX": "0deg",
+                     "skewY": "0deg",
+                     "transition": "spring-duration 0.3s 0.2 0s",
+                     "rotate": "0deg"
+                    },
+                    "layout": "stack",
+                    "stackDirection": "horizontal",
+                    "stackDistribution": "center",
+                    "stackAlignment": "center",
+                    "gap": "6px",
+                    "padding": "10px 18px 10px 18px",
+                    "position": "relative",
+                    "radius": "1000px",
+                    "width": "auto",
+                    "height": "auto"
+                   },
+                   "children": [
+                    {
+                     "id": "wFDwIfqLi",
+                     "type": "RichTextNode",
+                     "a": {
+                      "position": "relative",
+                      "width": "auto",
+                      "height": "auto",
+                      "textStylePreset": "Body 3",
+                      "textAlignment": "start",
+                      "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+                     },
+                     "children": [
+                      {
+                       "id": "v:wFDwIfqLi:0",
+                       "type": "TextBlock",
+                       "a": {
+                        "tag": "p"
+                       },
+                       "children": [
+                        {
+                         "id": "v:wFDwIfqLi:0:0",
+                         "type": "TextRun",
+                         "a": {
+                          "text": "Fund campaign"
+                         }
+                        }
+                       ]
+                      }
+                     ]
+                    },
+                    {
+                     "id": "LL7Ylc3zC",
+                     "type": "IconNode",
+                     "a": {
+                      "$control__color": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+                      "$control__width": "2",
+                      "position": "relative",
+                      "width": "14px",
+                      "height": "auto"
+                     },
+                     "set": "Y7SpbVH16cWqMhj75z1M"
+                    }
+                   ]
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "ZSuV3Cifl",
+           "type": "FrameNode",
+           "name": "Heading + description",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "center",
+            "stackAlignment": "start",
+            "gap": "8px",
+            "overflow": "clip",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "tqWFMYxeP",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto",
+              "textStylePreset": "Heading 5",
+              "textAlignment": "start"
+             },
+             "children": [
+              {
+               "id": "v:tqWFMYxeP:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "h5"
+               },
+               "children": [
+                {
+                 "id": "v:tqWFMYxeP:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Set the mandate"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "gVOiFU6qA",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto",
+              "textStylePreset": "Body 2",
+              "textAlignment": "start",
+              "textColor": "var(--token-faa83f4b-eb5a-4111-a586-ff3633f4da58)"
+             },
+             "children": [
+              {
+               "id": "v:gVOiFU6qA:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:gVOiFU6qA:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Tell GUILD what outcome you want, how much you will spend in total, and the most you will pay per result. Add the line that defines a real result: a purchase, an activation, an onchain action your product can vouch for. GUILD turns that into a campaign and funds it onchain. The budget and the ceiling are now limits it cannot cross."
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "HDX_hbNtS",
+         "type": "FrameNode",
+         "name": "How it works card",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "24px",
+          "overflow": "clip",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "aGc3ZJ8FO",
+           "type": "FrameNode",
+           "name": "Content",
+           "a": {
+            "fill": "https://framerusercontent.com/images/7JLgNnHNWS2ZheqZrTXBTaVCv6Q.png",
+            "layout": "null",
+            "overflow": "clip",
+            "position": "relative",
+            "radius": "24px",
+            "width": "1fr",
+            "height": "320px",
+            "aspectRatio": 0.94
+           },
+           "children": [
+            {
+             "id": "TOiaa23n3",
+             "type": "ComponentInstanceNode",
+             "component": "codeFile/HvjkWUQ:default",
+             "componentName": "AnimatedBeam",
+             "a": {
+              "$control__center": "https://framerusercontent.com/images/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png",
+              "$control__leftNodes": [
+               {
+                "image": "https://framerusercontent.com/images/ghA1dv8Ec7AjGLyCNKFyk2YW2Y.png",
+                "id": "diW58IQ_f"
+               },
+               {
+                "image": "https://framerusercontent.com/images/cu4MfUe9qRDMpZkhNA7m7eIhaM.png",
+                "id": "R7s0DalZy"
+               },
+               {
+                "image": "https://framerusercontent.com/images/nETSPvMOZHE9F2AVkfuiTnVEI.png",
+                "id": "kzahr1mMi"
+               }
+              ],
+              "$control__rightNodes": [
+               {
+                "image": "https://framerusercontent.com/images/Bdk9u0YFihVafXCtWkTxTzKmFu4.png",
+                "id": "fs96JE1if"
+               },
+               {
+                "image": "https://framerusercontent.com/images/zxWuBWsLWrG577sK8JjS6ztMbo.png",
+                "id": "bj2Twa0c1"
+               },
+               {
+                "image": "https://framerusercontent.com/images/tA26PW4Ptu6P0TTTuRjOs0Jsvs.png",
+                "id": "lUAkGoPi1"
+               }
+              ],
+              "$control__nodeSize": "48",
+              "$control__centerSize": "64",
+              "$control__padding": "24",
+              "$control__nodeGap": "32",
+              "$control__nodeBG": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+              "$control__nodeBorder": "#e5e7eb",
+              "$control__borderW": "1",
+              "$control__nodeRadius": "12",
+              "$control__track": "var(--token-b39a48ae-2f48-4067-9b92-9d8fcfd251a1)",
+              "$control__beamWidth": "3",
+              "$control__trackOpacity": "0.35",
+              "$control__gradientA": "var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+              "$control__gradientB": "var(--token-52d49a3a-3ad9-4835-a3cb-87d0d1f6fc06)",
+              "$control__curvature": "75",
+              "$control__endOffset": "10",
+              "$control__duration": "1",
+              "$control__delay": "0",
+              "$control__stagger": "0",
+              "$control__repeatDelay": "0",
+              "$control__speedVariation": "1",
+              "$control__easing": "Linear (steady)",
+              "$control__reverseFlow": "false",
+              "left": "16px",
+              "right": "16px",
+              "top": "null",
+              "bottom": "null",
+              "width": "240px",
+              "height": "auto"
+             }
+            }
+           ]
+          },
+          {
+           "id": "Q_gCphdPe",
+           "type": "FrameNode",
+           "name": "Heading + description",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "center",
+            "stackAlignment": "start",
+            "gap": "8px",
+            "overflow": "clip",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "wovWAKnzR",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto",
+              "textStylePreset": "Heading 5",
+              "textAlignment": "start"
+             },
+             "children": [
+              {
+               "id": "v:wovWAKnzR:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "h5"
+               },
+               "children": [
+                {
+                 "id": "v:wovWAKnzR:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Partners bring results"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "IAXdadcqb",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto",
+              "textStylePreset": "Body 2",
+              "textAlignment": "start",
+              "textColor": "var(--token-faa83f4b-eb5a-4111-a586-ff3633f4da58)"
+             },
+             "children": [
+              {
+               "id": "v:IAXdadcqb:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:IAXdadcqb:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "GUILD opens an apply link, reads each application, accepts the ones that fit, and offers each partner an incentive under your ceiling. Partners get a referral link and a wallet. When someone they brought does the real thing, your product’s backend tells GUILD, signed."
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "wwIg7JkOj",
+         "type": "FrameNode",
+         "name": "How it works card",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "24px",
+          "overflow": "clip",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "xTc0PCOro",
+           "type": "FrameNode",
+           "name": "Content",
+           "a": {
+            "fill": "https://framerusercontent.com/images/3zE3eLjjpwMLVNUEK5PAUEZaCJk.png",
+            "layout": "null",
+            "overflow": "clip",
+            "position": "relative",
+            "radius": "24px",
+            "width": "1fr",
+            "height": "320px",
+            "aspectRatio": 0.94
+           },
+           "children": [
+            {
+             "id": "lGzgXaPhR",
+             "type": "FrameNode",
+             "name": "Desktop",
+             "a": {
+              "fill": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)",
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "center",
+              "stackAlignment": "start",
+              "gap": "0px",
+              "overflow": "clip",
+              "left": "32px",
+              "right": "31.5px",
+              "top": "null",
+              "bottom": "null",
+              "radius": "16px",
+              "width": "294px",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "ptYDLz5Yt",
+               "type": "FrameNode",
+               "name": "Agent working",
+               "a": {
+                "layout": "stack",
+                "stackDirection": "horizontal",
+                "stackDistribution": "start",
+                "stackAlignment": "center",
+                "gap": "15px",
+                "overflow": "clip",
+                "padding": "16px",
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "zIndex": "1"
+               },
+               "children": [
+                {
+                 "id": "Mp9st7EmW",
+                 "type": "ComponentInstanceNode",
+                 "component": "hYuNOkQpcwRA9Qg2X2Ad",
+                 "componentName": "RippleLoader",
+                 "a": {
+                  "$control__cellSize": "6",
+                  "$control__spacing": "1",
+                  "$control__radius": "4",
+                  "$control__duration": "1.5",
+                  "$control__cellDelay": "0.1",
+                  "$control__start": "var(--token-cfa89a90-dbbb-4892-b359-3cd7c161f4ad, rgb(49, 91, 232)) /* {\"name\":\"Primary\"} */",
+                  "$control__end": "var(--token-cfa89a90-dbbb-4892-b359-3cd7c161f4ad, rgb(49, 91, 232)) /* {\"name\":\"Primary\"} */",
+                  "$control__background": "rgba(0, 0, 0, 0)",
+                  "position": "relative",
+                  "width": "32px",
+                  "height": "24px",
+                  "aspectRatio": 1
+                 }
+                },
+                {
+                 "id": "ZXzwGqx1o",
+                 "type": "RichTextNode",
+                 "a": {
+                  "position": "relative",
+                  "width": "1fr",
+                  "height": "auto",
+                  "textStylePreset": "Heading 6",
+                  "textAlignment": "start"
+                 },
+                 "children": [
+                  {
+                   "id": "v:ZXzwGqx1o:0",
+                   "type": "TextBlock",
+                   "a": {
+                    "tag": "h6"
+                   },
+                   "children": [
+                    {
+                     "id": "v:ZXzwGqx1o:0:0",
+                     "type": "TextRun",
+                     "a": {
+                      "text": "GUILD deciding"
+                     }
+                    }
+                   ]
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "wFXYbTdK9",
+               "type": "FrameNode",
+               "name": "Divider",
+               "a": {
+                "fill": "var(--token-22d3f34c-2981-4b25-b181-148f3f405183)",
+                "layout": "null",
+                "overflow": "clip",
+                "position": "relative",
+                "width": "1fr",
+                "height": "1px",
+                "zIndex": "1"
+               }
+              },
+              {
+               "id": "QoGMEdLxP",
+               "type": "FrameNode",
+               "name": "List",
+               "a": {
+                "layout": "stack",
+                "stackDirection": "vertical",
+                "stackDistribution": "center",
+                "stackAlignment": "center",
+                "gap": "0px",
+                "padding": "8px 0px 9px 0px",
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "zIndex": "1"
+               },
+               "children": [
+                {
+                 "id": "Eh7Th5KK5",
+                 "type": "ComponentInstanceNode",
+                 "component": "XQfVZNDnD",
+                 "componentName": "UI card loading",
+                 "a": {
+                  "$control__variant": "Completed",
+                  "$control__title": "Attributed to partner R-118",
+                  "position": "relative",
+                  "width": "1fr",
+                  "height": "auto"
+                 }
+                },
+                {
+                 "id": "JBQAfM6iW",
+                 "type": "ComponentInstanceNode",
+                 "component": "XQfVZNDnD",
+                 "componentName": "UI card loading",
+                 "a": {
+                  "$control__variant": "Completed",
+                  "$control__title": "Fraud score 10, under the line",
+                  "position": "relative",
+                  "width": "1fr",
+                  "height": "auto"
+                 }
+                },
+                {
+                 "id": "h5pHRJYj_",
+                 "type": "ComponentInstanceNode",
+                 "component": "XQfVZNDnD",
+                 "componentName": "UI card loading",
+                 "a": {
+                  "$control__variant": "Completed",
+                  "$control__title": "Cooling window passed",
+                  "position": "relative",
+                  "width": "1fr",
+                  "height": "auto"
+                 }
+                },
+                {
+                 "id": "Zm2ugCIGP",
+                 "type": "ComponentInstanceNode",
+                 "component": "XQfVZNDnD",
+                 "componentName": "UI card loading",
+                 "a": {
+                  "$control__variant": "Loading",
+                  "$control__title": "Paying 6 USDC on Arc",
+                  "position": "relative",
+                  "width": "1fr",
+                  "height": "auto"
+                 }
+                },
+                {
+                 "id": "TRmBwkPHB",
+                 "type": "ComponentInstanceNode",
+                 "component": "XQfVZNDnD",
+                 "componentName": "UI card loading",
+                 "a": {
+                  "$control__variant": "Loading",
+                  "$control__title": "Writing the decision record",
+                  "position": "relative",
+                  "width": "1fr",
+                  "height": "auto"
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "yq1g8z0Uc",
+           "type": "FrameNode",
+           "name": "Heading + description",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "center",
+            "stackAlignment": "start",
+            "gap": "8px",
+            "overflow": "clip",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "AozWYT9Ru",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto",
+              "textStylePreset": "Heading 5",
+              "textAlignment": "start"
+             },
+             "children": [
+              {
+               "id": "v:AozWYT9Ru:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "h5"
+               },
+               "children": [
+                {
+                 "id": "v:AozWYT9Ru:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "GUILD verifies and pays"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "CYtPzXWjg",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto",
+              "textStylePreset": "Body 2",
+              "textAlignment": "start",
+              "textColor": "var(--token-faa83f4b-eb5a-4111-a586-ff3633f4da58)"
+             },
+             "children": [
+              {
+               "id": "v:CYtPzXWjg:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:CYtPzXWjg:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "Every result is attributed, scored for fraud, and held through a cooling window. The ones that check out are paid in USDC on Arc within hours, once, to the partner’s locked address. The ones that do not are held with the evidence, and you only hear about it when a policy line is crossed."
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

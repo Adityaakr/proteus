@@ -1,0 +1,603 @@
+{
+ "id": "NOzSvW5Bh",
+ "type": "ComponentNode",
+ "name": "Pricing toggle + cards",
+ "$variants": [
+  {
+   "id": "ZWr__nmXN",
+   "name": "Desktop/annual"
+  },
+  {
+   "id": "vh4pAJCyf",
+   "name": "Desktop/maunal"
+  }
+ ],
+ "variables": [],
+ "children": [
+  {
+   "id": "ZWr__nmXN",
+   "type": "FrameNode",
+   "name": "annual",
+   "a": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "gap": "40px",
+    "overflow": "clip",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "width": "1120px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "L_toofVCO",
+     "type": "FrameNode",
+     "name": "Toggle button",
+     "a": {
+      "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+      "fill": "var(--token-3482e7f4-ca60-466f-aa1f-53d45aca05d9)",
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "start",
+      "stackAlignment": "center",
+      "gap": "4px",
+      "padding": "4px",
+      "position": "relative",
+      "radius": "100px",
+      "width": "auto",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "LHN_SeBp5",
+       "type": "FrameNode",
+       "name": "Monthly",
+       "a": {
+        "onTap": [
+         {
+          "action": "SET_VARIANT",
+          "controls": {
+           "variant": "vh4pAJCyf"
+          }
+         }
+        ],
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "0px",
+        "padding": "10px 16px 10px 16px",
+        "position": "relative",
+        "radius": "100px",
+        "width": "auto",
+        "height": "40px"
+       },
+       "children": [
+        {
+         "id": "g_itdoxT9",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Label",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:g_itdoxT9:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:g_itdoxT9:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Testnet"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "sh80V5FdK",
+       "type": "FrameNode",
+       "name": "Annual selected",
+       "a": {
+        "fill": "var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "8px",
+        "padding": "8px 10px 8px 16px",
+        "position": "relative",
+        "radius": "100px",
+        "width": "auto",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "sL6sVj5Oh",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Label",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:sL6sVj5Oh:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:sL6sVj5Oh:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Mainnet"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "TyShN5smN",
+         "type": "FrameNode",
+         "name": "Integrated discount",
+         "a": {
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "0px",
+          "padding": "4px 7px 4px 7px",
+          "position": "relative",
+          "radius": "100px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "B50Ijqf6w",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Label",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "id": "v:B50Ijqf6w:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:B50Ijqf6w:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "$100 cap"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "o7yueQ_Lh",
+     "type": "FrameNode",
+     "name": "Pricing card container",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "16px",
+      "overflow": "clip",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "evOzEPVh_",
+       "type": "ComponentInstanceNode",
+       "component": "trGKj0u8_",
+       "componentName": "Pricing plan card",
+       "a": {
+        "$control__popularTag": "false",
+        "$control__buttonVariant": "Desktop/Secondary",
+        "$control__label": "Start a campaign",
+        "$control__period": "/ campaign during Tameion",
+        "$control__value": "0",
+        "$control__feature1": "No fee taken from your budget",
+        "$control__feature2": "Payouts about a cent, from the campaign",
+        "$control__feature3": "Budget and ceiling capped onchain",
+        "$control__feature4": "A decision record for every payout",
+        "$control__feature5": "Approvals in your Telegram chat",
+        "$control__planName": "Campaign owner, now",
+        "$control__planDescription": "Running a campaign costs nothing during the hackathon. After it, the plan is a flat monthly subscription plus a small fee on verified payouts, a hypothesis we will test with the first ten businesses.",
+        "$control__link": "/#how-it-works",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       }
+      },
+      {
+       "id": "cdNoFkppx",
+       "type": "ComponentInstanceNode",
+       "component": "trGKj0u8_",
+       "componentName": "Pricing plan card",
+       "a": {
+        "$control__popularTag": "true",
+        "$control__buttonVariant": "Desktop/primary",
+        "$control__label": "Apply as a partner",
+        "$control__period": "/ no minimum, no cycle",
+        "$control__value": "0",
+        "$control__feature1": "No minimum payout",
+        "$control__feature2": "No monthly cycle",
+        "$control__feature3": "No processor taking a cut",
+        "$control__feature4": "Paid on Arc, or your chain via CCTP",
+        "$control__feature5": "Your record is yours",
+        "$control__planName": "Partner",
+        "$control__planDescription": "Bring real users and get paid in USDC within hours of verification, at a rate you agreed to up front.",
+        "$control__link": "/#partners",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       }
+      },
+      {
+       "id": "olm1O1_UC",
+       "type": "ComponentInstanceNode",
+       "component": "trGKj0u8_",
+       "componentName": "Pricing plan card",
+       "a": {
+        "$control__popularTag": "false",
+        "$control__buttonVariant": "Desktop/Secondary",
+        "$control__label": "Read the decision log",
+        "$control__period": "USDC cap",
+        "$control__value": "100",
+        "$control__feature1": "Real USDC on Arc",
+        "$control__feature2": "Same contract, same records",
+        "$control__feature3": "Every number labeled mainnet",
+        "$control__feature4": "Fund on Arc or bridge via CCTP",
+        "$control__feature5": "Read the first record, then decide",
+        "$control__planName": "First mainnet campaign",
+        "$control__planDescription": "Live on mainnet with small budgets. The contract is unaudited hackathon code, so the first mainnet campaign is capped.",
+        "$control__link": "/#record",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vh4pAJCyf",
+   "type": "FrameNode",
+   "name": "maunal",
+   "a": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "gap": "40px",
+    "overflow": "clip",
+    "left": "1220px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "width": "1120px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "vh4pAJCyfL_toofVCO",
+     "type": "FrameNode",
+     "name": "Toggle button",
+     "a": {
+      "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+      "fill": "var(--token-3482e7f4-ca60-466f-aa1f-53d45aca05d9)",
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "start",
+      "stackAlignment": "center",
+      "gap": "4px",
+      "padding": "4px",
+      "position": "relative",
+      "radius": "100px",
+      "width": "auto",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "vh4pAJCyfLHN_SeBp5",
+       "type": "FrameNode",
+       "name": "Monthly",
+       "a": {
+        "fill": "var(--token-b48b7134-7ad2-4f07-b792-c7a8003d791a)",
+        "onTap": [
+         {
+          "action": "SET_VARIANT",
+          "controls": {
+           "variant": "vh4pAJCyf"
+          }
+         }
+        ],
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "0px",
+        "padding": "10px 16px 10px 16px",
+        "position": "relative",
+        "radius": "100px",
+        "width": "auto",
+        "height": "40px"
+       },
+       "children": [
+        {
+         "id": "vh4pAJCyfg_itdoxT9",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Label",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:vh4pAJCyfg_itdoxT9:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:vh4pAJCyfg_itdoxT9:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Testnet"
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "vh4pAJCyfsh80V5FdK",
+       "type": "FrameNode",
+       "name": "Annual selected",
+       "a": {
+        "onTap": [
+         {
+          "action": "SET_VARIANT",
+          "controls": {
+           "variant": "ZWr__nmXN"
+          }
+         }
+        ],
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "8px",
+        "padding": "8px 10px 8px 16px",
+        "position": "relative",
+        "radius": "100px",
+        "width": "auto",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "vh4pAJCyfsL6sVj5Oh",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Label",
+          "textAlignment": "start"
+         },
+         "children": [
+          {
+           "id": "v:vh4pAJCyfsL6sVj5Oh:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:vh4pAJCyfsL6sVj5Oh:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Mainnet"
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "vh4pAJCyfTyShN5smN",
+         "type": "FrameNode",
+         "name": "Integrated discount",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "0px",
+          "padding": "4px 7px 4px 7px",
+          "position": "relative",
+          "radius": "100px",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "vh4pAJCyfB50Ijqf6w",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Label",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "id": "v:vh4pAJCyfB50Ijqf6w:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:vh4pAJCyfB50Ijqf6w:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "$100 cap"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "vh4pAJCyfo7yueQ_Lh",
+     "type": "FrameNode",
+     "name": "Pricing card container",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "horizontal",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "16px",
+      "overflow": "clip",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto"
+     },
+     "children": [
+      {
+       "id": "vh4pAJCyfevOzEPVh_",
+       "type": "ComponentInstanceNode",
+       "component": "trGKj0u8_",
+       "componentName": "Pricing plan card",
+       "a": {
+        "$control__popularTag": "false",
+        "$control__buttonVariant": "Desktop/Secondary",
+        "$control__label": "Start a campaign",
+        "$control__period": "/ campaign during Tameion",
+        "$control__value": "0",
+        "$control__feature1": "No fee taken from your budget",
+        "$control__feature2": "Payouts about a cent, from the campaign",
+        "$control__feature3": "Budget and ceiling capped onchain",
+        "$control__feature4": "A decision record for every payout",
+        "$control__feature5": "Approvals in your Telegram chat",
+        "$control__planName": "Campaign owner, now",
+        "$control__planDescription": "Running a campaign costs nothing during the hackathon. After it, the plan is a flat monthly subscription plus a small fee on verified payouts, a hypothesis we will test with the first ten businesses.",
+        "$control__link": "/#how-it-works",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       }
+      },
+      {
+       "id": "vh4pAJCyfcdNoFkppx",
+       "type": "ComponentInstanceNode",
+       "component": "trGKj0u8_",
+       "componentName": "Pricing plan card",
+       "a": {
+        "$control__popularTag": "true",
+        "$control__buttonVariant": "Desktop/primary",
+        "$control__label": "Apply as a partner",
+        "$control__period": "/ no minimum, no cycle",
+        "$control__value": "0",
+        "$control__feature1": "No minimum payout",
+        "$control__feature2": "No monthly cycle",
+        "$control__feature3": "No processor taking a cut",
+        "$control__feature4": "Paid on Arc, or your chain via CCTP",
+        "$control__feature5": "Your record is yours",
+        "$control__planName": "Partner",
+        "$control__planDescription": "Bring real users and get paid in USDC within hours of verification, at a rate you agreed to up front.",
+        "$control__link": "/#partners",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       }
+      },
+      {
+       "id": "vh4pAJCyfolm1O1_UC",
+       "type": "ComponentInstanceNode",
+       "component": "trGKj0u8_",
+       "componentName": "Pricing plan card",
+       "a": {
+        "$control__popularTag": "false",
+        "$control__buttonVariant": "Desktop/Secondary",
+        "$control__label": "Read the decision log",
+        "$control__period": "USDC at risk",
+        "$control__value": "0",
+        "$control__feature1": "Testnet USDC from the faucet",
+        "$control__feature2": "Same limits, same records",
+        "$control__feature3": "Every number labeled testnet",
+        "$control__feature4": "Contract unaudited, limits onchain",
+        "$control__feature5": "Switch to mainnet when you want",
+        "$control__planName": "Testnet campaigns",
+        "$control__planDescription": "Most of the hackathon runs on testnet USDC. Same contract, same decision log, nothing real to lose.",
+        "$control__link": "/#record",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

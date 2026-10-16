@@ -1,0 +1,275 @@
+{
+ "id": "dAUcpVWwG",
+ "type": "FrameNode",
+ "name": "Metrics",
+ "a": {
+  "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+  "htmlTag": "section",
+  "layout": "stack",
+  "stackDirection": "horizontal",
+  "stackDistribution": "center",
+  "stackAlignment": "center",
+  "gap": "10px",
+  "overflow": "clip",
+  "position": "relative",
+  "scrollTargetEnabled": true,
+  "elementId": "partners",
+  "width": "1fr",
+  "height": "auto"
+ },
+ "children": [
+  {
+   "id": "zhOpqlK60",
+   "type": "FrameNode",
+   "name": "Content container",
+   "a": {
+    "fill": "var(--token-3482e7f4-ca60-466f-aa1f-53d45aca05d9)",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "60px",
+    "overflow": "clip",
+    "padding": "100px 40px 300px 40px",
+    "position": "relative",
+    "width": "1fr",
+    "height": "auto"
+   },
+   "children": [
+    {
+     "id": "lpgdcG7eM",
+     "type": "FrameNode",
+     "name": "Content",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "start",
+      "gap": "60px",
+      "overflow": "clip",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1200px",
+      "zIndex": "1"
+     },
+     "children": [
+      {
+       "id": "alkZ_KaKe",
+       "type": "FrameNode",
+       "name": "Heading + tag",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "center",
+        "stackAlignment": "start",
+        "gap": "32px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "lzTtd7ns8",
+         "type": "ComponentInstanceNode",
+         "component": "PR2FImO_h",
+         "componentName": "Tag",
+         "a": {
+          "$control__variant": "Inactive",
+          "$control__title": "For partners",
+          "$control__iconText": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+          "$control__border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+          "position": "relative",
+          "scrollVariantEffect": {
+           "trigger": "onInView",
+           "replay": false,
+           "threshold": 0.5,
+           "fromVariant": "BYnhqdO_k",
+           "toVariant": "c_qE4utIC"
+          },
+          "width": "auto",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "wWDTUhVAZ",
+         "type": "FrameNode",
+         "name": "Heading + description",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "center",
+          "stackAlignment": "start",
+          "gap": "16px",
+          "overflow": "clip",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "Etmt_J9TU",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Heading 2",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "id": "v:Etmt_J9TU:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "h2"
+             },
+             "children": [
+              {
+               "id": "v:Etmt_J9TU:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Bring real users. Get paid in hours, not months."
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "QqwuqNGVF",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Body 1",
+            "textAlignment": "start"
+           },
+           "children": [
+            {
+             "id": "v:QqwuqNGVF:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:QqwuqNGVF:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "You know people who should be using a product. GUILD pays you in USDC for every one of them who does the real thing, within hours of it being verified, at a rate you agreed to up front. No minimum payout, no monthly cycle, no processor taking a cut, and you can be paid on Arc or on the chain you already use."
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "t3zR5mdds",
+       "type": "FrameNode",
+       "name": "Metric card container",
+       "a": {
+        "layout": "grid",
+        "gridAlignment": "center",
+        "gridRowHeight": "200px",
+        "gap": "40px 40px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "maxWidth": "500px"
+       },
+       "children": [
+        {
+         "id": "QANEc5UwD",
+         "type": "ComponentInstanceNode",
+         "component": "PxRVBBWIS",
+         "componentName": "Metrics card",
+         "a": {
+          "$control__number": "01",
+          "$control__title": "Apply with a few lines. GUILD answers inside the hour.",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "BFI4c3drQ",
+         "type": "ComponentInstanceNode",
+         "component": "PxRVBBWIS",
+         "componentName": "Metrics card",
+         "a": {
+          "$control__number": "02",
+          "$control__title": "Accept the incentive or counter once. Get a link and a wallet.",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "OiISKqE1G",
+         "type": "ComponentInstanceNode",
+         "component": "PxRVBBWIS",
+         "componentName": "Metrics card",
+         "a": {
+          "$control__number": "03",
+          "$control__title": "Share the link. Results show pending, cooling, then paid.",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "QBgARcX6w",
+         "type": "ComponentInstanceNode",
+         "component": "PxRVBBWIS",
+         "componentName": "Metrics card",
+         "a": {
+          "$control__number": "04",
+          "$control__title": "Paid results land in your wallet with a transaction link.",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "pV9FeU8Fw",
+     "type": "ComponentInstanceNode",
+     "component": "codeFile/mwPWEzk:default",
+     "componentName": "GrowthGraph",
+     "a": {
+      "$control__lineStart": "var(--token-621d9ebc-4113-4c98-9cca-bbc178460970)",
+      "$control__lineGradient": "true",
+      "$control__lineEnd": "var(--token-fd2642e7-ea40-4298-8994-88ab422747df)",
+      "$control__area": "var(--token-621d9ebc-4113-4c98-9cca-bbc178460970)",
+      "$control__rules": "var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+      "$control__startHeight": "15",
+      "$control__endHeight": "100",
+      "$control__duration": "4",
+      "$control__rules1": "true",
+      "position": "absolute",
+      "left": "0px",
+      "right": "0px",
+      "top": "null",
+      "bottom": "0px",
+      "width": "1200px",
+      "height": "635px",
+      "zIndex": "0"
+     }
+    }
+   ]
+  }
+ ]
+}

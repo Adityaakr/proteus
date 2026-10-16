@@ -1,0 +1,52 @@
+/* The record / Testimonial section (s5OyI1mS0). Values from
+   design/framer-export/condensed/section-Testimonial.json plus tablet_diff / phone_diff. */
+.section {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  padding: 0 0 100px 0;
+  overflow: clip;
+  background: var(--c-page);
+}
+.container { /* N4ZCTvlNU */
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+  padding: 100px 40px 0 40px;
+  overflow: clip;
+}
+.content { /* CScbE64Ls */
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  overflow: clip;
+}
+.carousel { /* WCBHCUmQr: width 1fr, height 707 (598 on phone) */
+  position: relative;
+  width: 100%;
+  height: 707px;
+}
+@media (max-width: 1199.98px) {
+  .section { gap: 40px; padding: 0 0 60px 0; }
+  .container { padding: 60px 40px 0 40px; }
+  .content { gap: 40px; max-width: 1000px; }
+  .header { gap: 24px !important; } /* hE3tbgcVC */
+}
+@media (max-width: 809.98px) {
+  .container { padding: 60px 16px 0 16px; }
+  .content { max-width: 500px; }
+  .carousel { height: 598px; }
+}

@@ -1,0 +1,820 @@
+{
+ "id": "W_2F8FmqT",
+ "type": "FrameNode",
+ "name": "Capabilities",
+ "a": {
+  "htmlTag": "section",
+  "layout": "stack",
+  "stackDirection": "horizontal",
+  "stackDistribution": "center",
+  "stackAlignment": "center",
+  "gap": "10px",
+  "overflow": "clip",
+  "position": "relative",
+  "scrollTargetEnabled": true,
+  "elementId": "capabilities",
+  "width": "1fr",
+  "height": "auto"
+ },
+ "children": [
+  {
+   "id": "Kl9aBXLPv",
+   "type": "FrameNode",
+   "name": "Content container",
+   "a": {
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "start",
+    "stackAlignment": "center",
+    "gap": "60px",
+    "overflow": "clip",
+    "padding": "100px 40px 100px 40px",
+    "position": "relative",
+    "width": "1fr",
+    "height": "auto"
+   },
+   "children": [
+    {
+     "id": "WVREw7q50",
+     "type": "FrameNode",
+     "name": "Content",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "center",
+      "gap": "60px",
+      "overflow": "clip",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1200px"
+     },
+     "children": [
+      {
+       "id": "VOIJpZs6G",
+       "type": "FrameNode",
+       "name": "Heading + tag",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "center",
+        "stackAlignment": "center",
+        "gap": "32px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "tQkrSb8BY",
+         "type": "ComponentInstanceNode",
+         "component": "PR2FImO_h",
+         "componentName": "Tag",
+         "a": {
+          "$control__variant": "Inactive",
+          "$control__title": "Verification",
+          "$control__iconText": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+          "$control__border": "1px solid var(--token-e27a17f3-e906-4d22-a82d-877fde504653)",
+          "position": "relative",
+          "scrollVariantEffect": {
+           "trigger": "onInView",
+           "replay": false,
+           "threshold": 0.5,
+           "fromVariant": "BYnhqdO_k",
+           "toVariant": "c_qE4utIC"
+          },
+          "width": "auto",
+          "height": "auto"
+         }
+        },
+        {
+         "id": "wS0Eiwd_c",
+         "type": "FrameNode",
+         "name": "Heading + description",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "16px",
+          "overflow": "clip",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "DLhiOxire",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Heading 2",
+            "textAlignment": "center"
+           },
+           "children": [
+            {
+             "id": "v:DLhiOxire:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "h2"
+             },
+             "children": [
+              {
+               "id": "v:DLhiOxire:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "What counts, what is real, when to pay."
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "t_YuNpVs2",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "maxWidth": "500px",
+            "textStylePreset": "Body 1",
+            "textAlignment": "center"
+           },
+           "children": [
+            {
+             "id": "v:t_YuNpVs2:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:t_YuNpVs2:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "A payout exists only because the product emitted a signed qualifying event, the referral mapped to an accepted partner, the fraud score stayed under the line, the cooling window passed, and the amount fit inside the limits."
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "iXsSVu_1t",
+       "type": "FrameNode",
+       "name": "Card container",
+       "a": {
+        "layout": "grid",
+        "gridAlignment": "center",
+        "gridRowHeight": "200px",
+        "gap": "24px 24px",
+        "overflow": "clip",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "tt_2Ssq3J",
+         "type": "FrameNode",
+         "name": "Capability card container",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "10px",
+          "overflow": "clip",
+          "padding": "8px",
+          "position": "relative",
+          "radius": "20px",
+          "width": "1fr",
+          "height": "513px"
+         },
+         "children": [
+          {
+           "id": "RzSJSkQTo",
+           "type": "FrameNode",
+           "name": "Capability card",
+           "a": {
+            "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+            "fill": "var(--token-a75fb687-8d00-4d08-9407-fce93f119924)",
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "end",
+            "stackAlignment": "start",
+            "gap": "0px",
+            "overflow": "clip",
+            "position": "relative",
+            "radius": "16px",
+            "width": "1fr",
+            "height": "1fr"
+           },
+           "children": [
+            {
+             "id": "UzIkpl6Un",
+             "type": "ComponentInstanceNode",
+             "component": "qCXDZGj4q",
+             "componentName": "Multimodal card",
+             "a": {
+              "position": "relative",
+              "width": "1fr",
+              "height": "1fr"
+             }
+            },
+            {
+             "id": "ajrvYu9s8",
+             "type": "FrameNode",
+             "name": "Heading + description",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "center",
+              "stackAlignment": "start",
+              "gap": "12px",
+              "overflow": "clip",
+              "padding": "24px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "rzXoGMw0X",
+               "type": "RichTextNode",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 5",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:rzXoGMw0X:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h5"
+                 },
+                 "children": [
+                  {
+                   "id": "v:rzXoGMw0X:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "What counts"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "iaOZ8kx48",
+               "type": "RichTextNode",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 2",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:iaOZ8kx48:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:iaOZ8kx48:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "Accepts a result only when your product vouched for it, signed, and the referral matches a partner it actually accepted."
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "ziDNjNPAF",
+         "type": "FrameNode",
+         "name": "Capability card container",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "10px",
+          "overflow": "clip",
+          "padding": "8px",
+          "position": "relative",
+          "radius": "20px",
+          "width": "1fr",
+          "height": "513px"
+         },
+         "children": [
+          {
+           "id": "Y6bzcBl75",
+           "type": "FrameNode",
+           "name": "Capability card",
+           "a": {
+            "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+            "fill": "var(--token-a75fb687-8d00-4d08-9407-fce93f119924)",
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "end",
+            "stackAlignment": "start",
+            "gap": "0px",
+            "overflow": "clip",
+            "position": "relative",
+            "radius": "16px",
+            "width": "1fr",
+            "height": "1fr"
+           },
+           "children": [
+            {
+             "id": "SQlkw2fJV",
+             "type": "ComponentInstanceNode",
+             "component": "lRDHiNWNVWmE0lqtoVHP",
+             "componentName": "Video",
+             "a": {
+              "$control__source": "Upload",
+              "$control__uRL": "https://framerusercontent.com/assets/MLWPbW1dUQawJLhhun3dBwpgJak.mp4",
+              "$control__file": "https://framerusercontent.com/assets/R2LuOEH4wpUQhMnB4kQDIJ4RM.mp4",
+              "$control__radius": "0px",
+              "$control__loop": "true",
+              "$control__poster": "true",
+              "$control__image": "https://framerusercontent.com/images/bn9SbXpnsqWIO651wPfywkNq2PA.png",
+              "$control__controls": "false",
+              "$control__muted": "true",
+              "$control__fit": "Cover",
+              "$control__playing": "true",
+              "$control__background": "rgba(0,0,0,0)",
+              "$control__startTime": "0",
+              "$control__volume": "25",
+              "position": "relative",
+              "width": "1fr",
+              "height": "1fr"
+             }
+            },
+            {
+             "id": "P8D0zoJTc",
+             "type": "FrameNode",
+             "name": "Heading + description",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "center",
+              "stackAlignment": "start",
+              "gap": "12px",
+              "overflow": "clip",
+              "padding": "24px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "r8PBmo97P",
+               "type": "RichTextNode",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 5",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:r8PBmo97P:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h5"
+                 },
+                 "children": [
+                  {
+                   "id": "v:r8PBmo97P:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "When to pay"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "YtQu585Aw",
+               "type": "RichTextNode",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 2",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:YtQu585Aw:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:YtQu585Aw:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "Waits out the cooling window, voids anything reversed, then pays once to the partner’s locked address."
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "TGk_fBeem",
+         "type": "FrameNode",
+         "name": "Capability card container",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "10px",
+          "overflow": "clip",
+          "padding": "8px",
+          "position": "relative",
+          "radius": "20px",
+          "width": "1fr",
+          "height": "513px"
+         },
+         "children": [
+          {
+           "id": "bUNLkoErV",
+           "type": "FrameNode",
+           "name": "Capability card",
+           "a": {
+            "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+            "fill": "var(--token-a75fb687-8d00-4d08-9407-fce93f119924)",
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "end",
+            "stackAlignment": "start",
+            "gap": "0px",
+            "overflow": "clip",
+            "position": "relative",
+            "radius": "16px",
+            "width": "1fr",
+            "height": "1fr"
+           },
+           "children": [
+            {
+             "id": "Uz1jrGMeh",
+             "type": "FrameNode",
+             "a": {
+              "layout": "null",
+              "overflow": "clip",
+              "position": "relative",
+              "width": "1fr",
+              "height": "1fr"
+             },
+             "children": [
+              {
+               "id": "cDlqstrY7",
+               "type": "ComponentInstanceNode",
+               "component": "codeFile/fmUEfdV:default",
+               "componentName": "AnimatedBeamLines",
+               "a": {
+                "$control__mode": "Converge (fan)",
+                "$control__lines": "5",
+                "$control__flipVertical": "true",
+                "$control__flipHorizontal": "false",
+                "$control__meetX": "0.5",
+                "$control__meetY": "0.9",
+                "$control__bend": "0.45",
+                "$control__meetIcon": "https://framerusercontent.com/images/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png",
+                "$control__iconSize": "48",
+                "$control__iconBG": "rgb(255, 255, 255)",
+                "$control__iconBorder": "rgba(0, 0, 0, 0.2)",
+                "$control__iconBorderW": "1",
+                "$control__iconRadius": "999",
+                "$control__iconPadding": "10",
+                "$control__direction": "Horizontal",
+                "$control__curvature": "0",
+                "$control__inset": "24",
+                "$control__cards": "true",
+                "$control__cardLabels": [
+                 {
+                  "text": "Self-referral",
+                  "id": "dteXL1yWT"
+                 },
+                 {
+                  "text": "Bursts",
+                  "id": "NMeraYUvu"
+                 },
+                 {
+                  "text": "Duplicates",
+                  "id": "UH3kR5ywN"
+                 },
+                 {
+                  "text": "Timing",
+                  "id": "fbR8BLNC4"
+                 },
+                 {
+                  "text": "Device",
+                  "id": "mBoyNtsJh"
+                 }
+                ],
+                "$control__cardBG": "rgb(255, 255, 255)",
+                "$control__cardText": "rgb(0, 0, 0)",
+                "$control__cardBorder": "rgba(0, 0, 0, 0.2)",
+                "$control__borderW": "1",
+                "$control__cardRadius": "40",
+                "$control__padX": "16",
+                "$control__padY": "8",
+                "$control__cardIconSize": "18",
+                "$control__fontSize": "16",
+                "$control__weight": "500",
+                "$control__track": "rgba(0, 0, 0, 0.4)",
+                "$control__lineWidth": "2",
+                "$control__trackOpacity": "0.2",
+                "$control__gradientA": "rgb(1, 43, 255)",
+                "$control__gradientB": "rgba(1, 43, 255, 0.2)",
+                "$control__beamLength": "22",
+                "$control__duration": "2",
+                "$control__delay": "0",
+                "$control__stagger": "0.1",
+                "$control__repeatDelay": "0",
+                "$control__speedVariation": "0",
+                "$control__easing": "Linear (steady)",
+                "$control__reverse": "true",
+                "left": "60px",
+                "right": "59.5px",
+                "top": "24px",
+                "bottom": "59.5px",
+                "width": "603px",
+                "height": "327px"
+               }
+              }
+             ]
+            },
+            {
+             "id": "GHY3avgcf",
+             "type": "FrameNode",
+             "name": "Heading + description",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "center",
+              "stackAlignment": "start",
+              "gap": "12px",
+              "overflow": "clip",
+              "padding": "24px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "N7wURcX38",
+               "type": "RichTextNode",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 5",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:N7wURcX38:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h5"
+                 },
+                 "children": [
+                  {
+                   "id": "v:N7wURcX38:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "What is real"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "YbDS3uwpf",
+               "type": "RichTextNode",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 2",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:YbDS3uwpf:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:YbDS3uwpf:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "Scores every result for self-referral, bursts, duplicates and timing, lists the signals, and holds anything over the line."
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "vzHaZqbqK",
+         "type": "FrameNode",
+         "name": "Capability card container",
+         "a": {
+          "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+          "fill": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)",
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "center",
+          "stackAlignment": "center",
+          "gap": "10px",
+          "overflow": "clip",
+          "padding": "8px",
+          "position": "relative",
+          "radius": "20px",
+          "width": "1fr",
+          "height": "513px"
+         },
+         "children": [
+          {
+           "id": "KUX81E_R7",
+           "type": "FrameNode",
+           "name": "Capability card",
+           "a": {
+            "border": "1px solid var(--token-8144f193-de43-475d-87ea-e22ad062944c)",
+            "fill": "var(--token-a75fb687-8d00-4d08-9407-fce93f119924)",
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "end",
+            "stackAlignment": "start",
+            "gap": "0px",
+            "overflow": "clip",
+            "position": "relative",
+            "radius": "16px",
+            "width": "1fr",
+            "height": "1fr"
+           },
+           "children": [
+            {
+             "id": "oo5NOJWKu",
+             "type": "ComponentInstanceNode",
+             "component": "qp1dFT5rB",
+             "componentName": "Capability card",
+             "a": {
+              "$control__variant": "1",
+              "$control__padding": "0px 24px 0px 24px",
+              "position": "relative",
+              "scrollVariantEffect": {
+               "trigger": "onInView",
+               "replay": false,
+               "threshold": 0.5,
+               "fromVariant": "v7PEsHkDR",
+               "toVariant": "q8Ay5aMht"
+              },
+              "width": "1fr",
+              "height": "1fr"
+             }
+            },
+            {
+             "id": "QlMpFbCQK",
+             "type": "FrameNode",
+             "name": "Heading + description",
+             "a": {
+              "layout": "stack",
+              "stackDirection": "vertical",
+              "stackDistribution": "center",
+              "stackAlignment": "start",
+              "gap": "12px",
+              "overflow": "clip",
+              "padding": "24px",
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto"
+             },
+             "children": [
+              {
+               "id": "F_5MGcHP3",
+               "type": "RichTextNode",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Heading 5",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:F_5MGcHP3:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "h5"
+                 },
+                 "children": [
+                  {
+                   "id": "v:F_5MGcHP3:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "The order never changes"
+                   }
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "wIodXshVB",
+               "type": "RichTextNode",
+               "a": {
+                "position": "relative",
+                "width": "1fr",
+                "height": "auto",
+                "textStylePreset": "Body 2",
+                "textAlignment": "start"
+               },
+               "children": [
+                {
+                 "id": "v:wIodXshVB:0",
+                 "type": "TextBlock",
+                 "a": {
+                  "tag": "p"
+                 },
+                 "children": [
+                  {
+                   "id": "v:wIodXshVB:0:0",
+                   "type": "TextRun",
+                   "a": {
+                    "text": "The model vets and explains, and never holds a key."
+                   }
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

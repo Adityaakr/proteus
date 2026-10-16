@@ -1,0 +1,1770 @@
+{
+ "id": "HSAs7QY3s",
+ "type": "ComponentNode",
+ "name": "Footer",
+ "$variants": [
+  {
+   "id": "UrowiP65c",
+   "name": "Desktop"
+  },
+  {
+   "id": "idhvJF_M8",
+   "name": "Tablet"
+  },
+  {
+   "id": "jdMPzFghJ",
+   "name": "Mobile"
+  }
+ ],
+ "variables": [],
+ "children": [
+  {
+   "id": "UrowiP65c",
+   "type": "FrameNode",
+   "name": "Desktop",
+   "a": {
+    "fill": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+    "htmlTag": "footer",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "gap": "80px",
+    "overflow": "clip",
+    "padding": "100px 40px 100px 40px",
+    "left": "0px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "width": "1280px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "dciV_splI",
+     "type": "FrameNode",
+     "name": "Container",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "start",
+      "gap": "80px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1200px"
+     },
+     "children": [
+      {
+       "id": "rnRaMIv34",
+       "type": "FrameNode",
+       "name": "Large conversion message",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "24px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "maxWidth": "800px"
+       },
+       "children": [
+        {
+         "id": "iooSFXQ6L",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Heading 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:iooSFXQ6L:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "h2"
+           },
+           "children": [
+            {
+             "id": "v:iooSFXQ6L:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Give the agent the budget. Keep the keys to the limits."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "NpUyCFmKm",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "500px",
+          "textStylePreset": "Body 1",
+          "textAlignment": "start",
+          "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+         },
+         "children": [
+          {
+           "id": "v:NpUyCFmKm:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:NpUyCFmKm:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Start with one campaign and one line that defines a real result. Read the first decision record. You will know in a day whether you want a second campaign."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "qYmFtFp71",
+         "type": "ComponentInstanceNode",
+         "component": "Jh9jZPCX6",
+         "componentName": "Button",
+         "a": {
+          "$control__variant": "Desktop/primary",
+          "$control__label": "Start a campaign",
+          "$control__iconVisible": "true",
+          "$control__link": "/#how-it-works",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         }
+        }
+       ]
+      },
+      {
+       "id": "DxAbxJGyl",
+       "type": "FrameNode",
+       "name": "Brand and single product column",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "space-between",
+        "stackAlignment": "start",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "SbfkDY0M_",
+         "type": "FrameNode",
+         "name": "CTA footer brand",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "gap": "24px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "OOUZlfKem",
+           "type": "FrameNode",
+           "name": "Logo",
+           "a": {
+            "fill": "https://framerusercontent.com/images/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png",
+            "layout": "null",
+            "overflow": "clip",
+            "position": "relative",
+            "width": "40px",
+            "height": "67px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "id": "lNyj079oD",
+           "type": "FrameNode",
+           "name": "Heading + description",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "center",
+            "stackAlignment": "start",
+            "gap": "8px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "D1TjlfYxn",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Heading 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+             },
+             "children": [
+              {
+               "id": "v:D1TjlfYxn:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "h3"
+               },
+               "children": [
+                {
+                 "id": "v:D1TjlfYxn:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "GUILD"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "v8i2hJoUX",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 2",
+              "textAlignment": "start",
+              "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+             },
+             "children": [
+              {
+               "id": "v:v8i2hJoUX:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:v8i2hJoUX:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "The growth agent that only pays for results it can verify."
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "Rm4bQDZYW",
+         "type": "FrameNode",
+         "name": "CTA product links",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "gap": "11px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "200px"
+         },
+         "children": [
+          {
+           "id": "f2XF04ITg",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Heading 5",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:f2XF04ITg:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "h5"
+             },
+             "children": [
+              {
+               "id": "v:f2XF04ITg:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Product"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "hEUg_dUKy",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#how-it-works",
+             "smoothScroll": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:hEUg_dUKy:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:hEUg_dUKy:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "How it works"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "S1FWYN9N5",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#features"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:S1FWYN9N5:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:S1FWYN9N5:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "What it decides"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "assjAvM6D",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#partners"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:assjAvM6D:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:assjAvM6D:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "For partners"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "lNssWqDdu",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#pricing"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:lNssWqDdu:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:lNssWqDdu:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Pricing"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "CVfFChqjL",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#security"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:CVfFChqjL:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:CVfFChqjL:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Trust and controls"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "nAx8Ohiff",
+       "type": "FrameNode",
+       "name": "CTA footer legal rail",
+       "a": {
+        "borderStyle": "solid",
+        "borderColor": "var(--token-edd43b1b-e1c0-47ab-b700-0fd2dbef2982)",
+        "borderTop": "1px",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "space-between",
+        "stackAlignment": "center",
+        "padding": "22px 0px 0px 0px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "vBcJZygP7",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Body 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:vBcJZygP7:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:vBcJZygP7:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "© 2026 GUILD, built by Merk Labs for the Tameion Agents Hackathon. Unaudited contract, not financial advice."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "osghCcZwJ",
+         "type": "FrameNode",
+         "name": "CTA legal links",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "24px",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "qbFBQBad9",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#record",
+             "openInNewTab": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+           },
+           "children": [
+            {
+             "id": "v:qbFBQBad9:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:qbFBQBad9:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Decision log"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "idhvJF_M8",
+   "type": "FrameNode",
+   "name": "Tablet",
+   "a": {
+    "fill": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+    "htmlTag": "footer",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "gap": "80px",
+    "overflow": "clip",
+    "padding": "80px 40px 80px 40px",
+    "left": "1347px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "width": "515.5px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "idhvJF_M8dciV_splI",
+     "type": "FrameNode",
+     "name": "Container",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "start",
+      "gap": "60px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "1000px"
+     },
+     "children": [
+      {
+       "id": "idhvJF_M8rnRaMIv34",
+       "type": "FrameNode",
+       "name": "Large conversion message",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "24px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "maxWidth": "1000px"
+       },
+       "children": [
+        {
+         "id": "idhvJF_M8iooSFXQ6L",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Heading 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:idhvJF_M8iooSFXQ6L:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "h2"
+           },
+           "children": [
+            {
+             "id": "v:idhvJF_M8iooSFXQ6L:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Give the agent the budget. Keep the keys to the limits."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "idhvJF_M8NpUyCFmKm",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "500px",
+          "textStylePreset": "Body 1",
+          "textAlignment": "start",
+          "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+         },
+         "children": [
+          {
+           "id": "v:idhvJF_M8NpUyCFmKm:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:idhvJF_M8NpUyCFmKm:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Start with one campaign and one line that defines a real result. Read the first decision record. You will know in a day whether you want a second campaign."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "idhvJF_M8qYmFtFp71",
+         "type": "ComponentInstanceNode",
+         "component": "Jh9jZPCX6",
+         "componentName": "Button",
+         "a": {
+          "$control__variant": "Desktop/primary",
+          "$control__label": "Start a campaign",
+          "$control__iconVisible": "true",
+          "$control__link": "/#how-it-works",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         }
+        }
+       ]
+      },
+      {
+       "id": "idhvJF_M8DxAbxJGyl",
+       "type": "FrameNode",
+       "name": "Brand and single product column",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "space-between",
+        "stackAlignment": "start",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "idhvJF_M8SbfkDY0M_",
+         "type": "FrameNode",
+         "name": "CTA footer brand",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "gap": "24px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "idhvJF_M8OOUZlfKem",
+           "type": "FrameNode",
+           "name": "Logo",
+           "a": {
+            "fill": "https://framerusercontent.com/images/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png",
+            "layout": "null",
+            "overflow": "clip",
+            "position": "relative",
+            "width": "40px",
+            "height": "67px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "id": "idhvJF_M8lNyj079oD",
+           "type": "FrameNode",
+           "name": "Heading + description",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "center",
+            "stackAlignment": "start",
+            "gap": "8px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "idhvJF_M8D1TjlfYxn",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Heading 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+             },
+             "children": [
+              {
+               "id": "v:idhvJF_M8D1TjlfYxn:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "h3"
+               },
+               "children": [
+                {
+                 "id": "v:idhvJF_M8D1TjlfYxn:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "GUILD"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "idhvJF_M8v8i2hJoUX",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "1fr",
+              "height": "auto",
+              "textStylePreset": "Body 2",
+              "textAlignment": "start",
+              "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+             },
+             "children": [
+              {
+               "id": "v:idhvJF_M8v8i2hJoUX:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:idhvJF_M8v8i2hJoUX:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "The growth agent that only pays for results it can verify."
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "idhvJF_M8Rm4bQDZYW",
+         "type": "FrameNode",
+         "name": "CTA product links",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "gap": "11px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "200px"
+         },
+         "children": [
+          {
+           "id": "idhvJF_M8f2XF04ITg",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Heading 5",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:idhvJF_M8f2XF04ITg:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "h5"
+             },
+             "children": [
+              {
+               "id": "v:idhvJF_M8f2XF04ITg:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Product"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "idhvJF_M8hEUg_dUKy",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#how-it-works",
+             "smoothScroll": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:idhvJF_M8hEUg_dUKy:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:idhvJF_M8hEUg_dUKy:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "How it works"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "idhvJF_M8S1FWYN9N5",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#features"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:idhvJF_M8S1FWYN9N5:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:idhvJF_M8S1FWYN9N5:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "What it decides"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "idhvJF_M8assjAvM6D",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#partners"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:idhvJF_M8assjAvM6D:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:idhvJF_M8assjAvM6D:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "For partners"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "idhvJF_M8lNssWqDdu",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#pricing"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:idhvJF_M8lNssWqDdu:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:idhvJF_M8lNssWqDdu:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Pricing"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "idhvJF_M8CVfFChqjL",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#security"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:idhvJF_M8CVfFChqjL:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:idhvJF_M8CVfFChqjL:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Trust and controls"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "idhvJF_M8nAx8Ohiff",
+       "type": "FrameNode",
+       "name": "CTA footer legal rail",
+       "a": {
+        "borderStyle": "solid",
+        "borderColor": "var(--token-edd43b1b-e1c0-47ab-b700-0fd2dbef2982)",
+        "borderTop": "1px",
+        "layout": "stack",
+        "stackDirection": "horizontal",
+        "stackDistribution": "space-between",
+        "stackAlignment": "center",
+        "padding": "22px 0px 0px 0px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "idhvJF_M8vBcJZygP7",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Body 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:idhvJF_M8vBcJZygP7:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:idhvJF_M8vBcJZygP7:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "© 2026 GUILD, built by Merk Labs for the Tameion Agents Hackathon. Unaudited contract, not financial advice."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "idhvJF_M8osghCcZwJ",
+         "type": "FrameNode",
+         "name": "CTA legal links",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "24px",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "idhvJF_M8qbFBQBad9",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#record",
+             "openInNewTab": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+           },
+           "children": [
+            {
+             "id": "v:idhvJF_M8qbFBQBad9:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:idhvJF_M8qbFBQBad9:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Decision log"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "jdMPzFghJ",
+   "type": "FrameNode",
+   "name": "Mobile",
+   "a": {
+    "fill": "var(--token-7ce17e0b-526a-4831-8d21-f7773fb57072)",
+    "htmlTag": "footer",
+    "layout": "stack",
+    "stackDirection": "vertical",
+    "stackDistribution": "center",
+    "stackAlignment": "center",
+    "gap": "80px",
+    "overflow": "clip",
+    "padding": "60px 16px 60px 16px",
+    "left": "2346px",
+    "right": "null",
+    "top": "0px",
+    "bottom": "null",
+    "width": "685px",
+    "height": "auto",
+    "transition": "spring-duration 0.4s 0.2 0s"
+   },
+   "children": [
+    {
+     "id": "jdMPzFghJdciV_splI",
+     "type": "FrameNode",
+     "name": "Container",
+     "a": {
+      "layout": "stack",
+      "stackDirection": "vertical",
+      "stackDistribution": "center",
+      "stackAlignment": "start",
+      "gap": "60px",
+      "position": "relative",
+      "width": "1fr",
+      "height": "auto",
+      "maxWidth": "500px"
+     },
+     "children": [
+      {
+       "id": "jdMPzFghJrnRaMIv34",
+       "type": "FrameNode",
+       "name": "Large conversion message",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "24px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto",
+        "maxWidth": "500px"
+       },
+       "children": [
+        {
+         "id": "jdMPzFghJiooSFXQ6L",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "textStylePreset": "Heading 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:jdMPzFghJiooSFXQ6L:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "h2"
+           },
+           "children": [
+            {
+             "id": "v:jdMPzFghJiooSFXQ6L:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Give the agent the budget. Keep the keys to the limits."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "jdMPzFghJNpUyCFmKm",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "500px",
+          "textStylePreset": "Body 1",
+          "textAlignment": "start",
+          "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+         },
+         "children": [
+          {
+           "id": "v:jdMPzFghJNpUyCFmKm:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:jdMPzFghJNpUyCFmKm:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "Start with one campaign and one line that defines a real result. Read the first decision record. You will know in a day whether you want a second campaign."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "jdMPzFghJqYmFtFp71",
+         "type": "ComponentInstanceNode",
+         "component": "Jh9jZPCX6",
+         "componentName": "Button",
+         "a": {
+          "$control__variant": "Desktop/primary",
+          "$control__label": "Start a campaign",
+          "$control__iconVisible": "true",
+          "$control__link": "/#how-it-works",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         }
+        }
+       ]
+      },
+      {
+       "id": "jdMPzFghJDxAbxJGyl",
+       "type": "FrameNode",
+       "name": "Brand and single product column",
+       "a": {
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "40px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "jdMPzFghJSbfkDY0M_",
+         "type": "FrameNode",
+         "name": "CTA footer brand",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "gap": "24px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "jdMPzFghJOOUZlfKem",
+           "type": "FrameNode",
+           "name": "Logo",
+           "a": {
+            "fill": "https://framerusercontent.com/images/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png",
+            "layout": "null",
+            "overflow": "clip",
+            "position": "relative",
+            "width": "40px",
+            "height": "67px",
+            "aspectRatio": 1
+           }
+          },
+          {
+           "id": "jdMPzFghJlNyj079oD",
+           "type": "FrameNode",
+           "name": "Heading + description",
+           "a": {
+            "layout": "stack",
+            "stackDirection": "vertical",
+            "stackDistribution": "center",
+            "stackAlignment": "start",
+            "gap": "8px",
+            "position": "relative",
+            "width": "1fr",
+            "height": "auto"
+           },
+           "children": [
+            {
+             "id": "jdMPzFghJD1TjlfYxn",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Heading 3",
+              "textAlignment": "start",
+              "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+             },
+             "children": [
+              {
+               "id": "v:jdMPzFghJD1TjlfYxn:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "h3"
+               },
+               "children": [
+                {
+                 "id": "v:jdMPzFghJD1TjlfYxn:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "GUILD"
+                 }
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "jdMPzFghJv8i2hJoUX",
+             "type": "RichTextNode",
+             "a": {
+              "position": "relative",
+              "width": "auto",
+              "height": "auto",
+              "textStylePreset": "Body 2",
+              "textAlignment": "start",
+              "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+             },
+             "children": [
+              {
+               "id": "v:jdMPzFghJv8i2hJoUX:0",
+               "type": "TextBlock",
+               "a": {
+                "tag": "p"
+               },
+               "children": [
+                {
+                 "id": "v:jdMPzFghJv8i2hJoUX:0:0",
+                 "type": "TextRun",
+                 "a": {
+                  "text": "The growth agent that only pays for results it can verify."
+                 }
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "jdMPzFghJRm4bQDZYW",
+         "type": "FrameNode",
+         "name": "CTA product links",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "vertical",
+          "stackDistribution": "start",
+          "stackAlignment": "start",
+          "gap": "11px",
+          "position": "relative",
+          "width": "1fr",
+          "height": "auto",
+          "maxWidth": "200px"
+         },
+         "children": [
+          {
+           "id": "jdMPzFghJf2XF04ITg",
+           "type": "RichTextNode",
+           "a": {
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Heading 5",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:jdMPzFghJf2XF04ITg:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "h5"
+             },
+             "children": [
+              {
+               "id": "v:jdMPzFghJf2XF04ITg:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Product"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "jdMPzFghJhEUg_dUKy",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#how-it-works",
+             "smoothScroll": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:jdMPzFghJhEUg_dUKy:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:jdMPzFghJhEUg_dUKy:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "How it works"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "jdMPzFghJS1FWYN9N5",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#features"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:jdMPzFghJS1FWYN9N5:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:jdMPzFghJS1FWYN9N5:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "What it decides"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "jdMPzFghJassjAvM6D",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#partners"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:jdMPzFghJassjAvM6D:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:jdMPzFghJassjAvM6D:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "For partners"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "jdMPzFghJlNssWqDdu",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#pricing"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:jdMPzFghJlNssWqDdu:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:jdMPzFghJlNssWqDdu:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Pricing"
+               }
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "jdMPzFghJCVfFChqjL",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#security"
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+           },
+           "children": [
+            {
+             "id": "v:jdMPzFghJCVfFChqjL:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:jdMPzFghJCVfFChqjL:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Trust and controls"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "jdMPzFghJnAx8Ohiff",
+       "type": "FrameNode",
+       "name": "CTA footer legal rail",
+       "a": {
+        "borderStyle": "solid",
+        "borderColor": "var(--token-edd43b1b-e1c0-47ab-b700-0fd2dbef2982)",
+        "borderTop": "1px",
+        "layout": "stack",
+        "stackDirection": "vertical",
+        "stackDistribution": "start",
+        "stackAlignment": "start",
+        "gap": "24px",
+        "padding": "22px 0px 0px 0px",
+        "position": "relative",
+        "width": "1fr",
+        "height": "auto"
+       },
+       "children": [
+        {
+         "id": "jdMPzFghJvBcJZygP7",
+         "type": "RichTextNode",
+         "a": {
+          "position": "relative",
+          "width": "auto",
+          "height": "auto",
+          "textStylePreset": "Body 2",
+          "textAlignment": "start",
+          "textColor": "var(--token-4b2e1e47-a7ec-4fea-a0ce-eadd74c77d3b)"
+         },
+         "children": [
+          {
+           "id": "v:jdMPzFghJvBcJZygP7:0",
+           "type": "TextBlock",
+           "a": {
+            "tag": "p"
+           },
+           "children": [
+            {
+             "id": "v:jdMPzFghJvBcJZygP7:0:0",
+             "type": "TextRun",
+             "a": {
+              "text": "© 2026 GUILD, built by Merk Labs for the Tameion Agents Hackathon. Unaudited contract, not financial advice."
+             }
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "jdMPzFghJosghCcZwJ",
+         "type": "FrameNode",
+         "name": "CTA legal links",
+         "a": {
+          "layout": "stack",
+          "stackDirection": "horizontal",
+          "stackDistribution": "start",
+          "stackAlignment": "center",
+          "gap": "24px",
+          "position": "relative",
+          "width": "auto",
+          "height": "auto"
+         },
+         "children": [
+          {
+           "id": "jdMPzFghJqbFBQBad9",
+           "type": "RichTextNode",
+           "a": {
+            "link": {
+             "href": "/#record",
+             "openInNewTab": true
+            },
+            "linkStylePreset": "Link - dark",
+            "position": "relative",
+            "width": "auto",
+            "height": "auto",
+            "textStylePreset": "Body 2",
+            "textAlignment": "start",
+            "textColor": "var(--token-53d512fc-9508-4ca7-9593-aa4f8e122f95)"
+           },
+           "children": [
+            {
+             "id": "v:jdMPzFghJqbFBQBad9:0",
+             "type": "TextBlock",
+             "a": {
+              "tag": "p"
+             },
+             "children": [
+              {
+               "id": "v:jdMPzFghJqbFBQBad9:0:0",
+               "type": "TextRun",
+               "a": {
+                "text": "Decision log"
+               }
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+@import "./tokens.css";
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: auto; }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+body {
+  margin: 0;
+  background: var(--c-page);
+  color: var(--c-dark);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; border: 0; background: none; padding: 0; cursor: pointer; color: inherit; }
+img, video { display: block; max-width: 100%; }
+p { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+
+/* Framer "stack" helpers. Sections are full-bleed; content containers cap at 1400px
+   with 40px side padding on desktop, 24px on phone (values from the export). */
+.section { position: relative; width: 100%; display: flex; justify-content: center; }
+.container { position: relative; width: 100%; max-width: 1400px; }
+.stack-v { display: flex; flex-direction: column; }
+.stack-h { display: flex; flex-direction: row; }
+.center { align-items: center; justify-content: center; }
+.fill { width: 100%; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
