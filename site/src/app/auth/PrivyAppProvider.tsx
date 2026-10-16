@@ -137,9 +137,15 @@ function PrivyBridge({ children }: { children: ReactNode }) {
     };
     for (const a of linkedWallets) add(a.address!, a.walletClientType === "privy" ? "embedded" : "external", a.walletClientType);
     for (const w of wallets) add(w.address, w.walletClientType === "privy" ? "embedded" : "external", w.walletClientType);
-    for (const w of meQ.data?.wallets ?? []) add(w.address, walletKind(w));
+    for (const w of meQ.data?.wallets ?? []) {
+      const kind = walletKind(w);
+      // A server row marked embedded that Privy does not report is a stale link from an earlier account
+      // setup. Nothing here can sign for it, so it is not offered.
+      if (kind === "embedded" && hasPrivyWallet && !same(w.address, embeddedAddr)) continue;
+      add(w.address, kind);
+    }
     return [...map.values()].sort((x, y) => (x.type === y.type ? 0 : x.type === "embedded" ? -1 : 1));
-  }, [authenticated, linkedWallets, wallets, meQ.data?.wallets]);
+  }, [authenticated, linkedWallets, wallets, meQ.data?.wallets, hasPrivyWallet, embeddedAddr]);
 
   // The person's choice, per account, remembered in this browser; the server's primary flag mirrors it.
   const choiceKey = user?.id ? `proteus:active-wallet:${user.id}` : null;
