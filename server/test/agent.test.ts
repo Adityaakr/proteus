@@ -50,6 +50,6 @@ describe("rule-based reply", () => {
     expect(reply).toMatch(/Zendesk is not available/);
     expect(reply).toMatch(/\$1,440\.00/);
     expect(reply).toMatch(/cannot change it/);
-    expect(reply).not.toMatch(/margin|cost|floor/i.source === "x" ? /x/ : /variable cost|contribution|bps/i);
+    expect(reply).not.toMatch(/variable cost|contribution|bps/i);
   });
 });
