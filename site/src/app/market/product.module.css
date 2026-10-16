@@ -94,3 +94,7 @@
 .sendMeta { color: var(--c-dark-60); font-size: 13px; }
 .sendHint { grid-column: 1 / -1; color: var(--c-dark-60); font-size: 13px; line-height: 1.45; }
 @media (max-width: 640px) { .sendList li { grid-template-columns: 1fr; } }
+
+.chipLink { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.chipLink:hover { color: var(--c-primary); }
+.railLink { display: inline-flex; align-items: center; gap: 4px; color: var(--c-primary); text-decoration: underline; text-underline-offset: 3px; }

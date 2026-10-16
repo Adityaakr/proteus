@@ -72,7 +72,7 @@ export async function dealView(dealId: string, opts: { apiKeyOnce?: string } = {
       status: deal.serviceStatus,
       endpoint: `/api/services/${lp.product.slug}/execute`,
       apiKey: opts.apiKeyOnce ?? undefined,
-      docsUrl: "/docs#service",
+      docsUrl: `/docs/${lp.org.slug}/${lp.product.slug}`,
       adapter: lp.row.adapter,
       request: lp.product.request ?? null,
       sampleStore: lp.row.adapter === "order-support" ? { label: "sample store (demo data)", orderIds: ["A1001", "A1002", "A1003"] } : undefined,

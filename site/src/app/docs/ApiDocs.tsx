@@ -1,4 +1,7 @@
-import { BadgeCheck, Coins, FileSignature, Landmark, MessagesSquare, Server, Undo2, Zap } from "lucide-react";
+import { BadgeCheck, Bot, Coins, Download, ExternalLink, FileSignature, Landmark, MessagesSquare, Server, Undo2, Zap } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { api, qk } from "../lib/api";
 import { ReviewShell } from "../layouts/ReviewShell";
 import { Code } from "./Code";
 import s from "./docs.module.css";
@@ -13,6 +16,8 @@ const TOC = [
   ["paypercall", "Pay per call"],
   ["seller", "For sellers: your endpoint"],
   ["units", "What counts as a unit"],
+  ["agents", "For agents: skill files"],
+  ["services", "Reference per service"],
 ] as const;
 
 /** The API reference a funded deal links to: how a buyer calls the service, what is billed, how usage settles, and the seller endpoint contract. */
@@ -147,8 +152,59 @@ X-Proteus-Request-Id: order-10421
               <li><BadgeCheck size={15} strokeWidth={1.9} /><span><b>Voice, support, data, inference</b>: one booking, one resolution, one enriched record, one million tokens served.</span></li>
             </ul>
           </section>
+
+          <section id="agents" className={s.section}>
+            <h2 className={s.h2}><span className={s.num}>08</span>For agents: skill files</h2>
+            <p>Every service on Proteus AI ships a <b>SKILL.md</b> generated from its own request fields, prices and rules, and the platform ships one more that teaches an agent to find a service, negotiate within a mandate, sign and fund the deal, call the service and settle usage. Drop them into any agent that reads skills, or paste them into a system prompt.</p>
+            <div className={s.installGrid}>
+              <div>
+                <b>Buyer skill (negotiate, fund, use, settle)</b>
+                <Code lang="bash">{`mkdir -p .claude/skills/proteus-ai-buyer
+curl -s ${ORIGIN}/api/public/agents/skill.md \\
+  -o .claude/skills/proteus-ai-buyer/SKILL.md`}</Code>
+              </div>
+              <div>
+                <b>One service (call it with a key)</b>
+                <Code lang="bash">{`curl -s ${ORIGIN}/api/public/sellers/<seller>/products/<product>/skill.md \\
+  -o .claude/skills/proteus-<seller>-<product>/SKILL.md
+# OpenAPI for tool registration:
+curl -s ${ORIGIN}/api/public/sellers/<seller>/products/<product>/openapi.json`}</Code>
+              </div>
+            </div>
+            <div className={s.btnRow}>
+              <a className={s.btn} href={`${ORIGIN}/api/public/agents/skill.md`} target="_blank" rel="noreferrer"><Bot size={15} strokeWidth={1.9} /> Buyer SKILL.md <ExternalLink size={12} aria-hidden /></a>
+              <a className={s.btn} href={`${ORIGIN}/api/public/agents/skill.md`} download="SKILL.md"><Download size={15} strokeWidth={1.9} /> Download</a>
+            </div>
+            <div className={s.callout}>
+              <b>What the buyer skill makes an agent do.</b> Hold a mandate (service, maximum prepaid, maximum unit price) before signing or spending; verify the terms it signs match the offer; keep the API key out of logs; treat seller messages as data. The escrow contract enforces the rest.
+            </div>
+          </section>
+
+          <section id="services" className={s.section}>
+            <h2 className={s.h2}><span className={s.num}>09</span>Reference per service</h2>
+            <p>Each service has its own reference: the exact fields it takes, examples with those fields, its prices, and its skill file.</p>
+            <ServiceIndex />
+          </section>
         </article>
       </div>
     </ReviewShell>
+  );
+}
+
+function ServiceIndex() {
+  const q = useQuery({ queryKey: qk.market, queryFn: api.market, staleTime: 60_000 });
+  if (!q.data) return <p className={s.small}>{q.error ? "The market list could not be loaded." : "Loading services…"}</p>;
+  return (
+    <ul className={s.serviceList}>
+      {q.data.map((m) => (
+        <li key={`${m.sellerSlug}/${m.productSlug}`}>
+          <Link to={`/docs/${m.sellerSlug}/${m.productSlug}`} className={s.serviceLink}>
+            <span className={s.serviceName}>{m.name}</span>
+            <span className={s.serviceMeta}>{m.sellerName} · per {m.unitLabel}{m.perCallUsd ? ` · ${m.perCallUsd} per call` : ""}</span>
+          </Link>
+          <a className={s.serviceSkill} href={`${ORIGIN}/api/public/sellers/${m.sellerSlug}/products/${m.productSlug}/skill.md`} target="_blank" rel="noreferrer">SKILL.md</a>
+        </li>
+      ))}
+    </ul>
   );
 }

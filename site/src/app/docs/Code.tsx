@@ -16,7 +16,7 @@ const RULES: [RegExp, string][] = [
   [/-[A-Za-z]\b|--[a-z-]+/y, "flag"],
 ];
 
-export function Code({ children, lang = "json" }: { children: string; lang?: "json" | "bash" | "ts" | "http" }) {
+export function Code({ children, lang = "json" }: { children: string; lang?: "json" | "bash" | "ts" | "http" | "py" }) {
   const out: ReactNode[] = [];
   let i = 0;
   let k = 0;

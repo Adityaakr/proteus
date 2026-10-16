@@ -6,7 +6,9 @@ import { db, schema } from "../db";
 import { HttpError, json, toBig } from "../lib/http";
 import { loadProductById, loadProductBySlugs, publicProduct } from "../services/catalog";
 import { addBuyerMessage, counter, negotiationView, startNegotiation } from "../services/negotiation";
+import { env } from "../env";
 import { acceptQuote, createQuote, quoteView } from "../services/quotes";
+import { platformSkill, serviceOpenApi, serviceSkill } from "../services/agentdocs";
 import { listRecords, recordView } from "../services/review";
 import { resolveAuth } from "./auth";
 import { insertWalletLink, userOwnsAddress, userWallets } from "../services/accounts";
@@ -27,6 +29,28 @@ publicRoutes.get("/public/sellers/:sellerSlug", async (c) => {
 publicRoutes.get("/public/sellers/:sellerSlug/products/:productSlug", async (c) => {
   const lp = await loadProductBySlugs(c.req.param("sellerSlug"), c.req.param("productSlug"));
   return json(c, publicProduct(lp));
+});
+
+/** Agent-facing docs, generated per product: a SKILL.md to carry and an OpenAPI document for the endpoint. */
+const originOf = (c: { req: { header: (n: string) => string | undefined } }) => {
+  const h = c.req.header("x-forwarded-host") ?? c.req.header("host");
+  const proto = c.req.header("x-forwarded-proto") ?? (h?.startsWith("localhost") || h?.startsWith("127.") ? "http" : "https");
+  return env.WEB_ORIGIN || (h ? `${proto}://${h}` : "");
+};
+publicRoutes.get("/public/sellers/:sellerSlug/products/:productSlug/skill.md", async (c) => {
+  const lp = await loadProductBySlugs(c.req.param("sellerSlug"), c.req.param("productSlug"));
+  c.header("content-type", "text/markdown; charset=utf-8");
+  c.header("content-disposition", `inline; filename="SKILL.md"`);
+  return c.body(serviceSkill(lp, originOf(c)));
+});
+publicRoutes.get("/public/sellers/:sellerSlug/products/:productSlug/openapi.json", async (c) => {
+  const lp = await loadProductBySlugs(c.req.param("sellerSlug"), c.req.param("productSlug"));
+  return json(c, serviceOpenApi(lp, originOf(c)));
+});
+publicRoutes.get("/public/agents/skill.md", (c) => {
+  c.header("content-type", "text/markdown; charset=utf-8");
+  c.header("content-disposition", `inline; filename="SKILL.md"`);
+  return c.body(platformSkill(originOf(c)));
 });
 
 publicRoutes.post("/negotiations", async (c) => {

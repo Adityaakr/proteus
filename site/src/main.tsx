@@ -14,6 +14,7 @@ const Home = lazy(() => import("./app/home/Home"));
 const Settings = lazy(() => import("./app/home/Settings"));
 const WalletPage = lazy(() => import("./app/wallet/WalletPage"));
 const ApiDocs = lazy(() => import("./app/docs/ApiDocs"));
+const ServiceDocs = lazy(() => import("./app/docs/ServiceDocs"));
 const Welcome = lazy(() => import("./app/auth/Welcome"));
 const Market = lazy(() => import("./app/market/Market"));
 const ProductPage = lazy(() => import("./app/market/ProductPage"));
@@ -58,6 +59,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/" element={<App />} />
               <Route path="/review" element={<ReviewList />} />
               <Route path="/docs" element={<ApiDocs />} />
+              <Route path="/docs/:sellerSlug/:productSlug" element={<ServiceDocs />} />
               <Route path="/records/:publicId" element={<ReviewRecord />} />
               <Route element={<AuthRoot />}>
                 <Route path="/login" element={<LoginPage />} />

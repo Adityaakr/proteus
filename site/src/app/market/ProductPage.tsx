@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, BadgeCheck, CalendarDays, Check, ChevronRight, CircleDollarSign, Landmark, MessagesSquare, PenLine, Server, ShieldCheck, Undo2, Zap } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, BookOpen, Bot, CalendarDays, Check, ChevronRight, CircleDollarSign, Landmark, MessagesSquare, PenLine, Server, ShieldCheck, Undo2, Zap } from "lucide-react";
 import { AppShell } from "../layouts/AppShell";
 import { ActionButton } from "../ui/ActionButton";
 import { LoadingCard } from "../ui/Skeleton";
@@ -89,6 +89,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
             <li><ShieldCheck size={13} aria-hidden />Escrow on Arc testnet</li>
             <li><Server size={13} aria-hidden />{product.service === "seller-endpoint" ? "Seller-run endpoint" : product.service === "example" ? "Run by Proteus AI's service agent" : "Sample order store"}</li>
             {category && <li>{categoryLabel(category)}</li>}
+            <li><BookOpen size={13} aria-hidden /><Link to={`/docs/${seller.slug}/${product.slug}`} className={d.chipLink}>API reference</Link></li>
           </ul>
         </header>
 
@@ -228,6 +229,10 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
         </div>
         <div className={d.railBlock}>
           <PayPerCallCard sellerSlug={seller.slug} productSlug={product.slug} service={product.service} request={product.request} unitLabel={product.unitLabel} bare />
+        </div>
+        <div className={d.railBlock}>
+          <span className={d.railLabel}>For agents</span>
+          <p className={d.railText}>A skill file generated from this service's fields and rules. <a href={`/api/public/sellers/${seller.slug}/products/${product.slug}/skill.md`} target="_blank" rel="noreferrer" className={d.railLink}><Bot size={13} aria-hidden /> SKILL.md</a> · <Link to={`/docs/${seller.slug}/${product.slug}`} className={d.railLink}>Reference</Link></p>
         </div>
       </aside>
     </div>
