@@ -42,7 +42,8 @@ Avoid anvil account 1 as the buyer: it is the blocklisted test address on Arc.
 
 The repo carries `railway.json` and `railpack.json`, so a Railway service pointed at this repo builds with Railpack and starts with `pnpm --filter @proteus/server start:prod`, which pushes the Drizzle schema (`drizzle-kit push --force`) and then serves on `$PORT`. Health check: `/api/health`.
 
-1. Create a Railway project, add a **Postgres** plugin, and a service from this GitHub repo (root directory `/`).
+1. Create a Railway project, add a **Postgres** plugin, and **one** service from this GitHub repo (root directory `/`). Railway may offer one service per workspace package; keep only `@proteus/server` and delete `@proteus/domain`, `@proteus/contracts` and the site service (the site lives on Vercel). Each extra service would run the same start command and crash.
+1b. Give the server a public domain: service Settings → Networking → Generate Domain. The API answers at `https://<that domain>/api/health`. On first boot the server pushes the schema and, if the market is empty, seeds the example sellers (`scripts/bootstrap.ts`).
 2. Variables on the service: `DATABASE_URL` (reference the plugin), `NODE_ENV=production`, `WEB_ORIGIN=https://<your vercel domain>`, `SESSION_SECRET`, `KEY_ENCRYPTION_SECRET`, `ARC_RPC_URL`, `CHAIN_ID=5042002`, `USDC_ADDRESS`, `ESCROW_ADDRESS`, `DEPLOYER_PRIVATE_KEY`, `SELLER_SIGNER_PRIVATE_KEY`, `RELAYER_PRIVATE_KEY`, `OPENROUTER_API_KEY`, `PRIVY_APP_ID`. Leave `PRIVY_DEV_BYPASS` unset.
 3. Seed once from a shell on the service (or locally against the Railway `DATABASE_URL`): `pnpm --filter @proteus/server db:seed && pnpm --filter @proteus/server db:seed-examples`.
 4. Point the Vercel site at it: add to `vercel.json` `"rewrites": [{ "source": "/api/:path*", "destination": "https://<railway domain>/api/:path*" }]` so the app stays same-origin (the RPC relay and cookies depend on it).

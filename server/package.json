@@ -15,7 +15,8 @@
     "db:seed": "tsx scripts/seed.ts",
     "keys:gen": "tsx scripts/gen-keys.ts",
     "e2e:testnet": "tsx scripts/testnet-demo.ts",
-    "start:prod": "drizzle-kit push --force && tsx src/index.ts"
+    "start:prod": "drizzle-kit push --force && tsx scripts/bootstrap.ts && tsx src/index.ts",
+    "db:bootstrap": "tsx scripts/bootstrap.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
