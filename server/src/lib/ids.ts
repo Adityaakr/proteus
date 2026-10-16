@@ -14,9 +14,9 @@ export function publicId(prefix: string): string {
   return id(prefix, 16);
 }
 
-/** Random uint256-ish deal id (128 bits of entropy) for the onchain deal key. */
+/** Random onchain deal id: 62 bits of entropy so it fits a Postgres int8 while staying unguessable. */
 export function randomDealId(): bigint {
-  return BigInt("0x" + randomBytes(16).toString("hex"));
+  return BigInt("0x" + randomBytes(8).toString("hex")) & ((1n << 62n) - 1n);
 }
 
 export function apiKey(): { key: string; hash: string } {

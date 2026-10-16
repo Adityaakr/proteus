@@ -27,7 +27,10 @@ export async function recordView(publicIdValue: string) {
   const decisions = await db.select().from(schema.decisions).where(eq(schema.decisions.negotiationId, d.negotiationId)).orderBy(asc(schema.decisions.createdAt));
 
   const timeline: { at: Date; kind: string; summary: string; txHash?: string; explorerUrl?: string }[] = [];
-  for (const dec of decisions) timeline.push({ at: dec.createdAt, kind: dec.kind === "candidates" ? "quote" : dec.kind, summary: dec.publicExplanation });
+  for (const dec of decisions) {
+    if (dec.kind === "quote") continue; // the quote row below carries the offer
+    timeline.push({ at: dec.createdAt, kind: dec.kind === "candidates" ? "options" : dec.kind, summary: dec.publicExplanation });
+  }
   if (q) timeline.push({ at: q.createdAt, kind: "quote", summary: `Offer issued: ${(q.publicTerms as { units: string }).units} ${lp.product.unitLabel}s, ${formatUsd(BigInt((q.publicTerms as { prepaidTotal: string }).prepaidTotal))} prepaid` });
   timeline.push({ at: d.createdAt, kind: "accept", summary: `Identical terms signed by buyer and seller. Terms hash ${d.termsHash.slice(0, 10)}…` });
   for (const t of txs) timeline.push({ at: t.createdAt, kind: t.kind === "fund" ? "fund" : t.kind === "settle" ? "settle" : t.kind === "refund" ? "refund" : t.kind, summary: `${t.kind} transaction (${t.status}, via ${t.submittedVia})`, txHash: t.txHash, explorerUrl: explorerTx(t.txHash) });

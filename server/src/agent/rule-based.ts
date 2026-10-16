@@ -23,20 +23,22 @@ function now() {
  * model key is configured. Numbers are parsed, never invented.
  */
 export function extractRuleBased(input: ExtractInput): Requirements {
-  const text = input.turns
-    .filter((t) => t.role === "buyer")
-    .map((t) => t.content)
-    .join("\n");
+  const buyerTurns = input.turns.filter((t) => t.role === "buyer" && !t.content.startsWith("Counteroffer:"));
+  // The latest buyer message wins for numbers; earlier turns only fill gaps.
+  const latest = buyerTurns.at(-1)?.content ?? "";
+  const text = buyerTurns.map((t) => t.content).join("\n");
   const req: Requirements = { ...input.prior, integrations: [...(input.prior.integrations ?? [])], notes: [...(input.prior.notes ?? [])], openQuestions: [] };
 
   // Budget: "$1,500", "$1500/month", "budget is 1500 usd"
-  const budget = text.match(/\$\s?([\d,]+(?:\.\d+)?)/) ?? text.match(/budget (?:is|of)?\s*([\d,]+)\s*(?:usd|usdc|dollars)/i);
+  const budgetRe = /\$\s?([\d,]+(?:\.\d+)?)/;
+  const budgetRe2 = /budget (?:is|of)?\s*([\d,]+)\s*(?:usd|usdc|dollars)/i;
+  const budget = latest.match(budgetRe) ?? latest.match(budgetRe2) ?? (req.budget ? null : text.match(budgetRe) ?? text.match(budgetRe2));
   if (budget?.[1]) req.budget = toMicro(budget[1].replace(/,/g, ""));
 
   // Desired units: "2,000 resolutions", "around 2000 answers", "1500 units"
   const unitWord = input.unitLabel.replace(/s$/, "");
-  const unitsRe = new RegExp(`([\\d,]+)\\s*(?:eligible |ai |automated )?(?:${unitWord}s?|units|answers|resolutions|calls|requests? (?:per|a) month)`, "i");
-  const units = text.match(unitsRe);
+  const unitsRe = new RegExp(`([\\d,]+)\\s*(?:eligible |ai |automated |order-status |order status )?(?:${unitWord}s?|units|answers|resolutions|calls|requests? (?:per|a) month)`, "i");
+  const units = latest.match(unitsRe) ?? (req.desiredUnits ? null : text.match(unitsRe));
   if (units?.[1]) {
     const n = BigInt(units[1].replace(/,/g, ""));
     // Distinguish ticket volume from desired automated units when both appear.
