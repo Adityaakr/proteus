@@ -1,29 +1,25 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { KeyRound, PenLine, RotateCcw, Send } from "lucide-react";
+import { Check, Send } from "lucide-react";
 import { explorerTx } from "@proteus/domain";
 import type { Hex } from "viem";
 import { AppShell } from "../layouts/AppShell";
-import { Stepper } from "../ui/Stepper";
 import { useAuth } from "../auth/useAuth";
 import { FundFlow } from "./FundFlow";
-import { TodoList, type TodoItem } from "../agentic/TodoList";
-import { ToolApproval, type ToolApprovalStatus } from "../agentic/ToolApproval";
+import type { TodoItem } from "../agentic/TodoList";
+import type { ToolApprovalStatus } from "../agentic/ToolApproval";
 import { ActionButton } from "../ui/ActionButton";
-import { Card } from "../ui/Card";
-import { DataTable } from "../ui/DataTable";
-import { EmptyState } from "../ui/EmptyState";
 import { Field } from "../ui/Field";
 import { LoadingCard } from "../ui/Skeleton";
 import { Money } from "../ui/Money";
-import { StatCard } from "../ui/StatCard";
-import { StatusTag } from "../ui/StatusTag";
-import { CopyButton, ExplorerLink, KeyValue, MonoValue, Notice, shortHex } from "../ui/misc";
-import { api, errorMessage, isMock, newRequestId, qk, type Deal, type ExecuteResponse, type Receipt, type UsageResponse } from "../lib/api";
+import { statusLabel } from "../ui/StatusTag";
+import { CopyButton, ExplorerLink, MonoValue, Notice, shortHex } from "../ui/misc";
+import { api, errorMessage, isMock, newRequestId, qk, type Deal, type ExecuteResponse } from "../lib/api";
 import { signAcceptance, walletErrorMessage } from "../lib/wallet";
-import { ErrorState, FLOW_STAGES, PageHeader, fmtDate, fmtDateTime, fmtUnits } from "./common";
-import s from "./buyer.module.css";
+import { ErrorState, FLOW_STAGES, fmtDate, fmtDateTime, fmtUnits } from "./common";
+import f from "./fund.module.css";
+import d from "./deal.module.css";
 
 const keyStore = (dealId: string) => `proteus:deal-key:${dealId}`;
 function loadKey(dealId: string): string | null {
@@ -83,8 +79,8 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
   const usage = usageQ.data;
 
   /* test request */
-  const [question, setQuestion] = useState("Where is my order?");
-  const [orderId, setOrderId] = useState("1042");
+  const [question, setQuestion] = useState("");
+  const [orderId, setOrderId] = useState("");
   const [qErr, setQErr] = useState<string | null>(null);
   const [lastReq, setLastReq] = useState<{ requestId: string; input: { question: string; orderId?: string } } | null>(null);
   const [result, setResult] = useState<ExecuteResponse | null>(null);
@@ -180,216 +176,223 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
 
   const pa = usage?.pendingAcceptance;
   const walletLabel = mock ? "Sign usage (mock signature)" : "Sign usage";
+  const stageIdx = fundedish ? stage : 1;
+  const todoClass = (st: TodoItem["status"]) => (st === "completed" ? f.stepDone : st === "in-progress" ? f.stepActive : "");
+  const stateLabel = (v: string) => statusLabel(v);
+  const ackBusy = ackPhase === "approving" || ackPhase === "running";
 
   return (
-    <>
-      <PageHeader
-        eyebrow={
-          <>
-            <StatusTag state={deal.status} />
-            <StatusTag state={deal.service.status} />
-            <span className="body3">Record {deal.publicId}</span>
-          </>
-        }
-        title="Your deal"
-        lede="Use the service, review every metered request, and sign usage so the seller is paid from escrow. Unused funds stay yours."
-        actions={<Stepper current={fundedish ? stage : 1} steps={FLOW_STAGES} />}
-      />
-
-      {!fundedish && (
-        <div className={s.grid2}>
-          <FundFlow deal={deal} onFunded={(d) => { qc.setQueryData(qk.deal(d.id), d); navigate(`/app/deals/${d.id}`, { replace: true }); }} onCancel={() => navigate("/app/deals")} />
-        </div>
-      )}
-
-      <div className={s.stats}>
-        <StatCard label="Deposited" value={<Money micro={deal.balances.deposit} />} />
-        <StatCard label="Used" value={<Money micro={deal.usage.charged} />} hint={`${fmtUnits(deal.usage.units)} of ${fmtUnits(deal.terms.maxUnits)} units`} />
-        <StatCard label="Settled to seller" value={<Money micro={deal.balances.settled} />} />
-        <StatCard label="Remaining" value={<Money micro={deal.balances.remaining} />} hint={deal.balances.source === "chain" ? "Read from chain" : "Pending chain confirmation"} />
-      </div>
-
-      <div className={s.grid2}>
-        <div className={s.stack}>
-          <Card title="Try the service" subtitle="Send a real request to the metered endpoint. Only delivered answers are billable; retries with the same request id are never charged twice." level={2}>
-            {!provisioned ? (
-              <Notice tone="info">The service is being provisioned. This page updates automatically.</Notice>
-            ) : !apiKey ? (
-              <div className={s.stack}>
-                <Notice tone="warn" title="API key not available in this browser">The key was shown once when the service was provisioned. Use the copy you saved, or issue a new one with a wallet signature (the old key stops working).</Notice>
-                <ActionButton variant="secondary" loading={rotate.isPending} loadingLabel="Signing" onClick={() => rotate.mutate()}>Issue a new key</ActionButton>
-                {rotate.error && <Notice tone="danger">{errorMessage(rotate.error)}</Notice>}
-              </div>
-            ) : (
-              <form onSubmit={submitTest} className={s.stack} noValidate>
-                <div className={s.formGrid}>
-                  <Field label="Customer question" value={question} onChange={(e) => setQuestion(e.target.value)} error={qErr} maxLength={2000} />
-                  <Field label="Order id" hint="Try 1042, 1043, or leave empty" value={orderId} onChange={(e) => setOrderId(e.target.value)} inputMode="numeric" />
-                </div>
-                <div className={s.row}>
-                  <ActionButton type="submit" loading={exec.isPending && exec.variables?.requestId !== lastReq?.requestId} loadingLabel="Sending" icon={<Send size={16} strokeWidth={2} />}>
-                    Send test request
-                  </ActionButton>
-                  {lastReq && (
-                    <ActionButton variant="secondary" onClick={() => exec.mutate(lastReq)} loading={exec.isPending && exec.variables?.requestId === lastReq.requestId} disabled={exec.isPending} iconLeft={<RotateCcw size={16} strokeWidth={2} />}>
-                      Retry with the same request id
-                    </ActionButton>
-                  )}
-                </div>
-              </form>
-            )}
-            {exec.isError && <Notice tone="danger">{errorMessage(exec.error)}</Notice>}
-            {result && (
-              <div className={s.stack} aria-live="polite">
-                <div className={s.answer}>{result.answer}</div>
-                <div className={s.row}>
-                  <StatusTag state={result.status} />
-                  <StatusTag tone={result.billable ? "info" : "neutral"} label={result.billable ? `Billable, ${result.units} unit` : "Not billable"} />
-                  {replayed && <StatusTag tone="success" label="Same request id, not charged again" />}
-                </div>
-                <KeyValue
-                  items={[
-                    { k: "Request id", v: <MonoValue value={result.requestId} short copy label="request id" /> },
-                    { k: "Source", v: `${result.source.store}${result.source.fields.length ? `, fields ${result.source.fields.join(", ")}` : ""}` },
-                    { k: "Receipt digest", v: <MonoValue value={result.receipt.digest} short copy label="receipt digest" /> },
-                    { k: "Used so far", v: <span><Money micro={result.deal.cumulativeCharged} /> for {fmtUnits(result.deal.cumulativeUnits)} {result.deal.cumulativeUnits === "1" ? "unit" : "units"}</span> },
-                  ]}
-                />
-              </div>
-            )}
-          </Card>
-
-          {pa && (
-            <ToolApproval
-              tool="wallet.signTypedData"
-              title="Sign usage to settle"
-              description="You confirm the delivered usage below. The escrow then pays the seller exactly this cumulative amount, minus what was already settled."
-              icon={<PenLine size={18} strokeWidth={2} />}
-              moneyMovement
-              status={ackPhase}
-              parameters={[
-                { label: "Units delivered", value: fmtUnits(pa.acceptance.cumulativeUnits), mono: true },
-                { label: "Cumulative amount", value: <Money micro={pa.acceptance.cumulativeAmount} unit />, mono: true },
-                { label: "Already settled", value: <Money micro={usage!.settledOnchain} unit />, mono: true },
-                { label: "Receipts root", value: <MonoValue value={pa.acceptance.receiptsRoot} short /> },
-              ]}
-              approveLabel={walletLabel}
-              onApprove={signUsage}
-              disabled={!wallet}
-              disabledReason={!wallet ? "Your wallet is still being set up." : undefined}
-              error={ackErr}
-            >
-              {wallet && (
-                <p className="body3">
-                  Signing with <MonoValue value={wallet.address} short /> on Arc testnet. No gas.
-                </p>
-              )}
-            </ToolApproval>
-          )}
-          {settlement && (
-            <Notice tone="success" title="Usage settled">
-              {settlement.txHash ? (
-                <span className={s.txRow}>
-                  Settlement transaction <ExplorerLink href={explorerTx(settlement.txHash)} hash={settlement.txHash} />
+    <div className={f.page}>
+      <article className={f.doc}>
+        <header className={f.head}>
+          <div className={f.eyebrow}>
+            <span className={`${f.badge} ${["funded", "active"].includes(deal.status) ? f.badgeOk : ""}`}>{stateLabel(deal.status)}</span>
+            <span className={f.badge}>{stateLabel(deal.service.status)}</span>
+            <span>Record {deal.publicId}</span>
+          </div>
+          <div className={f.titleRow}>
+            <h1 className={f.title}>{dealTitle(deal)}</h1>
+            <span className={`hide-phone ${f.steps}`} aria-label="Deal progress">
+              {FLOW_STAGES.map((st, i) => (
+                <span key={st} className={f.steps}>
+                  {i > 0 && <i aria-hidden>/</i>}
+                  {i === stageIdx ? <b>{st}</b> : <s>{st}</s>}
                 </span>
-              ) : settlement.status === "mock_no_transaction" ? (
-                "Mock mode: balances updated, no transaction was sent."
-              ) : (
-                `Settlement ${settlement.status}. The transaction link appears here once it is submitted.`
-              )}
-            </Notice>
-          )}
+              ))}
+            </span>
+          </div>
+          <p className={f.lede}>Use the service, review every metered request, and sign usage so the seller is paid from escrow. Unused funds stay yours.</p>
+        </header>
 
-          <Card title="Usage" subtitle="Every request the service handled for this deal." level={2}>
-            <DataTable<Receipt>
-              caption="Metered requests, newest first"
-              rows={receipts}
-              rowKey={(r) => r.requestId}
-              empty={<EmptyState title="No requests yet" description="Send a test request above to see your first receipt." />}
-              columns={[
-                { key: "time", header: "Time", render: (r) => fmtDateTime(r.createdAt) },
-                { key: "status", header: "Status", render: (r) => <StatusTag state={r.status} /> },
-                { key: "answer", header: "Answer", render: (r) => <span className="body3">{r.answerPreview}</span> },
-                { key: "units", header: "Units", numeric: true, render: (r) => r.units },
-                { key: "cum", header: "Charged total", numeric: true, render: (r) => <Money micro={r.chargedCumulative} /> },
-                { key: "digest", header: "Digest", render: (r) => <span className="app-mono" title={r.digest}>{shortHex(r.digest)}</span> },
-              ]}
-            />
-          </Card>
+        {!fundedish && (
+          <section className={f.section}>
+            <FundFlow deal={deal} onFunded={(d) => { qc.setQueryData(qk.deal(d.id), d); navigate(`/app/deals/${d.id}`, { replace: true }); }} onCancel={() => navigate("/app/deals")} />
+          </section>
+        )}
+
+        <dl className={d.stats} aria-label="Balances">
+          <div><dt>Deposited</dt><dd><Money micro={deal.balances.deposit} /></dd></div>
+          <div><dt>Used</dt><dd><Money micro={deal.usage.charged} /></dd><small>{fmtUnits(deal.usage.units)} of {fmtUnits(deal.terms.maxUnits)} units</small></div>
+          <div><dt>Settled to seller</dt><dd><Money micro={deal.balances.settled} /></dd></div>
+          <div><dt>Remaining</dt><dd><Money micro={deal.balances.remaining} /></dd><small>{deal.balances.source === "chain" ? "Read from chain" : "Pending chain confirmation"}</small></div>
+        </dl>
+
+        <section className={f.section} aria-labelledby="h-try">
+          <div className={f.sectionHead}>
+            <h2 id="h-try" className={f.h2}>Try the service</h2>
+            <span className={f.h2Sub}>Only delivered answers are billable. Retries with the same request id never charge twice.</span>
+          </div>
+          {!provisioned ? (
+            <p className={f.fine}>The service is being provisioned. This page updates automatically.</p>
+          ) : !apiKey ? (
+            <>
+              <p className={f.fine}>The API key was shown once when the service was provisioned. Use the copy you saved, or issue a new one with a wallet signature; the old key stops working.</p>
+              <div><ActionButton variant="secondary" size="sm" loading={rotate.isPending} loadingLabel="Signing" onClick={() => rotate.mutate()}>Issue a new key</ActionButton></div>
+              {rotate.error && <Notice tone="danger">{errorMessage(rotate.error)}</Notice>}
+            </>
+          ) : (
+            <form onSubmit={submitTest} noValidate style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div className={d.formGrid}>
+                <Field label="Request" placeholder="What the service should do" value={question} onChange={(e) => setQuestion(e.target.value)} error={qErr} maxLength={2000} />
+                <Field label="Reference" hint="Optional. Echoed in the receipt." value={orderId} onChange={(e) => setOrderId(e.target.value)} />
+              </div>
+              <div className={f.actions}>
+                <ActionButton type="submit" size="sm" loading={exec.isPending && exec.variables?.requestId !== lastReq?.requestId} loadingLabel="Sending" icon={<Send size={14} strokeWidth={2} />}>
+                  Send request
+                </ActionButton>
+                {lastReq && (
+                  <button type="button" className={f.textBtn} onClick={() => exec.mutate(lastReq)} disabled={exec.isPending}>Retry with the same request id</button>
+                )}
+              </div>
+            </form>
+          )}
+          {exec.isError && <Notice tone="danger">{errorMessage(exec.error)}</Notice>}
+          {result && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }} aria-live="polite">
+              <div className={d.answer}>{result.answer}</div>
+              <div className={d.tags}>
+                <span className={`${f.badge} ${result.status === "delivered" ? f.badgeOk : ""}`}>{stateLabel(result.status)}</span>
+                <span className={f.badge}>{result.billable ? `Billable, ${result.units} unit` : "Not billable"}</span>
+                {replayed && <span className={`${f.badge} ${f.badgeOk}`}>Same request id, not charged again</span>}
+              </div>
+              <dl className={f.kv}>
+                <div><dt>Request id</dt><dd><MonoValue value={result.requestId} short copy label="request id" /></dd></div>
+                <div><dt>Source</dt><dd>{result.source.store}{result.source.fields.length ? `, fields ${result.source.fields.join(", ")}` : ""}</dd></div>
+                <div><dt>Receipt digest</dt><dd><MonoValue value={result.receipt.digest} short copy label="receipt digest" /></dd></div>
+                <div><dt>Used so far</dt><dd><Money micro={result.deal.cumulativeCharged} /> for {fmtUnits(result.deal.cumulativeUnits)} {result.deal.cumulativeUnits === "1" ? "unit" : "units"}</dd></div>
+              </dl>
+            </div>
+          )}
+        </section>
+
+        <section className={f.section} aria-labelledby="h-usage">
+          <div className={f.sectionHead}>
+            <h2 id="h-usage" className={f.h2}>Usage</h2>
+            <span className={f.h2Sub}>Every request the service handled for this deal, newest first.</span>
+          </div>
+          {receipts.length === 0 ? (
+            <p className={f.fine}>No requests yet. Send one above to see your first receipt.</p>
+          ) : (
+            <ul className={d.usage}>
+              {receipts.map((r) => (
+                <li key={r.requestId}>
+                  <span className={d.uTime}>{fmtDateTime(r.createdAt)}</span>
+                  <span className={d.uBody}>
+                    <span className={d.uAnswer}>{r.answerPreview}</span>
+                    <span className={d.uMeta}>{stateLabel(r.status)}, digest <span className="app-mono" title={r.digest}>{shortHex(r.digest)}</span></span>
+                  </span>
+                  <span className={d.uRight}>{r.units} {String(r.units) === "1" ? "unit" : "units"}<small><Money micro={r.chargedCumulative} /> to date</small></span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {usageQ.isError && <Notice tone="danger">{errorMessage(usageQ.error)}</Notice>}
+          {usage && <p className={f.fine}>Settled onchain so far: <Money micro={usage.settledOnchain} unit />.</p>}
+        </section>
+      </article>
+
+      <aside className={f.rail} aria-label="Deal status">
+        <div className={f.railBlock}>
+          <span className={f.label}>Setup</span>
+          <ol className={f.stepList} style={{ borderTop: 0, paddingTop: 0 }}>
+            {todos.map((t) => (
+              <li key={t.id} className={`${f.step} ${todoClass(t.status)}`}>
+                <span className={f.stepIcon} aria-hidden>{t.status === "completed" && <Check size={11} strokeWidth={3} />}</span>
+                <span className={f.stepBody}>
+                  <span>{t.label}</span>
+                  {t.detail && <span className={f.stepDetail}>{t.detail}</span>}
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
 
-        <div className={s.stack}>
-          <Card title="Setup" level={2} padding="compact">
-            <TodoList items={todos} />
-          </Card>
+        {pa && (
+          <div className={f.railBlock}>
+            <span className={f.label}>Settle</span>
+            <h2 className={f.railTitle}>Sign usage to settle</h2>
+            <p className={f.railText}>You confirm the delivered usage below. The escrow then pays the seller exactly this cumulative amount, minus what was already settled. No gas.</p>
+            <dl className={f.summary}>
+              <div><dt>Units delivered</dt><dd>{fmtUnits(pa.acceptance.cumulativeUnits)}</dd></div>
+              <div className={f.big}><dt>Cumulative amount</dt><dd><Money micro={pa.acceptance.cumulativeAmount} unit /></dd></div>
+              <div><dt>Already settled</dt><dd><Money micro={usage!.settledOnchain} unit /></dd></div>
+              <div><dt>Receipts root</dt><dd><MonoValue value={pa.acceptance.receiptsRoot} short /></dd></div>
+              {wallet && <div><dt>Signing as</dt><dd><MonoValue value={wallet.address} short /></dd></div>}
+            </dl>
+            {ackErr && <Notice tone="danger">{ackErr}</Notice>}
+            <div className={f.actions}>
+              <ActionButton onClick={signUsage} loading={ackBusy} loadingLabel={ackPhase === "approving" ? "Confirm in your wallet" : "Settling"} disabled={!wallet}>{walletLabel}</ActionButton>
+            </div>
+          </div>
+        )}
+        {settlement && (
+          <div className={f.railBlock}>
+            <span className={f.label}>Settled</span>
+            <p className={f.railText}>
+              {settlement.txHash ? <>Settlement transaction <ExplorerLink href={explorerTx(settlement.txHash)} hash={settlement.txHash} /></> : settlement.status === "mock_no_transaction" ? "Mock mode: balances updated, no transaction was sent." : `Settlement ${settlement.status}. The transaction link appears here once it is submitted.`}
+            </p>
+          </div>
+        )}
 
-          <Card title="Credentials" level={2} padding="compact" actions={<KeyRound size={18} strokeWidth={2} aria-hidden color="var(--c-dark-60)" />}>
-            <KeyValue
-              items={[
-                { k: "Endpoint", v: <MonoValue value={`POST ${deal.service.endpoint}`} copy label="endpoint" /> },
-                { k: "Docs", v: <a href={deal.service.docsUrl} style={{ textDecoration: "underline" }}>API reference</a> },
-              ]}
-            />
-            {freshKey ? (
-              <div className={s.stackTight}>
-                <span className="label" style={{ color: "var(--c-dark-60)" }}>API key, shown once</span>
-                <div className={s.secret}>
-                  <span style={{ flex: 1, minWidth: 0 }}>{freshKey}</span>
-                  <CopyButton value={freshKey} label="Copy API key" />
-                </div>
-                <Notice tone="warn">Store this key now. It will not be shown again after you leave this page.</Notice>
+        <div className={f.railBlock}>
+          <span className={f.label}>Credentials</span>
+          <dl className={f.summary}>
+            <div><dt>Endpoint</dt><dd><MonoValue value={`POST ${deal.service.endpoint}`} short copy label="endpoint" /></dd></div>
+            <div><dt>Docs</dt><dd><a href={deal.service.docsUrl} className={f.textBtn}>API reference</a></dd></div>
+          </dl>
+          {freshKey ? (
+            <>
+              <span className={f.label}>API key, shown once</span>
+              <div className={d.secret}>
+                <span style={{ flex: 1, minWidth: 0 }}>{freshKey}</span>
+                <CopyButton value={freshKey} label="Copy API key" />
               </div>
-            ) : (
-              <p className="body3">{provisioned ? "Your API key was shown once at provisioning." : "Your API key appears here once, when the service is provisioned."}</p>
-            )}
-          </Card>
+              <p className={f.fine}>Store this key now. It will not be shown again after you leave this page.</p>
+            </>
+          ) : (
+            <p className={f.fine}>{provisioned ? "Your API key was shown once at provisioning." : "Your API key appears here once, when the service is provisioned."}</p>
+          )}
+        </div>
 
-          <Card title="Balances" level={2} padding="compact">
-            <KeyValue
-              items={[
-                { k: "Deposit", v: <Money micro={deal.balances.deposit} unit /> },
-                { k: "Settled", v: <Money micro={deal.balances.settled} unit /> },
-                { k: "Refunded", v: <Money micro={deal.balances.refunded} unit /> },
-                { k: "Remaining", v: <Money micro={deal.balances.remaining} unit /> },
-                { k: "Source", v: deal.balances.source === "chain" ? "Read from chain" : "Pending chain confirmation" },
-              ]}
-            />
+        <div className={f.railBlock}>
+          <span className={f.label}>Balances</span>
+          <dl className={f.summary}>
+            <div><dt>Deposit</dt><dd><Money micro={deal.balances.deposit} unit /></dd></div>
+            <div><dt>Settled</dt><dd><Money micro={deal.balances.settled} unit /></dd></div>
+            <div><dt>Refunded</dt><dd><Money micro={deal.balances.refunded} unit /></dd></div>
+            <div><dt>Remaining</dt><dd><Money micro={deal.balances.remaining} unit /></dd></div>
+          </dl>
+          <div className={d.links}>
             {deal.explorer.escrow && <ExplorerLink href={deal.explorer.escrow}>Escrow on explorer</ExplorerLink>}
             {deal.explorer.settlements.map((u) => (
               <ExplorerLink key={u} href={u}>Settlement transaction</ExplorerLink>
             ))}
-          </Card>
-
-          <Card title="Refund" level={2} padding="compact" subtitle={`Unused balance is refundable from ${fmtDate(deal.refundableAt)}.`}>
-            <div>
-              <ActionButton variant="secondary" onClick={() => refund.mutate()} loading={refund.isPending}>
-                Request refund of unused balance
-              </ActionButton>
-            </div>
-            {refund.data?.status === "too_early" && <Notice tone="info">Refunds open on {fmtDateTime(refund.data.refundableAt)}, after the term and grace window end.</Notice>}
-            {refund.data?.status === "submitted" && (
-              <Notice tone="success" title="Refund submitted">
-                {refund.data.txHash ? <ExplorerLink href={explorerTx(refund.data.txHash)} hash={refund.data.txHash} /> : "The transaction link appears once it is sent."}
-              </Notice>
-            )}
-            {refund.isError && <Notice tone="danger">{errorMessage(refund.error)}</Notice>}
-          </Card>
-
-          {usageQ.isError && <Notice tone="danger">{errorMessage(usageQ.error)}</Notice>}
-          <UsageFootnote usage={usage} />
+          </div>
         </div>
-      </div>
-    </>
+
+        <div className={f.railBlock}>
+          <span className={f.label}>Refund</span>
+          <p className={f.railText}>Unused balance is refundable from {fmtDate(deal.refundableAt)}.</p>
+          <div className={f.actions}>
+            <ActionButton variant="secondary" size="sm" onClick={() => refund.mutate()} loading={refund.isPending}>Request refund of unused balance</ActionButton>
+          </div>
+          {refund.data?.status === "too_early" && <p className={f.fine}>Refunds open on {fmtDateTime(refund.data.refundableAt)}, after the term and grace window end.</p>}
+          {refund.data?.status === "submitted" && (
+            <p className={f.fine}>Refund submitted. {refund.data.txHash ? <ExplorerLink href={explorerTx(refund.data.txHash)} hash={refund.data.txHash} /> : "The transaction link appears once it is sent."}</p>
+          )}
+          {refund.isError && <Notice tone="danger">{errorMessage(refund.error)}</Notice>}
+        </div>
+      </aside>
+    </div>
   );
 }
 
-function UsageFootnote({ usage }: { usage?: UsageResponse }) {
-  if (!usage) return null;
-  return (
-    <p className="body3">
-      Settled onchain so far: <Money micro={usage.settledOnchain} unit />.
-    </p>
-  );
+function dealTitle(deal: Deal): string {
+  const x = deal as { productName?: string; productSlug?: string };
+  if (x.productName) return x.productName;
+  const slug = x.productSlug ?? productSlugFrom(deal);
+  const pretty = slug.replace(/[-_]+/g, " ").trim();
+  return pretty ? pretty[0]!.toUpperCase() + pretty.slice(1) : "Your deal";
 }
 
 /** The service route is keyed by product slug; the deal's endpoint carries it. */

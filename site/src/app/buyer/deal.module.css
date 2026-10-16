@@ -1,0 +1,23 @@
+/* Deal page specifics; layout classes come from fund.module.css. */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 18px 0; border-top: 1px solid var(--c-dark-10); border-bottom: 1px solid var(--c-dark-10); }
+.stats div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.stats dt { font-family: var(--font-body); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-dark-60); }
+.stats dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 22px; letter-spacing: -0.3px; color: var(--c-dark); }
+.stats small { font-family: var(--font-body); font-size: 12.5px; color: var(--c-dark-60); }
+.formGrid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 12px; }
+.answer { padding: 14px 16px; border-radius: 12px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); font-family: var(--font-body); font-size: 15px; line-height: 1.55; color: var(--c-dark); white-space: pre-wrap; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.usage { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.usage li { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 11px 0; border-top: 1px solid var(--c-dark-10); font-family: var(--font-body); font-size: 14px; }
+.usage li:first-child { border-top: 0; padding-top: 4px; }
+.uTime { color: var(--c-dark-60); font-size: 13px; white-space: nowrap; }
+.uBody { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.uAnswer { color: var(--c-dark); }
+.uMeta { font-size: 12.5px; color: var(--c-dark-60); }
+.uRight { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--c-dark); white-space: nowrap; }
+.uRight small { display: block; font-family: var(--font-body); font-size: 12px; color: var(--c-dark-60); }
+.secret { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--c-dark); color: var(--c-white); font-family: var(--font-mono); font-size: 12.5px; overflow-wrap: anywhere; }
+.secret button { color: var(--c-white); }
+.links { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+@media (max-width: 1000px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 809.98px) { .formGrid { grid-template-columns: 1fr; } .usage li { grid-template-columns: minmax(0, 1fr) auto; } .uTime { grid-column: 1 / -1; } }
