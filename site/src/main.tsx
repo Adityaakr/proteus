@@ -13,6 +13,7 @@ const LoginPage = lazy(() => import("./app/auth/LoginPage"));
 const Home = lazy(() => import("./app/home/Home"));
 const Settings = lazy(() => import("./app/home/Settings"));
 const WalletPage = lazy(() => import("./app/wallet/WalletPage"));
+const ApiDocs = lazy(() => import("./app/docs/ApiDocs"));
 const Market = lazy(() => import("./app/market/Market"));
 const ProductPage = lazy(() => import("./app/market/ProductPage"));
 const Negotiations = lazy(() => import("./app/buyer/Negotiations"));
@@ -55,6 +56,7 @@ createRoot(document.getElementById("root")!).render(
             <Routes>
               <Route path="/" element={<App />} />
               <Route path="/review" element={<ReviewList />} />
+              <Route path="/docs" element={<ApiDocs />} />
               <Route path="/records/:publicId" element={<ReviewRecord />} />
               <Route element={<AuthRoot />}>
                 <Route path="/login" element={<LoginPage />} />
