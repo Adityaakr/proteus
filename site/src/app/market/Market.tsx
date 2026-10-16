@@ -8,7 +8,6 @@ import { AppShell } from "../layouts/AppShell";
 import { EmptyState } from "../ui/EmptyState";
 import { LoadingCard } from "../ui/Skeleton";
 import { Money } from "../ui/Money";
-import { StatusTag } from "../ui/StatusTag";
 import { SellerMark, categoryLabel, useLogoShape } from "../ui/SellerMark";
 import { api, qk, type MarketSeller, type MarketSellerProduct } from "../lib/api";
 import { ErrorState, PageHeader, fmtDate } from "../buyer/common";
@@ -96,11 +95,11 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
   return (
     <motion.article className={m.seller} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ ...T_DEFAULT, delay: Math.min(i, 8) * 0.04 }} aria-label={s.name}>
       <header className={m.sellerHead}>
-        {!wide && <SellerMark name={s.name} brand={s.brand} size="lg" />}
+        {!wide && <SellerMark name={s.name} brand={s.brand} size="md" />}
         <div className={m.sellerId}>
           <div className={m.sellerName}>
-            <Link to={`/app/market/${s.slug}`} className={m.sellerLink}>{wide ? <SellerMark name={s.name} brand={s.brand} variant="wordmark" size="lg" /> : s.name}</Link>
-            {demo ? <StatusTag network="sandbox" label="Demo seller" /> : <StatusTag network="live" label="Verified seller" icon={<BadgeCheck size={12} strokeWidth={2.25} />} />}
+            <Link to={`/app/market/${s.slug}`} className={m.sellerLink}>{wide ? <SellerMark name={s.name} brand={s.brand} variant="wordmark" size="md" /> : s.name}</Link>
+            {demo ? <span className={m.badgeMuted}>Demo seller</span> : <span className={m.badgeOk}><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
           </div>
           <div className={m.sellerMeta}>
             {s.brand.category && <span>{categoryLabel(s.brand.category)}</span>}
