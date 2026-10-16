@@ -77,6 +77,10 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 - Accounts carry a mode (buy or sell). First sign-in lands on /app/welcome with the two choices; sellers land on the console, buyers on the market. The sidebar shows one side at a time with "Switch to buying/selling" in the footer; the phone tab bar follows.
 - Lumen Voice lists three endpoint-backed services: AI receptionist (revived onto the HTTP adapter), Callback booking, After-hours answering. All point at the local test endpoint until Aditya supplies a public one.
 
+## Example sellers modeled on competitor customer segments (2026-10-16, night)
+
+- Six example sellers restored via `server/scripts/seed-example-sellers.ts` (`pnpm --filter @proteus/server db:seed-examples`), each modeled on a segment the comparison-table tools serve: Orbit Labs (hosted inference per million tokens, the Metronome segment), Kaidata and Vantage API (API-first data and fintech, the Sequence segment), Meridian Legal (legal AI scale-up), Harbor Logistics and Tidewater Health (operations and vertical teams). Prices sit at public market rates for each category. Brands are PROTEUS's own marks; the UI says "Example seller" everywhere, the product page says the service is illustrative, and the market carries a one-line explanation. Real companies are not listed as sellers.
+
 ## Blocked on inputs from Aditya
 
 1. Done: deployer and relayer funded, escrow deployed, loop executed on testnet.
