@@ -60,12 +60,16 @@ export default function Negotiate() {
   const send = useMutation({
     mutationFn: (content: string) => api.sendMessage(id, content),
     onMutate: (content) => {
+      // The message leaves the composer the moment it is sent; it comes back only if the send fails.
       setPendingText(content);
+      setDraft("");
       runSteps(WORKING_STEPS);
     },
     onSuccess: (n) => {
       setNeg(n);
-      setDraft("");
+    },
+    onError: (_e, content) => {
+      setDraft((d) => (d.trim() ? d : content));
     },
     onSettled: () => {
       setPendingText(null);
