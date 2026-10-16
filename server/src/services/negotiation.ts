@@ -163,7 +163,7 @@ export async function addBuyerMessage(negId: string, content: string) {
     publicExplanation: offers.length ? "Options priced within the seller's policy." : rejected[0]?.rules.length ? (toPublicCandidate(rejected[0]).publicReasons[0] ?? "No option cleared policy.") : "Waiting for more detail.",
   });
 
-  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: ext.requirements, offers: offers.map(toPublicCandidate), rejected: rejected.map(toPublicCandidate), injectionDetected: injection, turns: convo });
+  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: ext.requirements, offers: offers.map(toPublicCandidate), rejected: rejected.map(toPublicCandidate), injectionDetected: injection, turns: convo, facts: { termDays: lp.product.termDays, refundPolicy: lp.product.refundPolicy, billableUnit: lp.product.billableUnit, supportedIntegrations: lp.product.supportedIntegrations, capabilities: lp.product.capabilities } });
   steps.push(...composed.steps);
   activity.push({ at: iso(), label: offers.length ? "Prepared offers" : "Prepared a reply", state: "done" });
 

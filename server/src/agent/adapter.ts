@@ -24,6 +24,8 @@ export interface ComposeInput {
   rejected: PublicCandidate[];
   injectionDetected: boolean;
   turns: ConversationTurn[];
+  /** Public product terms the model may answer questions from. Anything not here is "I will confirm with the seller". */
+  facts?: { termDays: number; refundPolicy: string; billableUnit: string; supportedIntegrations: string[]; capabilities: string[] };
 }
 
 export interface AgentStep {
