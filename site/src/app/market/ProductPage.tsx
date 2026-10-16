@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowRight, ArrowUpRight, BadgeCheck, CalendarDays, Check, ChevronDown, ChevronRight, CircleDollarSign, Landmark, MessagesSquare, PenLine, Server, ShieldCheck, Undo2, Zap } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { ArrowUpRight, BadgeCheck, CalendarDays, Check, ChevronRight, CircleDollarSign, Landmark, MessagesSquare, PenLine, Server, ShieldCheck, Undo2, Zap } from "lucide-react";
 import { AppShell } from "../layouts/AppShell";
+import { ActionButton } from "../ui/ActionButton";
 import { LoadingCard } from "../ui/Skeleton";
 import { Money } from "../ui/Money";
 import { Notice } from "../ui/misc";
-import { SellerMark, categoryLabel, useLogoShape } from "../ui/SellerMark";
+import { SellerMark, categoryLabel, possessive, useLogoShape } from "../ui/SellerMark";
 import { useAuth } from "../auth/useAuth";
 import { api, errorMessage, qk, type PublicProduct, type PublicSeller } from "../lib/api";
 import { ErrorState, fmtDate, fmtUnits, prettyIntegration } from "../buyer/common";
@@ -50,7 +50,6 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
   const navigate = useNavigate();
   const { wallet } = useAuth();
   const [pendingStarter, setPendingStarter] = useState<string | null>(null);
-  const [payOpen, setPayOpen] = useState(false);
   const start = useMutation({
     mutationFn: () => api.startNegotiation({ sellerSlug: seller.slug, productSlug: product.slug, buyerAddress: wallet?.address }),
     onSuccess: (neg) => navigate(`/app/negotiations/${neg.id}`, { state: pendingStarter ? { starter: pendingStarter } : undefined }),
@@ -195,54 +194,29 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
       </article>
 
       <aside className={d.rail} aria-label="Buy">
-        <div className={d.railHead}>
-          <span className={d.railEyebrow}>{seller.name}</span>
-          <span className={d.railName}>{product.name}</span>
-          <dl className={d.railFacts}>
-            {bestUnit && <div><dt>Unit price</dt><dd>from <Money usd={bestUnit} digits={decimalsFor(bestUnit)} /></dd></div>}
-            {product.payPerCallUsd && <div><dt>Per call</dt><dd><Money usd={product.payPerCallUsd} digits={decimalsFor(product.payPerCallUsd)} /></dd></div>}
-            <div><dt>Term</dt><dd>{product.termDays} days</dd></div>
-          </dl>
-        </div>
-        <div className={d.options}>
-          <button type="button" className={d.option} onClick={() => begin(null)} disabled={start.isPending} aria-busy={start.isPending && pendingStarter === null}>
-            <span className={d.optIcon} aria-hidden><MessagesSquare size={17} strokeWidth={1.8} /></span>
-            <span className={d.optBody}>
-              <span className={d.optTitle}>Negotiate a prepaid deal</span>
-              <span className={d.optSub}>Commit to volume for a better unit price. Funds stay in escrow until you countersign usage.</span>
-            </span>
-            <ArrowRight size={16} strokeWidth={2} aria-hidden className={d.optArrow} />
-          </button>
+        <div className={d.railBlock}>
+          <h2 className={d.railTitle}>Negotiate a prepaid deal</h2>
+          <p className={d.railText}>Committed volume, a better unit price, funds held in escrow until you countersign usage.</p>
+          <ActionButton size="lg" fullWidth icon loading={start.isPending && pendingStarter === null} loadingLabel="Opening the chat" onClick={() => begin(null)}>
+            Talk to {possessive(seller.name)} agent
+          </ActionButton>
           {product.starters.length > 0 && (
-            <div className={d.optStarters}>
-              <span className={d.optStartersKey}>Open with</span>
+            <ul className={d.starters}>
               {product.starters.map((st) => (
-                <button key={st} type="button" className={d.optStarter} disabled={start.isPending} onClick={() => begin(st)}>
-                  “{st}”
-                </button>
+                <li key={st}>
+                  <button type="button" className={d.starter} disabled={start.isPending} onClick={() => begin(st)}>
+                    <span>{st}</span>
+                    <ArrowUpRight size={14} strokeWidth={2} aria-hidden />
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-          <button type="button" className={d.option} onClick={() => setPayOpen((o) => !o)} aria-expanded={payOpen} aria-controls="ppc-form">
-            <span className={d.optIcon} aria-hidden><Zap size={17} strokeWidth={1.8} /></span>
-            <span className={d.optBody}>
-              <span className={d.optTitle}>Pay per call</span>
-              <span className={d.optSub}>{product.payPerCallUsd ? <><Money usd={product.payPerCallUsd} digits={decimalsFor(product.payPerCallUsd)} /> each from your balance. No commitment.</> : "Single paid requests from your balance."}</span>
-            </span>
-            <ChevronDown size={16} strokeWidth={2} aria-hidden className={`${d.optArrow} ${payOpen ? d.optArrowOpen : ""}`} />
-          </button>
-          <AnimatePresence initial={false}>
-            {payOpen && (
-              <motion.div id="ppc-form" key="ppc" className={d.optForm} initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ type: "spring", stiffness: 380, damping: 36 }} style={{ overflow: "hidden" }}>
-                <div className={d.optFormInner}>
-                  <PayPerCallCard sellerSlug={seller.slug} productSlug={product.slug} service={product.service} unitLabel={product.unitLabel} bare="inline" />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          {start.isError && <div className={d.optFormInner}><Notice tone="danger">{errorMessage(start.error)}</Notice></div>}
+          {start.isError && <Notice tone="danger">{errorMessage(start.error)}</Notice>}
         </div>
-        <p className={d.railFine}>Settled in USDC on Arc testnet. The seller is paid only for delivered, countersigned usage.</p>
+        <div className={d.railBlock}>
+          <PayPerCallCard sellerSlug={seller.slug} productSlug={product.slug} service={product.service} unitLabel={product.unitLabel} bare />
+        </div>
       </aside>
     </div>
   );
