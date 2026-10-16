@@ -123,13 +123,13 @@ function BrandCard({ org }: { org: MeOrg }) {
   const qc = useQueryClient();
   const auth = useAuth();
   const [name, setName] = useState(org.name);
-  const [b, setB] = useState<BrandFormState>({ ...EMPTY_BRAND, logoUrl: org.brand?.logoUrl ?? "", tagline: org.brand?.tagline ?? "", category: org.brand?.category ?? "", website: org.brand?.website ?? "" });
+  const [b, setB] = useState<BrandFormState>({ ...EMPTY_BRAND, logoUrl: org.brand?.logoUrl ?? "", markUrl: org.brand?.markUrl ?? "", tagline: org.brand?.tagline ?? "", category: org.brand?.category ?? "", website: org.brand?.website ?? "" });
   const errors = validateBrandState(b);
   const save = useMutation({
     mutationFn: () => {
       const brand = brandFromState(b);
       // Empty strings clear a field on the server.
-      const patch = { logoUrl: brand.logoUrl ?? "", tagline: brand.tagline ?? "", category: brand.category ?? "", website: brand.website ?? "" };
+      const patch = { logoUrl: brand.logoUrl ?? "", markUrl: brand.markUrl ?? "", tagline: brand.tagline ?? "", category: brand.category ?? "", website: brand.website ?? "" };
       return v1.app.updateOrg({ name: name.trim() !== org.name ? name.trim() : undefined, brand: patch });
     },
     onSuccess: () => {

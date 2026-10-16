@@ -4,6 +4,8 @@ import { HttpError } from "../lib/http";
 
 export interface Brand {
   logoUrl?: string;
+  /** Square icon for avatars and small slots; the wordmark stays in logoUrl. */
+  markUrl?: string;
   tagline?: string;
   category?: string;
   website?: string;
@@ -39,6 +41,8 @@ export function validateBrand(input: Partial<Brand> | undefined): Brand | undefi
   const b: Brand = {};
   const logo = validateLogoUrl(input.logoUrl);
   if (logo) b.logoUrl = logo;
+  const mark = validateLogoUrl(input.markUrl);
+  if (mark) b.markUrl = mark;
   if (input.tagline?.trim()) {
     if (input.tagline.trim().length > 140) throw new HttpError(400, "tagline must be 140 characters or fewer");
     b.tagline = input.tagline.trim();
@@ -117,7 +121,7 @@ export async function updateBrand(orgId: string, patch: { name?: string; brand?:
   const current = (org.brand as Brand | null) ?? {};
   const next = validateBrand({ ...current, ...(patch.brand ?? {}) }) ?? current;
   // Explicit empty strings clear a field.
-  for (const k of ["logoUrl", "tagline", "category", "website", "accent"] as const) if (patch.brand && patch.brand[k] === "") delete next[k];
+  for (const k of ["logoUrl", "markUrl", "tagline", "category", "website", "accent"] as const) if (patch.brand && patch.brand[k] === "") delete next[k];
   const name = patch.name?.trim();
   if (name !== undefined && (name.length < 2 || name.length > 80)) throw new HttpError(400, "name must be 2 to 80 characters");
   const [updated] = await db.update(schema.orgs).set({ brand: next, ...(name ? { name } : {}) }).where(eq(schema.orgs.id, orgId)).returning();

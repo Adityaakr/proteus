@@ -35,16 +35,18 @@ export async function fileToLogoDataUrl(file: File): Promise<string> {
 
 export interface BrandFormState {
   logoUrl: string;
+  markUrl: string;
   tagline: string;
   category: string;
   website: string;
 }
 
-export const EMPTY_BRAND: BrandFormState = { logoUrl: "", tagline: "", category: "", website: "" };
+export const EMPTY_BRAND: BrandFormState = { logoUrl: "", markUrl: "", tagline: "", category: "", website: "" };
 
 export function brandFromState(b: BrandFormState): SellerBrand {
   return {
     ...(b.logoUrl ? { logoUrl: b.logoUrl } : {}),
+    ...(b.markUrl ? { markUrl: b.markUrl } : {}),
     ...(b.tagline.trim() ? { tagline: b.tagline.trim() } : {}),
     ...(b.category ? { category: b.category } : {}),
     ...(b.website.trim() ? { website: b.website.trim() } : {}),
@@ -68,19 +70,20 @@ export function validateBrandState(b: BrandFormState): Partial<Record<keyof Bran
 /** Logo, tagline, category and website for a seller org. Used by onboarding and settings. */
 export function BrandFields({ name, value, onChange, errors = {} }: { name: string; value: BrandFormState; onChange: (v: BrandFormState) => void; errors?: Partial<Record<keyof BrandFormState, string>> }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const markRef = useRef<HTMLInputElement>(null);
   const [logoErr, setLogoErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const catId = useId();
   const set = <K extends keyof BrandFormState>(k: K, v: BrandFormState[K]) => onChange({ ...value, [k]: v });
 
-  const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
+  const onFile = (key: "logoUrl" | "markUrl") => async (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     e.target.value = "";
     if (!f) return;
     setLogoErr(null);
     setBusy(true);
     try {
-      set("logoUrl", await fileToLogoDataUrl(f));
+      set(key, await fileToLogoDataUrl(f));
     } catch (err) {
       setLogoErr((err as Error).message);
     } finally {
@@ -94,7 +97,7 @@ export function BrandFields({ name, value, onChange, errors = {} }: { name: stri
         <SellerMark name={name || "Your business"} brand={value.logoUrl ? { logoUrl: value.logoUrl } : undefined} variant="auto" size="xl" />
         <div className={s.logoActions}>
           <span className={s.label}>Logo</span>
-          <span className={s.hint}>PNG, JPEG, WebP or SVG, up to 96 KB after resizing. Shown on your market card, product page and in every negotiation.</span>
+          <span className={s.hint}>Your wordmark. PNG, JPEG, WebP or SVG, up to 96 KB after resizing. Shown on your market card, product page and negotiation header.</span>
           <div className={s.row}>
             <button type="button" className={s.textBtn} onClick={() => fileRef.current?.click()} disabled={busy}>
               <ImagePlus size={14} aria-hidden /> {busy ? "Processing" : value.logoUrl ? "Replace logo" : "Upload logo"}
@@ -105,8 +108,26 @@ export function BrandFields({ name, value, onChange, errors = {} }: { name: stri
               </button>
             )}
           </div>
+          <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={onFile("logoUrl")} className="sr-only" aria-label="Upload logo" />
+        </div>
+      </div>
+      <div className={s.logoRow}>
+        <SellerMark name={name || "Your business"} brand={value.markUrl ? { markUrl: value.markUrl } : undefined} size="lg" />
+        <div className={s.logoActions}>
+          <span className={s.label}>Square mark</span>
+          <span className={s.hint}>Optional icon for small slots: chat avatars, lists, the deal summary. Without one, buyers see your initials.</span>
+          <div className={s.row}>
+            <button type="button" className={s.textBtn} onClick={() => markRef.current?.click()} disabled={busy}>
+              <ImagePlus size={14} aria-hidden /> {busy ? "Processing" : value.markUrl ? "Replace mark" : "Upload mark"}
+            </button>
+            {value.markUrl && (
+              <button type="button" className={s.textBtn} onClick={() => set("markUrl", "")}>
+                <Trash2 size={14} aria-hidden /> Remove
+              </button>
+            )}
+          </div>
           {logoErr && <span className={s.error}>{logoErr}</span>}
-          <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={onFile} className="sr-only" aria-label="Upload logo" />
+          <input ref={markRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={onFile("markUrl")} className="sr-only" aria-label="Upload square mark" />
         </div>
       </div>
       <div className={s.grid2}>

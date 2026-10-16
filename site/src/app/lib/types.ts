@@ -34,6 +34,8 @@ export interface PublicTier {
 /** Public seller identity. Logo is an https URL, a site asset path or a small data URL. */
 export interface SellerBrand {
   logoUrl?: string;
+  /** Square icon for avatars; the wordmark stays in logoUrl. */
+  markUrl?: string;
   tagline?: string;
   category?: string;
   website?: string;

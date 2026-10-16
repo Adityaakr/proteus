@@ -83,10 +83,21 @@ const WORDMARK_PX = { sm: 18, md: 24, lg: 30, xl: 38 } as const;
  */
 export function SellerMark({ name, brand, variant = "avatar", size = "md", className }: SellerMarkProps) {
   const shape = useLogoShape(brand?.logoUrl);
+  const markShape = useLogoShape(brand?.markUrl);
   const accent = brand?.accent ?? hashAccent(name);
   const px = AVATAR_PX[size];
   const hasLogo = shape === "wide" || shape === "square";
   const showWordmark = hasLogo && (variant === "wordmark" || (variant === "auto" && shape === "wide"));
+  const hasMark = markShape === "wide" || markShape === "square";
+
+  // A dedicated square mark wins for avatars (and for "auto" when the wordmark is wide but the slot is small).
+  if (!showWordmark && hasMark && variant !== "wordmark") {
+    return (
+      <span className={`${s.avatar} ${s.avatarLogo} ${className ?? ""}`} style={{ width: px, height: px, borderRadius: Math.round(px * 0.28), padding: 0 } as CSSProperties}>
+        <img src={brand!.markUrl} alt={name} decoding="async" />
+      </span>
+    );
+  }
 
   if (showWordmark) {
     return <img src={brand!.logoUrl} alt={name} className={`${s.wordmark} ${className ?? ""}`} style={{ height: WORDMARK_PX[size] }} decoding="async" />;
