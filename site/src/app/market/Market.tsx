@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, Search, Store } from "lucide-react";
+import { ArrowRight, Search, Store } from "lucide-react";
 import { motion } from "framer-motion";
 import { T_DEFAULT } from "../../lib/motion";
 import { AppShell } from "../layouts/AppShell";
@@ -70,7 +70,7 @@ export default function Market() {
 
       {sellers.some((s) => s.label !== "live") && (
         <p className={m.note}>
-          <strong>Example sellers</strong> are modeled on the segments the tools in our comparison serve: usage-based AI infrastructure, API-first data and fintech startups, legal and SaaS scale-ups, and operations teams. They carry PROTEUS's own marks, run an illustrative service, and every deal on them is a real Arc testnet transaction.
+          Lumen Voice runs on its own endpoint. The other sellers are examples modeled on the segments the tools in our comparison serve; they carry PROTEUS's own marks and answer from an illustrative service. Every deal on any of them is a real Arc testnet transaction.
         </p>
       )}
       {q.isLoading ? (
@@ -92,7 +92,6 @@ export default function Market() {
 }
 
 function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
-  const demo = s.label !== "live";
   const st = s.stats;
   const settled = st ? BigInt(st.settled) : 0n;
   const held = st ? BigInt(st.inEscrow) : 0n;
@@ -104,7 +103,6 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
         <div className={m.sellerId}>
           <div className={m.sellerName}>
             <Link to={`/app/market/${s.slug}`} className={m.sellerLink}>{wide ? <SellerMark name={s.name} brand={s.brand} variant="wordmark" size="md" /> : s.name}</Link>
-            {demo ? <span className={m.badgeMuted}>Example seller</span> : <span className={m.badgeOk}><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
           </div>
           <div className={m.sellerMeta}>
             {s.brand.category && <span>{categoryLabel(s.brand.category)}</span>}

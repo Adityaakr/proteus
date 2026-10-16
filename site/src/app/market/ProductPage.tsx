@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, BadgeCheck, CalendarDays, Check, ChevronRight, CircleDollarSign, Landmark, MessagesSquare, PenLine, Server, ShieldCheck, Undo2, Zap } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Check, ChevronRight, CircleDollarSign, Landmark, MessagesSquare, PenLine, Server, ShieldCheck, Undo2, Zap } from "lucide-react";
 import { AppShell } from "../layouts/AppShell";
 import { ActionButton } from "../ui/ActionButton";
 import { LoadingCard } from "../ui/Skeleton";
@@ -78,11 +78,6 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
         <header className={d.head}>
           <div className={d.sellerRow}>
             {wide ? <SellerMark name={seller.name} brand={seller.brand} variant="wordmark" size="sm" /> : <><SellerMark name={seller.name} brand={seller.brand} size="sm" /><span className={d.sellerName}>{seller.name}</span></>}
-            {demo ? (
-              <span className={d.badgeMuted}>Example seller</span>
-            ) : (
-              <span className={d.badgeOk}><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>
-            )}
           </div>
           <h1 className={d.title}>{product.name}</h1>
           {product.summary && <p className={d.summary}>{product.summary}</p>}
