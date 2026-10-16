@@ -38,8 +38,6 @@ export interface FormState {
   capacityUnits: string;
   quoteValidityHours: string;
   perCallUsd: string;
-  /** "http": your own endpoint answers every metered request. "sample": the first-party sample order store (demo). */
-  serviceKind: "http" | "sample";
   upstreamUrl: string;
   upstreamAuthHeader: string;
   upstreamSecret: string;
@@ -71,7 +69,6 @@ export const EMPTY: FormState = {
   capacityUnits: "",
   quoteValidityHours: "48",
   perCallUsd: "",
-  serviceKind: "http",
   upstreamUrl: "",
   upstreamAuthHeader: "",
   upstreamSecret: "",
@@ -104,7 +101,6 @@ export const EXAMPLE: FormState = {
   capacityUnits: "20000",
   quoteValidityHours: "48",
   perCallUsd: "1.20",
-  serviceKind: "sample",
   upstreamUrl: "",
   upstreamAuthHeader: "",
   upstreamSecret: "",
@@ -167,7 +163,7 @@ export function validate(f: FormState, hasOrg: boolean): Errors {
   if (!isInt(f.capacityUnits) || int(f.capacityUnits) <= 0n) e.capacityUnits = "Whole number of units above zero.";
   if (!isInt(f.quoteValidityHours) || Number(clean(f.quoteValidityHours)) < 1 || Number(clean(f.quoteValidityHours)) > 168) e.quoteValidityHours = "Between 1 and 168 hours.";
   if (f.perCallUsd.trim() && (!isUsd(f.perCallUsd) || usd(f.perCallUsd) <= 0n)) e.perCallUsd = "Price in USD above zero, or leave it empty.";
-  if (f.serviceKind === "http") {
+  {
     const u = f.upstreamUrl.trim();
     let ok = false;
     try {
@@ -212,9 +208,8 @@ export function toBody(f: FormState): ProductCreateBody {
       quoteTtlSeconds: Number(clean(f.quoteValidityHours)) * 3600,
     },
     ...(f.perCallUsd.trim() ? { payPerCall: { priceUsd: decimal(f.perCallUsd) } } : {}),
-    ...(f.serviceKind === "http"
-      ? { adapter: "http" as const, upstream: { url: f.upstreamUrl.trim(), ...(f.upstreamAuthHeader.trim() ? { authHeader: f.upstreamAuthHeader.trim() } : {}), ...(f.upstreamSecret.trim() ? { secret: f.upstreamSecret.trim() } : {}) } }
-      : { adapter: "order-support" as const }),
+    adapter: "http" as const,
+    upstream: { url: f.upstreamUrl.trim(), ...(f.upstreamAuthHeader.trim() ? { authHeader: f.upstreamAuthHeader.trim() } : {}), ...(f.upstreamSecret.trim() ? { secret: f.upstreamSecret.trim() } : {}) },
   };
 }
 

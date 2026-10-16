@@ -49,6 +49,11 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 - Six demo sellers seeded (Harbor Logistics, Kaidata, Meridian Legal, Vantage API, Orbit Labs, Tidewater Health) with PROTEUS's own invented marks; Northwind renamed Northwind Commerce. Real third-party logos were deliberately not used: listing a real company as a seller would claim a customer that does not exist.
 - Verified headless at 1440 and 390 px: market, demo and live product pages, a fresh negotiation with three offers, the negotiations list and seller settings render with no console errors or horizontal overflow.
 
+## Demo sellers removed, hero facts and timeline (2026-10-16, late night)
+
+- All six seeded demo sellers deleted (`server/scripts/remove-demo-sellers.ts`); Northwind's sample-store product and Lumen Voice's sample-store product are hidden from the market (historical deals kept). The demo adapter is gone; new products must run on the seller's own HTTPS endpoint. The market now lists only verified sellers.
+- Product hero: pill chips replaced by a labeled facts strip (term, unit price, pay per call, settlement, service) with icons and no dots. Label tags no longer show a dot unless they describe a lifecycle state. "How a deal works" is a five-node timeline.
+
 ## Blocked on inputs from Aditya
 
 1. Done: deployer and relayer funded, escrow deployed, loop executed on testnet.

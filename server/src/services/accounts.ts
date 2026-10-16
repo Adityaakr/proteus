@@ -200,21 +200,12 @@ export async function createProduct(orgId: string, input: ProductCreateInput) {
     ...(input.summary?.trim() ? { summary: input.summary.trim().slice(0, 160) } : {}),
     ...(input.category ? { category: input.category } : {}),
   };
-  const adapter = input.adapter ?? (input.upstream?.url ? "http" : "order-support");
-  if (adapter === "http" && !input.upstream?.url) throw new HttpError(400, "an endpoint URL is required for a seller-owned service");
+  const adapter = "http" as const;
+  if (!input.upstream?.url) throw new HttpError(400, "an endpoint URL is required; every product runs on the seller's own service");
   const upstream = adapter === "http" && input.upstream ? { url: validateUpstreamUrl(input.upstream.url), authHeader: input.upstream.authHeader?.trim() || undefined, secretEnc: input.upstream.secret?.trim() ? encryptSecret(input.upstream.secret.trim()) : undefined } : null;
   await db.insert(schema.products).values({ id: productId, orgId, slug, public: pub, starters: [`We need about ${input.tiers[0]!.includedUnits} ${input.unitLabel}s a month. What can you offer?`], adapter, upstream, payPerCallPrice: input.payPerCall ? toMicro(input.payPerCall.priceUsd) : null });
   await db.insert(schema.costModels).values({ id: id("cost"), orgId, productId, version: 1, variableCostPerUnit: toMicro(input.cost.variableCostPerUnitUsd), directCostPerDeal: toMicro(input.cost.directCostPerDealUsd), txCostBps: input.cost.txCostBps, freshUntil: new Date(Date.now() + 30 * 86400 * 1000) });
   await db.insert(schema.policies).values({ id: id("pol"), orgId, productId, version: 1, minMarginBps: input.policy.minMarginBps, maxDiscountBps: input.policy.maxDiscountBps, approvalThreshold: toMicro(input.policy.approvalThresholdUsd), prepaidMinimum: toMicro(input.policy.prepaidMinimumUsd), availableCapacityUnits: BigInt(input.policy.availableCapacityUnits), quoteTtlSeconds: input.policy.quoteTtlSeconds });
-  // Demo adapter only: copy the labeled sample store so the service answers immediately.
-  const samples = adapter === "order-support" ? await db.select().from(schema.sampleOrders).where(eq(schema.sampleOrders.orgId, orgId)) : [{}];
-  if (!samples.length) {
-    const [sandbox] = await db.select().from(schema.orgs).where(eq(schema.orgs.label, "sandbox"));
-    if (sandbox) {
-      const rows = await db.select().from(schema.sampleOrders).where(eq(schema.sampleOrders.orgId, sandbox.id));
-      for (const r of rows) await db.insert(schema.sampleOrders).values({ ...r, id: id("ord"), orgId, orderId: `${r.orderId}-${slug.slice(0, 4).toUpperCase()}` }).onConflictDoNothing();
-    }
-  }
   return productId;
 }
 

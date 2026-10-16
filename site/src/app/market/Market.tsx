@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Search, Store } from "lucide-react";
+import { ArrowRight, BadgeCheck, Search, Store } from "lucide-react";
 import { motion } from "framer-motion";
 import { T_DEFAULT } from "../../lib/motion";
 import { AppShell } from "../layouts/AppShell";
@@ -45,15 +45,13 @@ export default function Market() {
     return CATEGORY_ORDER.filter((c) => present.has(c));
   }, [q.data]);
 
-  const live = sellers.filter((s) => s.label === "live");
-  const demo = sellers.filter((s) => s.label !== "live");
   const productCount = (q.data ?? []).reduce((n, s) => n + s.products.length, 0);
 
   return (
     <AppShell title="Market">
       <PageHeader
         title="Market"
-        lede="AI services from businesses that publish their terms. Negotiate an escrowed deal with the seller's agent, or pay per call. List prices are starting points; the agent can fit an offer to your volume within the seller's rules."
+        lede="AI services from businesses that publish their terms. Negotiate an escrowed deal with the seller's agent, or pay per call. Every seller runs its own service and is paid only for delivered, countersigned usage."
       />
 
       <div className={m.toolbar} role="search">
@@ -81,30 +79,9 @@ export default function Market() {
       ) : sellers.length === 0 ? (
         <EmptyState icon={<Store size={20} strokeWidth={1.75} />} title={deferred || cat ? "Nothing matches" : "No sellers listed yet"} description={deferred || cat ? "Try another word or clear the category." : "Sellers appear here once they publish a product."} />
       ) : (
-        <>
-          {live.length > 0 && (
-            <section className={m.section} aria-labelledby="live-h">
-              <div className={m.sectionHead}>
-                <h2 id="live-h" className="h5">Live sellers</h2>
-                <span className="body3">{live.length === 1 ? "1 business" : `${live.length} businesses`} selling on their own terms</span>
-              </div>
-              <div className={m.sellerGrid}>
-                {live.map((s, i) => <SellerCard key={s.slug} s={s} i={i} />)}
-              </div>
-            </section>
-          )}
-          {demo.length > 0 && (
-            <section className={m.section} aria-labelledby="demo-h">
-              <div className={m.sectionHead}>
-                <h2 id="demo-h" className="h5">Demo sellers</h2>
-                <span className="body3">Seeded by PROTEUS to show the flow. Every deal on them is a real Arc testnet transaction and none of it counts toward live totals.</span>
-              </div>
-              <div className={m.sellerGrid}>
-                {demo.map((s, i) => <SellerCard key={s.slug} s={s} i={i + live.length} />)}
-              </div>
-            </section>
-          )}
-        </>
+        <div className={m.sellerGrid}>
+          {sellers.map((s, i) => <SellerCard key={s.slug} s={s} i={i} />)}
+        </div>
       )}
     </AppShell>
   );
@@ -123,7 +100,7 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
         <div className={m.sellerId}>
           <div className={m.sellerName}>
             <Link to={`/app/market/${s.slug}`} className={m.sellerLink}>{wide ? <SellerMark name={s.name} brand={s.brand} variant="wordmark" size="lg" /> : s.name}</Link>
-            <StatusTag network={demo ? "sandbox" : "live"} label={demo ? "Demo seller" : "Live seller"} />
+            {demo ? <StatusTag network="sandbox" label="Demo seller" /> : <StatusTag network="live" label="Verified seller" icon={<BadgeCheck size={12} strokeWidth={2.25} />} />}
           </div>
           <div className={m.sellerMeta}>
             {s.brand.category && <span>{categoryLabel(s.brand.category)}</span>}

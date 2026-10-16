@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:push": "drizzle-kit push",
-    "db:seed-demo": "tsx scripts/seed-demo-sellers.ts",
+    "db:remove-demo": "tsx scripts/remove-demo-sellers.ts",
     "db:seed": "tsx scripts/seed.ts",
     "keys:gen": "tsx scripts/gen-keys.ts",
     "e2e:testnet": "tsx scripts/testnet-demo.ts"

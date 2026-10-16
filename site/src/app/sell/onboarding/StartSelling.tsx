@@ -172,32 +172,12 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
             </div>
           </SellerOnly>
 
-          <Card title="Service endpoint" subtitle="What answers each metered request. Buyers call PROTEUS; PROTEUS calls this and bills only what it reports as delivered.">
-            <div className={s.choiceRow} role="radiogroup" aria-label="Service endpoint">
-              <label className={`${s.choice} ${f.serviceKind === "http" ? s.choiceOn : ""}`}>
-                <input type="radio" name="serviceKind" value="http" checked={f.serviceKind === "http"} onChange={() => set("serviceKind", "http")} />
-                <span>
-                  <strong>My own endpoint</strong>
-                  <span className="body3">Your HTTPS API receives a JSON request and answers with a JSON result. Real service, real metering.</span>
-                </span>
-              </label>
-              <label className={`${s.choice} ${f.serviceKind === "sample" ? s.choiceOn : ""}`}>
-                <input type="radio" name="serviceKind" value="sample" checked={f.serviceKind === "sample"} onChange={() => set("serviceKind", "sample")} />
-                <span>
-                  <strong>Sample order store</strong>
-                  <span className="body3">First-party order-support demo over seeded sample orders. Labeled as a demo to buyers.</span>
-                </span>
-              </label>
+          <Card title="Service endpoint" subtitle="Your HTTPS API answers every metered request. PROTEUS forwards the request, bills only what you report as delivered, and never charges failures or handoffs.">
+            <div className={s.grid2}>
+              <Field label="Endpoint URL" placeholder="https://api.yourcompany.com/proteus" hint="POST, JSON in, JSON out. Contract in docs/api.md under Bring your own endpoint." {...input("upstreamUrl")} inputMode="url" autoComplete="off" />
+              <Field label="Secret" type="password" placeholder="Optional" hint="Sent on every call. Stored encrypted, never shown again." {...input("upstreamSecret")} autoComplete="new-password" />
+              <Field label="Secret header" placeholder="Authorization" hint="Leave empty to send it as a Bearer token." {...input("upstreamAuthHeader")} autoComplete="off" />
             </div>
-            {f.serviceKind === "http" ? (
-              <div className={s.grid2}>
-                <Field label="Endpoint URL" placeholder="https://api.yourcompany.com/proteus" hint="POST, JSON in, JSON out. See docs/api.md, Bring your own endpoint." {...input("upstreamUrl")} inputMode="url" autoComplete="off" />
-                <Field label="Secret" type="password" placeholder="Optional" hint="Sent on every call. Stored encrypted, never shown again." {...input("upstreamSecret")} autoComplete="new-password" />
-                <Field label="Secret header" placeholder="Authorization" hint="Leave empty to send it as a Bearer token." {...input("upstreamAuthHeader")} autoComplete="off" />
-              </div>
-            ) : (
-              <Notice tone="info">Buyers see a "Demo seller" label on products backed by the sample store. Switch to your own endpoint when your service is ready.</Notice>
-            )}
           </Card>
 
           <Card title="Pay per call" subtitle="Optional. Lets buyers try one call at a time before committing to a prepaid deal.">

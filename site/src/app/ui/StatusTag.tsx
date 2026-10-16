@@ -62,7 +62,7 @@ export interface StatusTagProps {
   tone?: StatusTone;
   label?: ReactNode;
   icon?: ReactNode;
-  /** Hide the leading dot. */
+  /** Hide the leading dot (state tags show one by default; network and custom labels do not). */
   noDot?: boolean;
   className?: string;
   title?: string;
@@ -88,7 +88,7 @@ export function StatusTag({ network, state, tone, label, icon, noDot, className,
   }
   return (
     <span className={[s.tag, s[variant], className].filter(Boolean).join(" ")} title={title}>
-      {icon ? <span aria-hidden style={{ display: "inline-flex" }}>{icon}</span> : noDot ? null : <span className={s.tagDot} aria-hidden />}
+      {icon ? <span aria-hidden style={{ display: "inline-flex" }}>{icon}</span> : noDot || !state ? null : <span className={s.tagDot} aria-hidden />}
       <span>{text}</span>
     </span>
   );

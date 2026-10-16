@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Check, ChevronRight, FileSignature, KeyRound, Lock, MessageSquareText, RotateCcw, Zap } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, CalendarDays, Check, ChevronRight, CircleDollarSign, Landmark, MessagesSquare, PenLine, Server, ShieldCheck, Undo2, Zap } from "lucide-react";
 import { AppShell } from "../layouts/AppShell";
 import { ActionButton } from "../ui/ActionButton";
 import { Card } from "../ui/Card";
@@ -41,12 +41,6 @@ export default function ProductPage() {
   );
 }
 
-const SERVICE_LABEL: Record<string, { label: string; tone: "success" | "neutral" | "info" }> = {
-  "seller-endpoint": { label: "Runs on the seller's endpoint", tone: "success" },
-  "sample-store": { label: "Sample order store (demo)", tone: "neutral" },
-  demo: { label: "Illustrative demo service", tone: "neutral" },
-};
-
 function ProductView({ seller, product }: { seller: PublicSeller; product: PublicProduct }) {
   const navigate = useNavigate();
   const { wallet } = useAuth();
@@ -63,7 +57,6 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
   const demo = seller.label !== "live";
   const category = product.category ?? seller.brand?.category ?? null;
   const bestUnit = product.tiers.map((t) => t.unitPriceUsd).sort((a, b) => Number(a) - Number(b))[0];
-  const svc = product.service ? SERVICE_LABEL[product.service] : undefined;
   const st = seller.stats;
   const wide = useLogoShape(seller.brand?.logoUrl) === "wide";
 
@@ -79,18 +72,37 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
         </nav>
         <div className={m.heroSeller}>
           {wide ? <SellerMark name={seller.name} brand={seller.brand} variant="wordmark" size="md" /> : <><SellerMark name={seller.name} brand={seller.brand} size="md" /><span className={m.heroSellerName}>{seller.name}</span></>}
-          <StatusTag network={demo ? "sandbox" : "live"} label={demo ? "Demo seller" : "Live seller"} />
+          {demo ? <StatusTag network="sandbox" label="Demo seller" /> : <StatusTag network="live" label="Verified seller" icon={<BadgeCheck size={12} strokeWidth={2.25} />} />}
           {category && <span className="body3">{categoryLabel(category)}</span>}
         </div>
         <h1 className={m.heroTitle}>{product.name}</h1>
         <p className={`body1 ${m.heroLede}`}>{product.summary ?? `Prepaid ${product.termDays}-day agreements or single paid calls, settled in USDC on Arc testnet.`}</p>
-        <div className={m.heroMeta}>
-          <span className={m.metaChip}><strong>{product.termDays}-day</strong> term</span>
-          {bestUnit && <span className={m.metaChip}>as low as <strong><Money usd={bestUnit} digits={decimalsFor(bestUnit)} /></strong> per {product.unitLabel}</span>}
-          {product.payPerCallUsd && <span className={m.metaChip}><Zap size={13} aria-hidden /> <strong><Money usd={product.payPerCallUsd} digits={decimalsFor(product.payPerCallUsd)} /></strong> per call</span>}
-          <span className={m.metaChip}><Lock size={13} aria-hidden /> Escrow on Arc testnet</span>
-          {svc && <StatusTag tone={svc.tone} label={svc.label} />}
-        </div>
+        <dl className={m.facts}>
+          <div className={m.fact}>
+            <span className={m.factIcon} aria-hidden><CalendarDays size={16} strokeWidth={2} /></span>
+            <span><dt>Term</dt><dd>{product.termDays} days</dd></span>
+          </div>
+          {bestUnit && (
+            <div className={m.fact}>
+              <span className={m.factIcon} aria-hidden><CircleDollarSign size={16} strokeWidth={2} /></span>
+              <span><dt>Unit price</dt><dd>from <Money usd={bestUnit} digits={decimalsFor(bestUnit)} /> per {product.unitLabel}</dd></span>
+            </div>
+          )}
+          {product.payPerCallUsd && (
+            <div className={m.fact}>
+              <span className={m.factIcon} aria-hidden><Zap size={16} strokeWidth={2} /></span>
+              <span><dt>Pay per call</dt><dd><Money usd={product.payPerCallUsd} digits={decimalsFor(product.payPerCallUsd)} /> per call</dd></span>
+            </div>
+          )}
+          <div className={m.fact}>
+            <span className={m.factIcon} aria-hidden><ShieldCheck size={16} strokeWidth={2} /></span>
+            <span><dt>Settlement</dt><dd>USDC escrow on Arc testnet</dd></span>
+          </div>
+          <div className={m.fact}>
+            <span className={m.factIcon} aria-hidden><Server size={16} strokeWidth={2} /></span>
+            <span><dt>Service</dt><dd>{product.service === "seller-endpoint" ? "Runs on the seller's own endpoint" : "Sample order store"}</dd></span>
+          </div>
+        </dl>
       </header>
 
       <div className={s.grid2}>
@@ -146,24 +158,29 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
           </Card>
 
           <Card title="How a deal works" subtitle="The agreement controls the money. Nothing moves without both signatures.">
-            <ol className={m.steps}>
+            <ol className={m.timeline}>
               {[
-                { icon: <MessageSquareText size={16} />, t: "Negotiate", d: "Tell the agent your volume and budget. Offers come from the seller's pricing rules." },
-                { icon: <FileSignature size={16} />, t: "Sign terms", d: "You and the seller sign identical EIP-712 terms." },
-                { icon: <Lock size={16} />, t: "Fund escrow", d: "Your USDC moves into the escrow contract on Arc." },
-                { icon: <KeyRound size={16} />, t: "Use the service", d: "An API key meters every delivered unit with a signed receipt." },
-                { icon: <RotateCcw size={16} />, t: "Settle and refund", d: "You sign usage, the seller is paid for it, unused balance returns to you." },
+                { icon: <MessagesSquare size={18} strokeWidth={1.9} />, t: "Negotiate", d: "Tell the agent your volume and budget. Every offer comes from the seller's pricing rules." },
+                { icon: <PenLine size={18} strokeWidth={1.9} />, t: "Sign terms", d: "You and the seller sign identical terms. The signatures are the contract." },
+                { icon: <Landmark size={18} strokeWidth={1.9} />, t: "Fund escrow", d: "Your USDC moves into the escrow contract on Arc, not to the seller." },
+                { icon: <Server size={18} strokeWidth={1.9} />, t: "Use the service", d: "Your API key meters each delivered unit with a seller-signed receipt." },
+                { icon: <Undo2 size={18} strokeWidth={1.9} />, t: "Settle and refund", d: "You countersign usage, the seller is paid for it, the rest comes back to you." },
               ].map((x, i) => (
-                <li key={x.t} className={m.step}>
-                  <span className={m.stepIcon} aria-hidden>{x.icon}</span>
-                  <span className={m.stepTitle}>{i + 1}. {x.t}</span>
-                  <span className={m.stepText}>{x.d}</span>
+                <li key={x.t} className={m.tStep}>
+                  <span className={m.tNode}>
+                    <span className={m.tIcon} aria-hidden>{x.icon}</span>
+                  </span>
+                  <span className={m.tBody}>
+                    <span className={m.tNum}>Step {i + 1}</span>
+                    <span className={m.tTitle}>{x.t}</span>
+                    <span className={m.tText}>{x.d}</span>
+                  </span>
                 </li>
               ))}
             </ol>
           </Card>
 
-          <Card title={`About ${seller.name}`} actions={<StatusTag network={demo ? "sandbox" : "live"} label={demo ? "Demo seller" : "Live seller"} />}>
+          <Card title={`About ${seller.name}`} actions={demo ? <StatusTag network="sandbox" label="Demo seller" /> : <StatusTag network="live" label="Verified seller" icon={<BadgeCheck size={12} strokeWidth={2.25} />} />}>
             <div className={m.about}>
               <div className={m.aboutHead}>
                 <SellerMark name={seller.name} brand={seller.brand} variant="wordmark" size="xl" />
@@ -186,7 +203,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
               <p className="body3">
                 {demo
                   ? "A demo seller seeded by PROTEUS with its own invented brand. Deals on it are real Arc testnet transactions; its service answers are illustrative and nothing counts toward live totals."
-                  : "A live seller. Its owner published these terms, holds the payout wallet, and its service answers from its own endpoint."}
+                  : "A verified seller. Its owner signed in, published these terms, holds the payout wallet, and its service answers from its own endpoint."}
               </p>
             </div>
           </Card>
@@ -195,7 +212,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
         <div className={`${s.stack} ${s.sticky} ${m.buyFirst}`}>
           <Card title="Negotiate a prepaid deal" subtitle="For committed volume or a better unit price.">
             <div className={m.negotiate}>
-              <ActionButton size="lg" fullWidth icon={<MessageSquareText size={16} strokeWidth={2} />} loading={start.isPending && pendingStarter === null} loadingLabel="Opening the chat" onClick={() => begin(null)}>
+              <ActionButton size="lg" fullWidth icon={<MessagesSquare size={16} strokeWidth={2} />} loading={start.isPending && pendingStarter === null} loadingLabel="Opening the chat" onClick={() => begin(null)}>
                 Talk to {possessive(seller.name)} agent
               </ActionButton>
               <ul className={m.negotiatePoints}>

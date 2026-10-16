@@ -50,7 +50,7 @@ function ServiceEndpoint({ p }: { p: ProductWithPrivate }) {
           {svc.hasSecret ? ` with the secret in the ${svc.authHeader ?? "Authorization"} header.` : " without a secret."} Non-2xx answers, timeouts and results marked not billable are never charged.
         </p>
       ) : (
-        <p className="body3">First-party order-support demo over the seeded sample store. Buyers see a Demo seller label. Publish a new product with your own endpoint to go live.</p>
+        <p className="body3">Legacy sample store product. It is hidden from the market; publish a product with your own endpoint to sell.</p>
       )}
     </Card>
   );

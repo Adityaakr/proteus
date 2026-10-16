@@ -110,3 +110,28 @@
   .steps { grid-template-columns: 1fr; }
   .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* Product facts strip */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 0; }
+.fact { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px 12px; border-radius: 14px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+.fact > span:last-child { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.factIcon { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; color: var(--c-primary); background: var(--c-white); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+.fact dt { font-family: var(--font-body); font-size: 11.5px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--c-dark-60); }
+.fact dd { margin: 0; font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--c-dark); overflow-wrap: anywhere; }
+
+/* Deal timeline */
+.timeline { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; margin: 0; padding: 0; list-style: none; position: relative; }
+.timeline::before { content: ""; position: absolute; left: 10%; right: 10%; top: 22px; height: 2px; background: var(--c-dark-10); }
+.tStep { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding: 0 8px; position: relative; }
+.tNode { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: var(--c-white); box-shadow: inset 0 0 0 2px var(--c-primary-20); position: relative; z-index: 1; }
+.tIcon { display: inline-flex; color: var(--c-primary); }
+.tBody { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+.tNum { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-primary); }
+.tTitle { font-family: var(--font-body); font-size: 15px; font-weight: 500; color: var(--c-dark); }
+.tText { font-family: var(--font-body); font-size: 12.5px; line-height: 1.5; color: var(--c-dark-60); max-width: 190px; }
+@media (max-width: 1100px) {
+  .timeline { grid-template-columns: 1fr; gap: 14px; }
+  .timeline::before { left: 21px; right: auto; top: 22px; bottom: 22px; width: 2px; height: auto; }
+  .tStep { flex-direction: row; align-items: flex-start; text-align: left; padding: 0; }
+  .tBody { align-items: flex-start; } .tText { max-width: none; }
+}
