@@ -33,6 +33,7 @@ async function main() {
     supportedIntegrations: ["rest-api", "webhook"],
     capabilities: ["Order status lookup", "Delivery and tracking questions", "Human handoff for refunds and returns", "REST API and webhooks"],
     tiers: [
+      { id: "trial", name: "Trial", includedUnits: "12", unitPrice: { num: "1250000", den: "1" }, includes: ["Order status", "Delivery questions", "Human handoff", "REST API"] },
       { id: "starter", name: "Starter", includedUnits: "1500", unitPrice: { num: "960000", den: "1" }, includes: ["Order status", "Delivery questions", "Human handoff", "REST API"] },
       { id: "growth", name: "Growth", includedUnits: "2000", unitPrice: { num: "850000", den: "1" }, includes: ["Order status", "Delivery questions", "Human handoff", "REST API", "Webhooks", "Priority support"] },
     ],
@@ -43,6 +44,7 @@ async function main() {
   const starters = [
     "We operate three online stores, handle roughly 8,000 support requests per month and use Zendesk. We want to automate order tracking and delivery questions, with a human handling refunds. Our budget is $1,500/month. What can you offer?",
     "We need about 2,000 order-status resolutions a month for $1,500. Can you do that?",
+    "We want to trial this with about 12 resolutions for $15 before committing.",
     "What is the smallest package you offer, and what happens if we go over it?",
   ];
 
@@ -55,13 +57,15 @@ async function main() {
   const productId = product!.id;
   await db.update(schema.products).set({ public: { ...publicProduct, id: productId } }).where(eq(schema.products.id, productId));
 
-  const [cost] = await db.select().from(schema.costModels).where(eq(schema.costModels.productId, productId));
+  const costRows = await db.select().from(schema.costModels).where(eq(schema.costModels.productId, productId));
+  const cost = costRows.find((c) => c.directCostPerDeal === toMicro("2"));
   if (!cost) {
-    await db.insert(schema.costModels).values({ id: id("cost"), orgId, productId, version: 1, variableCostPerUnit: toMicro("0.52"), directCostPerDeal: toMicro("20"), txCostBps: 50, freshUntil: new Date(Date.now() + 30 * 86400 * 1000) });
+    await db.insert(schema.costModels).values({ id: id("cost"), orgId, productId, version: costRows.length + 1, variableCostPerUnit: toMicro("0.52"), directCostPerDeal: toMicro("2"), txCostBps: 50, freshUntil: new Date(Date.now() + 30 * 86400 * 1000) });
   }
-  const [pol] = await db.select().from(schema.policies).where(eq(schema.policies.productId, productId));
+  const polRows = await db.select().from(schema.policies).where(eq(schema.policies.productId, productId));
+  const pol = polRows.find((p) => p.prepaidMinimum === toMicro("10"));
   if (!pol) {
-    await db.insert(schema.policies).values({ id: id("pol"), orgId, productId, version: 1, minMarginBps: 3500, maxDiscountBps: 1500, approvalThreshold: toMicro("2500"), prepaidMinimum: toMicro("100"), availableCapacityUnits: 6000n, quoteTtlSeconds: 6 * 3600, allowNonPositiveContribution: false });
+    await db.insert(schema.policies).values({ id: id("pol"), orgId, productId, version: polRows.length + 1, minMarginBps: 3500, maxDiscountBps: 1500, approvalThreshold: toMicro("2500"), prepaidMinimum: toMicro("10"), availableCapacityUnits: 6000n, quoteTtlSeconds: 6 * 3600, allowNonPositiveContribution: false });
   }
 
   const orders = [

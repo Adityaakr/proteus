@@ -55,6 +55,16 @@ assert(health.chainId === chainId, `API chainId ${health.chainId} != rpc ${chain
 log("health", health.relayer, health.agentAdapter, "escrow", health.escrowAddress, "chain", chainId);
 const escrow = health.escrowAddress;
 
+// Resume mode: DEAL_ID=<id> skips negotiation and funding and continues an already funded deal.
+const RESUME = process.env.DEAL_ID;
+let deal: { id: string; publicId: string; termsHash: string; dealIdOnchain: string; status: string };
+let prepaid = 0n;
+if (RESUME) {
+  const d = await api<{ id: string; publicId: string; termsHash: string; dealIdOnchain: string; status: string; terms: { prepaid: string } }>(`/api/deals/${RESUME}`);
+  deal = d;
+  prepaid = BigInt(d.terms.prepaid);
+  log("resuming deal", d.id, "status", d.status);
+} else {
 // 1. Negotiate
 const neg = await api<{ id: string }>("/api/negotiations", { method: "POST", body: JSON.stringify({ sellerSlug: "northwind-support", productSlug: "order-support", buyerAddress: buyer.address }) });
 const n1 = await api<{ offers: { candidateId: string; units: string; prepaidTotal: string; status: string; tierName: string }[]; turns: { content: string }[] }>(`/api/negotiations/${neg.id}/messages`, {
@@ -62,10 +72,15 @@ const n1 = await api<{ offers: { candidateId: string; units: string; prepaidTota
   body: JSON.stringify({ content: "We operate three online stores, handle roughly 8,000 support requests per month and use Zendesk. We want to automate order tracking and delivery questions, with a human handling refunds. Our budget is $1,500/month. What can you offer?" }),
 });
 log("agent:", n1.turns.at(-1)!.content.split("\n")[0]);
-const starter = n1.offers.find((o) => o.units === "1500");
-assert(starter && starter.status === "eligible", "expected an eligible 1,500-unit offer");
+// Ask for a small trial so a modestly funded testnet buyer can fund a real deal.
+const n2 = await api<{ offers: { candidateId: string; units: string; prepaidTotal: string; status: string; tierName: string }[]; turns: { content: string }[] }>(`/api/negotiations/${neg.id}/messages`, { method: "POST", body: JSON.stringify({ content: "Let us start with a trial of about 12 resolutions for $15 before we commit." }) });
+log("agent:", n2.turns.at(-1)!.content.split("\n")[0]);
+const eligible = n2.offers.filter((o) => o.status === "eligible").sort((a, b) => (BigInt(a.prepaidTotal) < BigInt(b.prepaidTotal) ? -1 : 1));
+const starter = eligible[0];
+assert(starter, "expected at least one eligible offer");
+log("accepting", starter!.tierName, starter!.units, "units for", starter!.prepaidTotal, "micro-USDC");
 // Counter below the floor: must be rejected with an alternative
-const growth = n1.offers.find((o) => o.units === "2000")!;
+const growth = n1.offers.find((o) => o.units === "2000") ?? n1.offers[0]!;
 const c1 = await api<{ turns: { decision?: { decision: string } }[] }>(`/api/negotiations/${neg.id}/counter`, { method: "POST", body: JSON.stringify({ candidateId: growth.candidateId, targetTotal: "1500000000" }) });
 assert(c1.turns.at(-1)!.decision?.decision === "rejected", "below-floor counter should be rejected");
 log("counter $1,500 for 2,000 units: rejected by policy (expected)");
@@ -76,12 +91,12 @@ const q = await api<{ typedData: { message: Record<string, string> }; terms: Rec
 const terms = Object.fromEntries(Object.entries(q.terms).map(([k, v]) => [k, /^\d+$/.test(v) ? BigInt(v) : v])) as never;
 const buyerSig = await buyer.signTypedData({ domain: domain(chainId, escrow), types: TERMS_TYPES, primaryType: "Terms", message: terms });
 const localHash = hashTerms(chainId, escrow, terms);
-const deal = await api<{ id: string; publicId: string; termsHash: string; dealIdOnchain: string; status: string }>(`/api/quotes/${quote.id}/accept`, { method: "POST", body: JSON.stringify({ buyerAddress: buyer.address, buyerSignature: buyerSig }) });
+deal = await api<{ id: string; publicId: string; termsHash: string; dealIdOnchain: string; status: string }>(`/api/quotes/${quote.id}/accept`, { method: "POST", body: JSON.stringify({ buyerAddress: buyer.address, buyerSignature: buyerSig }) });
 assert(deal.termsHash.toLowerCase() === localHash.toLowerCase(), "server terms hash must equal the hash the buyer signed");
 log("deal", deal.id, "termsHash", deal.termsHash, "status", deal.status);
 
 // 3. Approve USDC and fund via relayer
-const prepaid = BigInt(q.terms.prepaid!);
+prepaid = BigInt(q.terms.prepaid!);
 const usdc = "0x3600000000000000000000000000000000000000" as Address;
 const bal = (await pub.readContract({ address: usdc, abi: erc20, functionName: "balanceOf", args: [buyer.address] })) as bigint;
 assert(bal >= prepaid, `buyer USDC balance ${bal} < prepaid ${prepaid}; fund ${buyer.address} at https://faucet.circle.com`);
@@ -93,12 +108,21 @@ await pub.waitForTransactionReceipt({ hash: approveTx });
 log("approve tx", approveTx);
 const funded = await api<{ funding: { txHash: string } }>(`/api/deals/${deal.id}/funding-intent`, { method: "POST", body: JSON.stringify({}) });
 log("fund tx (relayer)", funded.funding.txHash);
-const active = await waitFor("deal active", async () => {
+}
+const active = await waitFor("deal active with chain balances", async () => {
   const d = await api<{ status: string; service: { apiKey?: string; status: string }; balances: { deposit: string; source: string } }>(`/api/deals/${deal.id}`);
-  return d.status === "active" && d.service.apiKey ? d : undefined;
-});
-assert(active.balances.source === "chain" && BigInt(active.balances.deposit) === prepaid, "deposit must be reconciled from chain");
-const apiKey = active.service.apiKey!;
+  return d.status === "active" && d.balances.source === "chain" && BigInt(d.balances.deposit) === prepaid ? d : undefined;
+}, 180_000);
+let apiKey = active.service.apiKey ?? process.env.DEAL_API_KEY;
+if (!apiKey) {
+  // The key is shown once; on resume, rotate it with a buyer-signed message.
+  const ts = Math.floor(Date.now() / 1000);
+  const signature = await buyer.signMessage({ message: `PROTEUS rotate service key\ndeal: ${deal.id}\nts: ${ts}` });
+  const rotated = await api<{ service: { apiKey?: string } }>(`/api/deals/${deal.id}/service/rotate-key`, { method: "POST", body: JSON.stringify({ address: buyer.address, ts, signature }) });
+  apiKey = rotated.service.apiKey;
+  log("rotated service key (buyer-signed)");
+}
+assert(apiKey, "no service key available");
 log("provisioned; deposit on chain", active.balances.deposit);
 
 // 4. Use the service: delivered, handoff, not found, and a retry that must not double charge

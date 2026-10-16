@@ -47,7 +47,7 @@ Tests: `pnpm --filter @proteus/domain test` (13), `pnpm --filter @proteus/server
 ## Provenance and traction, honestly
 
 - Everything in the sandbox seller is **illustrative** data on **testnet** USDC and is excluded from live counters.
-- Local rehearsal on Arc anvil: full loop passes (`BUILD_STATUS.md`). Arc testnet hashes are recorded in `docs/acceptance-report.md` once the deployer and relayer are funded.
+- Arc testnet: `DealEscrow` verified at `0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`; the full loop ran with real transactions, hashes in `docs/acceptance-report.md`. The buyer in that run was our own key, so it is proof of the mechanism, not traction.
 - No customers, revenue or mainnet activity are claimed.
 
 ## Circle and Arc usage

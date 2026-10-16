@@ -55,7 +55,9 @@ async function reconcileDeals(): Promise<number> {
   let n = 0;
   for (const deal of rows) {
     try {
-      const fromBlock = deal.lastReconciledBlock > 0n ? deal.lastReconciledBlock + 1n : latest - 5000n > 0n ? latest - 5000n : 0n;
+      // Re-scan a 30-block overlap: public RPC nodes behind a load balancer can lag, and event rows are unique
+      // by (txHash, logIndex), so overlapping scans are idempotent and never skip a late-visible block.
+      const fromBlock = deal.lastReconciledBlock > 0n ? (deal.lastReconciledBlock > 30n ? deal.lastReconciledBlock - 30n : 0n) : latest - 5000n > 0n ? latest - 5000n : 0n;
       const logs = await publicClient.getLogs({ address: escrowAddress(), fromBlock, toBlock: latest });
       const parsed = parseEventLogs({ abi: dealEscrowAbi, logs });
       for (const ev of parsed) {
@@ -70,8 +72,9 @@ async function reconcileDeals(): Promise<number> {
         await applyEvent(deal, ev.eventName, args, ev.transactionHash);
       }
       // Authoritative balances from the contract.
-      const [deposit, settled, refunded] = (await publicClient.readContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: "balances", args: [deal.dealIdOnchain] })) as readonly [bigint, bigint, bigint, bigint];
-      const onchain = (await publicClient.readContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: "getDeal", args: [deal.dealIdOnchain] })) as { status: number; sellerClosed: boolean };
+      // Read balances at the scanned head so a lagging node cannot report a stale zero after we saw the funding event.
+      const [deposit, settled, refunded] = (await publicClient.readContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: "balances", args: [deal.dealIdOnchain], blockNumber: latest })) as readonly [bigint, bigint, bigint, bigint];
+      const onchain = (await publicClient.readContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: "getDeal", args: [deal.dealIdOnchain], blockNumber: latest })) as { status: number; sellerClosed: boolean };
       const statusMap: Record<number, string | undefined> = { 0: undefined, 1: "active", 2: "disputed", 3: "closed" };
       const next = statusMap[onchain.status];
       await db

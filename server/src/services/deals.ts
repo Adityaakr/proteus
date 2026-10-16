@@ -125,6 +125,24 @@ export async function provisionIfFunded(dealId: string): Promise<string | undefi
   return updated.length ? key : undefined;
 }
 
+/** Rotate the service key. Only the buyer wallet can do this, proven by a fresh signed message. */
+export function rotateKeyMessage(dealId: string, ts: number) {
+  return `PROTEUS rotate service key\ndeal: ${dealId}\nts: ${ts}`;
+}
+
+export async function rotateServiceKey(dealId: string, address: Address, ts: number, signature: Hex) {
+  const deal = await loadDeal(dealId);
+  if (deal.buyerAddress.toLowerCase() !== address.toLowerCase()) throw new HttpError(403, "only the buyer wallet can rotate the key");
+  if (Math.abs(Date.now() / 1000 - ts) > 300) throw new HttpError(400, "signature timestamp too old");
+  const { verifyMessage } = await import("viem");
+  const ok = await verifyMessage({ address, message: rotateKeyMessage(dealId, ts), signature });
+  if (!ok) throw new HttpError(400, "invalid signature");
+  if (!["funded", "active"].includes(deal.status)) throw new HttpError(409, `deal is ${deal.status}`);
+  const { key, hash } = apiKey();
+  await db.update(schema.deals).set({ apiKeyHash: hash, serviceStatus: "provisioned", status: "active", updatedAt: new Date() }).where(eq(schema.deals.id, dealId));
+  return key;
+}
+
 /** Refund unused balance (anyone may call; funds go to the buyer). */
 export async function requestRefund(dealId: string) {
   const deal = await loadDeal(dealId);

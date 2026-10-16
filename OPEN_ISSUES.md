@@ -1,6 +1,6 @@
 # OPEN_ISSUES
 
-- **Testnet deployment pending funds.** No Arc testnet transaction hashes exist yet. The e2e proof so far is on local Arc anvil (chain 31337). Do not present it as testnet traction.
+- **Testnet proof is self-run.** The loop ran on Arc testnet with our own funded key as buyer (`docs/acceptance-report.md`). It is proof of the mechanism, not traction. Public RPC nodes behind the load balancer can lag; the reconciler now re-scans a 30-block overlap and reads balances at the scanned head.
 - **Circle relayer unverified.** `createContractExecutionTransaction` with `callData` on `ARC-TESTNET` is implemented from the installed SDK types but has not been executed. Until it runs, Circle usage must be reported as "integrated, not yet exercised". The viem relayer is the verified path.
 - **Seller signer is server-held for the sandbox seller.** This is the "owner-approved, narrowly delegated seller signer" the spec allows. A real seller should sign Terms from their own wallet (SIWE console login + browser signing), which is not built.
 - **Permit / EIP-3009 on Arc USDC unverified.** Funding uses `approve` + `transferFrom` (two buyer transactions). Verify `permit` support on `0x3600…0000` to collapse to one.

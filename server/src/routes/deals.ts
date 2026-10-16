@@ -3,7 +3,7 @@ import { ServiceExecuteBody, UsageAckBody } from "@proteus/domain";
 import type { Hex } from "viem";
 import { reconcileOnce } from "../chain/reconciler";
 import { json, toBig } from "../lib/http";
-import { dealView, fundingIntent, provisionIfFunded, requestRefund } from "../services/deals";
+import { dealView, fundingIntent, provisionIfFunded, requestRefund, rotateServiceKey } from "../services/deals";
 import { authenticateDeal, execute } from "../services/gateway";
 import { acknowledgeUsage, pendingAcceptance } from "../services/usage";
 
@@ -30,6 +30,12 @@ dealRoutes.post("/deals/:id/usage-acknowledgments", async (c) => {
   const settlement = await acknowledgeUsage(c.req.param("id"), { buyerSignature: body.buyerSignature as Hex, cumulativeUnits: toBig(body.cumulativeUnits), cumulativeAmount: toBig(body.cumulativeAmount), receiptsRoot: body.receiptsRoot as Hex, nonce: toBig(body.nonce), expiry: toBig(body.expiry) });
   setTimeout(() => reconcileOnce().catch(() => {}), 1500);
   return json(c, { settlement, deal: await dealView(c.req.param("id")) });
+});
+
+dealRoutes.post("/deals/:id/service/rotate-key", async (c) => {
+  const b = (await c.req.json()) as { address: string; ts: number; signature: string };
+  const key = await rotateServiceKey(c.req.param("id"), b.address as Hex, Number(b.ts), b.signature as Hex);
+  return json(c, await dealView(c.req.param("id"), { apiKeyOnce: key }));
 });
 
 dealRoutes.post("/deals/:id/refund-request", async (c) => {
