@@ -25,7 +25,7 @@ export const hero = {
   headline: "Your business should be able to make a deal.",
   headlineAlt: "Your next deal shouldn’t wait for sales.",
   subhead:
-    "Proteus AI introduces AI agent co-workers that negotiate and close deals for your business. They work out what you can offer, negotiate within your rules, and turn the agreement into a paid transaction.",
+    "Proteus AI gives your business an AI co-worker that negotiates and closes deals. It works out what you can offer, negotiates within your rules, and turns the agreement into a paid transaction.",
   secondary: { label: "See how it works", href: links.howItWorks },
   primary: { label: "Explore Proteus AI", href: links.explore },
   chat: {
