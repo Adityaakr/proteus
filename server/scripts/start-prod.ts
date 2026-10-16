@@ -60,8 +60,8 @@ function run(label: string, cmd: string, args: string[]) {
 
 async function main() {
   await waitForDb();
-  run("syncing the schema (drizzle-kit push)", "npx", ["drizzle-kit", "push", "--force"]);
-  run("bootstrapping the market", "npx", ["tsx", "scripts/bootstrap.ts"]);
+  run("syncing the schema (drizzle-kit push)", "node_modules/.bin/drizzle-kit", ["push", "--force"]);
+  run("bootstrapping the market", "node_modules/.bin/tsx", ["scripts/bootstrap.ts"]);
   console.log("[start] starting the API");
   await import("../src/index");
 }

@@ -14,6 +14,6 @@
     "contracts:test": "cd contracts && arc-forge test -vv",
     "db:migrate": "pnpm --filter @proteus/server db:migrate",
     "db:seed": "pnpm --filter @proteus/server db:seed",
-    "start": "pnpm --filter @proteus/server start:prod"
+    "start": "cd server && node_modules/.bin/tsx scripts/start-prod.ts"
   }
 }

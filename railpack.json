@@ -10,6 +10,6 @@
     }
   },
   "deploy": {
-    "startCommand": "pnpm --filter @proteus/server start:prod"
+    "startCommand": "cd server && node_modules/.bin/tsx scripts/start-prod.ts"
   }
 }

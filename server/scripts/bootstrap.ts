@@ -11,7 +11,7 @@ const KEEP = ["orbit-labs", "tessera-vendors", "pilotlight-ops", "ledgerline", "
 const VERIFIED = ["orbit-labs", "ledgerline", "lumen-voice"];
 
 function run(script: string) {
-  const r = spawnSync("npx", ["tsx", `scripts/${script}`], { stdio: "inherit", env: process.env });
+  const r = spawnSync("node_modules/.bin/tsx", [`scripts/${script}`], { stdio: "inherit", env: process.env });
   if (r.status !== 0) throw new Error(`${script} failed with ${r.status}`);
 }
 
