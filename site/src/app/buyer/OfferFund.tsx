@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Clock3 } from "lucide-react";
+import { Check, Clock3 } from "lucide-react";
+import { explorerAddress, publicTermsHash } from "@proteus/domain";
 import { AppShell } from "../layouts/AppShell";
 import { ReasoningText } from "../agentic/ReasoningText";
 import { ActionButton } from "../ui/ActionButton";
@@ -41,6 +42,8 @@ function OfferView({ quote }: { quote: Quote }) {
   const navigate = useNavigate();
   const o = quote.offer;
   const pt = quote.publicTerms;
+  // The public terms hash the contract stores is the keccak of the canonical JSON of these terms; recompute it here so the buyer can see it matches.
+  const hashMatches = Boolean(quote.terms && pt && publicTermsHash(pt as unknown as Record<string, unknown>).toLowerCase() === quote.terms.publicTermsHash.toLowerCase());
   const acceptable = quote.status === "draft" || quote.status === "approved";
   const knownDealId = rememberedDealFor(quote.id);
   const dealQ = useQuery({ queryKey: qk.deal(knownDealId ?? "none"), queryFn: () => api.deal(knownDealId!), enabled: Boolean(knownDealId) && quote.status === "accepted" });
@@ -95,12 +98,28 @@ function OfferView({ quote }: { quote: Quote }) {
             <span className={f.h2Sub}>Arc testnet, chain {quote.chainId}</span>
           </div>
           <dl className={f.kv}>
-            <div><dt>Escrow contract</dt><dd><MonoValue value={quote.escrowAddress} short copy label="escrow address" /></dd></div>
-            <div><dt>USDC</dt><dd><MonoValue value={quote.usdcAddress} short copy label="USDC address" /></dd></div>
-            <div><dt>Deal id</dt><dd>{quote.terms ? <MonoValue value={quote.terms.dealId} short copy label="deal id" /> : <span className={f.muted}>Derived for your wallet</span>}</dd></div>
-            <div><dt>Terms hash</dt><dd>{quote.terms ? <MonoValue value={quote.terms.publicTermsHash} short copy label="public terms hash" /> : <span className={f.muted}>Derived for your wallet</span>}</dd></div>
+            <div><dt>Escrow contract</dt><dd><MonoValue value={quote.escrowAddress} short copy label="escrow address" href={explorerAddress(quote.escrowAddress)} /></dd></div>
+            <div><dt>USDC</dt><dd><MonoValue value={quote.usdcAddress} short copy label="USDC address" href={explorerAddress(quote.usdcAddress)} /></dd></div>
+            <div>
+              <dt>Deal id</dt>
+              <dd>
+                {quote.terms ? <MonoValue value={quote.terms.dealId} short copy label="deal id" href={`${explorerAddress(quote.escrowAddress)}?tab=read_contract`} /> : <span className={f.muted}>Derived for your wallet</span>}
+                {quote.terms && <small>Look it up under "deals" on the contract's read tab once funded.</small>}
+              </dd>
+            </div>
+            <div>
+              <dt>Terms hash</dt>
+              <dd>
+                {quote.terms ? <MonoValue value={quote.terms.publicTermsHash} short copy label="public terms hash" /> : <span className={f.muted}>Derived for your wallet</span>}
+                {quote.terms && (
+                  <small className={hashMatches ? f.ok : f.warn}>
+                    {hashMatches ? <><Check size={12} strokeWidth={2.5} aria-hidden /> Recomputed in your browser from the terms above. It matches.</> : "Does not match the terms shown. Do not sign; contact support."}
+                  </small>
+                )}
+              </dd>
+            </div>
           </dl>
-          <p className={f.fine}>Both signatures over these terms are what the contract checks. The hash above is the public part; your wallet signs the full terms.</p>
+          <p className={f.fine}>Both signatures over these terms are what the contract checks. The hash above is the keccak of the public terms shown on this page; your wallet signs the full terms, which the contract stores by deal id.</p>
         </section>
       </article>
 

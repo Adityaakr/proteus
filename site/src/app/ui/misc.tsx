@@ -33,12 +33,20 @@ export function shortHex(v: string, head = 6, tail = 4): string {
 }
 
 /** Monospace value (address, hash, key) with optional truncation and copy. */
-export function MonoValue({ value, short, copy, label }: { value: string; short?: boolean; copy?: boolean; label?: string }) {
+export function MonoValue({ value, short, copy, label, href }: { value: string; short?: boolean; copy?: boolean; label?: string; /** Opens this page (an explorer) in a new tab; the value becomes the link text. */ href?: string }) {
+  const text = short ? shortHex(value) : value;
   return (
     <span className={s.monoValue}>
-      <span className={s.monoText} title={value}>
-        {short ? shortHex(value) : value}
-      </span>
+      {href ? (
+        <a href={href} target="_blank" rel="noreferrer" className={s.monoText} title={`${value}. Opens the explorer.`} style={{ color: "var(--c-primary)", textDecoration: "underline", textUnderlineOffset: 3, display: "inline-flex", alignItems: "center", gap: 4 }}>
+          {text}
+          <ExternalLink size={12} strokeWidth={2} aria-hidden />
+        </a>
+      ) : (
+        <span className={s.monoText} title={value}>
+          {text}
+        </span>
+      )}
       {copy && <CopyButton value={value} label={label ? `Copy ${label}` : "Copy"} />}
     </span>
   );
