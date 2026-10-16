@@ -512,8 +512,12 @@ export interface MeOrg {
   brand?: SellerBrand;
 }
 
+export type AccountMode = "buy" | "sell";
+
 export interface MeResponse {
   userId: string;
+  /** Chosen once after sign-in; null until the person picks Buy or Sell. */
+  mode?: AccountMode | null;
   email?: string;
   wallets: MeWallet[];
   org?: MeOrg;

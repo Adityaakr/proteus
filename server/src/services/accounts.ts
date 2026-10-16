@@ -68,6 +68,7 @@ export async function meView(userId: string) {
   const org = await userOrg(userId);
   return {
     userId: u.id,
+    mode: (u.mode as "buy" | "sell" | null) ?? null,
     email: u.email,
     wallets: wallets.map((w) => ({ address: w.address, kind: w.kind, primary: w.primary })),
     org: org ? { id: org.id, slug: org.slug, name: org.name, label: org.label, role: org.role, payee: org.payeeAddress, brand: (org.brand as Brand | null) ?? {} } : undefined,

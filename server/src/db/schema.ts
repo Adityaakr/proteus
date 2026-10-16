@@ -13,6 +13,8 @@ export const users = pgTable("users", {
   id: text("id").primaryKey(),
   privyDid: text("privy_did").notNull().unique(),
   email: text("email"),
+  /** What the person came to do: "buy" or "sell". Chosen once after sign-in; switchable in the shell. */
+  mode: text("mode"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
 });

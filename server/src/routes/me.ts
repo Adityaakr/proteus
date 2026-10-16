@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import type { Address, Hex } from "viem";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
+import { db, schema } from "../db";
 import { revokeOrgSigner, signerView, sweepCollector } from "../chain/signer";
 import { json } from "../lib/http";
 import { createOrg, createProduct, issueLinkNonce, linkWallet, marketList, marketSellers, meView, myActivity, myDeals, myNegotiations, userOrg, walletView, type ProductCreateInput } from "../services/accounts";
@@ -19,6 +21,11 @@ meRoutes.use("/me/*", requireAuth);
 meRoutes.use("/orgs", requireAuth);
 
 meRoutes.get("/me", async (c) => json(c, await meView(auth(c).userId)));
+meRoutes.patch("/me", async (c) => {
+  const b = z.object({ mode: z.enum(["buy", "sell"]) }).parse(await c.req.json());
+  await db.update(schema.users).set({ mode: b.mode }).where(eq(schema.users.id, auth(c).userId));
+  return json(c, await meView(auth(c).userId));
+});
 meRoutes.get("/me/wallet", async (c) => json(c, await walletView(auth(c).userId)));
 meRoutes.get("/me/wallets/nonce", async (c) => json(c, { nonce: issueLinkNonce(auth(c).userId), message: "Sign: PROTEUS wallet link\\naddress: <address>\\nnonce: <nonce>" }));
 
@@ -48,7 +55,8 @@ meRoutes.get("/app/signer", requireSession, async (c) => json(c, await signerVie
 meRoutes.post("/app/signer/revoke", requireSession, async (c) => json(c, await revokeOrgSigner(session(c).orgId)));
 meRoutes.post("/app/signer/sweep", requireSession, async (c) => json(c, await sweepCollector(session(c).orgId)));
 
-const Tier = z.object({ name: z.string().min(1), includedUnits: z.string().regex(/^\d+$/), unitPriceUsd: z.string().regex(/^\d+(\.\d+)?$/), includes: z.array(z.string()).default([]) });
+const Units = z.union([z.string().regex(/^\d+$/), z.number().int().nonnegative()]).transform((v) => String(v));
+const Tier = z.object({ name: z.string().min(1), includedUnits: Units, unitPriceUsd: z.string().regex(/^\d+(\.\d+)?$/), includes: z.array(z.string()).default([]) });
 const ProductBody = z.object({
   name: z.string().min(2).max(80),
   slug: z.string().optional(),
@@ -57,11 +65,11 @@ const ProductBody = z.object({
   capabilities: z.array(z.string()).default([]),
   supportedIntegrations: z.array(z.string()).default([]),
   tiers: z.array(Tier).min(1),
-  maxUnitsPerDeal: z.string().regex(/^\d+$/),
+  maxUnitsPerDeal: Units,
   termDays: z.number().int().min(1).max(365),
   refundPolicy: z.string().min(5).max(500),
   cost: z.object({ variableCostPerUnitUsd: z.string().regex(/^\d+(\.\d+)?$/), directCostPerDealUsd: z.string().regex(/^\d+(\.\d+)?$/).default("0"), txCostBps: z.number().int().min(0).max(10000).default(50) }),
-  policy: z.object({ minMarginBps: z.number().int().min(0).max(10000), maxDiscountBps: z.number().int().min(0).max(10000), approvalThresholdUsd: z.string().regex(/^\d+(\.\d+)?$/), prepaidMinimumUsd: z.string().regex(/^\d+(\.\d+)?$/), availableCapacityUnits: z.string().regex(/^\d+$/), quoteTtlSeconds: z.number().int().min(60).max(7 * 86400).default(6 * 3600) }),
+  policy: z.object({ minMarginBps: z.number().int().min(0).max(10000), maxDiscountBps: z.number().int().min(0).max(10000), approvalThresholdUsd: z.string().regex(/^\d+(\.\d+)?$/), prepaidMinimumUsd: z.string().regex(/^\d+(\.\d+)?$/), availableCapacityUnits: Units, quoteTtlSeconds: z.number().int().min(60).max(7 * 86400).default(6 * 3600) }),
   payPerCall: z.object({ priceUsd: z.string().regex(/^\d+(\.\d+)?$/) }).optional(),
   summary: z.string().max(160).optional(),
   category: z.string().max(32).optional(),

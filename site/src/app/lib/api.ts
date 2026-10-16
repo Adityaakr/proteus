@@ -182,6 +182,7 @@ export const api = {
   walletLinkNonce: () => request<{ nonce: string; [k: string]: unknown }>("GET", "/me/wallets/nonce"),
   linkWallet: (body: { address: string; kind: "embedded" | "external"; nonce: string; signature: string }) => request<T.MeResponse | { ok: boolean; [k: string]: unknown }>("POST", "/me/wallets/link", { body }),
   meWallet: () => request<T.MeWalletBalance>("GET", "/me/wallet"),
+  updateMe: (body: { mode: T.AccountMode }) => request<T.MeResponse>("PATCH", "/me", { body }),
   meNegotiations: () => request<T.NegotiationSummary[]>("GET", "/me/negotiations"),
   meDeals: () => request<T.DealSummary[]>("GET", "/me/deals"),
   meActivity: () => request<T.MeActivity>("GET", "/me/activity"),

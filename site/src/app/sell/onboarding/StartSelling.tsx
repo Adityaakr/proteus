@@ -185,7 +185,16 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
           </Card>
 
           <div className={s.submitRow}>
-            {publish.isError && <Notice tone="danger" title="Could not publish">{errorMessage(publish.error)}</Notice>}
+            {publish.isError && (
+              <Notice tone="danger" title="Could not publish">
+                {errorMessage(publish.error)}
+                {serverIssues(publish.error).length > 0 && (
+                  <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+                    {serverIssues(publish.error).map((i) => <li key={i}>{i}</li>)}
+                  </ul>
+                )}
+              </Notice>
+            )}
             {submitted && errorCount > 0 && (
               <Notice tone="warn">
                 {errorCount === 1 ? "One field needs attention" : `${errorCount} fields need attention`} before you can publish.
@@ -206,6 +215,14 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
       </form>
     </div>
   );
+}
+
+/** Field-level reasons from a 400 (zod issues on the server), readable. */
+function serverIssues(e: unknown): string[] {
+  const body = (e as { body?: { details?: unknown } })?.body;
+  const issues = body && typeof body === "object" ? (body as { details?: unknown }).details : undefined;
+  if (!Array.isArray(issues)) return [];
+  return issues.slice(0, 6).map((it: { path?: (string | number)[]; message?: string }) => `${(it.path ?? []).join(".") || "request"}: ${it.message ?? "invalid"}`);
 }
 
 function PrivField(props: Parameters<typeof Field>[0] & { label: ReactNode }) {

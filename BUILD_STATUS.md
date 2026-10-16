@@ -71,6 +71,12 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 
 - OpenRouter key configured in `server/.env` (untracked); the agent adapter reports `openrouter:anthropic/claude-sonnet-4.5`. A real turn on Lumen Voice's product returned a plain-prose reply naming three policy-checked offers; prompts now forbid markdown so the chat renders cleanly.
 
+## Buy or sell at sign-in, publish fix, more services (2026-10-16, night)
+
+- Publishing from the UI failed with "invalid request": the form sent unit counts as numbers while the server validated digit strings. The server now accepts both; the form shows the server's field-level reasons on failure.
+- Accounts carry a mode (buy or sell). First sign-in lands on /app/welcome with the two choices; sellers land on the console, buyers on the market. The sidebar shows one side at a time with "Switch to buying/selling" in the footer; the phone tab bar follows.
+- Lumen Voice lists three endpoint-backed services: AI receptionist (revived onto the HTTP adapter), Callback booking, After-hours answering. All point at the local test endpoint until Aditya supplies a public one.
+
 ## Blocked on inputs from Aditya
 
 1. Done: deployer and relayer funded, escrow deployed, loop executed on testnet.

@@ -14,7 +14,8 @@ import { T_DEFAULT } from "../../lib/motion";
 import { NetworkBadge, StatusTag } from "../ui/StatusTag";
 import { CopyButton, shortHex } from "../ui/misc";
 import { useAuth } from "../auth/useAuth";
-import { isMock } from "../lib/api";
+import { api, isMock, qk } from "../lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Wordmark } from "./Wordmark";
 import "../app.css";
 import s from "./shells.module.css";
@@ -61,7 +62,7 @@ export const SELL_NAV_ORG: AppNavItem[] = [
   { label: "Usage & delivery", to: "/app/sell/usage", icon: ic(Activity) },
   { label: "Insights", to: "/app/sell/insights", icon: ic(BarChart3) },
   { label: "Agent policies", to: "/app/sell/policies", icon: ic(ShieldCheck) },
-  { label: "Settings", to: "/app/sell/settings", icon: ic(SlidersHorizontal) },
+  { label: "Seller settings", to: "/app/sell/settings", icon: ic(SlidersHorizontal) },
 ];
 
 const SETTINGS: AppNavItem = { label: "Settings", to: "/app/settings", icon: ic(Settings) };
@@ -76,12 +77,29 @@ export function AppShell({ children, title, actions }: AppShellProps) {
   const { me } = useAuth();
   const hasOrg = Boolean(me?.org);
   const sell = hasOrg ? SELL_NAV_ORG : SELL_NAV_START;
+  // Which side the account is on: the stored choice, else whichever side the current path belongs to.
+  const stored = me?.mode ?? (() => { try { return localStorage.getItem("proteus:mode") as "buy" | "sell" | null; } catch { return null; } })();
+  const mode: "buy" | "sell" = pathname.startsWith("/app/sell") ? "sell" : stored === "sell" && pathname === "/app" ? "sell" : stored === "sell" && !pathname.startsWith("/app/") ? "sell" : stored ?? "buy";
+  const sideItems = mode === "sell" ? [...sell, BUY_NAV[4]!] : BUY_NAV;
   const all = [...BUY_NAV, ...sell, SETTINGS];
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const switchMode = useMutation({
+    mutationFn: (m: "buy" | "sell") => api.updateMe({ mode: m }),
+    onSuccess: (data, m) => {
+      qc.setQueryData(qk.me, data);
+      try { localStorage.setItem("proteus:mode", m); } catch { /* ignore */ }
+      navigate(m === "sell" ? "/app/sell" : "/app/market");
+    },
+    onError: (_e, m) => navigate(m === "sell" ? "/app/sell" : "/app/market"),
+  });
   // Most specific match wins, so "/app" is not active under "/app/deals". Under /app/sell with an
   // org but no specific section (the sell overview), nothing in the Sell group is forced active.
   const active = all.filter((it) => matches(pathname, it)).sort((a, b) => b.to.length - a.to.length)[0];
   const heading = title ?? active?.label ?? "PROTEUS";
-  const tabs: AppNavItem[] = [BUY_NAV[0]!, BUY_NAV[1]!, BUY_NAV[3]!, BUY_NAV[4]!, { label: hasOrg ? "Selling" : "Start selling", short: "Sell", to: "/app/sell", icon: ic(Briefcase) }];
+  const tabs: AppNavItem[] = mode === "sell"
+    ? [sell[0]!, ...(hasOrg ? [SELL_NAV_ORG[2]!, SELL_NAV_ORG[1]!] : []), BUY_NAV[4]!, { label: "Buy", short: "Buy", to: "/app", icon: ic(Store), end: true }]
+    : [BUY_NAV[0]!, BUY_NAV[1]!, BUY_NAV[3]!, BUY_NAV[4]!, { label: "Sell", short: "Sell", to: "/app/sell", icon: ic(Briefcase) }];
   const tabActive = tabs.filter((it) => matches(pathname, it)).sort((a, b) => b.to.length - a.to.length)[0];
 
   return (
@@ -93,11 +111,14 @@ export function AppShell({ children, title, actions }: AppShellProps) {
         </div>
         <LayoutGroup id="app-side">
           <nav aria-label="Main" className={s.sideNav}>
-            <NavGroup label="Buy" items={BUY_NAV} active={active} />
-            <NavGroup label="Sell" items={sell} active={active} />
+            <NavGroup label={mode === "sell" ? "Sell" : "Buy"} items={sideItems} active={active} />
           </nav>
           <div className={s.sideFoot}>
             <nav aria-label="Account" className={s.sideNav}>
+              <button type="button" className={s.sideItem} onClick={() => switchMode.mutate(mode === "sell" ? "buy" : "sell")} disabled={switchMode.isPending}>
+                <span className={s.sideIcon} aria-hidden>{mode === "sell" ? ic(Store) : ic(Briefcase)}</span>
+                <span className={s.sideLabel}>{mode === "sell" ? "Switch to buying" : "Switch to selling"}</span>
+              </button>
               <SideItem it={SETTINGS} on={active === SETTINGS} />
             </nav>
           </div>
