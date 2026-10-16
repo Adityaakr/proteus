@@ -5,21 +5,20 @@
  */
 import { useRef, useState, type ReactNode } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { Send } from "lucide-react";
+import { Check } from "lucide-react";
 import { ARC_TESTNET_FAUCET, explorerTx } from "@proteus/domain";
 import { getAddress, type Address, type Hex, type WalletClient } from "viem";
-import { ToolApproval, type ToolApprovalStatus } from "../agentic/ToolApproval";
-import { TodoList, type TodoItem, type TodoStatus } from "../agentic/TodoList";
+import type { ToolApprovalStatus } from "../agentic/ToolApproval";
+import type { TodoItem, TodoStatus } from "../agentic/TodoList";
 import { ActionButton } from "../ui/ActionButton";
 import { Money, formatMoney } from "../ui/Money";
-import { ExplorerLink, KeyValue, MonoValue, Notice } from "../ui/misc";
-import { SandboxNote } from "../layouts/SandboxNote";
+import { ExplorerLink, MonoValue, Notice } from "../ui/misc";
 import { useAuth } from "../auth/useAuth";
 import { ApiError, api, errorMessage, qk, type Deal, type Quote } from "../lib/api";
 import { approveUsdc, createAndFundDeal, readUsdcAllowance, readUsdcBalance, signTerms, waitForReceipt, walletErrorMessage } from "../lib/wallet";
 import { useBalances } from "../wallet/useBalances";
 import { fmtUnits } from "./common";
-import s from "./buyer.module.css";
+import f from "./fund.module.css";
 
 const ZERO = "0x0000000000000000000000000000000000000000";
 const PLACEHOLDER_SIG = ("0x" + "00".repeat(65)) as Hex;
@@ -206,59 +205,59 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
   const done = phase === "complete";
   const label = !wallet ? "Waiting for your wallet" : err ? "Try again" : "Fund deal from balance";
 
+  const busy = phase === "approving" || phase === "running";
+  const stepClass = (st: TodoStatus | "failed") => (st === "completed" ? f.stepDone : st === "in-progress" ? f.stepActive : st === "failed" ? f.stepFailed : "");
+
   return (
-    <ToolApproval
-      tool="escrow.fund"
-      title="Fund deal from balance"
-      description={done ? "Your prepaid balance is now held by the escrow contract." : "One confirmation runs every step: sign the terms, approve exactly this amount, and move it into escrow. Unused funds are refundable after the term."}
-      icon={<Send size={18} strokeWidth={2} />}
-      moneyMovement
-      status={phase}
-      parameters={[
-        { label: "Prepaid amount", value: <Money micro={amountMicro} unit />, mono: true },
-        { label: "Units", value: fmtUnits(units), mono: true },
-        { label: "From", value: wallet ? <MonoValue value={wallet.address} short /> : "Your wallet is being set up" },
-        { label: "Escrow", value: escrow ? <MonoValue value={escrow} short /> : "Arc testnet escrow" },
-        { label: "Your balance", value: bal.data ? <Money micro={bal.data.usdc} unit /> : "Reading" },
-      ]}
-      approveLabel={label}
-      denyLabel="Not now"
-      onApprove={done ? undefined : run}
-      onDeny={done ? undefined : onCancel}
-      disabled={!wallet || done}
-      disabledReason={!wallet ? "Your wallet is still being created. This takes a few seconds after sign in." : undefined}
-      error={err}
-    >
-      <TodoList items={items} showProgress={false} />
+    <>
+      <span className={f.label}>Fund</span>
+      <h2 className={f.railTitle}>{done ? "Escrow funded" : "Fund deal from balance"}</h2>
+      <p className={f.railText}>{done ? "Your prepaid balance is now held by the escrow contract." : "One confirmation runs every step: sign the terms, approve exactly this amount, and move it into escrow. Unused funds are refundable after the term."}</p>
+      <dl className={f.summary}>
+        <div className={f.big}><dt>Prepaid amount</dt><dd><Money micro={amountMicro} unit /></dd></div>
+        <div><dt>Units</dt><dd>{fmtUnits(units)}</dd></div>
+        <div><dt>From</dt><dd>{wallet ? <MonoValue value={wallet.address} short /> : "Setting up your wallet"}</dd></div>
+        <div><dt>Escrow</dt><dd>{escrow ? <MonoValue value={escrow} short /> : "Arc testnet escrow"}</dd></div>
+        <div><dt>Your balance</dt><dd>{bal.data ? <Money micro={bal.data.usdc} unit /> : "Reading"}</dd></div>
+        {before !== null && <div><dt>Balance before</dt><dd><Money micro={before} unit /></dd></div>}
+        {done && after !== null && <div><dt>Balance after</dt><dd><Money micro={after} unit /></dd></div>}
+      </dl>
+      <ol className={f.stepList} aria-label="Funding steps">
+        {items.map((it) => (
+          <li key={it.id} className={`${f.step} ${stepClass(steps[it.id as StepId])}`}>
+            <span className={f.stepIcon} aria-hidden>{steps[it.id as StepId] === "completed" && <Check size={11} strokeWidth={3} />}</span>
+            <span className={f.stepBody}>
+              <span>{it.label}</span>
+              {it.detail && <span className={f.stepDetail}>{it.detail}</span>}
+            </span>
+          </li>
+        ))}
+      </ol>
       {lowBalance && (
-        <Notice tone="warn" title="Add testnet USDC">
-          Get free testnet USDC from the{" "}
-          <a href={ARC_TESTNET_FAUCET} target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>Circle faucet</a>, then press Try again. Your address is on the <a href="/app/wallet" style={{ textDecoration: "underline" }}>Wallet</a> page.
-        </Notice>
+        <p className={f.fine}>
+          Not enough testnet USDC. Get some from the <a href={ARC_TESTNET_FAUCET} target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>Circle faucet</a>, then try again. Your address is on the <a href="/app/wallet" style={{ textDecoration: "underline" }}>Wallet</a> page.
+        </p>
       )}
       {!done && relayerAvailable && steps.fund !== "completed" && (
-        <label className={s.row} style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--c-dark-80)", minHeight: 44 }}>
+        <label className={f.check}>
           <input type="checkbox" checked={useRelayer} onChange={(e) => setUseRelayer(e.target.checked)} disabled={phase !== "pending"} />
-          Let PROTEUS submit the funding transaction (you still approve the USDC)
+          <span>Let PROTEUS submit the funding transaction. You still approve the USDC yourself.</span>
         </label>
       )}
-      {(before !== null || after !== null) && (
-        <KeyValue
-          items={[
-            { k: "Balance before", v: before !== null ? <Money micro={before} unit /> : "Not read" },
-            ...(done ? [{ k: "Balance after", v: after !== null ? <Money micro={after} unit /> : "Not read" }] : []),
-          ]}
-        />
-      )}
-      <SandboxNote compact={!done} />
-      {done && deal && (
-        <div>
-          <ActionButton onClick={() => onFunded?.(deal)} icon>
-            Open your deal
-          </ActionButton>
-        </div>
-      )}
-      {deal && !done && deal.status === "funding_pending" && phase === "pending" && <p className="body3">Funding was submitted. Press the button to keep checking.</p>}
-    </ToolApproval>
+      {err && <Notice tone="danger">{err}</Notice>}
+      {!wallet && <p className={f.fine}>Your wallet is still being created. This takes a few seconds after sign in.</p>}
+      <div className={f.actions}>
+        {done && deal ? (
+          <ActionButton onClick={() => onFunded?.(deal)} icon>Open your deal</ActionButton>
+        ) : (
+          <>
+            <ActionButton onClick={run} loading={busy} loadingLabel={phase === "approving" ? "Confirm in your wallet" : "Working"} disabled={!wallet}>{label}</ActionButton>
+            <button type="button" className={f.textBtn} onClick={onCancel} disabled={busy}>Not now</button>
+          </>
+        )}
+      </div>
+      {deal && !done && deal.status === "funding_pending" && phase === "pending" && <p className={f.fine}>Funding was submitted. Press the button to keep checking.</p>}
+      <p className={f.fine}>Arc testnet. Testnet USDC has no value.</p>
+    </>
   );
 }
