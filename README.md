@@ -1,19 +1,27 @@
-# Proteus AI
+<h1 align="center">Proteus AI</h1>
 
-**The autonomous deal desk for internet businesses.** A seller publishes what it sells, what each unit costs it, and the margin it will not go below. A buyer, or a buyer's agent, says what it needs. Proteus AI negotiates inside the seller's rules, has both sides sign identical terms, locks the prepaid amount in an escrow contract on Arc, meters delivery, and pays the seller only for the units the buyer countersigns. Whatever is unused goes back to the buyer.
+<p align="center"><strong>The autonomous deal service desk for internet businesses.</strong></p>
+
+<p align="center">
+  <a href="https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46">DealEscrow on Arc testnet</a> ·
+  <a href="docs/acceptance-report.md">Acceptance report</a> ·
+  <a href="docs/api.md">API</a> ·
+  <a href="docs/threat-model.md">Threat model</a> ·
+  <a href="#verify-it-yourself-on-arc-testnet">Verify it yourself</a>
+</p>
+
+<p align="center">
+  <code>0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46</code> · chain 5042002 · source verified on Blockscout · solc 0.8.28<br/>
+  Arc testnet only · testnet USDC · contract unaudited · no mainnet path in the code
+</p>
+
+A seller publishes what it sells, what each unit costs it, and the margin it will not go below. A buyer, or a buyer's agent, says what it needs. Proteus AI negotiates inside the seller's rules, has both sides sign identical terms, locks the prepaid amount in an escrow contract on Arc, meters delivery, and pays the seller only for the units the buyer countersigns. Whatever is unused goes back to the buyer.
 
 The rule the whole system is built around, implemented literally:
 
 > **The model proposes. The seller's policy decides. The signed agreement controls the money.**
 
-Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. **Arc testnet only. Testnet USDC. Contract unaudited. No mainnet path exists in the code.**
-
-| | |
-|---|---|
-| Escrow contract | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) on Arc testnet (chain 5042002), source verified on Blockscout, solc 0.8.28 |
-| Proof | Two full money loops and one x402 pay-per-call settlement with confirmed Arc testnet transactions, hashes in [`docs/acceptance-report.md`](docs/acceptance-report.md) and in the table below |
-| Tests | 13 domain tests, 9 server tests, 24 contract unit and fuzz tests plus 3 invariants, all in CI |
-| Status | Self-run proof of the mechanism. No customers, revenue or mainnet activity are claimed. |
+Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. Self-run proof of the mechanism on testnet; no customers, revenue or mainnet activity are claimed.
 
 ---
 
@@ -32,7 +40,7 @@ Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. *
 11. [Run it locally](#run-it-locally)
 12. [Security model](#security-model)
 13. [Honesty labels](#honesty-labels)
-14. [What is not live yet](#what-is-not-live-yet)
+14. [Roadmap to production](#roadmap-to-production)
 15. [Repository layout](#repository-layout)
 
 ---
@@ -215,33 +223,43 @@ Tests: `pnpm contracts:test` runs 24 unit and fuzz tests in `test/DealEscrow.t.s
 
 ## Verify it yourself on Arc testnet
 
-Every hash below is a real transaction on Arc testnet. Open any of them at `https://explorer.testnet.arc.io/tx/<hash>`. The buyer in these runs was the project's own funded key, so this is proof of the mechanism, not of traction.
+Every hash is a confirmed Arc testnet transaction and links to the explorer. The buyer in these runs was the project's own funded key: proof of the mechanism, not of traction.
 
-**Contract**
-
-| Item | Value |
+| Contract | |
 |---|---|
-| DealEscrow | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) |
-| Deploy | `0x406c7f8745d3381e0be492bab698f9bc2a137db96fdab30e69d647dac8cba2a7` |
-| USDC | `0x3600000000000000000000000000000000000000` |
-| Owner and arbiter | deployer `0x86448dad5B26285379fc7CeE260362A5F4F174D5` |
+| DealEscrow | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) (source verified, [read tab](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract)) |
+| Deploy | [`0x406c7f87…cba2a7`](https://explorer.testnet.arc.io/tx/0x406c7f8745d3381e0be492bab698f9bc2a137db96fdab30e69d647dac8cba2a7) |
+| USDC | [`0x3600000000000000000000000000000000000000`](https://explorer.testnet.arc.io/address/0x3600000000000000000000000000000000000000) |
+| Owner and arbiter | [`0x86448dad5B26285379fc7CeE260362A5F4F174D5`](https://explorer.testnet.arc.io/address/0x86448dad5B26285379fc7CeE260362A5F4F174D5) (the deployer) |
 
 **Loop 1, scripted** (deal `deal_4qepl91htuzq`, public record `/records/d_kpjyvcnee838leic`)
 
 | Step | Transaction |
 |---|---|
-| Buyer approves 15 USDC to the escrow | `0x2198e53e76e8bc19a83aa875dca388225b20507a5c88bcc0c9ebc1326b7b3cb2` |
-| Relayer submits `createAndFundDeal` with both signatures | `0x5839b25663c18d610f5ac9b2f11d8ad330d184c47c3a53ce2518eb031fd06f96` |
-| 4 requests: 2 delivered and billable, 1 refund handoff not billed, 1 unknown order not billed, 1 retry deduplicated | offchain receipts, seller-signed digests |
-| Buyer signs Acceptance (2 units, 2.5 USDC), seller signs Delivery, relayer settles | `0xd73e07c2b653b0c7360e6bf6b17bed47494f292510513743f4672cbb9c9e3de0` |
-| Seller closes the term early | `0x2e2e7198054751f16462fbf1ddc0779ea6943d1674ab477c62dc89856a95fa72` |
-| Refund of the unused 12.5 USDC to the buyer | `0x3af8467b98722fbdff856c3f08e3e010336937a66df097a5d428c955acd813f9` |
+| Buyer approves 15 USDC to the escrow | [`0x2198e53e…7b3cb2`](https://explorer.testnet.arc.io/tx/0x2198e53e76e8bc19a83aa875dca388225b20507a5c88bcc0c9ebc1326b7b3cb2) |
+| Relayer submits `createAndFundDeal` with both signatures | [`0x5839b256…d06f96`](https://explorer.testnet.arc.io/tx/0x5839b25663c18d610f5ac9b2f11d8ad330d184c47c3a53ce2518eb031fd06f96) |
+| 4 service requests: 2 delivered, 1 handoff and 1 unknown order not billed, 1 retry deduplicated | offchain receipts, seller-signed |
+| Buyer signs Acceptance (2 units, 2.5 USDC), seller signs Delivery, relayer settles | [`0xd73e07c2…9e3de0`](https://explorer.testnet.arc.io/tx/0xd73e07c2b653b0c7360e6bf6b17bed47494f292510513743f4672cbb9c9e3de0) |
+| Seller closes the term early | [`0x2e2e7198…95fa72`](https://explorer.testnet.arc.io/tx/0x2e2e7198054751f16462fbf1ddc0779ea6943d1674ab477c62dc89856a95fa72) |
+| Refund of the unused 12.5 USDC to the buyer | [`0x3af8467b…d813f9`](https://explorer.testnet.arc.io/tx/0x3af8467b98722fbdff856c3f08e3e010336937a66df097a5d428c955acd813f9) |
 
-Final balances read from the contract: deposit 15.000000, settled 2.500000, refunded 12.500000, remaining 0.
+Balances read back from the contract: deposit 15.000000, settled 2.500000, refunded 12.500000, remaining 0.
 
-**Loop 2, driven from the browser** (deal `deal_1z11abv0hrid`, record `/records/d_ig8ykrcxlp7j0168`): the buyer wallet funded directly with no relayer (`0x45c566afd735ebae5d9f3dbef8b911636787ee1b338849fe25764e1c9cdf83f1`), issued a service key with a wallet signature, sent a delivered request and a non-billed handoff, signed usage, and the relayer settled 1.25 USDC; the seller closed from the console and 13.75 USDC was refunded from the deal page.
+**Loop 2, from the browser** (deal `deal_1z11abv0hrid`, record `/records/d_ig8ykrcxlp7j0168`)
 
-**Pay per call through Circle's facilitator (x402, exact scheme)**: the buyer signed an EIP-3009 `TransferWithAuthorization` for exactly 1.5 USDC against a server-issued nonce; the facilitator's `/verify` returned `isValid: true` and `/settle` returned `success: true` with transaction `0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8`. A retry with the same request id was deduplicated.
+| Step | Transaction |
+|---|---|
+| Buyer wallet funds directly, no relayer | [`0x45c566af…df83f1`](https://explorer.testnet.arc.io/tx/0x45c566afd735ebae5d9f3dbef8b911636787ee1b338849fe25764e1c9cdf83f1) |
+| Relayer settles 1.25 USDC of signed usage | [`0xb4b9d98f…de1436`](https://explorer.testnet.arc.io/tx/0xb4b9d98ff60151cd217bfd2673e4588529c82fcef499bc470ca5794d21de1436) |
+| Seller closes from the console | [`0xa4fee8bb…081adc`](https://explorer.testnet.arc.io/tx/0xa4fee8bbdc86ee703778da03e02babac96a05344ada7371ee3e9d13886081adc) |
+| Refund of 13.75 USDC from the deal page | [`0x56a346c0…6782e1`](https://explorer.testnet.arc.io/tx/0x56a346c09db7df90c3b26062af05946c82b8fb7b6ee5ba909c70006bdf6782e1) |
+
+**Pay per call through Circle's facilitator (x402, exact scheme)**
+
+| Step | Transaction |
+|---|---|
+| EIP-3009 authorization for exactly 1.5 USDC, `/verify` valid, service delivered, `/settle` success | [`0x3d5c48a9…8de9f8`](https://explorer.testnet.arc.io/tx/0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8) |
+| Second settlement, from the browser | [`0xa72ebe94…dd7743`](https://explorer.testnet.arc.io/tx/0xa72ebe949d45ae96520d5a54e09e924a9d483fd75d18ec43eb359b0a99dd7743) |
 
 **Reproduce it** with your own funded key (about 16 testnet USDC from [faucet.circle.com](https://faucet.circle.com)):
 
@@ -250,7 +268,7 @@ cd server && set -a && source .env && set +a
 API_URL=http://localhost:8787 ARC_RPC_URL=https://rpc.testnet.arc.io BUYER_PRIVATE_KEY=<funded key> npx tsx scripts/testnet-demo.ts
 ```
 
-**Verify a deal from the app** without running anything: the review-and-fund page links the escrow and USDC contracts to the explorer, links the deal id to the contract's read tab where `deals(dealId)` shows the stored deposit, settled amount and terms hash, and recomputes the public terms hash in your browser from the terms on the page so you can see it matches what the contract stores.
+**From the app**: the review-and-fund page links the escrow and USDC to the explorer, links the deal id to the contract's read tab, and recomputes the public terms hash in your browser from the terms shown so you can see it matches what the contract stores.
 
 ![Review and fund](docs/images/review-and-fund.jpg)
 
@@ -386,15 +404,48 @@ Rules the code follows, so a reviewer can trust what the screen says:
 - The comparison table on the marketing page uses competitors' names and logos for identification only and marks only what is implemented.
 - Custody wording never says "only you can move funds" where a server-held signer exists.
 
-## What is not live yet
+## Roadmap to production
 
-- **Mainnet.** Off, with no config path in the code.
-- **Hosted API.** The site is on Vercel; the API and database are not deployed.
-- **Circle developer-controlled wallet relayer.** Implemented against the SDK types and selected automatically when credentials are set, but never executed; every recorded transaction so far went through the viem relayer or the buyer's wallet. The acceptance report says so.
-- **Seller-held signing.** The seller signer is a delegated key the server holds, encrypted. Sellers signing from their own wallet is not built.
-- **Independent buyers.** The on-chain proof used the project's own key.
-- **Permit or EIP-3009 for funding.** Funding uses `approve` plus `transferFrom` (two buyer transactions); x402 does use EIP-3009.
-- **Live sanctions lists, an MCP server for deal endpoints, webhook delivery of receipts, rate limiting, dispute-path invariants, a Playwright suite.**
+Where the code stands today and what it takes to run real money through it. Each item names the gap, not a promise; done items link to proof.
+
+**Done on testnet**
+
+- Deterministic pricing and policy, dual-signed EIP-712 terms, escrow funding, metered delivery with non-billable failures, countersigned settlement, early close and refund, all with [confirmed transactions](#verify-it-yourself-on-arc-testnet).
+- x402 pay per call verified and settled through [Circle's facilitator](https://explorer.testnet.arc.io/tx/0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8).
+- Contract source verified; 24 unit and fuzz tests, 3 invariants, 13 domain and 9 server tests in CI.
+- Privy login with embedded or external wallets, seller console, request specs per product, service agents, skills and OpenAPI per service.
+
+**Phase 1: hosted testnet beta** (weeks, no contract change)
+
+| Item | Why | Where |
+|---|---|---|
+| Host the API and Postgres (Railway config is in the repo) and point the Vercel site at it | the full loop is local today | [`DEPLOYMENT.md`](DEPLOYMENT.md) |
+| Rate limiting and request budgets on public routes; wallet-signature gating for `GET /deals/:id` | deal routes rely on unguessable ids today | [`OPEN_ISSUES.md`](OPEN_ISSUES.md) |
+| Run the Circle developer-controlled wallet relayer end to end with real credentials | implemented, never executed | `server/src/chain/relayer.ts` |
+| One recorded loop negotiated by the model adapter and one driven by an autonomous buyer agent using the buyer skill | the on-chain proof negotiated rule-based and was scripted | [`docs/acceptance-report.md`](docs/acceptance-report.md) |
+| Independent buyers on testnet with their own wallets | the proof used the project's key | |
+| Playwright end-to-end suite over the browser loop | UI is walked by screenshots today | `site/scripts/` |
+| Single-transaction funding with `permit` or EIP-3009 if Arc USDC supports it | funding is approve plus transferFrom | [`OPEN_ISSUES.md`](OPEN_ISSUES.md) |
+
+**Phase 2: production readiness** (before any real funds)
+
+| Item | Why | Where |
+|---|---|---|
+| Independent audit of `DealEscrow.sol`; invariant handler extended to the dispute path | unaudited; disputes untested by invariants | `contracts/` |
+| Separate the arbiter from the owner (multisig), add a dispute timeout with a default split, and a contract upgrade or migration plan | owner and arbiter are the same deployer key; disputes freeze funds with no timeout | [`docs/threat-model.md`](docs/threat-model.md) |
+| Sellers sign Terms and Delivery from their own wallet (SIWE console login, browser signing); server-held keys become an opt-in delegation with scope and expiry | the server holds every org's seller key today | `server/src/chain/signer.ts` |
+| Org signer keys and endpoint secrets in a KMS or HSM, key rotation, and the pay-per-call collector swept automatically | AES-256-GCM under one env secret today | `server/src/lib/crypto.ts` |
+| Seller verification (domain and payee proof) behind the "Verified seller" flag | the flag is platform-set today | |
+| Observability: structured logs, traces on the relayer and reconciler, alerts on reconciler lag and failed settlements; database backups and a restore drill | none today | |
+| Webhook delivery of receipts and settlements to the buyer's system; an MCP server exposing a funded deal as a tool | polling only today | |
+| Live list provider for Lantern, and compliance screening on counterparties before money moves | Lantern's memo says plainly it has no live list access | `server/src/services/workers.ts` |
+| Legal: terms of service, the enforceability of signed terms per jurisdiction, and what the arbiter is | out of scope of the contract today | |
+
+**Phase 3: mainnet** (an explicit decision, never a config flip)
+
+- A mainnet config path with per-deal and per-day limits, a pause switch that is actually used, and a separate relayer treasury with spend caps.
+- Monitoring of USDC blocklist state for payees before settlement, since a blocklisted payee makes settlement revert.
+- A written go decision with the audit report, the limits, and who holds the arbiter and owner keys.
 
 ## Repository layout
 
