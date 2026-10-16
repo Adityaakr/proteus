@@ -342,10 +342,9 @@ export default function StaggerTestimonials(props: StaggerTestimonialsProps) {
                                             style={{
                                                 width: 48,
                                                 height: 48,
-                                                objectFit: "cover",
-                                                borderRadius: 4,
-                                                filter: isActive ? "none" : "grayscale(1)",
-                                                border: `1px solid ${isActive ? "rgba(17,17,17,0.10)" : borderColor}`,
+                                                objectFit: "contain",
+                                                borderRadius: 11,
+                                                opacity: isActive ? 1 : 0.7,
                                             }}
                                         />
                                     ) : (
@@ -401,7 +400,9 @@ export default function StaggerTestimonials(props: StaggerTestimonialsProps) {
                                     ...metaFont,
                                 }}
                             >
-                                — {item.name}, {item.role} at {item.company}
+                                — {item.name}
+                                {item.role ? `, ${item.role}` : ""}
+                                {item.company ? ` · ${item.company}` : ""}
                             </p>
                         </motion.article>
                     )

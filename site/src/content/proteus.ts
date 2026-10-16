@@ -281,13 +281,13 @@ export const record = {
   description:
     "A discount request, five asks for the same integration, deals that keep failing at one price: each one is a signal. PROTEUS turns conversations into a commercial record you can learn from.",
   entries: [
-    { quote: "Understand demand. See which products, packages, and capabilities customers keep asking for.", name: "Demand", role: "What customers keep asking for", company: "PROTEUS", initials: "DE" },
-    { quote: "Understand pricing. Discover where offers get accepted, countered, or declined.", name: "Pricing", role: "Where offers land", company: "PROTEUS", initials: "PR" },
-    { quote: "Understand deal quality. Compare agreed prices with expected delivery costs and commercial objectives.", name: "Deal quality", role: "Agreed price against expected cost", company: "PROTEUS", initials: "DQ" },
-    { quote: "Understand performance. Track which accepted offers turn into funded and fulfilled transactions.", name: "Performance", role: "From accepted to funded to fulfilled", company: "Circle and Arc", initials: "PE" },
-    { quote: "Understand exceptions. See when the agent needed human authorization and what caused it.", name: "Exceptions", role: "What needed your signature, and why", company: "Seller", initials: "EX" },
-    { quote: "Every offer, counteroffer, approval, agreement, and payment record is inspectable.", name: "Visibility", role: "The decision, the agreement, and the money", company: "PROTEUS", initials: "VI" },
-    { quote: "When deals repeatedly fail at a particular price, that tells you something too.", name: "Signal", role: "Your business learns more from a deal than whether it closed", company: "PROTEUS", initials: "SI" },
+    { quote: "Four of the last five buyers asked for Shopify before price. Demand tells you what to build next.", name: "Northwind Commerce", role: "Demand", company: "illustrative example", initials: "NC", portrait: { src: "/assets/logos/mark-northwind.png", alt: "Northwind Commerce" } },
+    { quote: "Offers above $1.20 a call get countered. Offers at $1.10 close. Pricing shows where the market actually is.", name: "Lumen Voice", role: "Pricing", company: "illustrative example", initials: "LV", portrait: { src: "/assets/logos/mark-lumen.png", alt: "Lumen Voice" } },
+    { quote: "A 250-contract deal at $14 clears a 35% margin after review cost. Deal quality compares price to what delivery costs.", name: "Meridian Legal", role: "Deal quality", company: "illustrative example", initials: "ML", portrait: { src: "/assets/logos/mark-meridian.png", alt: "Meridian Legal" } },
+    { quote: "Of six accepted offers, five were funded and four fully used. Performance follows a deal from signed to settled.", name: "Harbor Logistics", role: "Performance", company: "illustrative example", initials: "HL", portrait: { src: "/assets/logos/mark-harbor.png", alt: "Harbor Logistics" } },
+    { quote: "Two quotes waited for the owner this week, both above the $4,000 threshold. Exceptions show what needed a signature and why.", name: "Vantage API", role: "Exceptions", company: "illustrative example", initials: "VA", portrait: { src: "/assets/logos/mark-vantage.png", alt: "Vantage API" } },
+    { quote: "Every offer, counteroffer, approval and settlement sits in one record with the transaction hash beside it.", name: "Kaidata", role: "Visibility", company: "illustrative example", initials: "KD", portrait: { src: "/assets/logos/mark-kaidata.png", alt: "Kaidata" } },
+    { quote: "Deals kept failing at 200 images. Buyers wanted 400 with approval built in. The pattern became a new tier.", name: "Orbit Labs", role: "Signal", company: "illustrative example", initials: "OL", portrait: { src: "/assets/logos/mark-orbit.png", alt: "Orbit Labs" } },
   ],
 };
 
