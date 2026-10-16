@@ -17,7 +17,7 @@ import { useInViewOnce } from "../lib/useScrollTarget";
  * horizontal stack gap 8, padding 0 0 8px 0, icon 16px, Body 2 title.
  */
 export interface TagProps {
-  title: string;
+  title: ReactNode;
   icon?: ReactNode;
   dark?: boolean;
   /** Force the state (e.g. always active in tests). */

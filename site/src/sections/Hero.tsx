@@ -21,7 +21,19 @@ export function Hero() {
             <div className={s.textButton}>
               <div className={s.headingBody}>
                 <Appear preset="fade" animate="visible" whileInView={undefined}>
-                  <Tag bare title={hero.tag} icon={<img src={MARK} alt="" width={16} height={16} style={{ width: 16, height: 16 }} />} />
+                  <Tag
+                    bare
+                    title={
+                      <>
+                        {hero.tag}{" "}
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, verticalAlign: "-1px" }}>
+                          <img src="/assets/arc-icon.svg" alt="" width={14} height={14} style={{ width: 14, height: 14 }} />
+                          <span style={{ fontWeight: 500 }}>{hero.tagNetwork}</span>
+                        </span>
+                      </>
+                    }
+                    icon={<img src={MARK} alt="" width={16} height={16} style={{ width: 16, height: 16 }} />}
+                  />
                 </Appear>
                 <h1 className={`h1 ${s.h1}`}>{hero.headline}</h1>
                 <p className={`body1 ${s.body}`}>{hero.subhead}</p>

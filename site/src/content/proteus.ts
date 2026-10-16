@@ -20,7 +20,8 @@ export const nav = {
 };
 
 export const hero = {
-  tag: "The autonomous deal desk.",
+  tag: "The autonomous deal desk built on",
+  tagNetwork: "Arc",
   headline: "Your business should be able to make a deal.",
   headlineAlt: "Your next deal shouldn’t wait for sales.",
   subhead:
