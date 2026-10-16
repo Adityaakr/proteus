@@ -229,7 +229,7 @@ export const compare = {
   ],
   proteus: {
     name: "Proteus AI",
-    description: "The autonomous deal desk in one flow for internet businesses.",
+    description: "The autonomous deal desk for internet businesses, in one flow.",
     href: "/app",
     logo: "/assets/proteus-ai-wordmark.png",
     logoHeight: 18,
