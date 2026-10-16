@@ -23,7 +23,7 @@ function asRequired(e: unknown): PayRequired | null {
 const notAvailable = (e: unknown) => e instanceof ApiError && (e.status === 404 || e.status === 501);
 
 /** x402 pay per call: one signed USDC authorization per request, settled through Circle's facilitator. */
-export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "unit" }: { sellerSlug: string; productSlug: string; service?: ServiceKind; unitLabel?: string }) {
+export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "unit", bare }: { sellerSlug: string; productSlug: string; service?: ServiceKind; unitLabel?: string; /** Render without the Card frame (inside a rail). */ bare?: boolean }) {
   const sampleStore = service === "sample-store" || service === undefined;
   const { wallet, getWalletClient, mock } = useAuth();
   const payer = wallet?.address;
@@ -78,8 +78,8 @@ export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "
 
   const price = probe.data?.available ? probe.data.req.accepts[0]?.amount : undefined;
 
-  return (
-    <Card title="Pay per call" subtitle={`Try one ${unitLabel} before committing, or use it at low volume. Each request is paid on its own from your balance.`} actions={<Zap size={18} strokeWidth={2} color="var(--c-dark-60)" aria-hidden />}>
+  const body = (
+    <>
       {probe.isLoading ? (
         <Skeleton lines={2} />
       ) : probe.error ? (
@@ -115,6 +115,20 @@ export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "
           )}
         </form>
       )}
+    </>
+  );
+  if (bare) {
+    return (
+      <div className={m.bareWrap}>
+        <h2 className={m.bareTitle}>Pay per call</h2>
+        <p className={m.bareText}>Try one {unitLabel} before committing, or use it at low volume. Each request is paid on its own from your balance.</p>
+        {body}
+      </div>
+    );
+  }
+  return (
+    <Card title="Pay per call" subtitle={`Try one ${unitLabel} before committing, or use it at low volume. Each request is paid on its own from your balance.`} actions={<Zap size={18} strokeWidth={2} color="var(--c-dark-60)" aria-hidden />}>
+      {body}
     </Card>
   );
 }

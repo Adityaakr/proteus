@@ -54,6 +54,10 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 - All six seeded demo sellers deleted (`server/scripts/remove-demo-sellers.ts`); Northwind's sample-store product and Lumen Voice's sample-store product are hidden from the market (historical deals kept). The demo adapter is gone; new products must run on the seller's own HTTPS endpoint. The market now lists only verified sellers.
 - Product hero: pill chips replaced by a labeled facts strip (term, unit price, pay per call, settlement, service) with icons and no dots. Label tags no longer show a dot unless they describe a lifecycle state. "How a deal works" is a five-node timeline.
 
+## Product page as a document (2026-10-16, night)
+
+- Rebuilt `site/src/app/market/ProductPage.tsx` with `product.module.css`: plain header (seller wordmark, verified badge, title, summary, quiet inline meta chips), sections separated by rules instead of boxed cards, a pricing table with "Best unit price" inline, deal steps as a numbered list, About as a key/value block, and one sticky rail holding Negotiate and Pay per call. No floating badges, no dotted pills, no icon tiles.
+
 ## Blocked on inputs from Aditya
 
 1. Done: deployer and relayer funded, escrow deployed, loop executed on testnet.
