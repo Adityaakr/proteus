@@ -31,3 +31,7 @@ The Framer export the build was made from lives in `../design/framer-export`
 Headings in the Framer template use PP Neue Montreal, a commercial typeface. This build ships
 Satoshi (free, Fontshare) in its place. To use PP Neue Montreal, drop the woff2 files in
 `public/fonts` and update the `@font-face` rules at the top of `src/styles/tokens.css`.
+
+## Hosting
+
+The built site (`pnpm --filter proteus-site build` → `site/dist`) is served by the API process on the same origin in the Railway deployment; see `DEPLOYMENT.md` at the repo root. A Railway service whose watch path is limited to `site/` only redeploys when this folder changes.
