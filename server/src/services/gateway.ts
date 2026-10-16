@@ -3,6 +3,7 @@ import { keccak256, toHex, type Hex } from "viem";
 import { cumulativeCharge } from "@proteus/domain";
 import { orgSignerAccount } from "../chain/signer";
 import { db, schema } from "../db";
+import { decryptSecret } from "../lib/crypto";
 import { HttpError } from "../lib/http";
 import { id, sha256 } from "../lib/ids";
 import { loadProductById } from "./catalog";
@@ -61,6 +62,60 @@ export async function orderSupport(orgId: string, input: ServiceInput): Promise<
   return { status: "delivered", billable: true, answer: parts.join(" "), source: { store: "sample-store", orderId: order.orderId, fields } };
 }
 
+export interface UpstreamConfig {
+  url: string;
+  authHeader?: string;
+  secretEnc?: string;
+}
+
+/**
+ * Seller-owned adapter: PROTEUS forwards each metered request to the seller's own HTTPS endpoint and
+ * bills exactly what the endpoint reports. Contract (documented in docs/api.md, "Bring your own endpoint"):
+ *   POST <url>  JSON { requestId, dealId?, orgId, productSlug, input }
+ *   2xx JSON { answer: string, billable?: boolean, status?: "delivered"|"failed"|"handoff" }
+ * A 2xx with billable !== false is one delivered unit. Non-2xx, timeouts and bad JSON are "failed" and never billed.
+ */
+export async function httpUpstream(cfg: UpstreamConfig, ctx: { requestId: string; dealId?: string; orgId: string; productSlug: string }, input: ServiceInput): Promise<ServiceOutput> {
+  const host = (() => {
+    try {
+      return new URL(cfg.url).host;
+    } catch {
+      return "invalid-url";
+    }
+  })();
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 20_000);
+  try {
+    const headers: Record<string, string> = { "content-type": "application/json", "x-proteus-request-id": ctx.requestId };
+    if (cfg.secretEnc) headers[cfg.authHeader?.trim() || "authorization"] = (cfg.authHeader?.trim() ? "" : "Bearer ") + decryptSecret(cfg.secretEnc);
+    const res = await fetch(cfg.url, { method: "POST", headers, body: JSON.stringify({ requestId: ctx.requestId, dealId: ctx.dealId, orgId: ctx.orgId, productSlug: ctx.productSlug, input }), signal: ac.signal });
+    const text = await res.text();
+    if (!res.ok) return { status: "failed", billable: false, answer: `The seller's endpoint answered HTTP ${res.status}. This request was not charged.`, source: { store: host, fields: [] } };
+    let body: { answer?: unknown; billable?: unknown; status?: unknown };
+    try {
+      body = JSON.parse(text);
+    } catch {
+      return { status: "failed", billable: false, answer: "The seller's endpoint did not return JSON. This request was not charged.", source: { store: host, fields: [] } };
+    }
+    const answer = typeof body.answer === "string" ? body.answer : text.slice(0, 2000);
+    const status = body.status === "handoff" ? "handoff" : body.status === "failed" ? "failed" : "delivered";
+    const billable = status === "delivered" && body.billable !== false;
+    return { status, billable, answer, source: { store: host, orderId: input.orderId, fields: Object.keys(body).filter((k) => k !== "answer") } };
+  } catch (e) {
+    const timeout = (e as Error).name === "AbortError";
+    return { status: "failed", billable: false, answer: timeout ? "The seller's endpoint did not answer within 20 seconds. This request was not charged." : "The seller's endpoint could not be reached. This request was not charged.", source: { store: host, fields: [] } };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Runs the product's adapter. `dealId` is absent for pay-per-call. */
+export async function runAdapter(lp: Awaited<ReturnType<typeof loadProductById>>, ctx: { requestId: string; dealId?: string }, input: ServiceInput): Promise<ServiceOutput> {
+  if (lp.row.adapter === "http" && lp.row.upstream) return httpUpstream(lp.row.upstream as UpstreamConfig, { ...ctx, orgId: lp.org.id, productSlug: lp.product.slug }, input);
+  if (lp.row.adapter === "order-support") return orderSupport(lp.org.id, input);
+  return { status: "failed", billable: false, answer: "No service endpoint is configured for this product. This request was not charged.", source: { store: "none", fields: [] } };
+}
+
 export async function authenticateDeal(bearer: string | undefined, productSlug: string) {
   if (!bearer) throw new HttpError(401, "missing bearer token");
   const hash = sha256(bearer);
@@ -83,7 +138,7 @@ export async function execute(dealId: string, requestId: string, input: ServiceI
   const [existing] = await db.select().from(schema.serviceRequests).where(and(eq(schema.serviceRequests.dealId, dealId), eq(schema.serviceRequests.requestId, requestId)));
   if (existing) return receiptView(existing, terms.prepaid);
 
-  const output: ServiceOutput = lp.row.adapter === "order-support" ? await orderSupport(deal.orgId, input) : { status: "failed", billable: false, answer: "No adapter configured for this product.", source: { store: "none", fields: [] } };
+  const output: ServiceOutput = await runAdapter(lp, { requestId, dealId }, input);
 
   // Serialize metering per deal with a row lock on the deal.
   const row = await db.transaction(async (tx) => {

@@ -43,7 +43,7 @@ appRoutes.get("/app/overview", async (c) => {
     pendingLiability: fundedValue - earned - refunded,
     refunded,
     usageUnits: Number(usage[0]?.n ?? 0),
-    labels: { seller: org?.label ?? "sandbox", network: "testnet", note: org?.label === "sandbox" ? "Sandbox seller: figures are testnet USDC and are excluded from live traction counters." : "Testnet USDC." },
+    labels: { seller: org?.label ?? "sandbox", network: "testnet", note: org?.label === "sandbox" ? "Demo seller: figures are testnet USDC and are excluded from live traction counters." : "Arc testnet USDC." },
   });
 });
 
@@ -58,7 +58,8 @@ async function productWithPrivate(orgId: string, productId: string) {
     { label: "Budget $1,500 only", candidates: getQuoteCandidates(ctx, { budget: toMicro("1500"), integrations: [], notes: [], openQuestions: [] }) },
   ];
   const pub = publicProduct(lp);
-  return { id: lp.row.id, adapter: lp.row.adapter, ...pub, maxUnitsPerDeal: lp.product.maxUnitsPerDeal, public: pub, cost: lp.cost, policy: lp.policy, costHistory: costs, policyHistory: pols, preview, previewCases: preview, labels: { seller: lp.org.label, private: "Seller only. Never shown to buyers." } };
+  const up = lp.row.upstream as { url?: string; authHeader?: string; secretEnc?: string } | null;
+  return { id: lp.row.id, adapter: lp.row.adapter, service: lp.row.adapter === "http" ? { kind: "http", url: up?.url ?? null, authHeader: up?.authHeader ?? null, hasSecret: Boolean(up?.secretEnc) } : { kind: "sample-store" }, ...pub, maxUnitsPerDeal: lp.product.maxUnitsPerDeal, public: pub, cost: lp.cost, policy: lp.policy, costHistory: costs, policyHistory: pols, preview, previewCases: preview, labels: { seller: lp.org.label, private: "Seller only. Never shown to buyers." } };
 }
 
 appRoutes.get("/app/products", async (c) => {

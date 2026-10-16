@@ -58,7 +58,7 @@ function ProductView({ sellerSlug, sellerName, sellerLabel, product }: { sellerS
         eyebrow={
           <>
             <span className="body3">{sellerName}</span>
-            {sellerLabel === "sandbox" && <StatusTag network="sandbox" label="Sandbox seller" />}
+            {sellerLabel === "sandbox" && <StatusTag network="sandbox" label="Demo seller" />}
           </>
         }
         title={product.name}

@@ -37,6 +37,12 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 
 - Wallet and Home showed "Could not read your balance: HTTP request failed" in Aditya's browser while the same RPC answered from the server. Fix: the web app's viem public client now uses a `fallback` transport (public Arc RPC, then the same-origin read-only relay `POST /api/rpc`), and `useBalances` falls back to `GET /api/me/wallet` for the linked address. Verified headless with the public RPC reachable and with it blocked (both render 13.20 USDC, relay hit 10 times); error copy now names the RPC and the HTTP status.
 
+## Real labels, seller endpoints, deposit sheet (2026-10-16, late evening)
+
+- "Sandbox" pill removed from every balance surface: the wallet, escrow and transactions were always real Arc testnet, so the badge now reads "Arc testnet". The seeded Northwind seller is labeled "Demo seller" (sample order store); live orgs show "Live seller" on Home, Market, product pages, review records and the seller console.
+- Sellers can now publish a product backed by their own HTTPS endpoint (adapter `http`, encrypted secret, 20 s timeout, bills only 2xx JSON answers not marked `billable:false`). Start selling has a "Service endpoint" choice; the seller product page shows which one is configured. Unit-tested against a local HTTP server (4 tests). Pay per call routes through the same adapter. Published for real on org lumen-voice: product `callback-booking` ($0.20/booking Trial, $0.10 per call) pointing at a local endpoint; money has not been run through it yet (Aditya paused the browser run).
+- Deposit is a sheet (centered dialog on desktop, bottom sheet on phones) with the QR, address, faucet link and a live watcher that polls for 90 s and confirms the arrival with the delta. Esc, backdrop and close dismiss it. Every app page is now centered (`.sellerMain` has `margin: 0 auto`).
+
 ## Blocked on inputs from Aditya
 
 1. Done: deployer and relayer funded, escrow deployed, loop executed on testnet.

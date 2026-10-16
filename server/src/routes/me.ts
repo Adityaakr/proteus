@@ -55,7 +55,8 @@ const ProductBody = z.object({
   cost: z.object({ variableCostPerUnitUsd: z.string().regex(/^\d+(\.\d+)?$/), directCostPerDealUsd: z.string().regex(/^\d+(\.\d+)?$/).default("0"), txCostBps: z.number().int().min(0).max(10000).default(50) }),
   policy: z.object({ minMarginBps: z.number().int().min(0).max(10000), maxDiscountBps: z.number().int().min(0).max(10000), approvalThresholdUsd: z.string().regex(/^\d+(\.\d+)?$/), prepaidMinimumUsd: z.string().regex(/^\d+(\.\d+)?$/), availableCapacityUnits: z.string().regex(/^\d+$/), quoteTtlSeconds: z.number().int().min(60).max(7 * 86400).default(6 * 3600) }),
   payPerCall: z.object({ priceUsd: z.string().regex(/^\d+(\.\d+)?$/) }).optional(),
-  adapter: z.string().optional(),
+  adapter: z.enum(["http", "order-support"]).optional(),
+  upstream: z.object({ url: z.string().min(8).max(2048), authHeader: z.string().max(64).optional(), secret: z.string().max(4096).optional() }).optional(),
 });
 meRoutes.post("/app/products", requireSession, async (c) => {
   const b = ProductBody.parse(await c.req.json()) as ProductCreateInput;

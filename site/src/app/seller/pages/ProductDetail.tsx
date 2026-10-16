@@ -40,8 +40,26 @@ function ProductBody({ p }: { p: ProductWithPrivate }) {
   );
 }
 
+function ServiceEndpoint({ p }: { p: ProductWithPrivate }) {
+  const svc = p.service ?? (p.adapter === "http" ? { kind: "http" as const, url: null, authHeader: null, hasSecret: false } : { kind: "sample-store" as const });
+  return (
+    <Card title="Service endpoint" subtitle="What answers each metered request. PROTEUS bills only what it reports as delivered." actions={svc.kind === "http" ? <StatusTag network="live" label="Your endpoint" /> : <StatusTag network="sandbox" label="Demo sample store" />}>
+      {svc.kind === "http" ? (
+        <p className="body3">
+          POST <span className="app-mono">{svc.url ?? "(not set)"}</span>
+          {svc.hasSecret ? ` with the secret in the ${svc.authHeader ?? "Authorization"} header.` : " without a secret."} Non-2xx answers, timeouts and results marked not billable are never charged.
+        </p>
+      ) : (
+        <p className="body3">First-party order-support demo over the seeded sample store. Buyers see a Demo seller label. Publish a new product with your own endpoint to go live.</p>
+      )}
+    </Card>
+  );
+}
+
 function PublicProduct({ p }: { p: ProductWithPrivate }) {
   return (
+    <>
+    <ServiceEndpoint p={p} />
     <Card title="Public offer" subtitle="Exactly what buyers and their agents see." actions={<StatusTag tone="info" label="Visible to buyers" />}>
       <div className={s.tiers}>
         {p.tiers.map((t) => {
@@ -87,6 +105,7 @@ function PublicProduct({ p }: { p: ProductWithPrivate }) {
         {p.termDays} day term, up to {units(p.maxUnitsPerDeal)} units per deal. {p.refundPolicy}
       </p>
     </Card>
+    </>
   );
 }
 

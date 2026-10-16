@@ -196,3 +196,20 @@ Note (2026-10-16): Circle's facilitator requires the seller proof to be signed b
 ### Chain reads: `POST /api/rpc` (public, read-only)
 
 Same-origin JSON-RPC relay to Arc testnet for the browser. The web app reads balances, allowances and receipts from `https://rpc.testnet.arc.io` first and falls back to this route when the direct request fails (CORS preflight, bot challenge, corporate proxy). Only read methods are forwarded (`eth_chainId`, `eth_blockNumber`, `eth_getBalance`, `eth_call`, `eth_estimateGas`, `eth_gasPrice`, `eth_feeHistory`, `eth_getTransactionCount`, `eth_getTransaction*`, `eth_getBlockBy*`, `eth_getLogs`, `eth_getCode`, `net_version`); anything else answers `-32601 method not relayed`. Batches of up to 20. Upstream failures answer `502` with a JSON-RPC error. Transactions never pass through here: they are signed and sent by the user's wallet.
+
+### Bring your own endpoint (seller-owned service, adapter `http`)
+
+A seller can back a product with its own HTTPS endpoint instead of the first-party sample store. Set `adapter: "http"` and `upstream: { url, authHeader?, secret? }` when publishing (`POST /api/app/products`). The URL must be `https://` (loopback `http://` is allowed for local development); the secret is AES-256-GCM encrypted at rest and never returned by the API.
+
+For every metered request (prepaid deal or pay-per-call) PROTEUS sends:
+
+```
+POST <url>
+content-type: application/json
+authorization: Bearer <secret>            (or <authHeader>: <secret> when a header name is set)
+x-proteus-request-id: <requestId>
+
+{ "requestId": "...", "dealId": "deal_... | null", "orgId": "org_...", "productSlug": "...", "input": { "question": "...", "orderId": "...", "email": "..." } }
+```
+
+The endpoint answers with JSON: `{ "answer": "...", "billable": true | false, "status": "delivered" | "failed" | "handoff" }`. A 2xx with `billable` not `false` is one delivered unit and is metered against the deal (or settled through x402 for pay per call). `handoff`, `failed`, any non-2xx status, non-JSON bodies and timeouts (20 s) are never charged. Retries with the same `requestId` return the stored receipt. Products on the sample store carry a "Demo seller" label to buyers; endpoint-backed products on a live org do not.

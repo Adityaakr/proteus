@@ -34,6 +34,11 @@ export interface FormState {
   capacityUnits: string;
   quoteValidityHours: string;
   perCallUsd: string;
+  /** "http": your own endpoint answers every metered request. "sample": the first-party sample order store (demo). */
+  serviceKind: "http" | "sample";
+  upstreamUrl: string;
+  upstreamAuthHeader: string;
+  upstreamSecret: string;
 }
 
 let k = 0;
@@ -60,6 +65,10 @@ export const EMPTY: FormState = {
   capacityUnits: "",
   quoteValidityHours: "48",
   perCallUsd: "",
+  serviceKind: "http",
+  upstreamUrl: "",
+  upstreamAuthHeader: "",
+  upstreamSecret: "",
 };
 
 export const EXAMPLE: FormState = {
@@ -87,6 +96,10 @@ export const EXAMPLE: FormState = {
   capacityUnits: "20000",
   quoteValidityHours: "48",
   perCallUsd: "1.20",
+  serviceKind: "sample",
+  upstreamUrl: "",
+  upstreamAuthHeader: "",
+  upstreamSecret: "",
 };
 
 export const SAMPLE_ASK = { label: "2,000 units with a $1,500 budget", desiredUnits: 2000n, budgetUsd: "1500" };
@@ -144,6 +157,19 @@ export function validate(f: FormState, hasOrg: boolean): Errors {
   if (!isInt(f.capacityUnits) || int(f.capacityUnits) <= 0n) e.capacityUnits = "Whole number of units above zero.";
   if (!isInt(f.quoteValidityHours) || Number(clean(f.quoteValidityHours)) < 1 || Number(clean(f.quoteValidityHours)) > 168) e.quoteValidityHours = "Between 1 and 168 hours.";
   if (f.perCallUsd.trim() && (!isUsd(f.perCallUsd) || usd(f.perCallUsd) <= 0n)) e.perCallUsd = "Price in USD above zero, or leave it empty.";
+  if (f.serviceKind === "http") {
+    const u = f.upstreamUrl.trim();
+    let ok = false;
+    try {
+      const parsed = new URL(u);
+      const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname);
+      ok = parsed.protocol === "https:" || (parsed.protocol === "http:" && loopback);
+    } catch {
+      ok = false;
+    }
+    if (!ok) e.upstreamUrl = "Full https URL of the endpoint PROTEUS should call for every metered request.";
+    if (f.upstreamAuthHeader.trim() && !/^[A-Za-z0-9-]{1,64}$/.test(f.upstreamAuthHeader.trim())) e.upstreamAuthHeader = "Header name only, letters, digits and dashes.";
+  }
   return e;
 }
 
@@ -174,6 +200,9 @@ export function toBody(f: FormState): ProductCreateBody {
       quoteTtlSeconds: Number(clean(f.quoteValidityHours)) * 3600,
     },
     ...(f.perCallUsd.trim() ? { payPerCall: { priceUsd: decimal(f.perCallUsd) } } : {}),
+    ...(f.serviceKind === "http"
+      ? { adapter: "http" as const, upstream: { url: f.upstreamUrl.trim(), ...(f.upstreamAuthHeader.trim() ? { authHeader: f.upstreamAuthHeader.trim() } : {}), ...(f.upstreamSecret.trim() ? { secret: f.upstreamSecret.trim() } : {}) } }
+      : { adapter: "order-support" as const }),
   };
 }
 

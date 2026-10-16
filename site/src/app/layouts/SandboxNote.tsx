@@ -3,11 +3,11 @@ import s from "./shells.module.css";
 
 export const SANDBOX_TEXT = "Arc testnet. Testnet USDC has no value.";
 
-/** The sandbox label shown wherever a balance appears. */
+/** Network label shown wherever a balance appears: real Arc testnet, real transactions, test-value USDC. */
 export function SandboxNote({ compact }: { compact?: boolean }) {
   return (
     <p className={s.sandboxNote}>
-      <StatusTag network="sandbox" label="Sandbox" />
+      <StatusTag network="testnet" label="Arc testnet" />
       {!compact && <span>{SANDBOX_TEXT}</span>}
       {compact && <span className="sr-only">{SANDBOX_TEXT}</span>}
     </p>

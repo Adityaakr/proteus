@@ -2,7 +2,7 @@
  * AppShell: the signed in dashboard frame for every /app route (buy and sell).
  *  - 240px sidebar: Buy group [Home, Market, Negotiations, Deals, Wallet] and Sell group
  *    ["Start selling" until the account has an org, then Products, Negotiations, Approvals, Deals, Finance]
- *  - sticky top bar: page title, actions slot, Sandbox tag, network badge, account menu
+ *  - sticky top bar: page title, actions slot, network badge, account menu
  *  - bottom tab bar on phone widths (< 810px); sidebar hidden there
  *  - skip link to #app-main
  */
@@ -108,8 +108,7 @@ export function AppShell({ children, title, actions }: AppShellProps) {
           <div className={s.sellerTitle}>{typeof heading === "string" ? <h1 className="h5">{heading}</h1> : heading}</div>
           {actions}
           {isMock() && <span className="hide-phone"><StatusTag network="illustrative" label="Mock data" /></span>}
-          <StatusTag network="sandbox" label="Sandbox" title={SANDBOX_TEXT} />
-          <span className="hide-phone"><NetworkBadge network="testnet" /></span>
+          <NetworkBadge network="testnet" />
           <AccountMenu />
         </header>
         <main id="app-main" tabIndex={-1} className={s.sellerMain}>

@@ -150,7 +150,7 @@ export async function payAndExecute(sellerSlug: string, productSlug: string, pay
   await db.update(schema.payPerCallPayments).set({ status: "verified", updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, rowId));
 
   // Execute the service against a synthetic pay-per-call deal id (metering lives in the payment row, not escrow).
-  const out = await executePayPerCall(lp.org.id, input);
+  const out = await executePayPerCall(lp, requestId, input);
   if (!out.billable) {
     await db.update(schema.payPerCallPayments).set({ status: "failed", error: "not billable: " + out.status, response: out as unknown as Record<string, unknown>, updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, rowId));
     return { requestId, ...out, payment: { status: "not_charged", reason: out.status } };
@@ -197,9 +197,9 @@ export async function checkPendingPayments(): Promise<number> {
 }
 
 /** Runs the product adapter without a deal (no escrow metering). */
-async function executePayPerCall(orgId: string, input: ServiceInput): Promise<ServiceOutput & { answer: string }> {
-  const { orderSupport } = await import("./gateway");
-  return orderSupport(orgId, input);
+async function executePayPerCall(lp: Parameters<typeof import("./gateway").runAdapter>[0], requestId: string, input: ServiceInput): Promise<ServiceOutput & { answer: string }> {
+  const { runAdapter } = await import("./gateway");
+  return runAdapter(lp, { requestId }, input);
 }
 
 export { execute };

@@ -6,6 +6,7 @@ import { erc20Abi } from "../chain/abi";
 import { publicClient, usdcAddress } from "../chain/client";
 import { db, schema } from "../db";
 import { env } from "../env";
+import { encryptSecret } from "../lib/crypto";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, publicId } from "../lib/ids";
 import { loadProductById, publicProduct } from "./catalog";
@@ -157,7 +158,23 @@ export interface ProductCreateInput {
   cost: { variableCostPerUnitUsd: string; directCostPerDealUsd: string; txCostBps: number };
   policy: { minMarginBps: number; maxDiscountBps: number; approvalThresholdUsd: string; prepaidMinimumUsd: string; availableCapacityUnits: string; quoteTtlSeconds: number };
   payPerCall?: { priceUsd: string };
-  adapter?: string;
+  /** "http": the seller's own endpoint (real). "order-support": first-party sample store (demo). */
+  adapter?: "http" | "order-support";
+  upstream?: { url: string; authHeader?: string; secret?: string };
+}
+
+/** Only https endpoints, except loopback for local development. */
+export function validateUpstreamUrl(raw: string): string {
+  let u: URL;
+  try {
+    u = new URL(raw.trim());
+  } catch {
+    throw new HttpError(400, "endpoint must be a full URL, for example https://api.example.com/proteus");
+  }
+  const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(u.hostname);
+  if (u.protocol !== "https:" && !(u.protocol === "http:" && loopback)) throw new HttpError(400, "endpoint must use https");
+  if (u.username || u.password) throw new HttpError(400, "endpoint must not embed credentials");
+  return u.toString();
 }
 
 export async function createProduct(orgId: string, input: ProductCreateInput) {
@@ -177,11 +194,14 @@ export async function createProduct(orgId: string, input: ProductCreateInput) {
     termDays: input.termDays,
     refundPolicy: input.refundPolicy,
   };
-  await db.insert(schema.products).values({ id: productId, orgId, slug, public: pub, starters: [`We need about ${input.tiers[0]!.includedUnits} ${input.unitLabel}s a month. What can you offer?`], adapter: input.adapter ?? "order-support", payPerCallPrice: input.payPerCall ? toMicro(input.payPerCall.priceUsd) : null });
+  const adapter = input.adapter ?? (input.upstream?.url ? "http" : "order-support");
+  if (adapter === "http" && !input.upstream?.url) throw new HttpError(400, "an endpoint URL is required for a seller-owned service");
+  const upstream = adapter === "http" && input.upstream ? { url: validateUpstreamUrl(input.upstream.url), authHeader: input.upstream.authHeader?.trim() || undefined, secretEnc: input.upstream.secret?.trim() ? encryptSecret(input.upstream.secret.trim()) : undefined } : null;
+  await db.insert(schema.products).values({ id: productId, orgId, slug, public: pub, starters: [`We need about ${input.tiers[0]!.includedUnits} ${input.unitLabel}s a month. What can you offer?`], adapter, upstream, payPerCallPrice: input.payPerCall ? toMicro(input.payPerCall.priceUsd) : null });
   await db.insert(schema.costModels).values({ id: id("cost"), orgId, productId, version: 1, variableCostPerUnit: toMicro(input.cost.variableCostPerUnitUsd), directCostPerDeal: toMicro(input.cost.directCostPerDealUsd), txCostBps: input.cost.txCostBps, freshUntil: new Date(Date.now() + 30 * 86400 * 1000) });
   await db.insert(schema.policies).values({ id: id("pol"), orgId, productId, version: 1, minMarginBps: input.policy.minMarginBps, maxDiscountBps: input.policy.maxDiscountBps, approvalThreshold: toMicro(input.policy.approvalThresholdUsd), prepaidMinimum: toMicro(input.policy.prepaidMinimumUsd), availableCapacityUnits: BigInt(input.policy.availableCapacityUnits), quoteTtlSeconds: input.policy.quoteTtlSeconds });
-  // Give new sellers the same labeled sample store so the service endpoint works immediately.
-  const samples = await db.select().from(schema.sampleOrders).where(eq(schema.sampleOrders.orgId, orgId));
+  // Demo adapter only: copy the labeled sample store so the service answers immediately.
+  const samples = adapter === "order-support" ? await db.select().from(schema.sampleOrders).where(eq(schema.sampleOrders.orgId, orgId)) : [{}];
   if (!samples.length) {
     const [sandbox] = await db.select().from(schema.orgs).where(eq(schema.orgs.label, "sandbox"));
     if (sandbox) {

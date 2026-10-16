@@ -156,6 +156,7 @@ export interface AgentRun {
   id: string;
   at: string;
   adapter: string;
+  service?: { kind: "http"; url: string | null; authHeader: string | null; hasSecret: boolean } | { kind: "sample-store" };
   steps: { at: string; label: string; state: "done" | "working" | "blocked"; detail?: string }[];
   durationMs: number;
 }

@@ -5,6 +5,8 @@ import { chromium } from "playwright";
 const [outDir, dealId] = [process.argv[2], process.argv[3]];
 const base = "http://localhost:5195";
 const api = "http://localhost:8787";
+const product = process.env.PRODUCT ?? "northwind-support/order-support";
+const sellerSession = process.env.SELLER_DEV_USER ? { "x-dev-user": process.env.SELLER_DEV_USER } : null;
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1200, height: 900 } });
 const errors = [];
@@ -35,7 +37,7 @@ for (let i = 0; i < 12; i++) { await p.waitForTimeout(5000); const t = await p.t
 await p.reload({ waitUntil: "networkidle" }); await p.waitForTimeout(3000); await shot("deal-settled");
 
 // Pay per call from the product page (x402)
-await p.goto(`${base}/app/market/northwind-support/order-support`, { waitUntil: "networkidle" }); await p.waitForTimeout(2000);
+await p.goto(`${base}/app/market/${product}`, { waitUntil: "networkidle" }); await p.waitForTimeout(2000);
 const payBtn = p.getByRole("button", { name: /pay and run/i }).first();
 if (await payBtn.isVisible().catch(() => false)) {
   const qq = p.getByLabel(/question/i).last(); if (await qq.isVisible().catch(() => false)) await qq.fill("Where is my order?");
@@ -45,9 +47,10 @@ if (await payBtn.isVisible().catch(() => false)) {
 }
 
 // Seller closes the term (sandbox cookie session), then refund from the deal page
-const jar = await fetch(`${api}/api/app/session/sandbox`, { method: "POST" });
-const cookie = (jar.headers.get("set-cookie") ?? "").split(";")[0];
-const close = await fetch(`${api}/api/app/deals/${dealId}/close-term`, { method: "POST", headers: { cookie } });
+let sellerHeaders;
+if (sellerSession) sellerHeaders = sellerSession;
+else { const jar = await fetch(`${api}/api/app/session/sandbox`, { method: "POST" }); sellerHeaders = { cookie: (jar.headers.get("set-cookie") ?? "").split(";")[0] }; }
+const close = await fetch(`${api}/api/app/deals/${dealId}/close-term`, { method: "POST", headers: sellerHeaders });
 console.log("close-term", close.status, (await close.text()).slice(0, 160));
 await p.waitForTimeout(8000);
 await p.goto(`${base}/app/deals/${dealId}`, { waitUntil: "networkidle" }); await p.waitForTimeout(2000);

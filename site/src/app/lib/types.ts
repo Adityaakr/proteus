@@ -517,6 +517,9 @@ export interface ProductCreateBody {
   cost: { variableCostPerUnitUsd: string; directCostPerDealUsd: string; txCostBps: number };
   policy: { minMarginBps: number; maxDiscountBps: number; approvalThresholdUsd: string; prepaidMinimumUsd: string; availableCapacityUnits: UnitsStr | number; quoteTtlSeconds: number };
   payPerCall?: { priceUsd: string };
+  /** "http": the seller's own HTTPS endpoint (real). "order-support": first-party sample store (demo). */
+  adapter?: "http" | "order-support";
+  upstream?: { url: string; authHeader?: string; secret?: string };
 }
 
 export interface MarketItem {

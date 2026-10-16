@@ -1,7 +1,9 @@
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowDownToLine, ArrowRight, Briefcase, MessagesSquare } from "lucide-react";
+import { DepositDialog } from "../wallet/DepositDialog";
 import { AppShell } from "../layouts/AppShell";
 import { TodoList, type TodoItem } from "../agentic/TodoList";
 import { ActionButton } from "../ui/ActionButton";
@@ -21,6 +23,7 @@ import h from "./home.module.css";
 export default function Home() {
   const { me, meStatus, user } = useAuth();
   const bal = useBalances();
+  const [deposit, setDeposit] = useState(false);
   const act = useQuery({ queryKey: qk.meActivity, queryFn: api.meActivity, retry: false });
   const negs = act.data?.negotiations ?? [];
   const deals = act.data?.deals ?? [];
@@ -52,7 +55,8 @@ export default function Home() {
 
       <div className={h.grid}>
         <div className={h.stack}>
-          <BalanceCard action={<ActionButton size="sm" to="/app/wallet" iconLeft={<ArrowDownToLine size={14} strokeWidth={2} />}>Deposit</ActionButton>} />
+          <BalanceCard action={<ActionButton size="sm" onClick={() => setDeposit(true)} iconLeft={<ArrowDownToLine size={14} strokeWidth={2} />}>Deposit</ActionButton>} />
+          <DepositDialog open={deposit} onClose={() => setDeposit(false)} />
 
           <Card title="Active negotiations" actions={<Link to="/app/negotiations" className={h.more}>All <ArrowRight size={14} aria-hidden /></Link>} padding="compact">
             <ListState q={act} empty={<EmptyState icon={<MessagesSquare size={20} strokeWidth={1.75} />} title="No open negotiations" description="Start one from a product in the market." action={<ActionButton variant="secondary" to="/app/market">Browse the market</ActionButton>} />} count={activeNegs.length}>
@@ -137,7 +141,7 @@ function SellWidget() {
   const { me } = useAuth();
   const ov = useQuery({ queryKey: ["sell", "overview"], queryFn: api.app.overview, retry: false });
   return (
-    <Card title={`Selling as ${me?.org?.name ?? "your business"}`} actions={<StatusTag network="sandbox" label="Sandbox seller" />} padding="compact">
+    <Card title={`Selling as ${me?.org?.name ?? "your business"}`} actions={me?.org?.label === "sandbox" ? <StatusTag network="sandbox" label="Demo seller" /> : <StatusTag network="live" label="Live seller" />} padding="compact">
       {ov.isLoading ? (
         <Skeleton lines={2} />
       ) : ov.data ? (

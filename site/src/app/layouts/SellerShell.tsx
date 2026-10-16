@@ -10,7 +10,7 @@ import s from "./shells.module.css";
 /**
  * SellerShell contract (used by site/src/app/seller/**):
  *  - 240px sidebar with the wordmark and nav, active item drawn as a pill
- *  - sticky top bar with page title, the sandbox tag and an actions slot
+ *  - sticky top bar with page title, the seller label and an actions slot
  *  - bottom tab bar on phone widths (< 810px); sidebar hidden there
  *  - skip link to #seller-main
  */
@@ -78,7 +78,7 @@ export function SellerShell({ nav, children, title, orgLabel = "sandbox", orgNam
             {typeof heading === "string" ? <h1 className="h5">{heading}</h1> : heading}
           </div>
           {actions}
-          <StatusTag network={orgLabel === "sandbox" ? "sandbox" : "live"} label={orgLabel === "sandbox" ? "Sandbox seller" : "Live seller"} />
+          <StatusTag network={orgLabel === "sandbox" ? "sandbox" : "live"} label={orgLabel === "sandbox" ? "Demo seller" : "Live seller"} />
           <span className="hide-phone"><NetworkBadge /></span>
         </header>
         <main id="seller-main" tabIndex={-1} className={s.sellerMain}>

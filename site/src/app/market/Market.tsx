@@ -46,7 +46,7 @@ function ProductTile({ it }: { it: MarketItem }) {
     <Link to={`/app/market/${it.sellerSlug}/${it.productSlug}`} className={m.tile}>
       <span className={m.tileTop}>
         <span className="body3">{it.sellerName}</span>
-        {it.sellerLabel === "sandbox" && <StatusTag network="sandbox" label="Sandbox seller" />}
+        {it.sellerLabel === "sandbox" && <StatusTag network="sandbox" label="Demo seller" />}
       </span>
       <span className={m.tileName}>{it.name}</span>
       <span className={m.tileFacts}>

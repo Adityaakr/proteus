@@ -3,6 +3,7 @@
 import { chromium } from "playwright";
 const outDir = process.argv[2];
 const base = "http://localhost:5195";
+const product = process.env.PRODUCT ?? "northwind-support/order-support";
 const b = await chromium.launch();
 const p = await b.newPage({ viewport: { width: 1200, height: 900 } });
 const errors = [];
@@ -15,11 +16,11 @@ const click = async (re, timeout = 15000) => { const el = p.getByRole("button", 
 await p.goto(`${base}/app`, { waitUntil: "networkidle" }); await p.waitForTimeout(2500); await shot("home");
 await p.goto(`${base}/app/wallet`, { waitUntil: "networkidle" }); await p.waitForTimeout(2500); await shot("wallet");
 await p.goto(`${base}/app/market`, { waitUntil: "networkidle" }); await p.waitForTimeout(1500); await shot("market");
-await p.goto(`${base}/app/market/northwind-support/order-support`, { waitUntil: "networkidle" }); await p.waitForTimeout(2500); await shot("product");
+await p.goto(`${base}/app/market/${product}`, { waitUntil: "networkidle" }); await p.waitForTimeout(2500); await shot("product");
 await click(/negotiate a (prepaid )?deal/i);
 await p.waitForURL(/\/app\/negotiations\//, { timeout: 20000 }); await p.waitForLoadState("networkidle"); await shot("negotiate-empty");
 const box = p.getByRole("textbox").first();
-await box.fill("We run three online stores and use Zendesk. Let us start with a trial of about 12 resolutions for $15 before we commit.");
+await box.fill(process.env.ASK ?? "We run three online stores and use Zendesk. Let us start with a trial of about 12 resolutions for $15 before we commit.");
 const send = p.getByRole("button", { name: /send/i }).first();
 if (await send.isVisible().catch(() => false)) await send.click(); else await box.press("Enter");
 await p.waitForTimeout(4000); await shot("negotiate-offers");

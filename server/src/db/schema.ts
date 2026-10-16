@@ -102,8 +102,10 @@ export const products = pgTable(
     public: jsonb("public").notNull(),
     /** Suggested buyer starters, public. */
     starters: jsonb("starters").notNull().default([]),
-    /** Service adapter key, e.g. "order-support". */
+    /** Service adapter key: "http" (the seller's own HTTPS endpoint) or "order-support" (first-party sample store, demo). */
     adapter: text("adapter").notNull(),
+    /** For adapter "http": { url, authHeader?, secretEnc? }. The secret is AES-GCM encrypted and never returned by the API. */
+    upstream: jsonb("upstream"),
     /** Pay-per-call price in micro-USDC (x402); null = prepaid deals only. */
     payPerCallPrice: bigint("pay_per_call_price", { mode: "bigint" }),
     active: boolean("active").notNull().default(true),

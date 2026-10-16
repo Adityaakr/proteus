@@ -31,8 +31,8 @@ export function SandboxGate() {
   return (
     <div className={s.gate}>
       <Card
-        title="Try the sandbox seller"
-        subtitle="No account needed. You get a visibly labeled sandbox seller with one product, live negotiations and testnet deals."
+        title="Try the demo seller"
+        subtitle="No account needed. You get the labeled demo seller with one product, live negotiations and real Arc testnet deals."
         actions={<StatusTag network="sandbox" label="Sandbox seller" icon={<FlaskConical size={12} />} />}
       >
         <ul className={s.gateList}>
@@ -44,11 +44,11 @@ export function SandboxGate() {
           ))}
         </ul>
         {start.isError && <Notice tone="danger">{errorMessage(start.error)}</Notice>}
-        <ActionButton onClick={() => start.mutate()} loading={start.isPending} loadingLabel="Starting sandbox" icon>
-          Try the sandbox seller
+        <ActionButton onClick={() => start.mutate()} loading={start.isPending} loadingLabel="Opening demo seller" icon>
+          Try the demo seller
         </ActionButton>
         <p className="body3" style={{ fontSize: 12 }}>
-          Owners of a live seller sign in with their configured wallet. Sandbox data never counts toward live totals.
+          Owners of a live seller sign in with Privy. Demo data never counts toward live totals.
         </p>
       </Card>
     </div>

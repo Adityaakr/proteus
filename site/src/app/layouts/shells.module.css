@@ -85,7 +85,7 @@
   box-shadow: inset 0 -1px 0 var(--c-dark-10);
 }
 .sellerTitle { flex: 1 1 auto; min-width: 0; }
-.sellerMain { flex: 1 1 auto; width: 100%; max-width: 1240px; padding: 28px 28px 64px; display: flex; flex-direction: column; gap: 24px; }
+.sellerMain { flex: 1 1 auto; width: 100%; max-width: 1240px; margin: 0 auto; padding: 28px 28px 64px; display: flex; flex-direction: column; gap: 24px; }
 .sellerMain:focus { outline: none; }
 .mobileBrand { display: none; }
 .tabbar { display: none; }

@@ -26,8 +26,8 @@ export default function Settings() {
       {sandbox && (
         <Notice tone="info" title="Demo seller">
           <span className={s.row}>
-            <StatusTag network="sandbox" label="Sandbox seller" icon={<FlaskConical size={12} />} />
-            This is the labeled demo seller. Its negotiations and deals run on Arc testnet and never count toward live totals.
+            <StatusTag network="sandbox" label="Demo seller" icon={<FlaskConical size={12} />} />
+            This is the seeded demo seller with a sample order store. Its deals run on Arc testnet for real but never count toward live totals.
           </span>
         </Notice>
       )}
@@ -102,7 +102,7 @@ export default function Settings() {
             items={[
               { k: "Name", v: me.org.name },
               { k: "Slug", v: <MonoValue value={me.org.slug} /> },
-              { k: "Label", v: <StatusTag network={sandbox ? "sandbox" : "live"} label={sandbox ? "Sandbox seller" : "Live seller"} /> },
+              { k: "Label", v: <StatusTag network={sandbox ? "sandbox" : "live"} label={sandbox ? "Demo seller" : "Live seller"} /> },
               { k: "Your role", v: "Owner" },
             ]}
           />
