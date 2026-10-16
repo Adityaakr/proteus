@@ -11,12 +11,12 @@
 .title { margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: 34px; line-height: 1.1; letter-spacing: -0.4px; }
 .lede { margin: 0; font-size: 16px; line-height: 1.55; color: var(--c-dark-80); max-width: 680px; }
 .flow { display: flex; flex-wrap: nowrap; gap: 0; margin: 10px 0 0; padding: 14px 16px; list-style: none; border-radius: 14px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
-.flowStep { display: flex; align-items: center; gap: 10px; flex: 1 1 0; min-width: 0; }
+.flowStep { display: flex; align-items: flex-start; gap: 10px; flex: 1 1 0; min-width: 0; }
 .flowIcon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9px; color: var(--c-primary); background: var(--c-primary-10); flex: none; }
 .flowText { display: flex; flex-direction: column; gap: 1px; font-size: 12.5px; color: var(--c-dark-60); min-width: 0; }
 .flowText b { font-weight: 500; font-size: 13.5px; color: var(--c-dark); }
-.flowArrow { flex: 1 1 10px; height: 1px; margin: 0 10px; background: var(--c-dark-20); min-width: 8px; }
-.flowText span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.flowArrow { flex: 0 0 14px; height: 1px; margin: 15px 10px 0; background: var(--c-dark-20); }
+.flowText span { white-space: normal; line-height: 1.3; }
 
 .section { display: flex; flex-direction: column; gap: 12px; padding-top: 26px; border-top: 1px solid var(--c-dark-10); scroll-margin-top: 90px; }
 .section p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--c-dark-80); }
