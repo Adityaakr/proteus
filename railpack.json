@@ -4,7 +4,8 @@
     "build": {
       "commands": [
         "pnpm --filter @proteus/domain typecheck",
-        "pnpm --filter @proteus/server typecheck"
+        "pnpm --filter @proteus/server typecheck",
+        "pnpm --filter proteus-site build"
       ]
     }
   },

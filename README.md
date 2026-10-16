@@ -385,7 +385,7 @@ Fund the deployer and the relayer at [faucet.circle.com](https://faucet.circle.c
 
 Tests: `pnpm --filter @proteus/domain test` (13), `pnpm --filter @proteus/server test` (9), `pnpm contracts:test` (24 + 3 invariants). CI runs all three plus the site type check and build, and `db:push` + `db:seed` against a Postgres service, on every push to `main` and `feat/**`.
 
-Hosting: the static site deploys to Vercel; the API, reconciler and Postgres need one long-running Node 22 process and are not hosted yet, so the full loop runs locally or on your own host (see [`DEPLOYMENT.md`](DEPLOYMENT.md)). Never commit `server/.env`.
+Hosting: one Railway service runs the API, the reconciler and serves the built site from the same origin, with Postgres as a plugin; config is in `railway.json` and `railpack.json`, steps in [`DEPLOYMENT.md`](DEPLOYMENT.md). Never commit `server/.env`.
 
 ## Security model
 
@@ -429,7 +429,7 @@ Where the code stands today and what it takes to run real money through it. Each
 
 | Item | Why | Where |
 |---|---|---|
-| Host the API and Postgres (Railway config is in the repo) and point the Vercel site at it | the full loop is local today | [`DEPLOYMENT.md`](DEPLOYMENT.md) |
+| Run the one-service Railway deployment (site and API together, Postgres plugin) on a public domain | the full loop has only run locally so far | [`DEPLOYMENT.md`](DEPLOYMENT.md) |
 | Rate limiting and request budgets on public routes; wallet-signature gating for `GET /deals/:id` | deal routes rely on unguessable ids today | [`OPEN_ISSUES.md`](OPEN_ISSUES.md) |
 | Run the Circle developer-controlled wallet relayer end to end with real credentials | implemented, never executed | `server/src/chain/relayer.ts` |
 | One recorded loop negotiated by the model adapter and one driven by an autonomous buyer agent using the buyer skill | the on-chain proof negotiated rule-based and was scripted | [`docs/acceptance-report.md`](docs/acceptance-report.md) |

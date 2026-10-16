@@ -1,4 +1,7 @@
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
+import { existsSync, readFileSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -44,6 +47,16 @@ app.route("/api", payRoutes);
 app.route("/api", appRoutes);
 app.route("/api", consoleRoutes);
 app.route("/api", rpcRoutes);
+
+// Hosted mode: the built site lives next to the API, so one service serves both from one origin.
+// Anything that is not /api and not a file in site/dist answers the SPA shell (client-side routing).
+const siteDist = resolve(process.cwd(), "../site/dist");
+if (existsSync(join(siteDist, "index.html"))) {
+  const shell = readFileSync(join(siteDist, "index.html"), "utf8");
+  app.use("/*", serveStatic({ root: relative(process.cwd(), siteDist) }));
+  app.get("/*", (c) => (c.req.path.startsWith("/api/") ? c.notFound() : c.html(shell)));
+  console.log(`serving site from ${siteDist}`);
+}
 
 app.onError((err, c) => {
   if (err instanceof HttpError) return json(c, { error: err.message, details: err.details ?? null }, err.status);
