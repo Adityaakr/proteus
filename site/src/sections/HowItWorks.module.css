@@ -272,3 +272,8 @@
     transform: none;
   }
 }
+
+/* Keep the two-sentence heading on two lines at every width. */
+.header h2 { white-space: pre-line; }
+@media (max-width: 809.98px) { .header h2 { font-size: 30px; } }
+@media (max-width: 419.98px) { .header h2 { font-size: 27px; } }

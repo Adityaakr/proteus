@@ -150,7 +150,7 @@ export function HowItWorks() {
               icon={<Command size={16} strokeWidth={2} />}
               gap={32}
               textGap={16}
-              headingMaxWidth={500}
+              headingMaxWidth={640}
               descriptionMaxWidth={500}
             />
           </Appear>
