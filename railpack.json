@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "steps": {
+    "build": {
+      "commands": [
+        "pnpm --filter @proteus/domain typecheck",
+        "pnpm --filter @proteus/server typecheck"
+      ]
+    }
+  },
+  "deploy": {
+    "startCommand": "pnpm --filter @proteus/server start:prod"
+  }
+}

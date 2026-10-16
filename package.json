@@ -3,14 +3,17 @@
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@10.30.2",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "pnpm -r --parallel --filter ./site --filter ./server dev",
-    "build": "pnpm -r build",
+    "build": "pnpm -r --filter '!./contracts' build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "contracts:test": "cd contracts && arc-forge test -vv",
     "db:migrate": "pnpm --filter @proteus/server db:migrate",
-    "db:seed": "pnpm --filter @proteus/server db:seed"
+    "db:seed": "pnpm --filter @proteus/server db:seed",
+    "start": "pnpm --filter @proteus/server start:prod"
   }
 }

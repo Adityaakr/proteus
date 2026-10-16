@@ -158,39 +158,9 @@ The monorepo is a pnpm workspace:
 
 ### Who can move money
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                              DealEscrow.sol                                  │
-│                                                                              │
-│  createAndFundDeal(terms, buyerSig, sellerSig)   anyone may submit           │
-│      needs: buyer signature + seller signature over the SAME terms           │
-│      effect: pulls terms.prepaid USDC from the buyer into the contract       │
-│                                                                              │
-│  settleAcceptedUsage(acceptance, buyerSig, delivery, sellerSig)   anyone     │
-│      needs: buyer-signed Acceptance + seller-signed Delivery, same root,     │
-│             same units, nonce strictly increasing, amount ≤ deposit          │
-│      effect: pays payee only (cumulativeAmount − alreadySettled)             │
-│                                                                              │
-│  refundUnused(dealId)   anyone, after end + grace or after sellerCloseTerm   │
-│      effect: sends what remains to the buyer, closes the deal               │
-│                                                                              │
-│  sellerCloseTerm   seller only      openDispute   buyer or seller           │
-│  resolveDispute    arbiter only, can split what remains, nowhere else       │
-│  pause / setArbiter   owner only; no fund-moving function, but it appoints   │
-│                       the arbiter (same deployer key on this deployment)     │
-└──────────────────────────────────────────────────────────────────────────────┘
-          ▲                      ▲                        ▲
-          │ signs Terms,         │ signs Terms, Delivery, │ submits calldata that
-          │ Acceptance           │ receipts; may close    │ already carries both
-          │                      │ the term               │ signatures; holds no
-     ┌────┴─────┐          ┌─────┴──────┐           ┌─────┴──────┐  authority
-     │  Buyer   │          │ Seller's   │           │  Relayer   │
-     │  wallet  │          │ delegated  │           │ viem key   │
-     │ (Privy   │          │ signer     │           │ or Circle  │
-     │ or own)  │          │ (server-   │           │ dev wallet │
-     └──────────┘          │ held, AES) │           └────────────┘
-                           └────────────┘
-```
+![Who can move money](docs/images/who-moves-money.png)
+
+Anyone may submit the three doors at the top: the authority is in the signatures the calldata carries, not in the sender. USDC leaves the contract only to the payee on a countersigned settlement, to the buyer on a refund after the timer or a seller close, or by the arbiter's split in a dispute. The owner holds nothing.
 
 ### A deal's states
 

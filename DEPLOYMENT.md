@@ -38,6 +38,15 @@ Avoid anvil account 1 as the buyer: it is the blocklisted test address on Arc.
 5. Optional Circle relayer: set `CIRCLE_API_KEY` and `CIRCLE_ENTITY_SECRET`, run `npx tsx scripts/circle-wallet.ts` to create an `ARC-TESTNET` wallet and request faucet tokens; put the printed `CIRCLE_WALLET_ID` / `CIRCLE_WALLET_ADDRESS` in `server/.env`.
 6. Run `API_URL=http://localhost:8787 BUYER_PRIVATE_KEY=<funded buyer> npx tsx scripts/testnet-demo.ts` and record the printed hashes in `docs/acceptance-report.md`.
 
-## Hosting (not done)
+## Hosting the API on Railway
+
+The repo carries `railway.json` and `railpack.json`, so a Railway service pointed at this repo builds with Railpack and starts with `pnpm --filter @proteus/server start:prod`, which pushes the Drizzle schema (`drizzle-kit push --force`) and then serves on `$PORT`. Health check: `/api/health`.
+
+1. Create a Railway project, add a **Postgres** plugin, and a service from this GitHub repo (root directory `/`).
+2. Variables on the service: `DATABASE_URL` (reference the plugin), `NODE_ENV=production`, `WEB_ORIGIN=https://<your vercel domain>`, `SESSION_SECRET`, `KEY_ENCRYPTION_SECRET`, `ARC_RPC_URL`, `CHAIN_ID=5042002`, `USDC_ADDRESS`, `ESCROW_ADDRESS`, `DEPLOYER_PRIVATE_KEY`, `SELLER_SIGNER_PRIVATE_KEY`, `RELAYER_PRIVATE_KEY`, `OPENROUTER_API_KEY`, `PRIVY_APP_ID`. Leave `PRIVY_DEV_BYPASS` unset.
+3. Seed once from a shell on the service (or locally against the Railway `DATABASE_URL`): `pnpm --filter @proteus/server db:seed && pnpm --filter @proteus/server db:seed-examples`.
+4. Point the Vercel site at it: add to `vercel.json` `"rewrites": [{ "source": "/api/:path*", "destination": "https://<railway domain>/api/:path*" }]` so the app stays same-origin (the RPC relay and cookies depend on it).
+
+## Hosting (earlier notes)
 
 Web: any static host (`pnpm --filter proteus-site build` → `site/dist`), with `/api` proxied to the API. API + reconciler: one long-running Node 22 process (Railway, Fly, Render) with Postgres. Keep `server/.env` out of git; use the host's secret manager. Mainnet is off: `CHAIN_ID`, `USDC_ADDRESS` and the faucet references are testnet-only, and there is no mainnet config path.
