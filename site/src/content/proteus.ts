@@ -48,7 +48,7 @@ export const howItWorks = {
   tag: "How it works",
   heading: "From interest to income. One continuous workflow.",
   description:
-    "Your pricing page can’t handle a volume discount, a six-month commitment or a fixed budget. Someone has to estimate costs, check margins and propose terms. On a small team that is usually the founder. PROTEUS does it without a human in every negotiation.",
+    "A pricing page can’t handle a discount, a commitment or a budget. Someone has to work out the deal, usually the founder. PROTEUS does it for you.",
   mandates: [
     "Can we get a volume discount?",
     "What if we commit for six months?",
