@@ -1,5 +1,7 @@
 /* Deal page specifics; layout classes come from fund.module.css. */
-.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 18px 0; border-top: 1px solid var(--c-dark-10); border-bottom: 1px solid var(--c-dark-10); }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 18px 0 4px; border-top: 1px solid var(--c-dark-10); }
+.wrapRow { flex-direction: column; align-items: flex-start !important; gap: 4px !important; }
+.wrapRow dd { text-align: left !important; font-size: 12px; overflow-wrap: anywhere; white-space: normal; }
 .stats div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .stats dt { font-family: var(--font-body); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-dark-60); }
 .stats dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 22px; letter-spacing: -0.3px; color: var(--c-dark); }

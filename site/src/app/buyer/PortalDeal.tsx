@@ -337,7 +337,7 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
         <div className={f.railBlock}>
           <span className={f.label}>Credentials</span>
           <dl className={f.summary}>
-            <div><dt>Endpoint</dt><dd><MonoValue value={`POST ${deal.service.endpoint}`} short copy label="endpoint" /></dd></div>
+            <div className={d.wrapRow}><dt>Endpoint</dt><dd><MonoValue value={`POST ${deal.service.endpoint}`} copy label="endpoint" /></dd></div>
             <div><dt>Docs</dt><dd><a href={deal.service.docsUrl} className={f.textBtn}>API reference</a></dd></div>
           </dl>
           {freshKey ? (
