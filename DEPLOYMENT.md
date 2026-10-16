@@ -44,7 +44,10 @@ The repo carries `railway.json` and `railpack.json`. One Railway service pointed
 
 1. Create a Railway project with a **Postgres** plugin and **one** service from this GitHub repo (root directory `/`). If Railway offers one service per workspace package, keep only `@proteus/server` and delete the others; each extra one runs the same start command and crashes.
 2. Service Settings → Networking → Generate Domain. The site is at `https://<domain>/`, the API at `https://<domain>/api/health`.
-3. Variables: `DATABASE_URL` (reference the plugin), `NODE_ENV=production`, `WEB_ORIGIN=https://<domain>`, `SESSION_SECRET`, `KEY_ENCRYPTION_SECRET`, `ARC_RPC_URL`, `CHAIN_ID=5042002`, `USDC_ADDRESS`, `ESCROW_ADDRESS`, `DEPLOYER_PRIVATE_KEY`, `SELLER_SIGNER_PRIVATE_KEY`, `RELAYER_PRIVATE_KEY`, `OPENROUTER_API_KEY`, `PRIVY_APP_ID`. Leave `PRIVY_DEV_BYPASS` unset. Redeploy after setting them.
+3. Variables: `DATABASE_URL` (reference the plugin), `NODE_ENV=production`, `WEB_ORIGIN=https://<domain>`, `SESSION_SECRET`, `KEY_ENCRYPTION_SECRET`, `ARC_RPC_URL`, `CHAIN_ID=5042002`, `USDC_ADDRESS`, `ESCROW_ADDRESS`, `DEPLOYER_PRIVATE_KEY`, `SELLER_SIGNER_PRIVATE_KEY`, `RELAYER_PRIVATE_KEY`, `OPENROUTER_API_KEY`, `PRIVY_APP_ID`, `ADMIN_TOKEN` (32+ random chars) and `INVITE_PEPPER` (32+ random chars). Leave `PRIVY_DEV_BYPASS` unset. Redeploy after setting them.
+4. Invite codes: the product is invite-only in production (`INVITE_GATE` defaults to on). Mint codes against the hosted database with the admin route, which returns each code exactly once:
+   `curl -X POST https://<domain>/api/admin/invites -H "authorization: Bearer $ADMIN_TOKEN" -H 'content-type: application/json' -d '{"count":100,"label":"launch"}'`
+   `GET /api/admin/invites` lists status and who redeemed what; `POST /api/admin/invites/revoke {"invite":"<id or code>"}` revokes. From a shell with the database URL, `pnpm --filter @proteus/server exec tsx scripts/invites.ts generate 100 --label launch` does the same.
 4. In the Privy dashboard, add `https://<domain>` to the app's allowed origins so login works there.
 
 ## Hosting (earlier notes)

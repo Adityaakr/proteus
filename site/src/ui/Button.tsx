@@ -14,6 +14,8 @@ import { T_DEFAULT } from "../lib/motion";
  */
 export interface ButtonProps {
   label: string;
+  /** Replaces the label while hovered or focused (the button keeps the wider of the two widths). */
+  hoverLabel?: string;
   href: string;
   variant?: "primary" | "secondary" | "primary-light";
   size?: "default" | "small";
@@ -32,7 +34,7 @@ const fills: Record<NonNullable<ButtonProps["variant"]>, { rest: string; hover: 
   secondary: { rest: "rgba(0,0,0,0)", hover: "rgba(0,0,0,0)" },
 };
 
-export function Button({ label, href, variant, size = "default", icon = true, light, newTab, className, fullWidth, style }: ButtonProps) {
+export function Button({ label, hoverLabel, href, variant, size = "default", icon = true, light, newTab, className, fullWidth, style }: ButtonProps) {
   const v: NonNullable<ButtonProps["variant"]> = variant ?? (light ? "primary-light" : "primary");
   const isSecondary = v === "secondary";
   const color = isSecondary ? "var(--c-dark)" : "var(--c-white)";
@@ -43,9 +45,11 @@ export function Button({ label, href, variant, size = "default", icon = true, li
       target={newTab ? "_blank" : undefined}
       rel={newTab ? "noreferrer" : undefined}
       className={className}
-      initial={false}
-      animate={{ backgroundColor: fills[v].rest }}
-      whileHover={{ backgroundColor: fills[v].hover }}
+      initial="rest"
+      animate="rest"
+      whileHover="hover"
+      whileFocus="hover"
+      variants={{ rest: { backgroundColor: fills[v].rest }, hover: { backgroundColor: fills[v].hover } }}
       transition={T_DEFAULT}
       style={{
         display: "inline-flex",
@@ -64,9 +68,20 @@ export function Button({ label, href, variant, size = "default", icon = true, li
         ...style,
       }}
     >
-      <span className="btn-text" style={{ color }}>
-        {label}
-      </span>
+      {hoverLabel ? (
+        <span style={{ display: "grid", textAlign: "center" }}>
+          <motion.span className="btn-text" style={{ color, gridArea: "1 / 1" }} variants={{ rest: { opacity: 1, y: 0 }, hover: { opacity: 0, y: -6 } }} transition={T_DEFAULT}>
+            {label}
+          </motion.span>
+          <motion.span className="btn-text" aria-hidden style={{ color, gridArea: "1 / 1" }} variants={{ rest: { opacity: 0, y: 6 }, hover: { opacity: 1, y: 0 } }} transition={T_DEFAULT}>
+            {hoverLabel}
+          </motion.span>
+        </span>
+      ) : (
+        <span className="btn-text" style={{ color }}>
+          {label}
+        </span>
+      )}
       {icon && (
         <span style={{ width: 16, height: 16, display: "inline-flex", alignItems: "center", justifyContent: "center", overflow: "clip" }}>
           <ArrowRight size={16} strokeWidth={2} color={color} />

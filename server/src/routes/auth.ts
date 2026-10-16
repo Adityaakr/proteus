@@ -5,6 +5,7 @@ import { db, schema } from "../db";
 import { env, features } from "../env";
 import { HttpError } from "../lib/http";
 import { id } from "../lib/ids";
+import { bindGrantCookie } from "../services/invites";
 
 /**
  * Privy access tokens are ES256 JWTs signed by the app's key; we verify them against the app's public
@@ -16,6 +17,24 @@ const jwks = createRemoteJWKSet(new URL(env.PRIVY_JWKS_URL ?? `https://auth.priv
 export interface AuthInfo {
   userId: string;
   did: string;
+  /** True once an invite code is bound to the account (always true when the gate is off). */
+  access: boolean;
+}
+
+/** Account-level routes a signed-in person may use before redeeming an invite: their profile and wallet links. */
+const UNGATED = [/^\/api\/me$/, /^\/api\/me\/wallets?(\/|$)/, /^\/api\/invites(\/|$)/];
+
+/**
+ * The invite gate. A signed-in account without access gets 403 `invite_required` on everything except the
+ * ungated account routes. A grant cookie from a pre-sign-in check is consumed here, on the first call.
+ */
+async function gate(c: Context, userId: string, granted: boolean): Promise<boolean> {
+  if (!features.inviteGate) return true;
+  let access = granted;
+  if (!access) access = await bindGrantCookie(c, userId);
+  if (access) return true;
+  if (UNGATED.some((re) => re.test(c.req.path))) return false;
+  throw new HttpError(403, "An invite code is required to use Proteus AI.", { code: "invite_required" });
 }
 
 export async function verifyPrivyToken(token: string): Promise<{ did: string }> {
@@ -41,7 +60,7 @@ export async function resolveAuth(c: Context): Promise<AuthInfo | undefined> {
   const devUser = c.req.header("x-dev-user");
   if (devUser && features.privyDevBypass) {
     const u = await upsertUser(`did:privy:dev:${devUser}`, `${devUser}@dev.local`);
-    const info = { userId: u.id, did: u.privyDid };
+    const info = { userId: u.id, did: u.privyDid, access: await gate(c, u.id, Boolean(u.accessGrantedAt)) };
     c.set("auth", info);
     return info;
   }
@@ -50,10 +69,11 @@ export async function resolveAuth(c: Context): Promise<AuthInfo | undefined> {
   try {
     const { did } = await verifyPrivyToken(bearer);
     const u = await upsertUser(did);
-    const info = { userId: u.id, did };
+    const info = { userId: u.id, did, access: await gate(c, u.id, Boolean(u.accessGrantedAt)) };
     c.set("auth", info);
     return info;
   } catch (e) {
+    if (e instanceof HttpError) throw e;
     throw new HttpError(401, `invalid session: ${String((e as Error).message).slice(0, 120)}`);
   }
 }

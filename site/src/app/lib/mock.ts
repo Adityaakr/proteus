@@ -867,7 +867,7 @@ function accountOrg(): T.MeOrg | null {
 
 function meView(): T.MeResponse {
   const org = accountOrg();
-  return { userId: "did:privy:mock-buyer", email: "demo@proteus.dev", wallets: [{ address: MOCK_BUYER_ADDRESS, kind: "embedded", primary: true }], ...(org ? { org } : {}), labels: { network: "testnet" } };
+  return { userId: "did:privy:mock-buyer", email: "demo@proteus.dev", wallets: [{ address: MOCK_BUYER_ADDRESS, kind: "embedded", primary: true }], ...(org ? { org } : {}), access: true, labels: { network: "testnet" } };
 }
 
 function negSummaries(): T.NegotiationSummary[] {
@@ -889,6 +889,8 @@ function marketItems(): T.MarketItem[] {
 
 async function mockV1(method: string, p: string[], body: Body): Promise<unknown | typeof NO_MATCH> {
   const is = (m: string, ...parts: (string | null)[]) => method === m && p.length === parts.length && parts.every((x, i) => x === null || x === p[i]);
+  if (is("GET", "invites", "status")) return { gate: false, pending: false, access: true };
+  if (is("POST", "invites", "redeem")) return { ok: true, bound: true };
   if (is("GET", "me")) {
     await sleep(120);
     return meView();

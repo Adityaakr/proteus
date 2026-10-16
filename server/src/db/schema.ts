@@ -15,8 +15,34 @@ export const users = pgTable("users", {
   email: text("email"),
   /** What the person came to do: "buy" or "sell". Chosen once after sign-in; switchable in the shell. */
   mode: text("mode"),
+  /** Set when an invite code was bound to this account. Null means the account is locked out of the product. */
+  accessGrantedAt: timestamp("access_granted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Invite codes. Only an HMAC of the code is stored; the plaintext is shown once at generation and never
+ * again. A code grants access to `maxUses` accounts, stops at `expiresAt`, and can be revoked at any time.
+ */
+export const invites = pgTable("invites", {
+  id: text("id").primaryKey(),
+  codeHash: text("code_hash").notNull().unique(),
+  label: text("label"),
+  maxUses: integer("max_uses").notNull().default(1),
+  uses: integer("uses").notNull().default(0),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Which account used which invite. One row per account: access is granted once. */
+export const inviteRedemptions = pgTable("invite_redemptions", {
+  id: text("id").primaryKey(),
+  inviteId: text("invite_id").notNull().references(() => invites.id),
+  userId: text("user_id").notNull().references(() => users.id).unique(),
+  ip: text("ip"),
+  redeemedAt: timestamp("redeemed_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 /** Wallet addresses a user proved control of (embedded or external). */

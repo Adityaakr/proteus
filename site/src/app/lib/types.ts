@@ -535,7 +535,16 @@ export interface MeResponse {
   email?: string;
   wallets: MeWallet[];
   org?: MeOrg;
+  /** False while the invite gate is on and no invite code has been bound to this account. */
+  access?: boolean;
   labels: { network: "testnet" };
+}
+
+export interface InviteStatus {
+  gate: boolean;
+  /** A code was checked in this browser before sign-in; it binds on the first signed-in request. */
+  pending: boolean;
+  access: boolean | null;
 }
 
 export interface MeWalletBalance {

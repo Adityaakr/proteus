@@ -10,3 +10,6 @@
 .methods { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; font-family: var(--font-body); font-size: 14px; color: var(--c-dark-80); }
 .methods li { display: flex; align-items: center; gap: 10px; }
 @media (max-width: 809.98px) { .top { padding: 8px 16px; } .title { font-size: 28px; } }
+.lede { margin: 0; font-family: var(--font-body); font-size: 15px; line-height: 1.5; color: var(--c-dark-60); }
+.form { display: flex; flex-direction: column; gap: 12px; }
+.code input { font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace); font-size: 18px; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; }

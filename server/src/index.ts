@@ -18,6 +18,7 @@ import { publicRoutes } from "./routes/public";
 import { meRoutes } from "./routes/me";
 import { payRoutes } from "./routes/pay";
 import { rpcRoutes } from "./routes/rpc";
+import { inviteRoutes } from "./routes/invites";
 import { consoleRoutes } from "./routes/console";
 
 const app = new Hono();
@@ -40,6 +41,7 @@ app.get("/api/health", (c) =>
   }),
 );
 
+app.route("/api", inviteRoutes);
 app.route("/api", publicRoutes);
 app.route("/api", dealRoutes);
 app.route("/api", meRoutes);

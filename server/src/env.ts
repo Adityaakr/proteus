@@ -55,6 +55,13 @@ const Env = z.object({
   /** Encrypts per-org seller signer keys at rest. */
   KEY_ENCRYPTION_SECRET: z.string().min(16).optional(),
 
+  /** Invite gate: "1" requires a redeemed invite code for every signed-in account (default on in production). "0" opens the product. */
+  INVITE_GATE: z.string().optional(),
+  /** Keys the HMAC of invite codes at rest; falls back to SESSION_SECRET. Changing it invalidates every code. */
+  INVITE_PEPPER: z.string().min(16).optional(),
+  /** Bearer token for the admin routes that mint, list and revoke invites. Unset disables them. */
+  ADMIN_TOKEN: z.string().min(32).optional(),
+
   /** Circle x402 facilitator (keyless trial for the exact scheme; API key once registered). */
   X402_FACILITATOR_URL: z.string().default("https://api.circle.com/v1/facilitator/x402"),
   X402_NETWORK: z.string().default("eip155:5042002"),
@@ -74,4 +81,6 @@ export const features = {
   viemRelayer: Boolean(env.RELAYER_PRIVATE_KEY),
   escrow: Boolean(env.ESCROW_ADDRESS),
   sellerSigner: Boolean(env.SELLER_SIGNER_PRIVATE_KEY),
+  inviteGate: env.INVITE_GATE ? env.INVITE_GATE === "1" : env.NODE_ENV === "production",
+  admin: Boolean(env.ADMIN_TOKEN),
 };

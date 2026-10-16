@@ -7,7 +7,7 @@
 - **Grace window vs late receipts.** Settlement after `end + grace` reverts by design; a receipt submitted late is not settleable. Sellers should settle before the window closes. Documented in `docs/settlement-model.md`.
 - **Reconciler scans the last 5,000 blocks on first run.** Deals funded earlier than that before the API first saw them would need a manual backfill.
 - **Rule-based extraction is regex based.** Numbers in unusual phrasing may be missed; the agent then asks a clarifying question rather than guessing.
-- **No rate limiting on public routes yet.** Add before any public deployment.
+- **Rate limiting is partial and per instance.** Invite redemption and the admin routes are limited in memory (8 attempts per IP and per account per 10 minutes, 20 for admin); the counters reset on restart and are not shared across replicas. Other public routes are still unlimited.
 - **Blocklisted payee DoS.** If a seller payee is blocklisted on Arc, settlement reverts (Arc transfer rules). The arbiter path can route funds to the buyer; no seller-side recovery exists.
 - **Owner is the arbiter.** `Deploy.s.sol` defaults the arbiter to the deployer, so on the testnet deployment the owner key decides the split of any disputed deal. Set `ESCROW_ARBITER` to a separate party before anything that matters.
 - **Deal routes are capability-id gated.** `GET /deals/:id` returns the one-time API key to whoever knows the deal id; ids are random and unguessable, but there is no login check, by design for agent access. Tie the read to a buyer wallet signature before public hosting.

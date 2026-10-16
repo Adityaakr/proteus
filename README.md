@@ -350,6 +350,7 @@ All routes are under `/api`. Amounts are micro-USDC strings. Full detail in [`do
 | Pay per call | `POST /pay/:seller/:product/execute` (402 then payment) |
 | Account | `GET /me`, `PATCH /me { mode }`, `GET /me/wallet`, `POST /me/wallets/link`, `PATCH /me/wallets/primary`, `GET /me/negotiations`, `GET /me/deals` |
 | Seller | `POST /orgs`, `POST /me/products`, `PATCH /app/products/:id/listing`, `DELETE /app/products/:id`, `GET /app/negotiations`, approvals, deals, usage, finance, `GET /app/signer` |
+| Invite gate | `GET /invites/status`, `POST /invites/redeem { code }` (signed in: binds to the account; signed out: sets a 7-day signed grant cookie that binds on the first signed-in call), `POST /admin/invites { count, label?, maxUses?, expiresInDays? }`, `GET /admin/invites`, `POST /admin/invites/revoke { invite }` (bearer `ADMIN_TOKEN`) |
 | Public records | `GET /review`, `GET /review/:publicId` (redacted, with transaction hashes) |
 | Chain relay | `POST /rpc` (same-origin read relay plus `eth_sendRawTransaction`, so a browser content blocker cannot stop a signature or a broadcast) |
 
@@ -380,6 +381,7 @@ Fund the deployer and the relayer at [faucet.circle.com](https://faucet.circle.c
 | `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | model for the negotiation agent and the service agents; none means rule-based negotiation and Proteus-run services refuse unbilled |
 | `PRIVY_APP_ID`, `PRIVY_JWKS_URL`, `PRIVY_DEV_BYPASS` | Privy JWT verification; the bypass honours an `x-dev-user` header and is ignored in production |
 | `KEY_ENCRYPTION_SECRET` | AES-256-GCM key for org signer keys and seller endpoint secrets at rest |
+| `INVITE_GATE`, `INVITE_PEPPER`, `ADMIN_TOKEN` | invite-only access (on by default in production), HMAC pepper for stored codes, bearer token for minting and revoking codes |
 | `X402_FACILITATOR_URL`, `X402_NETWORK` | Circle facilitator, `eip155:5042002` |
 | `DEAL_GRACE_SECONDS`, `RECONCILE_INTERVAL_MS` | refund grace window (default 3 days), reconciler interval |
 
@@ -397,6 +399,7 @@ Hosting: one Railway service runs the API, the reconciler and serves the built s
 | Seller endpoint secret | encrypted at rest, decrypted per call, never returned by the API | |
 | Deal API key | `pk_live_…` (the prefix is historical; every key is testnet), only its SHA-256 stored, shown once | rotation needs a buyer wallet signature over a 5-minute timestamp |
 | Relayer key | `RELAYER_PRIVATE_KEY` or a Circle developer-controlled wallet | can only call `createAndFundDeal`, `settleAcceptedUsage`, `refundUnused`; authority is in the calldata it relays |
+| Invite gate | codes are `PRX-XXXX-XXXX-XXXX`, 12 symbols from a 31-symbol alphabet (60 bits); only an HMAC under `INVITE_PEPPER` is stored, the plaintext is returned once at minting | every signed-in account needs a bound code before any product route answers (403 `invite_required`); a code is consumed atomically on binding so the last use cannot be shared; attempts are limited per IP and per account; codes expire and revoke; anonymous agents present a code in `X-Invite-Code` to start a negotiation; the admin routes need a constant-time-compared `ADMIN_TOKEN` and are absent when it is unset |
 | Login | Privy JWT verified against the app's JWKS, issuer `privy.io`, audience the app id | the dev bypass is disabled when `NODE_ENV=production`; `NODE_ENV` defaults to development, so set it on any shared host |
 | Prompt injection | buyer text is data to every model call, including the service agents | the policy engine never reads prose; the figure guard discards replies with unlisted numbers |
 

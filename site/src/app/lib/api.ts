@@ -179,6 +179,8 @@ export const api = {
 
   /* Account (v1, Bearer auth) */
   me: () => request<T.MeResponse>("GET", "/me"),
+  inviteStatus: () => request<T.InviteStatus>("GET", "/invites/status"),
+  redeemInvite: (code: string) => request<{ ok: boolean; bound: boolean }>("POST", "/invites/redeem", { body: { code } }),
   walletLinkNonce: () => request<{ nonce: string; [k: string]: unknown }>("GET", "/me/wallets/nonce"),
   linkWallet: (body: { address: string; kind: "embedded" | "external"; nonce: string; signature: string }) => request<T.MeResponse | { ok: boolean; [k: string]: unknown }>("POST", "/me/wallets/link", { body }),
   meWallet: () => request<T.MeWalletBalance>("GET", "/me/wallet"),

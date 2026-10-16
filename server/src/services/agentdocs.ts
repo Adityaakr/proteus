@@ -182,7 +182,7 @@ Before anything that signs or spends, hold an explicit mandate from the user: wh
 
 ## 2. Negotiate
 
-- POST /api/negotiations { sellerSlug, productSlug, buyerAddress } -> { id }
+- POST /api/negotiations { sellerSlug, productSlug, buyerAddress } -> { id }. While Proteus AI is invite-only, an agent without a signed-in account sends its invite code in the X-Invite-Code header (403 invite_required otherwise).
 - POST /api/negotiations/{id}/messages { content } -> the seller agent's reply plus offers[] (each has candidateId, units, unitPrice, prepaidTotal, status eligible | approval_required | rejected)
 - GET /api/negotiations/{id}: current state and offers.
 - POST /api/negotiations/{id}/counter { candidateId, targetTotal? | targetUnits? }: counter one offer. The seller agent cannot go below its margin floor; a rejected counter returns the public reason and the best alternative.

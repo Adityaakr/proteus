@@ -27,7 +27,7 @@ export const hero = {
   subhead:
     "Proteus AI gives your business an AI co-worker that negotiates and closes deals. It works out what you can offer, negotiates within your rules, and turns the agreement into a paid transaction.",
   secondary: { label: "See how it works", href: links.howItWorks },
-  primary: { label: "Explore Proteus AI", href: links.explore },
+  primary: { label: "Explore Proteus AI", hoverLabel: "Enter invite code", href: "/invite" },
   chat: {
     user: "We run three online stores on Zendesk, about 8,000 tickets a month. We want order tracking and delivery questions automated, roughly 2,000 resolutions a month. Budget is $1,500. Can you make it work?",
     status: ["Reading the request...", "Checking packages, costs, and margin", "Structuring two offers"],

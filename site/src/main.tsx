@@ -10,6 +10,7 @@ import { RequireAuth } from "./app/auth/RequireAuth";
 
 const AuthRoot = lazy(() => import("./app/auth/AuthRoot"));
 const LoginPage = lazy(() => import("./app/auth/LoginPage"));
+const InvitePage = lazy(() => import("./app/auth/InvitePage"));
 const Home = lazy(() => import("./app/home/Home"));
 const Settings = lazy(() => import("./app/home/Settings"));
 const WalletPage = lazy(() => import("./app/wallet/WalletPage"));
@@ -63,6 +64,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/records/:publicId" element={<ReviewRecord />} />
               <Route element={<AuthRoot />}>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/invite" element={<InvitePage />} />
                 <Route path="/app" element={<RequireAuth />}>
                   <Route path="welcome" element={<Welcome />} />
                   <Route index element={<Home />} />

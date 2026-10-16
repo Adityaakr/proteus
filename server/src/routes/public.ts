@@ -6,11 +6,12 @@ import { db, schema } from "../db";
 import { HttpError, json, toBig } from "../lib/http";
 import { loadProductById, loadProductBySlugs, publicProduct } from "../services/catalog";
 import { addBuyerMessage, counter, negotiationView, startNegotiation } from "../services/negotiation";
-import { env } from "../env";
+import { env, features } from "../env";
 import { acceptQuote, createQuote, quoteView } from "../services/quotes";
 import { platformSkill, serviceOpenApi, serviceSkill } from "../services/agentdocs";
 import { listRecords, recordView } from "../services/review";
 import { resolveAuth } from "./auth";
+import { checkCode, clientIp } from "../services/invites";
 import { insertWalletLink, userOwnsAddress, userWallets } from "../services/accounts";
 import { sellerCard, sellerStats } from "../services/brand";
 
@@ -56,6 +57,13 @@ publicRoutes.get("/public/agents/skill.md", (c) => {
 publicRoutes.post("/negotiations", async (c) => {
   const body = StartNegotiationBody.parse(await c.req.json());
   const a = await resolveAuth(c);
+  // While the invite gate is on, an agent without an account starts a negotiation by presenting a code in
+  // X-Invite-Code. The code is checked, not consumed, and the usual per-IP attempt limit applies.
+  if (!a && features.inviteGate) {
+    const code = c.req.header("x-invite-code");
+    if (!code) throw new HttpError(403, "An invite code is required: send it in the X-Invite-Code header.", { code: "invite_required" });
+    await checkCode(code, clientIp((n) => c.req.header(n)));
+  }
   let buyer = body.buyerAddress;
   if (a) {
     const w = await userWallets(a.userId);

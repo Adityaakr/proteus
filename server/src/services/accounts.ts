@@ -5,7 +5,7 @@ import { ensureOrgSigner } from "../chain/signer";
 import { erc20Abi } from "../chain/abi";
 import { publicClient, usdcAddress } from "../chain/client";
 import { db, schema } from "../db";
-import { env } from "../env";
+import { env, features } from "../env";
 import { encryptSecret } from "../lib/crypto";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, publicId } from "../lib/ids";
@@ -82,6 +82,7 @@ export async function meView(userId: string) {
     userId: u.id,
     mode: (u.mode as "buy" | "sell" | null) ?? null,
     email: u.email,
+    access: features.inviteGate ? Boolean(u.accessGrantedAt) : true,
     wallets: wallets.map((w) => ({ address: w.address, kind: w.kind, primary: w.primary })),
     org: org ? { id: org.id, slug: org.slug, name: org.name, label: org.label, role: org.role, payee: org.payeeAddress, brand: (org.brand as Brand | null) ?? {} } : undefined,
     labels: { network: "testnet", note: "Arc testnet. Testnet USDC has no value." },

@@ -40,7 +40,7 @@ export function Hero() {
               </div>
               <Appear preset="fade-0.8" animate="visible" whileInView={undefined} className={s.buttons}>
                 <Button label={hero.secondary.label} href={hero.secondary.href} variant="secondary" icon={false} />
-                <Button label={hero.primary.label} href={hero.primary.href} variant="primary" icon />
+                <Button label={hero.primary.label} hoverLabel={hero.primary.hoverLabel} href={hero.primary.href} variant="primary" icon />
               </Appear>
             </div>
           </div>
