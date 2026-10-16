@@ -5,6 +5,7 @@
 <p align="center">
   <a href="contracts/src/DealEscrow.sol">DealEscrow.sol</a> ·
   <a href="https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46">Deployed on Arc testnet</a> ·
+  <a href="https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract">Read the contract</a> ·
   <a href="docs/acceptance-report.md">Acceptance report</a> ·
   <a href="docs/api.md">API</a> ·
   <a href="#verify-it-yourself-on-arc-testnet">Verify it yourself</a>
