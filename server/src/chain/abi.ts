@@ -1075,6 +1075,7 @@ export const dealEscrowAbi = [
 ] as const;
 
 export const erc20Abi = [
+  {"type":"function","name":"transfer","stateMutability":"nonpayable","inputs":[{"name":"to","type":"address"},{"name":"amount","type":"uint256"}],"outputs":[{"name":"","type":"bool"}]},
   {
     "type": "function",
     "name": "approve",

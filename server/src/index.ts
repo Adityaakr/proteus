@@ -12,6 +12,8 @@ import { HttpError, json } from "./lib/http";
 import { appRoutes } from "./routes/app";
 import { dealRoutes } from "./routes/deals";
 import { publicRoutes } from "./routes/public";
+import { meRoutes } from "./routes/me";
+import { payRoutes } from "./routes/pay";
 
 const app = new Hono();
 app.use("*", logger((s) => console.log(s)));
@@ -27,6 +29,7 @@ app.get("/api/health", (c) =>
     agentAdapter: agentAdapterName(),
     relayer: relayerKind(),
     sellerSigner: sellerSignerAddress() ?? null,
+    auth: { privyAppId: env.PRIVY_APP_ID, devBypass: features.privyDevBypass },
     features,
     time: new Date().toISOString(),
   }),
@@ -34,6 +37,8 @@ app.get("/api/health", (c) =>
 
 app.route("/api", publicRoutes);
 app.route("/api", dealRoutes);
+app.route("/api", meRoutes);
+app.route("/api", payRoutes);
 app.route("/api", appRoutes);
 
 app.onError((err, c) => {

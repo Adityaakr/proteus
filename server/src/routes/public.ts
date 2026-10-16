@@ -8,6 +8,8 @@ import { loadProductById, loadProductBySlugs, publicProduct } from "../services/
 import { addBuyerMessage, counter, negotiationView, startNegotiation } from "../services/negotiation";
 import { acceptQuote, createQuote, quoteView } from "../services/quotes";
 import { listRecords, recordView } from "../services/review";
+import { resolveAuth } from "./auth";
+import { userOwnsAddress, userWallets } from "../services/accounts";
 
 export const publicRoutes = new Hono();
 
@@ -27,7 +29,13 @@ publicRoutes.get("/public/sellers/:sellerSlug/products/:productSlug", async (c) 
 
 publicRoutes.post("/negotiations", async (c) => {
   const body = StartNegotiationBody.parse(await c.req.json());
-  return json(c, await startNegotiation(body.sellerSlug, body.productSlug, body.buyerAddress), 201);
+  const a = await resolveAuth(c);
+  let buyer = body.buyerAddress;
+  if (a) {
+    const w = await userWallets(a.userId);
+    buyer = (w.find((x) => x.primary) ?? w[0])?.address ?? buyer;
+  }
+  return json(c, await startNegotiation(body.sellerSlug, body.productSlug, buyer), 201);
 });
 
 publicRoutes.get("/negotiations/:id", async (c) => json(c, await negotiationView(c.req.param("id"))));
@@ -56,6 +64,8 @@ publicRoutes.get("/quotes/:id", async (c) => {
 
 publicRoutes.post("/quotes/:id/accept", async (c) => {
   const body = AcceptBody.parse(await c.req.json());
+  const a = await resolveAuth(c);
+  if (a && !(await userOwnsAddress(a.userId, body.buyerAddress))) throw new HttpError(403, "that wallet is not linked to your account");
   const dealId = await acceptQuote(c.req.param("id"), body.buyerAddress as Address, body.buyerSignature as Hex);
   const { dealView } = await import("../services/deals");
   return json(c, await dealView(dealId), 201);

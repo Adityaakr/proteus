@@ -1,7 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { verifyTypedData, type Address, type Hex } from "viem";
 import { TERMS_TYPES, domain, hashTerms, productIdHash, publicTermsHash, type Terms } from "@proteus/domain";
-import { escrowAddress, sellerSigner, usdcAddress } from "../chain/client";
+import { escrowAddress, usdcAddress } from "../chain/client";
+import { orgSignerAccount } from "../chain/signer";
 import { db, schema } from "../db";
 import { env } from "../env";
 import { HttpError, bigintsToStrings } from "../lib/http";
@@ -154,8 +155,8 @@ export async function acceptQuote(quoteId: string, buyer: Address, buyerSignatur
   const termsHash = hashTerms(env.CHAIN_ID, escrow, terms);
 
   // Seller-side delegated signer countersigns identical terms (policy already enforced deterministically).
-  const signer = sellerSigner();
-  if (signer.address.toLowerCase() !== lp.org.sellerSignerAddress.toLowerCase()) throw new HttpError(500, "seller signer mismatch");
+  const signer = await orgSignerAccount(lp.org.id);
+  if (signer.address.toLowerCase() !== terms.seller.toLowerCase()) throw new HttpError(500, "seller signer mismatch; the org signer changed after the quote was issued");
   const sellerSignature = await signer.signTypedData({ domain: domain(env.CHAIN_ID, escrow), types: TERMS_TYPES, primaryType: "Terms", message: terms });
 
   const dealId = id("deal");

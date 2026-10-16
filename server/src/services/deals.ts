@@ -2,7 +2,8 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { type Address, type Hex } from "viem";
 import { explorerAddress, explorerTx } from "@proteus/domain";
 import { dealEscrowAbi, erc20Abi } from "../chain/abi";
-import { escrowAddress, publicClient, sellerWalletClient, feeParams, usdcAddress } from "../chain/client";
+import { escrowAddress, publicClient, feeParams, usdcAddress } from "../chain/client";
+import { orgWalletClient } from "../chain/signer";
 import { getRelayer, relayerKind } from "../chain/relayer";
 import { db, schema } from "../db";
 import { env } from "../env";
@@ -142,7 +143,7 @@ export async function sellerCloseTerm(orgId: string, dealId: string) {
   const deal = await loadDeal(dealId);
   if (deal.orgId !== orgId) throw new HttpError(404, "deal not found");
   if (!["funded", "active"].includes(deal.status)) throw new HttpError(409, `deal is ${deal.status}`);
-  const wallet = sellerWalletClient();
+  const wallet = await orgWalletClient(orgId);
   const fees = await feeParams();
   const { request } = await publicClient.simulateContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: "sellerCloseTerm", args: [deal.dealIdOnchain], account: wallet.account, ...fees });
   const txHash = await wallet.writeContract(request);

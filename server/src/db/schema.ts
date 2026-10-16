@@ -8,6 +8,76 @@ import { bigint, boolean, index, integer, jsonb, pgTable, text, timestamp, uniqu
  * (status fields on quotes/deals are the exception and are the only mutable commercial state).
  */
 
+/** People. Keyed by the Privy DID. */
+export const users = pgTable("users", {
+  id: text("id").primaryKey(),
+  privyDid: text("privy_did").notNull().unique(),
+  email: text("email"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Wallet addresses a user proved control of (embedded or external). */
+export const walletLinks = pgTable(
+  "wallet_links",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    address: text("address").notNull(),
+    kind: text("kind").notNull().default("embedded"), // embedded | external
+    primary: boolean("primary").notNull().default(true),
+    proof: text("proof"), // signature over the link message
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("wallet_links_user_address").on(t.userId, t.address), index("wallet_links_address").on(t.address)],
+);
+
+export const memberships = pgTable(
+  "memberships",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull().references(() => users.id),
+    orgId: text("org_id").notNull(),
+    role: text("role").notNull().default("owner"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("memberships_user_org").on(t.userId, t.orgId)],
+);
+
+/** Per-org delegated seller signer (server-held, encrypted at rest). Signs Terms and Delivery only. */
+export const orgSigners = pgTable("org_signers", {
+  id: text("id").primaryKey(),
+  orgId: text("org_id").notNull(),
+  address: text("address").notNull(),
+  encryptedKey: text("encrypted_key").notNull(),
+  scope: text("scope").notNull().default("terms+delivery"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+});
+
+/** x402 pay-per-call payments. Unique per (payer, requestId): a retry never settles twice. */
+export const payPerCallPayments = pgTable(
+  "pay_per_call_payments",
+  {
+    id: text("id").primaryKey(),
+    orgId: text("org_id").notNull(),
+    productId: text("product_id").notNull(),
+    payer: text("payer").notNull(),
+    requestId: text("request_id").notNull(),
+    resource: text("resource").notNull(),
+    amount: bigint("amount", { mode: "bigint" }).notNull(),
+    nonce: text("nonce").notNull(),
+    status: text("status").notNull().default("quoted"), // quoted | verified | executed | settled | failed
+    paymentId: text("payment_id"),
+    settleTxHash: text("settle_tx_hash"),
+    response: jsonb("response"),
+    error: text("error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("ppc_payer_request").on(t.payer, t.requestId)],
+);
+
 export const orgs = pgTable("orgs", {
   id: text("id").primaryKey(),
   slug: text("slug").notNull().unique(),
@@ -15,6 +85,7 @@ export const orgs = pgTable("orgs", {
   /** "sandbox" rows are excluded from live counters and labeled everywhere. */
   label: text("label").notNull().default("sandbox"),
   ownerAddress: text("owner_address"),
+  ownerUserId: text("owner_user_id"),
   /** Seller signer (delegated, server-held for the sandbox seller). */
   sellerSignerAddress: text("seller_signer_address").notNull(),
   payeeAddress: text("payee_address").notNull(),
@@ -33,6 +104,8 @@ export const products = pgTable(
     starters: jsonb("starters").notNull().default([]),
     /** Service adapter key, e.g. "order-support". */
     adapter: text("adapter").notNull(),
+    /** Pay-per-call price in micro-USDC (x402); null = prepaid deals only. */
+    payPerCallPrice: bigint("pay_per_call_price", { mode: "bigint" }),
     active: boolean("active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

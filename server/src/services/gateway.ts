@@ -1,7 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { keccak256, toHex, type Hex } from "viem";
 import { cumulativeCharge } from "@proteus/domain";
-import { sellerSigner } from "../chain/client";
+import { orgSignerAccount } from "../chain/signer";
 import { db, schema } from "../db";
 import { HttpError } from "../lib/http";
 import { id, sha256 } from "../lib/ids";
@@ -30,7 +30,7 @@ export interface ServiceOutput {
 }
 
 /** First-party adapter: AI-assisted e-commerce order support over a labeled sample store. */
-async function orderSupportAdapter(orgId: string, input: ServiceInput): Promise<ServiceOutput> {
+export async function orderSupport(orgId: string, input: ServiceInput): Promise<ServiceOutput> {
   const q = input.question.toLowerCase();
   const wantsRefund = /refund|return|chargeback|cancel/.test(q);
   if (wantsRefund) {
@@ -83,7 +83,7 @@ export async function execute(dealId: string, requestId: string, input: ServiceI
   const [existing] = await db.select().from(schema.serviceRequests).where(and(eq(schema.serviceRequests.dealId, dealId), eq(schema.serviceRequests.requestId, requestId)));
   if (existing) return receiptView(existing, terms.prepaid);
 
-  const output: ServiceOutput = lp.row.adapter === "order-support" ? await orderSupportAdapter(deal.orgId, input) : { status: "failed", billable: false, answer: "No adapter configured for this product.", source: { store: "none", fields: [] } };
+  const output: ServiceOutput = lp.row.adapter === "order-support" ? await orderSupport(deal.orgId, input) : { status: "failed", billable: false, answer: "No adapter configured for this product.", source: { store: "none", fields: [] } };
 
   // Serialize metering per deal with a row lock on the deal.
   const row = await db.transaction(async (tx) => {
@@ -106,7 +106,7 @@ export async function execute(dealId: string, requestId: string, input: ServiceI
     const evidenceDigest = keccak256(toHex(JSON.stringify(evidence)));
     let sellerSignature: string | undefined;
     try {
-      sellerSignature = await sellerSigner().signMessage({ message: { raw: evidenceDigest as Hex } });
+      sellerSignature = await (await orgSignerAccount(deal.orgId)).signMessage({ message: { raw: evidenceDigest as Hex } });
     } catch {
       sellerSignature = undefined;
     }

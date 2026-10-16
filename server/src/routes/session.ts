@@ -5,6 +5,7 @@ import { db, schema } from "../db";
 import { env } from "../env";
 import { HttpError } from "../lib/http";
 import { id } from "../lib/ids";
+import { resolveAuth } from "./auth";
 
 const COOKIE = "proteus_session";
 
@@ -25,6 +26,16 @@ export interface SessionInfo {
 }
 
 export async function requireSession(c: Context, next: Next) {
+  // Privy-authenticated owner of an org takes precedence over the sandbox cookie.
+  const a = await resolveAuth(c);
+  if (a) {
+    const [m] = await db.select().from(schema.memberships).where(eq(schema.memberships.userId, a.userId));
+    if (m) {
+      c.set("session", { orgId: m.orgId, kind: "privy", address: null } satisfies SessionInfo);
+      await next();
+      return;
+    }
+  }
   const sid = getCookie(c, COOKIE);
   if (!sid) throw new HttpError(401, "no session; POST /api/app/session/sandbox to explore the sandbox seller");
   const [s] = await db.select().from(schema.sessions).where(eq(schema.sessions.id, sid));

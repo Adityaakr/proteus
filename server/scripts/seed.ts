@@ -4,6 +4,7 @@ import { toMicro } from "@proteus/domain";
 import { db, schema, sql } from "../src/db";
 import { env } from "../src/env";
 import { id } from "../src/lib/ids";
+import { ensureOrgSigner } from "../src/chain/signer";
 
 /**
  * Seeds the visibly labeled SANDBOX seller: one product (AI order support), a private cost model,
@@ -21,6 +22,7 @@ async function main() {
     [org] = await db.update(schema.orgs).set({ sellerSignerAddress: signer, payeeAddress: payee, ownerAddress: env.OWNER_ADDRESS }).where(eq(schema.orgs.id, org.id)).returning();
   }
   const orgId = org!.id;
+  await ensureOrgSigner(orgId);
 
   const publicProduct = {
     id: "p_order_support",

@@ -190,3 +190,5 @@ POST /api/pay/:sellerSlug/:productSlug/execute   { requestId, input, payment: { 
   -> 200 ServiceExecute response plus { payment: { paymentId, settleTxHash?, status: "settled"|"pending" } }
 ```
 Server flow: recompute requirements, check `authorization` equals them exactly, `POST facilitator/verify`, execute the service, `POST facilitator/settle`, store `(payer, requestId)` with state. A retry returns the stored response and never settles twice. Failed or handoff responses are not settled (the authorization simply expires).
+
+Note (2026-10-16): Circle's facilitator requires the seller proof to be signed by the `payTo` key, so pay-per-call `payTo` is the org's server-held collection signer, not the owner's wallet. `POST /api/app/signer/sweep` transfers collected USDC (minus a small gas reserve) to the owner's payee and returns the tx hash. Negotiated deals are unaffected: escrow pays the owner's payee directly.

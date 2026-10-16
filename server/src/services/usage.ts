@@ -1,7 +1,8 @@
 import { and, desc, eq } from "drizzle-orm";
 import { verifyTypedData, type Address, type Hex } from "viem";
 import { ACCEPTANCE_TYPES, DELIVERY_TYPES, domain, receiptsRoot, type Acceptance, type Delivery } from "@proteus/domain";
-import { escrowAddress, sellerSigner } from "../chain/client";
+import { escrowAddress } from "../chain/client";
+import { orgSignerAccount } from "../chain/signer";
 import { getRelayer } from "../chain/relayer";
 import { db, schema } from "../db";
 import { env } from "../env";
@@ -57,7 +58,7 @@ export async function acknowledgeUsage(dealId: string, body: { buyerSignature: H
   if (!ok) throw new HttpError(400, "buyer signature invalid");
 
   const delivery: Delivery = { dealId: deal.dealIdOnchain, receiptsRoot: body.receiptsRoot, cumulativeUnits: body.cumulativeUnits };
-  const sellerDeliverySignature = await sellerSigner().signTypedData({ domain: domain(env.CHAIN_ID, escrow), types: DELIVERY_TYPES, primaryType: "Delivery", message: delivery });
+  const sellerDeliverySignature = await (await orgSignerAccount(deal.orgId)).signTypedData({ domain: domain(env.CHAIN_ID, escrow), types: DELIVERY_TYPES, primaryType: "Delivery", message: delivery });
 
   const relayer = getRelayer();
   const { txHash } = await relayer.submit("settleAcceptedUsage", [deal.dealIdOnchain, acceptance, body.buyerSignature, delivery, sellerDeliverySignature]);

@@ -44,6 +44,20 @@ const Env = z.object({
 
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
+  OPENROUTER_API_KEY: z.string().optional(),
+  OPENROUTER_MODEL: z.string().default("anthropic/claude-sonnet-4.5"),
+
+  /** Privy: tokens are verified against the app's public JWKS; no app secret is needed for that. */
+  PRIVY_APP_ID: z.string().default("cmvb0p1b901l50fl20lp1eths"),
+  PRIVY_JWKS_URL: z.string().optional(),
+  /** Dev only: `x-dev-user: <id>` header impersonates a user when set to "1". Never enable in production. */
+  PRIVY_DEV_BYPASS: z.string().optional(),
+  /** Encrypts per-org seller signer keys at rest. */
+  KEY_ENCRYPTION_SECRET: z.string().min(16).optional(),
+
+  /** Circle x402 facilitator (keyless trial for the exact scheme; API key once registered). */
+  X402_FACILITATOR_URL: z.string().default("https://api.circle.com/v1/facilitator/x402"),
+  X402_NETWORK: z.string().default("eip155:5042002"),
 
   /** Grace window after term end before unused funds are refundable (seconds). */
   DEAL_GRACE_SECONDS: z.coerce.number().default(3 * 86400),
@@ -53,7 +67,9 @@ const Env = z.object({
 export const env = Env.parse(process.env);
 
 export const features = {
+  openrouter: Boolean(env.OPENROUTER_API_KEY),
   anthropic: Boolean(env.ANTHROPIC_API_KEY),
+  privyDevBypass: env.PRIVY_DEV_BYPASS === "1" && env.NODE_ENV !== "production",
   circle: Boolean(env.CIRCLE_API_KEY && env.CIRCLE_ENTITY_SECRET && env.CIRCLE_WALLET_ID),
   viemRelayer: Boolean(env.RELAYER_PRIVATE_KEY),
   escrow: Boolean(env.ESCROW_ADDRESS),
