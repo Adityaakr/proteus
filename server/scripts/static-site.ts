@@ -17,6 +17,8 @@ if (!existsSync(join(dist, "index.html"))) {
 }
 const shell = readFileSync(join(dist, "index.html"), "utf8");
 const app = new Hono();
+// Health must answer 200 here too, or Railway never routes traffic to a site-only service.
+app.get("/api/health", (c) => (apiOrigin ? fetch(apiOrigin + "/api/health").catch(() => null).then((r) => (r ? new Response(r.body, { status: r.status, headers: r.headers }) : c.json({ ok: false, mode: "site-only", apiOrigin, reason: "API_ORIGIN unreachable" }))) : c.json({ ok: false, mode: "site-only", reason: "no DATABASE_URL and no API_ORIGIN on this service" })));
 app.all("/api/*", async (c) => {
   if (!apiOrigin) return c.json({ error: "This service has no database and no API_ORIGIN. Set DATABASE_URL to run the API here, or API_ORIGIN to forward /api to the API service." }, 503);
   const url = new URL(c.req.url);
