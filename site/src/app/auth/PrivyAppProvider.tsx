@@ -6,7 +6,7 @@
  * Needs a QueryClientProvider above it (GET /api/me goes through react-query).
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { PrivyProvider, usePrivy, useWallets, type ConnectedWallet, type User } from "@privy-io/react-auth";
+import { PrivyProvider, useCreateWallet, usePrivy, useWallets, type ConnectedWallet, type User } from "@privy-io/react-auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createWalletClient, getAddress, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
@@ -30,7 +30,7 @@ export function PrivyAppProvider({ children }: { children: ReactNode }) {
       appId={PRIVY_APP_ID}
       config={{
         loginMethods: ["email", "google", "wallet"],
-        embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
+        embeddedWallets: { ethereum: { createOnLogin: "all-users" } },
         defaultChain: arcTestnet,
         supportedChains: [arcTestnet],
         appearance: {
@@ -81,18 +81,32 @@ function PrivyBridge({ children }: { children: ReactNode }) {
   const meEnabled = ready && authenticated;
   const meQ = useQuery<MeResponse>({ queryKey: qk.me, queryFn: api.me, enabled: meEnabled, retry: false, staleTime: 30_000 });
 
+  // The PROTEUS account wallet is always the Privy embedded wallet. An injected wallet (MetaMask and the
+  // like) is used only when the user signed in with it and has no embedded wallet at all. Browser
+  // extensions that merely exist are never picked up, so nothing opens MetaMask behind the user's back.
   const embedded: ConnectedWallet | undefined = wallets.find((w) => w.walletClientType === "privy");
-  const userWalletAddr = user?.wallet?.address?.toLowerCase();
-  const external: ConnectedWallet | undefined = wallets.find((w) => w.walletClientType !== "privy" && (!userWalletAddr || w.address.toLowerCase() === userWalletAddr));
+  const hasPrivyWallet = Boolean(embedded) || (user?.linkedAccounts ?? []).some((a) => (a as { type: string; walletClientType?: string }).type === "wallet" && (a as { walletClientType?: string }).walletClientType === "privy");
+  const loginWalletAddr = (user?.linkedAccounts ?? []).find((a) => (a as { type: string; walletClientType?: string; connectorType?: string }).type === "wallet" && (a as { walletClientType?: string }).walletClientType !== "privy") as { address?: string } | undefined;
+  const external: ConnectedWallet | undefined = hasPrivyWallet ? undefined : wallets.find((w) => w.walletClientType !== "privy" && loginWalletAddr?.address?.toLowerCase() === w.address.toLowerCase());
   const connected = embedded ?? external;
+
+  // Accounts created before every user got an embedded wallet: create one now, once.
+  const { createWallet } = useCreateWallet();
+  const createTried = useRef(false);
+  useEffect(() => {
+    if (!ready || !authenticated || hasPrivyWallet || createTried.current) return;
+    createTried.current = true;
+    createWallet().catch((e: unknown) => console.warn("[proteus] embedded wallet creation failed", e));
+  }, [ready, authenticated, hasPrivyWallet, createWallet]);
 
   const wallet: AuthWallet | null = useMemo(() => {
     if (!authenticated) return null;
     if (connected) return { address: getAddress(connected.address) as Address, type: connected === embedded ? "embedded" : "external" };
-    if (user?.wallet?.address) return { address: getAddress(user.wallet.address) as Address, type: user.wallet.walletClientType === "privy" ? "embedded" : "external" };
+    const privyAccount = (user?.linkedAccounts ?? []).find((a) => (a as { type: string; walletClientType?: string }).type === "wallet" && (a as { walletClientType?: string }).walletClientType === "privy") as { address?: string } | undefined;
+    if (privyAccount?.address) return { address: getAddress(privyAccount.address) as Address, type: "embedded" };
     const primary = meQ.data?.wallets.find((w) => w.primary) ?? meQ.data?.wallets[0];
     return primary ? { address: getAddress(primary.address) as Address, type: walletKind(primary) } : null;
-  }, [authenticated, connected, embedded, user?.wallet?.address, user?.wallet?.walletClientType, meQ.data]);
+  }, [authenticated, connected, embedded, user?.linkedAccounts, meQ.data]);
 
   const authUser: AuthUser | null = useMemo(
     () => (authenticated && user ? { id: user.id, email: user.email?.address ?? user.google?.email ?? meQ.data?.email, loginMethods: loginMethodsOf(user) } : null),
@@ -100,7 +114,7 @@ function PrivyBridge({ children }: { children: ReactNode }) {
   );
 
   const getWalletClient = useCallback(async () => {
-    if (!connected) throw new WalletError("Your wallet is still being set up. Try again in a moment.");
+    if (!connected) throw new WalletError("Your PROTEUS wallet is still being set up. Try again in a moment.");
     return walletClientFor({
       address: connected.address,
       switchChain: (id) => connected.switchChain(id),
