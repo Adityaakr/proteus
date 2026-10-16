@@ -27,8 +27,19 @@ export function useBalances(opts: { poll?: number | false; address?: Address | n
         const w = await api.meWallet();
         return { usdc: BigInt(w.usdc), native: BigInt(w.native), source: "mock" };
       }
-      const [usdc, native] = await Promise.all([readUsdcBalance(address!), readNativeBalance(address!)]);
-      return { usdc, native, source: "chain" };
+      try {
+        const [usdc, native] = await Promise.all([readUsdcBalance(address!), readNativeBalance(address!)]);
+        return { usdc, native, source: "chain" };
+      } catch (chainErr) {
+        // Last resort: the API reads the linked wallet with its own RPC connection. Only trusted for the same address.
+        try {
+          const w = await api.meWallet();
+          if (w.address && w.address.toLowerCase() === address!.toLowerCase()) return { usdc: BigInt(w.usdc), native: BigInt(w.native), source: "chain" };
+        } catch {
+          /* fall through to the chain error, which names the RPC */
+        }
+        throw chainErr;
+      }
     },
   });
 }

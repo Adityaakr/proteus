@@ -14,6 +14,7 @@ import { dealRoutes } from "./routes/deals";
 import { publicRoutes } from "./routes/public";
 import { meRoutes } from "./routes/me";
 import { payRoutes } from "./routes/pay";
+import { rpcRoutes } from "./routes/rpc";
 
 const app = new Hono();
 app.use("*", logger((s) => console.log(s)));
@@ -40,6 +41,7 @@ app.route("/api", dealRoutes);
 app.route("/api", meRoutes);
 app.route("/api", payRoutes);
 app.route("/api", appRoutes);
+app.route("/api", rpcRoutes);
 
 app.onError((err, c) => {
   if (err instanceof HttpError) return json(c, { error: err.message, details: err.details ?? null }, err.status);

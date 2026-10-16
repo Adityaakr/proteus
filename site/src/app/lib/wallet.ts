@@ -3,8 +3,8 @@
  * `walletClientFor` wraps its EIP-1193 provider in a viem WalletClient pinned to Arc testnet.
  * Every transaction hash shown in the UI comes back from the wallet; nothing here fabricates one.
  */
-import { createPublicClient, createWalletClient, custom, erc20Abi, getAddress, http, type Address, type Hex, type WalletClient } from "viem";
-import { ACCEPTANCE_TYPES, ARC_TESTNET_USDC, TERMS_TYPES, arcTestnet, domain } from "@proteus/domain";
+import { createPublicClient, createWalletClient, custom, erc20Abi, fallback, getAddress, http, type Address, type Hex, type WalletClient } from "viem";
+import { ACCEPTANCE_TYPES, ARC_TESTNET_RPC, ARC_TESTNET_USDC, TERMS_TYPES, arcTestnet, domain } from "@proteus/domain";
 import type { AcceptanceWire, PayAccept, PayAuthorization, TermsWire, TypedDataWire } from "./types";
 
 export const ESCROW_ABI = [
@@ -34,7 +34,20 @@ export class WalletError extends Error {
   }
 }
 
-export const publicClient = createPublicClient({ chain: arcTestnet, transport: http() });
+/** Same-origin read-only relay served by the API (`POST /api/rpc`), used when the browser cannot reach the public RPC directly. */
+const relayRpcUrl = typeof window !== "undefined" ? `${window.location.origin}/api/rpc` : undefined;
+
+/**
+ * Reads go to the public Arc RPC first and fall back to the API relay. Browsers sometimes cannot reach the
+ * public endpoint (CORS preflight, bot challenge, corporate proxy); the relay only forwards read methods.
+ */
+export const publicClient = createPublicClient({
+  chain: arcTestnet,
+  transport: fallback(
+    [http(ARC_TESTNET_RPC, { timeout: 8_000, retryCount: 1 }), ...(relayRpcUrl ? [http(relayRpcUrl, { timeout: 20_000, retryCount: 1 })] : [])],
+    { rank: false, retryCount: 0 },
+  ),
+});
 
 /** Turn wallet / RPC errors into short, human copy. */
 export function walletErrorMessage(e: unknown): string {
@@ -43,6 +56,11 @@ export function walletErrorMessage(e: unknown): string {
   if (code === 4001 || /user rejected|denied|cancel/i.test(err?.message ?? "")) return "You declined the request.";
   if (code === -32002) return "Your wallet already has a pending request. Open it to continue.";
   if (/insufficient funds/i.test(err?.message ?? "")) return "Not enough testnet USDC for this transaction and its gas.";
+  const name = (err as { name?: string })?.name ?? "";
+  if (name === "HttpRequestError" || name === "TimeoutError" || /HTTP request failed|request timed out|Failed to fetch/i.test(err?.message ?? "")) {
+    const status = (err as { status?: number })?.status;
+    return `Arc testnet RPC did not answer${status ? ` (HTTP ${status})` : ""}. Check your connection and refresh; reads retry through the PROTEUS API automatically.`;
+  }
   return err?.shortMessage ?? err?.message ?? "The wallet request failed.";
 }
 

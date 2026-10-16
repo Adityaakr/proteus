@@ -33,6 +33,10 @@ Pay per call verified and settled by Circle's facilitator on Arc testnet (`docs/
 
 Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org seller signer, market, x402 pay-per-call endpoint. Server routes are live and tested with the dev bypass; the web rebuild is being integrated. See `docs/01-account-and-flow.md`.
 
+## Balance reads (2026-10-16, evening)
+
+- Wallet and Home showed "Could not read your balance: HTTP request failed" in Aditya's browser while the same RPC answered from the server. Fix: the web app's viem public client now uses a `fallback` transport (public Arc RPC, then the same-origin read-only relay `POST /api/rpc`), and `useBalances` falls back to `GET /api/me/wallet` for the linked address. Verified headless with the public RPC reachable and with it blocked (both render 13.20 USDC, relay hit 10 times); error copy now names the RPC and the HTTP status.
+
 ## Blocked on inputs from Aditya
 
 1. Done: deployer and relayer funded, escrow deployed, loop executed on testnet.
