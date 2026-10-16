@@ -72,7 +72,7 @@ export function statusLabel(state: string): string {
   return STATE_LABELS[state]?.label ?? state.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
-export function StatusTag({ network, state, tone, label, icon, noDot, className, title }: StatusTagProps) {
+export function StatusTag({ network, state, tone, label, icon, className, title }: StatusTagProps) {
   let variant: string;
   let text: ReactNode;
   if (network) {
@@ -88,7 +88,7 @@ export function StatusTag({ network, state, tone, label, icon, noDot, className,
   }
   return (
     <span className={[s.tag, s[variant], className].filter(Boolean).join(" ")} title={title}>
-      {icon ? <span aria-hidden style={{ display: "inline-flex" }}>{icon}</span> : noDot || !state ? null : <span className={s.tagDot} aria-hidden />}
+      {icon ? <span aria-hidden style={{ display: "inline-flex" }}>{icon}</span> : null}
       <span>{text}</span>
     </span>
   );

@@ -7,7 +7,6 @@ import { useAuth } from "../auth/useAuth";
 import { ActionButton } from "../ui/ActionButton";
 import { CopyButton, ExplorerLink } from "../ui/misc";
 import { Money } from "../ui/Money";
-import { StatusTag } from "../ui/StatusTag";
 import { Qr } from "./QrCode";
 import { useDepositWatch } from "./useDepositWatch";
 import w from "./wallet.module.css";
@@ -67,8 +66,8 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
       <div className={w.sheetHandle} aria-hidden />
       <header className={w.sheetHead}>
         <div className={w.sheetTitleRow}>
+          <span className={w.sheetLabel}>Arc testnet</span>
           <h2 id={titleId} className={w.sheetTitle}>Deposit testnet USDC</h2>
-          <StatusTag network="testnet" label="Arc testnet" />
         </div>
         <button ref={closeRef} type="button" className={w.sheetClose} onClick={onClose} aria-label="Close">
           <X size={18} strokeWidth={2} />
@@ -100,7 +99,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
             </div>
             <div className={w.sheetMain}>
               <div className={w.sheetField}>
-                <span className={w.sheetLabel}>Your address</span>
+                <span className={w.sheetLabelSm}>Your address</span>
                 <div className={w.addr}>
                   <span style={{ minWidth: 0 }}>{address || "Setting up your wallet"}</span>
                   {address && <CopyButton value={address} label="Copy wallet address" />}
@@ -118,18 +117,15 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
               <div className={w.sheetStatus} aria-live="polite">
                 {watch.watching ? (
                   <>
-                    <span className={w.pulse} aria-hidden />
                     Watching for the deposit. Balance <Money micro={watch.q.data?.usdc ?? 0n} /> USDC.
                   </>
                 ) : watch.result?.kind === "none" ? (
                   <>
-                    <span className={w.pulseIdle} aria-hidden />
                     Nothing yet. Faucet transfers can take a minute.
                     <button type="button" className={w.linkBtn} onClick={watch.start}>Keep watching</button>
                   </>
                 ) : (
                   <>
-                    <span className={w.pulseIdle} aria-hidden />
                     Balance <Money micro={watch.q.data?.usdc ?? 0n} /> USDC.
                     <button type="button" className={w.linkBtn} onClick={watch.start}>Check again</button>
                   </>
