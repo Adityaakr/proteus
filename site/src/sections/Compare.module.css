@@ -21,7 +21,7 @@
 .vendorAccent .vendorName { color: var(--c-primary); letter-spacing: 0.02em; }
 .table thead th .vendor { padding-top: 2px; }
 .vendorDesc { color: var(--c-dark-60); line-height: 1.45; }
-.logoBox { display: flex; align-items: center; height: 24px; max-width: 140px; }
+.logoBox { display: flex; align-items: center; height: 24px; max-width: 184px; }
 .vendorLogo { display: block; height: 20px; width: auto; max-width: 100%; object-fit: contain; object-position: left center; }
 .vendorName:hover .vendorLogo { opacity: 0.8; }
 
