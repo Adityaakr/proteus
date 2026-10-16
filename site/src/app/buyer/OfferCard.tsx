@@ -6,7 +6,7 @@ import { ActionButton } from "../ui/ActionButton";
 import { Field } from "../ui/Field";
 import { Money } from "../ui/Money";
 import type { Offer } from "../lib/api";
-import { fmtUnits, prettyIntegration } from "./common";
+import { fmtUnits } from "./common";
 import n from "./negotiate.module.css";
 
 const ORIGIN_LABEL: Record<Offer["origin"], string> = {
