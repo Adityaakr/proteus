@@ -40,7 +40,7 @@ Avoid anvil account 1 as the buyer: it is the blocklisted test address on Arc.
 
 ## Hosting on Railway (site and API in one service)
 
-The repo carries `railway.json` and `railpack.json`. One Railway service pointed at this repo builds the domain and server type checks plus the site (`pnpm --filter proteus-site build`), then starts with `pnpm --filter @proteus/server start:prod`: push the Drizzle schema, bootstrap an empty market (`scripts/bootstrap.ts`), serve. The API serves the built site from `site/dist` on the same origin, so there is no proxy and no second service. Health check: `/api/health`.
+The repo carries `railway.json` and `railpack.json`. One Railway service pointed at this repo builds the domain and server type checks plus the site (`pnpm --filter proteus-site build`), then starts with `pnpm --filter @proteus/server start:prod` (`scripts/start-prod.ts`): check the variables and print what is missing, wait for Postgres, push the Drizzle schema, bootstrap an empty market (`scripts/bootstrap.ts`), serve. A service without `DATABASE_URL` stops with a message saying so instead of crash-looping. The API serves the built site from `site/dist` on the same origin, so there is no proxy and no second service. Health check: `/api/health`.
 
 1. Create a Railway project with a **Postgres** plugin and **one** service from this GitHub repo (root directory `/`). If Railway offers one service per workspace package, keep only `@proteus/server` and delete the others; each extra one runs the same start command and crashes.
 2. Service Settings → Networking → Generate Domain. The site is at `https://<domain>/`, the API at `https://<domain>/api/health`.
