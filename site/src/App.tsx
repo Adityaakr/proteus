@@ -23,10 +23,10 @@ export default function App() {
         <Logos />
         <HowItWorks />
         <Decisions />
+        <Compare />
         <Verification />
         <Partners />
         <Comparison />
-        <Compare />
         {/* <Pricing /> : no pricing copy in the current doc; re-add when there is */}
         <Trust />
         <Record />

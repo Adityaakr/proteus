@@ -1,12 +1,13 @@
 import { chromium } from "playwright";
 const out = process.argv[2];
 const b = await chromium.launch();
-for (const [name, vp] of [["compare-desktop", { width: 1440, height: 900 }], ["compare-phone", { width: 390, height: 844 }]]) {
+for (const [name, vp] of [["compare-desktop", { width: 1440, height: 900 }], ["compare-tablet", { width: 1000, height: 900 }]]) {
   const p = await b.newPage({ viewport: vp }); const errs = []; p.on("pageerror", (e) => errs.push(e.message.slice(0, 160)));
-  await p.goto("http://localhost:5174/#compare", { waitUntil: "networkidle" }); await p.waitForTimeout(800);
-  const el = p.locator("#compare"); await el.scrollIntoViewIfNeeded(); await p.waitForTimeout(1800);
-  await el.screenshot({ path: `${out}/${name}.jpg`, type: "jpeg", quality: 70 });
-  console.log(name, "errors", JSON.stringify(errs), "overflow", await p.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth));
+  await p.goto("http://localhost:5174/", { waitUntil: "networkidle" });
+  const head = p.locator("#compare thead"); await head.scrollIntoViewIfNeeded(); await p.waitForTimeout(1500);
+  await head.screenshot({ path: `${out}/${name}-head.jpg`, type: "jpeg", quality: 80 });
+  const order = await p.evaluate(() => Array.from(document.querySelectorAll("main > section")).map((s) => s.id || s.className.split(" ")[0]).slice(0, 8));
+  console.log(name, "errors", JSON.stringify(errs), "order", JSON.stringify(order));
   await p.close();
 }
 await b.close();
