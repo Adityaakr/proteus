@@ -21,6 +21,9 @@
 .vendorAccent .vendorName { color: var(--c-primary); letter-spacing: 0.02em; }
 .table thead th .vendor { padding-top: 2px; }
 .vendorDesc { color: var(--c-dark-60); line-height: 1.45; }
+.vendorLogo { display: block; height: 20px; width: auto; max-width: 100%; object-fit: contain; object-position: left center; }
+.vendorLogoAccent { height: 18px; }
+.vendorName:hover .vendorLogo { opacity: 0.8; }
 
 .mark { display: flex; flex-direction: column; gap: 3px; font-size: 14px; line-height: 1.4; }
 .markRow { display: inline-flex; align-items: center; gap: 7px; }
@@ -45,6 +48,7 @@
   .table th, .table td { padding: 14px 12px; }
   .table thead th { padding: 14px 12px 16px; }
   .vendorName { font-size: 15px; }
+  .vendorLogo { height: 16px; }
   .vendorDesc { display: none; }
 }
 @media (max-width: 809.98px) {

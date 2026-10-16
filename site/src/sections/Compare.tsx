@@ -35,8 +35,8 @@ function VendorHead({ v, accent }: { v: CompareVendor; accent?: boolean }) {
   const external = v.href.startsWith("http");
   return (
     <div className={`${s.vendor} ${accent ? s.vendorAccent : ""}`}>
-      <a href={v.href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined} className={s.vendorName}>
-        {v.name}
+      <a href={v.href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined} className={s.vendorName} aria-label={external ? `${v.name}, opens their site` : v.name}>
+        {v.logo ? <img src={v.logo} alt={v.name} className={`${s.vendorLogo} ${accent ? s.vendorLogoAccent : ""}`} decoding="async" /> : v.name}
         {external && <ArrowUpRight size={13} strokeWidth={2} aria-hidden />}
       </a>
       <span className={`body3 ${s.vendorDesc}`}>{v.description}</span>

@@ -203,6 +203,8 @@ export interface CompareVendor {
   name: string;
   description: string;
   href: string;
+  /** Wordmark image, shown instead of the name text. The name stays as alt text. */
+  logo?: string;
   marks: CompareMark[];
   /** Short qualifier shown under a mark when the plain word would overstate it. */
   notes?: (string | undefined)[];
@@ -225,18 +227,19 @@ export const compare = {
     name: "PROTEUS",
     description: "The autonomous deal desk: negotiation, signed terms, escrow and metered delivery in one flow.",
     href: "/app",
+    logo: "/assets/proteus-wordmark.png",
     marks: ["yes", "yes", "yes", "yes", "yes", "yes", "yes"],
     notes: [undefined, undefined, undefined, "Both sides sign, escrow funds", "Arc testnet today", undefined, undefined],
   } as CompareVendor,
   vendors: [
-    { name: "DealHub", description: "CPQ, DealRoom and billing for midsize and enterprise sales teams.", href: "https://dealhub.io", marks: ["not-core", "partial", "yes", "partial", "not-core", "partial", "not-core"], notes: [undefined, "Discount thresholds, approvals", undefined, "E-signature in DealRoom", undefined, "Usage pricing in billing", undefined] },
-    { name: "Pactum AI", description: "Autonomous supplier negotiations for enterprise procurement.", href: "https://pactum.com", marks: ["yes", "partial", "partial", "partial", "not-core", "not-core", "not-core"], notes: ["Supplier side, for buyers", "Negotiates to savings targets", "Price, payment, rebate terms", "Agreements via ERP integration", undefined, undefined, undefined] },
-    { name: "Nue", description: "Salesforce-native quote-to-revenue with usage billing.", href: "https://www.nue.io", marks: ["not-core", "not-core", "yes", "partial", "not-core", "yes", "partial"], notes: [undefined, undefined, undefined, "Quote to order in Salesforce", undefined, "Rating and billing", "SaaS scale-ups"] },
-    { name: "Sequence", description: "Billing and CPQ for B2B SaaS with custom contracts.", href: "https://www.sequencehq.com", marks: ["not-core", "not-core", "yes", "partial", "not-core", "yes", "partial"], notes: [undefined, undefined, undefined, "Signed quotes auto-execute", undefined, undefined, "Startups and scale-ups"] },
-    { name: "Metronome", description: "Usage-based billing infrastructure, now part of Stripe.", href: "https://metronome.com", marks: ["not-core", "not-core", "yes", "not-core", "not-core", "yes", "partial"], notes: [undefined, undefined, "Contracts and overrides", undefined, undefined, "Metering and invoicing", "Self-serve starter plan"] },
+    { name: "DealHub", logo: "/assets/vendors/dealhub.svg", description: "CPQ, DealRoom and billing for midsize and enterprise sales teams.", href: "https://dealhub.io", marks: ["not-core", "partial", "yes", "partial", "not-core", "partial", "not-core"], notes: [undefined, "Discount thresholds, approvals", undefined, "E-signature in DealRoom", undefined, "Usage pricing in billing", undefined] },
+    { name: "Pactum AI", logo: "/assets/vendors/pactum.svg", description: "Autonomous supplier negotiations for enterprise procurement.", href: "https://pactum.com", marks: ["yes", "partial", "partial", "partial", "not-core", "not-core", "not-core"], notes: ["Supplier side, for buyers", "Negotiates to savings targets", "Price, payment, rebate terms", "Agreements via ERP integration", undefined, undefined, undefined] },
+    { name: "Nue", logo: "/assets/vendors/nue.svg", description: "Salesforce-native quote-to-revenue with usage billing.", href: "https://www.nue.io", marks: ["not-core", "not-core", "yes", "partial", "not-core", "yes", "partial"], notes: [undefined, undefined, undefined, "Quote to order in Salesforce", undefined, "Rating and billing", "SaaS scale-ups"] },
+    { name: "Sequence", logo: "/assets/vendors/sequence.svg", description: "Billing and CPQ for B2B SaaS with custom contracts.", href: "https://www.sequencehq.com", marks: ["not-core", "not-core", "yes", "partial", "not-core", "yes", "partial"], notes: [undefined, undefined, undefined, "Signed quotes auto-execute", undefined, undefined, "Startups and scale-ups"] },
+    { name: "Metronome", logo: "/assets/vendors/metronome.svg", description: "Usage-based billing infrastructure, now part of Stripe.", href: "https://metronome.com", marks: ["not-core", "not-core", "yes", "not-core", "not-core", "yes", "partial"], notes: [undefined, undefined, "Contracts and overrides", undefined, undefined, "Metering and invoicing", "Self-serve starter plan"] },
   ] as CompareVendor[],
   closing: "Others help you quote, negotiate, or bill. PROTEUS is built to take a deal from the first conversation to the final transaction.",
-  footnote: "Assessed from each vendor's public product pages in October 2026; names belong to their owners. PROTEUS marks reflect what is implemented today. USDC settlement runs on Arc testnet.",
+  footnote: "Assessed from each vendor's public product pages in October 2026. Names and logos belong to their owners and are shown for identification only. PROTEUS marks reflect what is implemented today. USDC settlement runs on Arc testnet.",
 };
 
 export interface Plan {
