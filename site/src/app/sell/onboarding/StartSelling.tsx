@@ -9,7 +9,8 @@ import { usePublishProduct } from "../hooks";
 import type { MeOrg } from "../types";
 import { ChipInput } from "./ChipInput";
 import { Preview } from "./Preview";
-import { EMPTY, EXAMPLE, newTier, toBody, validate, type FormState, type TierRow } from "./form";
+import { EMPTY, EXAMPLE, newTier, toBody, toBrand, validate, type FormState, type TierRow } from "./form";
+import { BrandFields } from "../BrandFields";
 import s from "../sell.module.css";
 
 const CAPABILITY_SUGGESTIONS = ["Order status", "Delivery questions", "Returns", "Human handoff", "Refund status"];
@@ -48,7 +49,7 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
       return;
     }
     publish.mutate(
-      { hasOrg, businessName: f.businessName, body: toBody(f) },
+      { hasOrg, businessName: f.businessName, brand: hasOrg ? undefined : toBrand(f), body: toBody(f) },
       { onSuccess: (p) => nav(sellPath("products", p.id)) },
     );
   };
@@ -77,7 +78,10 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
                 Publishing as <span className={s.strong}>{org!.name}</span>. Your seller org and signer already exist.
               </p>
             ) : (
-              <Field label="Business name" placeholder="Northwind Commerce" hint="Shown to buyers on your market page." autoComplete="organization" {...input("businessName")} />
+              <div className={s.fields}>
+                <Field label="Business name" placeholder="Northwind Commerce" hint="Shown to buyers on your market page." autoComplete="organization" {...input("businessName")} />
+                <BrandFields name={f.businessName} value={f.brand} onChange={(b) => set("brand", b)} errors={{ tagline: err("brand.tagline"), website: err("brand.website") }} />
+              </div>
             )}
           </Card>
 
@@ -85,6 +89,7 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
             <div className={s.fields}>
               <div className={s.grid2}>
                 <Field label="Product name" placeholder="AI order support" {...input("productName")} />
+                <Field label="One-line summary" placeholder="Order status and delivery answers from the order record." hint="Shown on your market card." {...input("summary")} maxLength={160} />
                 <Field label="Unit label" placeholder="resolution" hint="The word for one billable unit." {...input("unitLabel")} />
               </div>
               <Field

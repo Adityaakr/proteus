@@ -10,6 +10,7 @@ import { encryptSecret } from "../lib/crypto";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, publicId } from "../lib/ids";
 import { loadProductById, publicProduct } from "./catalog";
+import { sellerCard, sellerStats, validateBrand, type Brand } from "./brand";
 import { listDeals } from "./deals";
 import { listNegotiations } from "./negotiation";
 
@@ -64,7 +65,7 @@ export async function meView(userId: string) {
     userId: u.id,
     email: u.email,
     wallets: wallets.map((w) => ({ address: w.address, kind: w.kind, primary: w.primary })),
-    org: org ? { id: org.id, slug: org.slug, name: org.name, label: org.label, role: org.role, payee: org.payeeAddress } : undefined,
+    org: org ? { id: org.id, slug: org.slug, name: org.name, label: org.label, role: org.role, payee: org.payeeAddress, brand: (org.brand as Brand | null) ?? {} } : undefined,
     labels: { network: "testnet", note: "Arc testnet. Testnet USDC has no value." },
   };
 }
@@ -88,7 +89,7 @@ export async function myNegotiations(userId: string) {
   for (const n of rows) {
     const lp = await loadProductById(n.productId);
     const cands = (n.candidates as Record<string, unknown>[]) ?? [];
-    out.push({ id: n.id, publicId: n.publicId, status: n.status, sellerSlug: lp.org.slug, sellerName: lp.org.name, productSlug: lp.product.slug, productName: lp.product.name, offers: cands.filter((c) => c.status !== "rejected").length, updatedAt: n.updatedAt, createdAt: n.createdAt });
+    out.push({ id: n.id, publicId: n.publicId, status: n.status, sellerSlug: lp.org.slug, sellerName: lp.org.name, sellerLabel: lp.org.label, sellerBrand: (lp.org.brand as Brand | null) ?? {}, productSlug: lp.product.slug, productName: lp.product.name, offers: cands.filter((c) => c.status !== "rejected").length, updatedAt: n.updatedAt, createdAt: n.createdAt });
   }
   return out;
 }
@@ -99,7 +100,7 @@ export async function myDeals(userId: string) {
   const out = [];
   for (const d of rows) {
     const lp = await loadProductById(d.productId);
-    out.push({ id: d.id, publicId: d.publicId, status: d.status, sellerName: lp.org.name, productName: lp.product.name, deposit: d.deposit, settled: d.settled, refunded: d.refunded, remaining: d.deposit - d.settled - d.refunded, balancesSource: d.balancesSource, createdAt: d.createdAt });
+    out.push({ id: d.id, publicId: d.publicId, status: d.status, sellerName: lp.org.name, sellerSlug: lp.org.slug, sellerBrand: (lp.org.brand as Brand | null) ?? {}, productName: lp.product.name, deposit: d.deposit, settled: d.settled, refunded: d.refunded, remaining: d.deposit - d.settled - d.refunded, balancesSource: d.balancesSource, createdAt: d.createdAt });
   }
   return out;
 }
@@ -128,7 +129,8 @@ function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "seller";
 }
 
-export async function createOrg(userId: string, name: string, slug?: string) {
+export async function createOrg(userId: string, name: string, slug?: string, brandInput?: Partial<Brand>) {
+  const brand = validateBrand(brandInput) ?? {};
   if (await userOrg(userId)) throw new HttpError(409, "you already have a seller account");
   const wallets = await userWallets(userId);
   const payee = wallets.find((w) => w.primary)?.address;
@@ -137,7 +139,7 @@ export async function createOrg(userId: string, name: string, slug?: string) {
   const taken = await db.select().from(schema.orgs).where(eq(schema.orgs.slug, s));
   if (taken.length) s = `${s}-${id("", 3).replace("_", "")}`;
   const orgId = id("org");
-  await db.insert(schema.orgs).values({ id: orgId, slug: s, name, label: "live", ownerAddress: payee, ownerUserId: userId, sellerSignerAddress: "0x0000000000000000000000000000000000000000", payeeAddress: payee });
+  await db.insert(schema.orgs).values({ id: orgId, slug: s, name, label: "live", brand, ownerAddress: payee, ownerUserId: userId, sellerSignerAddress: "0x0000000000000000000000000000000000000000", payeeAddress: payee });
   await db.insert(schema.memberships).values({ id: id("mem"), userId, orgId, role: "owner" });
   await ensureOrgSigner(orgId);
   const org = await userOrg(userId);
@@ -158,6 +160,8 @@ export interface ProductCreateInput {
   cost: { variableCostPerUnitUsd: string; directCostPerDealUsd: string; txCostBps: number };
   policy: { minMarginBps: number; maxDiscountBps: number; approvalThresholdUsd: string; prepaidMinimumUsd: string; availableCapacityUnits: string; quoteTtlSeconds: number };
   payPerCall?: { priceUsd: string };
+  summary?: string;
+  category?: string;
   /** "http": the seller's own endpoint (real). "order-support": first-party sample store (demo). */
   adapter?: "http" | "order-support";
   upstream?: { url: string; authHeader?: string; secret?: string };
@@ -193,6 +197,8 @@ export async function createProduct(orgId: string, input: ProductCreateInput) {
     maxUnitsPerDeal: input.maxUnitsPerDeal,
     termDays: input.termDays,
     refundPolicy: input.refundPolicy,
+    ...(input.summary?.trim() ? { summary: input.summary.trim().slice(0, 160) } : {}),
+    ...(input.category ? { category: input.category } : {}),
   };
   const adapter = input.adapter ?? (input.upstream?.url ? "http" : "order-support");
   if (adapter === "http" && !input.upstream?.url) throw new HttpError(400, "an endpoint URL is required for a seller-owned service");
@@ -212,16 +218,36 @@ export async function createProduct(orgId: string, input: ProductCreateInput) {
   return productId;
 }
 
-/** Public market listing across sellers. */
+/** Public market listing across sellers (flat product items; live sellers first). */
 export async function marketList() {
   const rows = await db.select().from(schema.products).where(eq(schema.products.active, true));
   const out = [];
   for (const r of rows) {
     const lp = await loadProductById(r.id);
     const pub = publicProduct(lp);
-    out.push({ sellerSlug: lp.org.slug, sellerName: lp.org.name, sellerLabel: lp.org.label, productSlug: pub.slug, name: pub.name, unitLabel: pub.unitLabel, capabilities: pub.capabilities, startingTierUsd: pub.tiers[0]?.prepaidTotalUsd ?? null, perCallUsd: r.payPerCallPrice ? formatUsd(r.payPerCallPrice, 4) : null, ...bigintsToStrings({}) });
+    const brand = (lp.org.brand as Brand | null) ?? {};
+    out.push({ sellerSlug: lp.org.slug, sellerName: lp.org.name, sellerLabel: lp.org.label, sellerBrand: brand, productSlug: pub.slug, name: pub.name, summary: pub.summary, category: pub.category ?? brand.category ?? null, unitLabel: pub.unitLabel, capabilities: pub.capabilities, termDays: pub.termDays, startingTierUsd: pub.tiers[0]?.prepaidTotalUsd ?? null, perCallUsd: r.payPerCallPrice ? formatUsd(r.payPerCallPrice, 4) : null, ...bigintsToStrings({}) });
   }
-  return out;
+  return out.sort((a, b) => (a.sellerLabel === b.sellerLabel ? 0 : a.sellerLabel === "live" ? -1 : 1));
+}
+
+/** Seller-centric market: every seller with its brand, real stats and published products. Live sellers first. */
+export async function marketSellers() {
+  const orgs = await db.select().from(schema.orgs);
+  const products = await db.select().from(schema.products).where(eq(schema.products.active, true));
+  const stats = await sellerStats(orgs.map((o) => o.id));
+  const out = [];
+  for (const org of orgs) {
+    const mine = products.filter((p) => p.orgId === org.id);
+    if (!mine.length) continue;
+    const items = [];
+    for (const r of mine) {
+      const pub = publicProduct(await loadProductById(r.id));
+      items.push({ slug: pub.slug, name: pub.name, summary: pub.summary, category: pub.category, unitLabel: pub.unitLabel, capabilities: pub.capabilities, termDays: pub.termDays, tiers: pub.tiers.length, startingTierUsd: pub.tiers[0]?.prepaidTotalUsd ?? null, bestUnitPriceUsd: pub.tiers.map((t) => t.unitPriceUsd).sort((a, b) => Number(a) - Number(b))[0] ?? null, perCallUsd: pub.payPerCallUsd, service: pub.service });
+    }
+    out.push({ ...sellerCard(org, stats.get(org.id)), products: items });
+  }
+  return out.sort((a, b) => (a.label === b.label ? b.products.length - a.products.length : a.label === "live" ? -1 : 1));
 }
 
 export { publicId };

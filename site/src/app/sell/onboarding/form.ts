@@ -4,6 +4,8 @@
  */
 import { toMicro, type CostModel, type Policy, type Product, type Requirements } from "@proteus/domain";
 import type { ProductCreateBody } from "../types";
+import { EMPTY_BRAND, brandFromState, validateBrandState, type BrandFormState } from "../BrandFields";
+export type { BrandFormState };
 
 export interface TierRow {
   key: string;
@@ -15,6 +17,8 @@ export interface TierRow {
 
 export interface FormState {
   businessName: string;
+  brand: BrandFormState;
+  summary: string;
   productName: string;
   unitLabel: string;
   billableUnit: string;
@@ -46,6 +50,8 @@ export const newTier = (t: Partial<TierRow> = {}): TierRow => ({ key: `t${++k}`,
 
 export const EMPTY: FormState = {
   businessName: "",
+  brand: EMPTY_BRAND,
+  summary: "",
   productName: "",
   unitLabel: "",
   billableUnit: "",
@@ -73,6 +79,8 @@ export const EMPTY: FormState = {
 
 export const EXAMPLE: FormState = {
   businessName: "Northwind Commerce",
+  brand: { ...EMPTY_BRAND, tagline: "Order support for online stores, answered from the order record.", category: "support" },
+  summary: "Order status, delivery and tracking answers sourced from the store\'s order record; refunds go to a human.",
   productName: "AI order support",
   unitLabel: "resolution",
   billableUnit: "One delivered order-status answer sourced from the store's order record",
@@ -126,6 +134,8 @@ export type Errors = Partial<Record<string, string>>;
 export function validate(f: FormState, hasOrg: boolean): Errors {
   const e: Errors = {};
   if (!hasOrg && !f.businessName.trim()) e.businessName = "Enter your business name. Buyers see it on your market page.";
+  if (!hasOrg) for (const [k, v] of Object.entries(validateBrandState(f.brand))) e[`brand.${k}`] = v;
+  if (f.summary.trim().length > 160) e.summary = "Keep the summary under 160 characters.";
   if (!f.productName.trim()) e.productName = "Enter a product name.";
   if (!f.unitLabel.trim()) e.unitLabel = "Enter the unit you bill for, such as resolution.";
   else if (f.unitLabel.trim().length > 32) e.unitLabel = "Keep the unit label short, one or two words.";
@@ -182,6 +192,8 @@ const decimal = (v: string) => clean(v);
 export function toBody(f: FormState): ProductCreateBody {
   return {
     name: f.productName.trim(),
+    ...(f.summary.trim() ? { summary: f.summary.trim() } : {}),
+    ...(f.brand.category ? { category: f.brand.category } : {}),
     unitLabel: f.unitLabel.trim(),
     billableUnit: f.billableUnit.trim(),
     capabilities: f.capabilities,
@@ -204,6 +216,10 @@ export function toBody(f: FormState): ProductCreateBody {
       ? { adapter: "http" as const, upstream: { url: f.upstreamUrl.trim(), ...(f.upstreamAuthHeader.trim() ? { authHeader: f.upstreamAuthHeader.trim() } : {}), ...(f.upstreamSecret.trim() ? { secret: f.upstreamSecret.trim() } : {}) } }
       : { adapter: "order-support" as const }),
   };
+}
+
+export function toBrand(f: FormState) {
+  return brandFromState(f.brand);
 }
 
 /** Engine inputs for getQuoteCandidates, or null when the pricing fields are not valid yet. */

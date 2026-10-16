@@ -43,6 +43,12 @@ Privy login with embedded wallets, `/app` dashboard with Buy and Sell, per-org s
 - Sellers can now publish a product backed by their own HTTPS endpoint (adapter `http`, encrypted secret, 20 s timeout, bills only 2xx JSON answers not marked `billable:false`). Start selling has a "Service endpoint" choice; the seller product page shows which one is configured. Unit-tested against a local HTTP server (4 tests). Pay per call routes through the same adapter. Published for real on org lumen-voice: product `callback-booking` ($0.20/booking Trial, $0.10 per call) pointing at a local endpoint; money has not been run through it yet (Aditya paused the browser run).
 - Deposit is a sheet (centered dialog on desktop, bottom sheet on phones) with the QR, address, faucet link and a live watcher that polls for 90 s and confirms the arrival with the delta. Esc, backdrop and close dismiss it. Every app page is now centered (`.sellerMain` has `margin: 0 auto`).
 
+## Market and negotiation redesign with seller identity (2026-10-16, night)
+
+- Sellers have a brand (logo, tagline, category, website, accent) set at Start selling or in Sell > Settings > Brand, with client-side logo resizing to a sub-96 KB data URL. The market is seller-centric: search, category filter, live sellers first, each card with the wordmark or monogram, label, tagline, real stats from the deals table and its product rows. Product page: breadcrumb hero with the seller mark, meta chips, capability grid, billable-unit callout, tier cards with "Best unit price", a five-step "How a deal works" strip, an About card with stats, and a tighter Negotiate rail. Negotiation page: seller wordmark in the header and chat, deal summary rail, offer cards with volume/unit price/refund grid and included-feature chips. Negotiations list shows the seller mark.
+- Six demo sellers seeded (Harbor Logistics, Kaidata, Meridian Legal, Vantage API, Orbit Labs, Tidewater Health) with PROTEUS's own invented marks; Northwind renamed Northwind Commerce. Real third-party logos were deliberately not used: listing a real company as a seller would claim a customer that does not exist.
+- Verified headless at 1440 and 390 px: market, demo and live product pages, a fresh negotiation with three offers, the negotiations list and seller settings render with no console errors or horizontal overflow.
+
 ## Blocked on inputs from Aditya
 
 1. Done: deployer and relayer funded, escrow deployed, loop executed on testnet.

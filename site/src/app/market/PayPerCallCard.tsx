@@ -10,7 +10,7 @@ import { Skeleton } from "../ui/Skeleton";
 import { StatusTag } from "../ui/StatusTag";
 import { ExplorerLink, Notice } from "../ui/misc";
 import { useAuth } from "../auth/useAuth";
-import { ApiError, api, errorMessage, newRequestId, type PayExecuteResponse, type PayRequired } from "../lib/api";
+import { ApiError, api, errorMessage, newRequestId, type PayExecuteResponse, type PayRequired, type ServiceKind } from "../lib/api";
 import { signTransferAuthorization, walletErrorMessage } from "../lib/wallet";
 import m from "./market.module.css";
 
@@ -23,7 +23,8 @@ function asRequired(e: unknown): PayRequired | null {
 const notAvailable = (e: unknown) => e instanceof ApiError && (e.status === 404 || e.status === 501);
 
 /** x402 pay per call: one signed USDC authorization per request, settled through Circle's facilitator. */
-export function PayPerCallCard({ sellerSlug, productSlug }: { sellerSlug: string; productSlug: string }) {
+export function PayPerCallCard({ sellerSlug, productSlug, service, unitLabel = "unit" }: { sellerSlug: string; productSlug: string; service?: ServiceKind; unitLabel?: string }) {
+  const sampleStore = service === "sample-store" || service === undefined;
   const { wallet, getWalletClient, mock } = useAuth();
   const payer = wallet?.address;
   const probe = useQuery<Probe>({
@@ -43,8 +44,8 @@ export function PayPerCallCard({ sellerSlug, productSlug }: { sellerSlug: string
     },
   });
 
-  const [question, setQuestion] = useState("Where is my order?");
-  const [orderId, setOrderId] = useState("1042");
+  const [question, setQuestion] = useState(sampleStore ? "Where is my order?" : "");
+  const [orderId, setOrderId] = useState(sampleStore ? "A1001" : "");
   const [phase, setPhase] = useState<string | null>(null);
   const run = useMutation({
     mutationFn: async (): Promise<PayExecuteResponse> => {
@@ -78,7 +79,7 @@ export function PayPerCallCard({ sellerSlug, productSlug }: { sellerSlug: string
   const price = probe.data?.available ? probe.data.req.accepts[0]?.amount : undefined;
 
   return (
-    <Card title="Pay per call" subtitle="Try it or use it at low volume. Each request is paid on its own from your balance." actions={<Zap size={18} strokeWidth={2} color="var(--c-dark-60)" aria-hidden />}>
+    <Card title="Pay per call" subtitle={`Try one ${unitLabel} before committing, or use it at low volume. Each request is paid on its own from your balance.`} actions={<Zap size={18} strokeWidth={2} color="var(--c-dark-60)" aria-hidden />}>
       {probe.isLoading ? (
         <Skeleton lines={2} />
       ) : probe.error ? (
@@ -93,8 +94,8 @@ export function PayPerCallCard({ sellerSlug, productSlug }: { sellerSlug: string
           <span className={m.price}>
             <Money micro={price} digits={4} /> <span className="body3">per call</span>
           </span>
-          <Field label="Question" value={question} onChange={(e) => setQuestion(e.target.value)} maxLength={2000} />
-          <Field label="Order id" hint="Optional" value={orderId} onChange={(e) => setOrderId(e.target.value)} inputMode="numeric" />
+          <Field label={sampleStore ? "Question" : "Request"} placeholder={sampleStore ? "Where is my order?" : `Describe the ${unitLabel} you want`} value={question} onChange={(e) => setQuestion(e.target.value)} maxLength={2000} />
+          <Field label={sampleStore ? "Order id" : "Reference"} hint={sampleStore ? "Sample store orders A1001 to A1004" : "Optional. Your own id, echoed in the receipt."} value={orderId} onChange={(e) => setOrderId(e.target.value)} />
           <div>
             <ActionButton type="submit" variant="secondary" loading={run.isPending} loadingLabel={phase ?? "Working"} disabled={!wallet}>
               Pay and run

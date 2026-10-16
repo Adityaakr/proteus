@@ -185,8 +185,9 @@ export const api = {
   meNegotiations: () => request<T.NegotiationSummary[]>("GET", "/me/negotiations"),
   meDeals: () => request<T.DealSummary[]>("GET", "/me/deals"),
   meActivity: () => request<T.MeActivity>("GET", "/me/activity"),
-  createOrg: (body: { name: string; slug?: string }) => request<T.MeOrg>("POST", "/orgs", { body }),
+  createOrg: (body: { name: string; slug?: string; brand?: T.SellerBrand }) => request<T.MeOrg>("POST", "/orgs", { body }),
   market: () => request<T.MarketItem[]>("GET", "/market"),
+  marketSellers: () => request<T.MarketSeller[]>("GET", "/market/sellers"),
 
   /* Review */
   reviewList: () => request<T.ReviewListItem[]>("GET", "/review"),
@@ -214,6 +215,7 @@ export const api = {
     signer: () => request<T.SignerInfo>("GET", "/app/signer"),
     revokeSigner: () => request<{ revokedAt: T.IsoTime; note?: string; [k: string]: unknown }>("POST", "/app/signer/revoke", { body: {} }),
     createProduct: (body: T.ProductCreateBody) => request<T.ProductWithPrivate>("POST", "/app/products", { body }),
+    updateOrg: (body: { name?: string; brand?: Partial<T.SellerBrand> }) => request<{ slug: string; name: string; label: T.SellerLabel; brand: T.SellerBrand }>("PATCH", "/app/org", { body }),
   },
 };
 
@@ -250,6 +252,7 @@ export const qk = {
   meDeals: ["me", "deals"] as const,
   meActivity: ["me", "activity"] as const,
   market: ["market"] as const,
+  marketSellers: ["market", "sellers"] as const,
   balances: (address: string) => ["balances", address.toLowerCase()] as const,
   record: (id: string) => ["record", id] as const,
 };

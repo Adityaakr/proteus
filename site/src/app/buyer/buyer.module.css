@@ -122,3 +122,19 @@
 .formGrid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px; }
 @media (max-width: 809.98px) { .formGrid { grid-template-columns: minmax(0, 1fr); } }
 .divider { height: 1px; background: var(--c-dark-10); border: 0; margin: 0; width: 100%; }
+
+/* Negotiation header */
+.negHead { display: flex; flex-direction: column; gap: 12px; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 13px; color: var(--c-dark-60); }
+.crumbs a { color: var(--c-dark-60); } .crumbs a:hover { color: var(--c-primary); }
+.negTitleRow { display: flex; align-items: flex-start; gap: 16px; }
+.negTitleCol { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1 1 auto; }
+.negSeller { font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--c-dark); }
+.negTitle { margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: 32px; line-height: 1.1; letter-spacing: -0.4px; color: var(--c-dark); }
+.youMark { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; color: var(--c-white); background: var(--c-primary); }
+.chipSm { display: inline-flex; align-items: center; gap: 5px; min-height: 26px; padding: 2px 10px; border-radius: 1000px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); font-family: var(--font-body); font-size: 12px; color: var(--c-dark-80); }
+.offerGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.offerGrid div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); min-width: 0; }
+.offerGrid dt { font-family: var(--font-body); font-size: 12px; color: var(--c-dark-60); }
+.offerGrid dd { margin: 0; font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--c-dark); overflow-wrap: anywhere; }
+@media (max-width: 809.98px) { .negTitle { font-size: 26px; } .negTitleRow { gap: 12px; } .offerGrid { grid-template-columns: 1fr 1fr; } }

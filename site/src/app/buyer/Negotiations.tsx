@@ -11,6 +11,7 @@ import { Money } from "../ui/Money";
 import { Notice } from "../ui/misc";
 import { StatusTag } from "../ui/StatusTag";
 import { api, isAuthError, qk, type NegotiationSummary } from "../lib/api";
+import { SellerMark } from "../ui/SellerMark";
 import { ErrorState, PageHeader, fmtDateTime, prettySlug } from "./common";
 
 export default function Negotiations() {
@@ -38,7 +39,19 @@ export default function Negotiations() {
             onRowClick={(n) => navigate(`/app/negotiations/${n.id}`)}
             empty={empty}
             columns={[
-              { key: "product", header: "Product", render: (n) => prettySlug(n.productSlug) },
+              {
+                key: "seller",
+                header: "Seller",
+                render: (n) => (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                    <SellerMark name={n.sellerName ?? prettySlug(n.sellerSlug ?? "")} brand={n.sellerBrand} size="md" />
+                    <span style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      <span style={{ fontWeight: 500, color: "var(--c-dark)" }}>{n.sellerName ?? prettySlug(n.sellerSlug ?? "")}</span>
+                      <span className="body3">{n.productName ?? prettySlug(n.productSlug)}</span>
+                    </span>
+                  </span>
+                ),
+              },
               { key: "status", header: "Status", render: (n) => <StatusTag state={n.status} /> },
               { key: "offer", header: "Best offer", numeric: true, render: (n) => (n.bestOfferUsd ? <Money usd={n.bestOfferUsd} /> : "None yet") },
               { key: "updated", header: "Updated", render: (n) => fmtDateTime(n.updatedAt ?? n.createdAt) },

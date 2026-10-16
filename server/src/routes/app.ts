@@ -59,7 +59,7 @@ async function productWithPrivate(orgId: string, productId: string) {
   ];
   const pub = publicProduct(lp);
   const up = lp.row.upstream as { url?: string; authHeader?: string; secretEnc?: string } | null;
-  return { id: lp.row.id, adapter: lp.row.adapter, service: lp.row.adapter === "http" ? { kind: "http", url: up?.url ?? null, authHeader: up?.authHeader ?? null, hasSecret: Boolean(up?.secretEnc) } : { kind: "sample-store" }, ...pub, maxUnitsPerDeal: lp.product.maxUnitsPerDeal, public: pub, cost: lp.cost, policy: lp.policy, costHistory: costs, policyHistory: pols, preview, previewCases: preview, labels: { seller: lp.org.label, private: "Seller only. Never shown to buyers." } };
+  return { ...pub, id: lp.row.id, adapter: lp.row.adapter, service: lp.row.adapter === "http" ? { kind: "http", url: up?.url ?? null, authHeader: up?.authHeader ?? null, hasSecret: Boolean(up?.secretEnc) } : lp.row.adapter === "demo" ? { kind: "demo" } : { kind: "sample-store" }, maxUnitsPerDeal: lp.product.maxUnitsPerDeal, public: pub, cost: lp.cost, policy: lp.policy, costHistory: costs, policyHistory: pols, preview, previewCases: preview, labels: { seller: lp.org.label, private: "Seller only. Never shown to buyers." } };
 }
 
 appRoutes.get("/app/products", async (c) => {

@@ -213,3 +213,12 @@ x-proteus-request-id: <requestId>
 ```
 
 The endpoint answers with JSON: `{ "answer": "...", "billable": true | false, "status": "delivered" | "failed" | "handoff" }`. A 2xx with `billable` not `false` is one delivered unit and is metered against the deal (or settled through x402 for pay per call). `handoff`, `failed`, any non-2xx status, non-JSON bodies and timeouts (20 s) are never charged. Retries with the same `requestId` return the stored receipt. Products on the sample store carry a "Demo seller" label to buyers; endpoint-backed products on a live org do not.
+
+### Seller identity and the seller-centric market (2026-10-16)
+
+- `GET /api/market/sellers`: every seller with published products, live sellers first. Each entry: `{ slug, name, label, brand: { logoUrl?, tagline?, category?, website?, accent? }, stats: { dealsFunded, settled, inEscrow, since }, products: [{ slug, name, summary, category, unitLabel, capabilities, termDays, tiers, startingTierUsd, bestUnitPriceUsd, perCallUsd, service }] }`. Stats are real sums over the deals table (never estimated); demo sellers get the same math and the label says what they are.
+- `GET /api/market/categories`: the category ids buyers can filter by.
+- `GET /api/public/sellers/:slug` now carries `brand` and `stats`; public products carry `summary`, `category`, `maxUnitsPerDeal`, `payPerCallUsd` and `service` (`seller-endpoint` | `sample-store` | `demo`).
+- `POST /api/orgs` accepts `brand`; `PATCH /api/app/org` (owner session) updates `name` and `brand`. Logos: an https URL, a `/assets/...` path, or a PNG/JPEG/WebP/SVG data URL under 96 KB (SVGs with scripts are rejected). Empty strings clear a field.
+- Negotiation views carry `sellerName`, `sellerBrand`, `productName`, `productSummary`, `termDays`; `/api/me/negotiations` and `/api/me/deals` carry `sellerBrand`.
+- Demo sellers (`server/scripts/seed-demo-sellers.ts`, `pnpm --filter @proteus/server db:seed-demo`): six labeled demo businesses using PROTEUS's own invented marks from the marketing page. Their products run the deterministic `demo` adapter (delivered answers labeled as illustrative; refund or cancel requests hand off and are not billed). No real company is represented.

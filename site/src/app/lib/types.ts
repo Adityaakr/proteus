@@ -31,9 +31,33 @@ export interface PublicTier {
   includes: string[];
 }
 
+/** Public seller identity. Logo is an https URL, a site asset path or a small data URL. */
+export interface SellerBrand {
+  logoUrl?: string;
+  tagline?: string;
+  category?: string;
+  website?: string;
+  accent?: string;
+}
+
+/** Real per-seller numbers from the deals table (micro-USDC strings). */
+export interface SellerStats {
+  dealsFunded: number;
+  settled: MicroStr;
+  inEscrow: MicroStr;
+  since: IsoTime;
+}
+
+export type ServiceKind = "seller-endpoint" | "sample-store" | "demo";
+
 export interface PublicProduct {
   slug: string;
   name: string;
+  summary?: string | null;
+  category?: string | null;
+  maxUnitsPerDeal?: UnitsStr;
+  payPerCallUsd?: string | null;
+  service?: ServiceKind;
   billableUnit: string;
   unitLabel: string;
   capabilities: string[];
@@ -49,6 +73,8 @@ export interface PublicSeller {
   slug: string;
   name: string;
   label: SellerLabel;
+  brand?: SellerBrand;
+  stats?: SellerStats;
   products: PublicProduct[];
   network?: NetworkLabel;
 }
@@ -114,7 +140,14 @@ export interface Negotiation {
   id: string;
   publicId: string;
   sellerSlug: string;
+  sellerName?: string;
+  sellerBrand?: SellerBrand;
   productSlug: string;
+  productName?: string;
+  productSummary?: string | null;
+  termDays?: number;
+  unitLabel?: string;
+  labels?: { seller?: SellerLabel; network?: string; pricing?: string };
   status: "open" | "quoted" | "accepted" | "closed";
   requirements: WireRequirements;
   turns: Turn[];
@@ -343,6 +376,11 @@ export interface ProductWithPrivate extends PublicProduct {
 export interface NegotiationSummary {
   id: string;
   publicId: string;
+  sellerSlug?: string;
+  sellerName?: string;
+  sellerLabel?: SellerLabel;
+  sellerBrand?: SellerBrand;
+  productName?: string;
   productSlug: string;
   status: Negotiation["status"];
   createdAt: IsoTime;
@@ -469,6 +507,7 @@ export interface MeOrg {
   name: string;
   label: SellerLabel;
   role: "owner";
+  brand?: SellerBrand;
 }
 
 export interface MeResponse {
@@ -517,6 +556,8 @@ export interface ProductCreateBody {
   cost: { variableCostPerUnitUsd: string; directCostPerDealUsd: string; txCostBps: number };
   policy: { minMarginBps: number; maxDiscountBps: number; approvalThresholdUsd: string; prepaidMinimumUsd: string; availableCapacityUnits: UnitsStr | number; quoteTtlSeconds: number };
   payPerCall?: { priceUsd: string };
+  summary?: string;
+  category?: string;
   /** "http": the seller's own HTTPS endpoint (real). "order-support": first-party sample store (demo). */
   adapter?: "http" | "order-support";
   upstream?: { url: string; authHeader?: string; secret?: string };
@@ -526,11 +567,39 @@ export interface MarketItem {
   sellerSlug: string;
   sellerName: string;
   sellerLabel: SellerLabel;
+  sellerBrand?: SellerBrand;
   productSlug: string;
   name: string;
+  summary?: string | null;
+  category?: string | null;
   unitLabel: string;
+  termDays?: number;
   startingTierUsd: string;
   perCallUsd?: string;
+}
+
+export interface MarketSellerProduct {
+  slug: string;
+  name: string;
+  summary?: string | null;
+  category?: string | null;
+  unitLabel: string;
+  capabilities: string[];
+  termDays: number;
+  tiers: number;
+  startingTierUsd: string | null;
+  bestUnitPriceUsd: string | null;
+  perCallUsd: string | null;
+  service: ServiceKind;
+}
+
+export interface MarketSeller {
+  slug: string;
+  name: string;
+  label: SellerLabel;
+  brand: SellerBrand;
+  stats?: SellerStats;
+  products: MarketSellerProduct[];
 }
 
 export interface PayAccept {

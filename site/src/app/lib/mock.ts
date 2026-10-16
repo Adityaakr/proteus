@@ -939,6 +939,11 @@ async function mockV1(method: string, p: string[], body: Body): Promise<unknown 
     await sleep(400);
     return { ...productWithPrivate(), name: String(body?.name ?? product.name) };
   }
+  if (is("GET", "market", "sellers")) {
+    await sleep(200);
+    const items = marketItems();
+    return [{ slug: SELLER_SLUG, name: "Northwind Commerce", label: "sandbox" as const, brand: { logoUrl: "/assets/logos/northwind.png", tagline: "Order support for online stores, answered from the order record.", category: "support", accent: "#1b4dff" }, stats: { dealsFunded: 2, settled: "3750000", inEscrow: "0", since: new Date().toISOString() }, products: items.map((i) => ({ slug: i.productSlug, name: i.name, summary: "Order status and delivery answers from the order record (mock).", category: "support", unitLabel: i.unitLabel, capabilities: [], termDays: 30, tiers: 3, startingTierUsd: i.startingTierUsd, bestUnitPriceUsd: null, perCallUsd: i.perCallUsd ?? null, service: "sample-store" as const })) }] satisfies T.MarketSeller[];
+  }
   if (is("GET", "market")) {
     await sleep(200);
     return marketItems();
@@ -968,7 +973,7 @@ export async function mockRequest<R>(method: string, path: string, body: Body, h
   if (is("GET", "public", "sellers", null)) {
     if (p[2] !== SELLER_SLUG) notFound("Seller");
     await sleep(250);
-    return r({ slug: SELLER_SLUG, name: "Northwind Commerce", label: "sandbox", products: [publicProduct()], network: "illustrative" } satisfies T.PublicSeller);
+    return r({ slug: SELLER_SLUG, name: "Northwind Commerce", label: "sandbox", brand: { logoUrl: "/assets/logos/northwind.png", tagline: "Order support for online stores, answered from the order record.", category: "support" }, products: [publicProduct()], network: "illustrative" } satisfies T.PublicSeller);
   }
   if (is("GET", "public", "sellers", null, "products", null)) {
     if (p[2] !== SELLER_SLUG || p[4] !== product.slug) notFound("Product");

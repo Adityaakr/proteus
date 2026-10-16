@@ -113,6 +113,13 @@ export async function httpUpstream(cfg: UpstreamConfig, ctx: { requestId: string
 export async function runAdapter(lp: Awaited<ReturnType<typeof loadProductById>>, ctx: { requestId: string; dealId?: string }, input: ServiceInput): Promise<ServiceOutput> {
   if (lp.row.adapter === "http" && lp.row.upstream) return httpUpstream(lp.row.upstream as UpstreamConfig, { ...ctx, orgId: lp.org.id, productSlug: lp.product.slug }, input);
   if (lp.row.adapter === "order-support") return orderSupport(lp.org.id, input);
+  if (lp.row.adapter === "demo") {
+    // Seeded demo sellers: a labeled, deterministic answer so the money loop can be exercised end to end on testnet.
+    const q = input.question.trim();
+    if (!q) return { status: "failed", billable: false, answer: "Send a question to get a demo answer. This request was not charged.", source: { store: "demo", fields: [] } };
+    if (/refund|cancel|complain|lawyer|escalat/i.test(q)) return { status: "handoff", billable: false, answer: `Demo seller ${lp.org.name}: this request is routed to a human. Not charged.`, source: { store: "demo", fields: [] } };
+    return { status: "delivered", billable: true, answer: `Demo seller ${lp.org.name}, product ${lp.product.name}: delivered one ${lp.product.unitLabel} for "${q.slice(0, 120)}". A live seller answers this from its own endpoint; this answer is illustrative and the charge is testnet USDC.`, source: { store: "demo", fields: ["answer"] } };
+  }
   return { status: "failed", billable: false, answer: "No service endpoint is configured for this product. This request was not charged.", source: { store: "none", fields: [] } };
 }
 

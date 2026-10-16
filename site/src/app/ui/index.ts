@@ -5,6 +5,7 @@ export { StatCard, type StatCardProps } from "./StatCard";
 export { DataTable, type DataTableProps, type DataColumn } from "./DataTable";
 export { EmptyState, type EmptyStateProps } from "./EmptyState";
 export { Field, type FieldProps } from "./Field";
+export { SellerMark, categoryLabel, possessive, useLogoShape, CATEGORY_LABELS } from "./SellerMark";
 export { Skeleton, LoadingCard, type SkeletonProps } from "./Skeleton";
 export { Money, formatMoney, microFromString, usdStringToDisplay, type MoneyProps } from "./Money";
 export { Stepper, DEAL_STAGES, type DealStage, type StepperProps } from "./Stepper";

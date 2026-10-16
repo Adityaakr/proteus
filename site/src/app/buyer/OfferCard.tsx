@@ -1,5 +1,6 @@
 import { useId, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Check } from "lucide-react";
 import { toMicro } from "@proteus/domain";
 import { T_DEFAULT } from "../../lib/motion";
 import { ActionButton } from "../ui/ActionButton";
@@ -21,6 +22,7 @@ const ORIGIN_LABEL: Record<Offer["origin"], string> = {
 export interface OfferCardProps {
   offer: Offer;
   unitLabel?: string;
+  termDays?: number;
   /** Draw as the recommended offer (primary accept button). */
   top?: boolean;
   busy?: boolean;
@@ -29,7 +31,7 @@ export interface OfferCardProps {
   counterBusy?: boolean;
 }
 
-export function OfferCard({ offer, unitLabel = "resolution", top, busy, onAccept, onCounter, counterBusy }: OfferCardProps) {
+export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAccept, onCounter, counterBusy }: OfferCardProps) {
   const [counterOpen, setCounterOpen] = useState(false);
   const [mode, setMode] = useState<"total" | "units">("total");
   const [value, setValue] = useState("");
@@ -57,11 +59,11 @@ export function OfferCard({ offer, unitLabel = "resolution", top, busy, onAccept
         <div className={s.stackTight}>
           <div className={s.row}>
             <span className="h6">{offer.tierName}</span>
-            <StatusTag state={offer.status} />
+            {top && offer.status === "eligible" ? <StatusTag tone="info" label="Recommended" /> : <StatusTag state={offer.status} />}
           </div>
           <div className={s.chips}>
             {origins.map((o) => (
-              <span key={o} className={s.chip}>{ORIGIN_LABEL[o]}</span>
+              <span key={o} className={s.chipSm}>{ORIGIN_LABEL[o]}</span>
             ))}
           </div>
         </div>
@@ -69,15 +71,21 @@ export function OfferCard({ offer, unitLabel = "resolution", top, busy, onAccept
           <span className={s.offerTotal}>
             <Money usd={offer.prepaidTotalUsd} />
           </span>
-          <span className="body3">prepaid for the term</span>
+          <span className="body3">prepaid{termDays ? ` for ${termDays} days` : " for the term"}</span>
         </div>
       </div>
-      <div className={s.offerFacts}>
-        <span><strong>{fmtUnits(offer.units)}</strong> {unitLabel}s</span>
-        <span><strong><Money usd={offer.unitPriceUsd} digits={offer.unitPriceUsd.split(".")[1]?.length && offer.unitPriceUsd.split(".")[1]!.length > 2 ? 4 : 2} /></strong> per {unitLabel}</span>
-        {offer.overagePriceUsd && <span>Overage <strong><Money usd={offer.overagePriceUsd} /></strong></span>}
-        {offer.includes.length > 0 && <span>Includes {offer.includes.join(", ")}</span>}
-      </div>
+      <dl className={s.offerGrid}>
+        <div><dt>Volume</dt><dd>{fmtUnits(offer.units)} {unitLabel}s</dd></div>
+        <div><dt>Unit price</dt><dd><Money usd={offer.unitPriceUsd} digits={offer.unitPriceUsd.split(".")[1]?.replace(/0+$/, "").length && offer.unitPriceUsd.split(".")[1]!.replace(/0+$/, "").length > 2 ? 4 : 2} /></dd></div>
+        {offer.overagePriceUsd ? <div><dt>Overage</dt><dd><Money usd={offer.overagePriceUsd} /></dd></div> : <div><dt>Refund</dt><dd>Unused balance</dd></div>}
+      </dl>
+      {offer.includes.length > 0 && (
+        <div className={s.chips}>
+          {offer.includes.map((inc) => (
+            <span key={inc} className={s.chipSm}><Check size={12} strokeWidth={2.5} aria-hidden style={{ color: "var(--c-primary)" }} />{inc}</span>
+          ))}
+        </div>
+      )}
       {offer.unsupportedIntegrations.length > 0 && (
         <Notice tone="warn">
           {offer.unsupportedIntegrations.map(prettyIntegration).join(", ")} {offer.unsupportedIntegrations.length > 1 ? "are" : "is"} not supported and is excluded from these terms.

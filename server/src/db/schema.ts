@@ -86,6 +86,8 @@ export const orgs = pgTable("orgs", {
   label: text("label").notNull().default("sandbox"),
   ownerAddress: text("owner_address"),
   ownerUserId: text("owner_user_id"),
+  /** Public identity: { logoUrl?, tagline?, category?, website?, accent? }. logoUrl is an https URL, a site asset path or a small data URL. */
+  brand: jsonb("brand"),
   /** Seller signer (delegated, server-held for the sandbox seller). */
   sellerSignerAddress: text("seller_signer_address").notNull(),
   payeeAddress: text("payee_address").notNull(),

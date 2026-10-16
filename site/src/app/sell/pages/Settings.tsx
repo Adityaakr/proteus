@@ -1,4 +1,9 @@
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { BrandFields, EMPTY_BRAND, brandFromState, validateBrandState, type BrandFormState } from "../BrandFields";
+import { Field } from "../../ui/Field";
+import { v1 } from "../v1";
+import type { MeOrg } from "../types";
 import { FlaskConical, KeyRound, Wallet } from "lucide-react";
 import { ActionButton, Card, KeyValue, LoadingCard, MonoValue, Notice, StatusTag } from "../../seller/kit";
 import { PageHeader } from "../../seller/parts/PageHeader";
@@ -96,6 +101,8 @@ export default function Settings() {
         )}
       </Card>
 
+      {me?.org && <BrandCard org={me.org} />}
+
       {me?.org && (
         <Card title="Seller org">
           <KeyValue
@@ -109,5 +116,42 @@ export default function Settings() {
         </Card>
       )}
     </div>
+  );
+}
+
+function BrandCard({ org }: { org: MeOrg }) {
+  const qc = useQueryClient();
+  const auth = useAuth();
+  const [name, setName] = useState(org.name);
+  const [b, setB] = useState<BrandFormState>({ ...EMPTY_BRAND, logoUrl: org.brand?.logoUrl ?? "", tagline: org.brand?.tagline ?? "", category: org.brand?.category ?? "", website: org.brand?.website ?? "" });
+  const errors = validateBrandState(b);
+  const save = useMutation({
+    mutationFn: () => {
+      const brand = brandFromState(b);
+      // Empty strings clear a field on the server.
+      const patch = { logoUrl: brand.logoUrl ?? "", tagline: brand.tagline ?? "", category: brand.category ?? "", website: brand.website ?? "" };
+      return v1.app.updateOrg({ name: name.trim() !== org.name ? name.trim() : undefined, brand: patch });
+    },
+    onSuccess: () => {
+      auth.refetchMe();
+      qc.invalidateQueries({ queryKey: ["me"] });
+      qc.invalidateQueries({ queryKey: ["market"] });
+      qc.invalidateQueries({ queryKey: ["seller"] });
+    },
+  });
+  return (
+    <Card title="Brand" subtitle="How buyers see you in the market, on your product pages and in every negotiation.">
+      <div className={s.fields}>
+        <Field label="Business name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
+        <BrandFields name={name} value={b} onChange={setB} errors={errors} />
+        {save.isError && <Notice tone="danger">{errorMessage(save.error)}</Notice>}
+        {save.isSuccess && !save.isPending && <Notice tone="success">Brand saved.</Notice>}
+        <div className={s.row}>
+          <ActionButton onClick={() => save.mutate()} loading={save.isPending} loadingLabel="Saving" disabled={Object.keys(errors).length > 0 || name.trim().length < 2}>
+            Save brand
+          </ActionButton>
+        </div>
+      </div>
+    </Card>
   );
 }

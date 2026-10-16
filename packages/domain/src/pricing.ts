@@ -16,6 +16,10 @@ export interface Product {
   supportedIntegrations: string[];
   /** Public capabilities list. */
   capabilities: string[];
+  /** One-line public summary (optional, shown in the market). */
+  summary?: string;
+  /** Market category id, e.g. "support", "voice", "data" (optional). */
+  category?: string;
   tiers: Tier[];
   /** Hard ceiling for a single deal, in units per term. */
   maxUnitsPerDeal: bigint;

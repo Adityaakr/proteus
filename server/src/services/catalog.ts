@@ -101,6 +101,11 @@ export function publicProduct(lp: LoadedProduct) {
     })),
     termDays: p.termDays,
     refundPolicy: p.refundPolicy,
+    summary: p.summary ?? null,
+    category: p.category ?? null,
+    maxUnitsPerDeal: p.maxUnitsPerDeal.toString(),
+    payPerCallUsd: lp.row.payPerCallPrice ? formatUsd(lp.row.payPerCallPrice, 4) : null,
+    service: lp.row.adapter === "http" ? "seller-endpoint" : lp.row.adapter === "order-support" ? "sample-store" : "demo",
     starters: (lp.row.starters as string[]) ?? [],
     labels: { seller: lp.org.label, network: "testnet", pricing: "illustrative" },
   };

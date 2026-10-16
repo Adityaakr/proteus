@@ -10,6 +10,7 @@ import { acceptQuote, createQuote, quoteView } from "../services/quotes";
 import { listRecords, recordView } from "../services/review";
 import { resolveAuth } from "./auth";
 import { userOwnsAddress, userWallets } from "../services/accounts";
+import { sellerCard, sellerStats } from "../services/brand";
 
 export const publicRoutes = new Hono();
 
@@ -19,7 +20,8 @@ publicRoutes.get("/public/sellers/:sellerSlug", async (c) => {
   const rows = await db.select().from(schema.products).where(eq(schema.products.orgId, org.id));
   const products = [];
   for (const r of rows) products.push(publicProduct(await loadProductById(r.id)));
-  return json(c, { slug: org.slug, name: org.name, label: org.label, products });
+  const stats = await sellerStats([org.id]);
+  return json(c, { ...sellerCard(org, stats.get(org.id)), products });
 });
 
 publicRoutes.get("/public/sellers/:sellerSlug/products/:productSlug", async (c) => {

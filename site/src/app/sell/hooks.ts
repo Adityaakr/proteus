@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth, v1 } from "./v1";
 import type { Me, ProductCreateBody } from "./types";
+import type { SellerBrand } from "../lib/types";
 
 /** The account's /api/me, and whether it has settled (loaded, or known to be unavailable). */
 export function useMe(): { me: Me | undefined; ready: boolean } {
@@ -24,8 +25,8 @@ export function usePublishProduct() {
   const qc = useQueryClient();
   const { refetchMe } = useAuth();
   return useMutation({
-    mutationFn: async (v: { hasOrg: boolean; businessName: string; body: ProductCreateBody }) => {
-      if (!v.hasOrg) await v1.createOrg({ name: v.businessName.trim() });
+    mutationFn: async (v: { hasOrg: boolean; businessName: string; brand?: SellerBrand; body: ProductCreateBody }) => {
+      if (!v.hasOrg) await v1.createOrg({ name: v.businessName.trim(), ...(v.brand && Object.keys(v.brand).length ? { brand: v.brand } : {}) });
       return v1.app.createProduct(v.body);
     },
     onSettled: () => {
