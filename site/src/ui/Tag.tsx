@@ -39,8 +39,8 @@ export function Tag({ title, icon, dark, active, bare, className }: TagProps) {
   if (bare) {
     return (
       <div className={className} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "0 0 8px 0", overflow: "clip" }}>
-        <span style={{ width: 16, height: 16, display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none" }}>{icon}</span>
-        <span className="body2" style={{ color: dark ? "var(--c-white-80)" : undefined }}>
+        {icon && <span style={{ width: 16, height: 16, display: "inline-flex", alignItems: "center", justifyContent: "center", flex: "none" }}>{icon}</span>}
+        <span className="body2" style={{ color: dark ? "var(--c-white-80)" : undefined, textAlign: "center" }}>
           {title}
         </span>
       </div>
