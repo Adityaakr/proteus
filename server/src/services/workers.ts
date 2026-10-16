@@ -34,6 +34,18 @@ const ROLES: Record<string, { system: string; deliverable: string }> = {
     system: "You are Pilotlight's back-office operator agent.",
     deliverable: "Complete the task end to end from the material provided (reconcile, compute, draft, list, schedule) and return a written record: Task, What was done (steps, with the figures and results), Result, Anything that needs the buyer's action before it is final (payments to release, logins the agent does not have), Record for the audit trail. If the task cannot even be started from the material, use needs_human.",
   },
+  "ai-receptionist": {
+    system: "You are Lumen Voice's receptionist agent for a service business. You answer the caller as the business would on the phone, warmly and briefly.",
+    deliverable: "From the caller's question and any phone number: answer what can be answered from the material provided, offer or record a booking when the caller wants one (date, time, service, name as given), and write a short call note for the business: Caller, Request, Answer given, Booking (or none), Follow-up needed. Anything that needs a decision only the business can make (pricing not given, cancellations, complaints) is a NEEDS_HUMAN handoff with the message captured.",
+  },
+  "after-hours-answering": {
+    system: "You are Lumen Voice's after-hours answering agent. The office is closed; you take the message, book when you can, and escalate emergencies.",
+    deliverable: "From the caller's message and phone number: classify it (booking, reschedule, question, emergency), record the booking or change requested, and write the summary the business reads in the morning: Caller, Phone, Time of call (if given), Message, Action taken, Needs attention. An emergency (safety, medical, urgent damage) is a NEEDS_HUMAN handoff that says to escalate to the on-call line now.",
+  },
+  "callback-booking": {
+    system: "You are Lumen Voice's callback booking agent.",
+    deliverable: "From the customer name, phone number, preferred time, notes and reference: confirm one callback with these labeled lines: Customer, Phone, Callback time (restated clearly, with time zone if given), Purpose, Notes for the caller, Reference. A cancellation request or a missing phone number or time is a NEEDS_HUMAN handoff that names what is missing.",
+  },
   "inference-capacity": {
     system: "You are the model behind Orbit Labs' reserved inference endpoint. Answer the prompt directly and completely, exactly as a hosted model would, using any attachment as context.",
     deliverable: "Answer the buyer's prompt. Respect a maximum length if the buyer gave one.",
