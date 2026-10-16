@@ -10,20 +10,22 @@
 .label { font-size: 11.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-primary); }
 .title { margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: 34px; line-height: 1.1; letter-spacing: -0.4px; }
 .lede { margin: 0; font-size: 16px; line-height: 1.55; color: var(--c-dark-80); max-width: 680px; }
-.flow { display: flex; flex-wrap: wrap; gap: 8px 0; margin: 10px 0 0; padding: 14px 16px; list-style: none; border-radius: 14px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
-.flowStep { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; }
+.flow { display: flex; flex-wrap: nowrap; gap: 0; margin: 10px 0 0; padding: 14px 16px; list-style: none; border-radius: 14px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+.flowStep { display: flex; align-items: center; gap: 10px; flex: 1 1 0; min-width: 0; }
 .flowIcon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9px; color: var(--c-primary); background: var(--c-primary-10); flex: none; }
 .flowText { display: flex; flex-direction: column; gap: 1px; font-size: 12.5px; color: var(--c-dark-60); min-width: 0; }
 .flowText b { font-weight: 500; font-size: 13.5px; color: var(--c-dark); }
-.flowArrow { flex: 1 1 18px; height: 1px; margin: 0 12px; background: var(--c-dark-20); min-width: 14px; }
+.flowArrow { flex: 1 1 10px; height: 1px; margin: 0 10px; background: var(--c-dark-20); min-width: 8px; }
+.flowText span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .section { display: flex; flex-direction: column; gap: 12px; padding-top: 26px; border-top: 1px solid var(--c-dark-10); scroll-margin-top: 90px; }
 .section p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--c-dark-80); }
-.section code { font-family: var(--font-mono); font-size: 0.9em; padding: 1px 6px; border-radius: 5px; color: var(--c-primary); background: var(--c-primary-10); }
+.section p code, .section li code, .callout code { font-family: var(--font-mono); font-size: 0.9em; padding: 1px 6px; border-radius: 5px; color: var(--c-primary); background: var(--c-primary-10); }
 .h2 { display: flex; align-items: baseline; gap: 10px; margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: 21px; line-height: 1.2; }
 .num { font-family: var(--font-mono); font-size: 12px; color: var(--c-primary); }
 .method { display: inline-block; padding: 1px 7px; border-radius: 5px; font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--c-white); background: var(--c-primary); vertical-align: 1px; }
 
+.code code { display: block; color: inherit; background: none; padding: 0; font: inherit; }
 .code { position: relative; margin: 0; padding: 16px 18px; border-radius: 12px; background: #0f1117; color: #d6d9e0; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.65; overflow-x: auto; white-space: pre; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
 .codeLang { position: absolute; top: 8px; right: 12px; font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255, 255, 255, 0.35); }
 .t_cm { color: #6b7280; font-style: italic; }
@@ -53,5 +55,5 @@
 .callout b { font-weight: 500; color: var(--c-dark); }
 .calloutWarn { border-left-color: var(--c-warn); background: var(--c-warn-10); }
 
-@media (max-width: 900px) { .page { grid-template-columns: minmax(0, 1fr); gap: 20px; } .side { position: static; } .toc { flex-direction: row; flex-wrap: wrap; gap: 4px 10px; } .toc a { margin-left: 0; padding: 4px 8px; background: var(--c-dark-5); } .flowArrow { display: none; } .flowStep { flex: 1 1 45%; } }
+@media (max-width: 900px) { .page { grid-template-columns: minmax(0, 1fr); gap: 20px; } .side { position: static; } .toc { flex-direction: row; flex-wrap: wrap; gap: 4px 10px; } .toc a { margin-left: 0; padding: 4px 8px; background: var(--c-dark-5); } .flow { flex-wrap: wrap; gap: 10px 0; } .flowArrow { display: none; } .flowStep { flex: 1 1 45%; } .flowText span { white-space: normal; } }
 @media (max-width: 809.98px) { .title { font-size: 26px; } .page { padding: 16px 0 60px; } .states li { grid-template-columns: 1fr; gap: 4px; } }
