@@ -2,8 +2,9 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDownToLine, ArrowRight, Briefcase, Check } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, ArrowUpFromLine, Briefcase, Check } from "lucide-react";
 import { DepositDialog } from "../wallet/DepositDialog";
+import { WithdrawDialog } from "../wallet/WithdrawDialog";
 import { AppShell } from "../layouts/AppShell";
 import { ActionButton } from "../ui/ActionButton";
 import { Money } from "../ui/Money";
@@ -23,6 +24,7 @@ export default function Home() {
   const { me, meStatus, user } = useAuth();
   const bal = useBalances();
   const [deposit, setDeposit] = useState(false);
+  const [withdraw, setWithdraw] = useState(false);
   const act = useQuery({ queryKey: qk.meActivity, queryFn: api.meActivity, retry: false });
   const negs = act.data?.negotiations ?? [];
   const deals = act.data?.deals ?? [];
@@ -73,13 +75,17 @@ export default function Home() {
                   <span className={h.balanceUnit}><UsdcMark size={18} /> USDC</span>
                 </span>
               )}
-              <ActionButton size="sm" onClick={() => setDeposit(true)} iconLeft={<ArrowDownToLine size={14} strokeWidth={2} />}>Deposit</ActionButton>
+              <span style={{ display: "inline-flex", gap: 8, flexWrap: "wrap" }}>
+                <ActionButton variant="secondary" size="sm" onClick={() => setWithdraw(true)} iconLeft={<ArrowUpFromLine size={14} strokeWidth={2} />}>Withdraw</ActionButton>
+                <ActionButton size="sm" onClick={() => setDeposit(true)} iconLeft={<ArrowDownToLine size={14} strokeWidth={2} />}>Deposit</ActionButton>
+              </span>
             </div>
             <div className={h.fineRow}>
               <NetworkBadge network="testnet" />
               <p className={h.fine}>Gas on Arc is paid from this same balance{bal.data ? `, native ${formatNative(bal.data.native)}` : ""}.</p>
             </div>
             <DepositDialog open={deposit} onClose={() => setDeposit(false)} />
+            <WithdrawDialog open={withdraw} onClose={() => setWithdraw(false)} />
           </section>
 
           <section className={h.section} aria-labelledby="h-negs">

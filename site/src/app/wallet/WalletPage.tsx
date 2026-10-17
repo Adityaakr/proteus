@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDownToLine, ExternalLink, RefreshCw } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ExternalLink, RefreshCw } from "lucide-react";
 import { ARC_TESTNET_CHAIN_ID, ARC_TESTNET_FAUCET, explorerAddress } from "@proteus/domain";
 import { AppShell } from "../layouts/AppShell";
 import { ActionButton } from "../ui/ActionButton";
@@ -14,6 +14,7 @@ import { PageHeader } from "../buyer/common";
 import { BalanceCard } from "./BalanceCard";
 import { useDepositWatch } from "./useDepositWatch";
 import { DepositDialog } from "./DepositDialog";
+import { WithdrawDialog } from "./WithdrawDialog";
 import { Qr } from "./QrCode";
 import w from "./wallet.module.css";
 
@@ -22,6 +23,7 @@ export const CIRCLE_CUSTODY_NOTE = "Circle Wallet. Your key is split between Cir
 export default function WalletPage() {
   const { wallet, provider } = useAuth();
   const [deposit, setDeposit] = useState(false);
+  const [withdraw, setWithdraw] = useState(false);
   const watch = useDepositWatch();
   const { watching: polling, result } = watch;
   const refresh = watch.start;
@@ -42,6 +44,9 @@ export default function WalletPage() {
                   <ActionButton variant="secondary" size="sm" onClick={refresh} loading={polling} loadingLabel="Checking" iconLeft={<RefreshCw size={14} strokeWidth={2} />}>
                     Refresh
                   </ActionButton>
+                  <ActionButton variant="secondary" size="sm" onClick={() => setWithdraw(true)} iconLeft={<ArrowUpFromLine size={14} strokeWidth={2} />}>
+                    Withdraw
+                  </ActionButton>
                   <ActionButton size="sm" onClick={() => setDeposit(true)} iconLeft={<ArrowDownToLine size={14} strokeWidth={2} />}>
                     Deposit
                   </ActionButton>
@@ -49,6 +54,7 @@ export default function WalletPage() {
               }
             />
             <DepositDialog open={deposit} onClose={() => setDeposit(false)} />
+            <WithdrawDialog open={withdraw} onClose={() => setWithdraw(false)} />
             {result?.kind === "arrived" && <Notice tone="success" title="Funds arrived">Your balance is updated.</Notice>}
             {result?.kind === "none" && <Notice tone="info" title="No change yet">Faucet transfers can take a minute. Try refreshing again shortly.</Notice>}
             <Card title="Add testnet USDC" subtitle="The Circle faucet sends free testnet USDC on Arc testnet.">

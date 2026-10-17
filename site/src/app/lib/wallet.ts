@@ -169,6 +169,11 @@ export async function approveUsdc(client: WalletClient, spender: Address, amount
   return client.writeContract({ account: client.account ?? accountOf(client), chain: defaultChain(), address: usdc, abi: erc20Abi, functionName: "approve", args: [spender, amount] });
 }
 
+/** ERC-20 transfer(to, amount) of USDC from the account wallet. Returns the wallet's tx hash. */
+export async function transferUsdc(client: WalletClient, to: Address, amount: bigint, usdc: Address = ARC_TESTNET_USDC): Promise<Hex> {
+  return client.writeContract({ account: client.account ?? accountOf(client), chain: defaultChain(), address: usdc, abi: erc20Abi, functionName: "transfer", args: [to, amount] });
+}
+
 /** Buyer submits createAndFundDeal(terms, buyerSig, sellerSig) on the escrow. Returns the wallet's tx hash. */
 export async function createAndFundDeal(client: WalletClient, escrow: Address, terms: TermsWire, buyerSig: Hex, sellerSig: Hex): Promise<Hex> {
   return client.writeContract({
