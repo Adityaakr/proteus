@@ -22,7 +22,7 @@ The rule the whole system is built around, implemented literally:
 
 > **The model proposes. The seller's policy decides. The signed agreement controls the money.**
 
-Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. Self-run proof of the mechanism on testnet; no customers, revenue or mainnet activity are claimed.
+Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. Self-run proof of the mechanism on testnet and one real loop on mainnet; no customers or revenue; activity are claimed.
 
 ---
 
@@ -289,6 +289,21 @@ API_URL=http://localhost:8787 ARC_RPC_URL=https://rpc.testnet.arc.io BUYER_PRIVA
 **From the app**: the review-and-fund page links the escrow and USDC to the explorer, links the deal id to the contract's read tab, and recomputes the public terms hash in your browser from the terms shown so you can see it matches what the contract stores.
 
 ![Review and fund](docs/images/review-and-fund.jpg)
+
+## Verified on Arc mainnet, real USDC
+
+The same contract is deployed on Arc mainnet (chain 5042) at [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46), deployment [`0xf31053ff…f37280`](https://explorer.arc.io/tx/0xf31053ff9ebdf450e739e2a5c5b93316febe7f0af1e0419cfb4f4a7415f37280), owner and arbiter the deployer. One real loop ran on 2026-10-17 with the deployer as buyer and Lumen Voice's callback booking as the service: a 4-booking trial at 0.15 USDC per booking.
+
+| Step | Transaction |
+|---|---|
+| Buyer approves 0.60 USDC to the escrow | [`0x9bbc3336…1bfa07`](https://explorer.arc.io/tx/0x9bbc33367d4c712dd599950309ea23ecfa769368c6619fdd2782e00b1d1bfa07) |
+| Relayer submits `createAndFundDeal` with both signatures | [`0xe527f3c4…5efe9d`](https://explorer.arc.io/tx/0xe527f3c4d6d5d2bebeb25dbd67dcc429b99827deac6349a81f7a88c3f75efe9d) |
+| 2 callback bookings delivered by the service agent, each a signed receipt | offchain receipts |
+| Buyer signs Acceptance (2 units, 0.30 USDC), seller signs Delivery, relayer settles 0.30 to the payee | [`0xce2caa88…3153b0`](https://explorer.arc.io/tx/0xce2caa88fa3a2b136a85771573f2b5ce269be2ea2182da91f78cd9a2243153b0) |
+| Seller closes the term early | [`0x4c51245b…9e61b0`](https://explorer.arc.io/tx/0x4c51245b0bb2daeae5e5509e599e77e0302f9efb190a2d0d852a5d70c69e61b0) |
+| Refund of the unused 0.30 USDC to the buyer | [`0x70d68aa1…81c94d`](https://explorer.arc.io/tx/0x70d68aa16db7588b90f172ccb68d20bb4f95ca099650a2755ee1a3436481c94d) |
+
+Final balances read from the contract: deposit 0.60, settled 0.30, refunded 0.30, remaining 0. The whole loop cost about 0.03 USDC in gas. This was run by us with our own funds; it proves the mechanism on mainnet, not traction.
 
 ## The negotiation engine and the agent
 

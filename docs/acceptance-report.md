@@ -58,3 +58,8 @@ cd server && set -a && source .env && set +a
 API_URL=http://localhost:8787 ARC_RPC_URL=https://rpc.testnet.arc.io BUYER_PRIVATE_KEY=<funded key> npx tsx scripts/testnet-demo.ts
 ```
 Needs about 16 USDC on the buyer (15 prepaid plus gas). `DEAL_ID=<id>` resumes an already funded deal.
+
+
+## Arc mainnet, 2026-10-17
+
+Contract `0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46` deployed to Arc mainnet (chain 5042), deployment 0xf31053ff9ebdf450e739e2a5c5b93316febe7f0af1e0419cfb4f4a7415f37280. One loop with real USDC, buyer = deployer, service = Lumen Voice callback booking, 4-unit trial at 0.15 USDC: approve 0x9bbc33367d4c712dd599950309ea23ecfa769368c6619fdd2782e00b1d1bfa07; fund (relayer) 0xe527f3c4d6d5d2bebeb25dbd67dcc429b99827deac6349a81f7a88c3f75efe9d; two delivered bookings; settle 0.30 USDC 0xce2caa88fa3a2b136a85771573f2b5ce269be2ea2182da91f78cd9a2243153b0; seller close 0x4c51245b0bb2daeae5e5509e599e77e0302f9efb190a2d0d852a5d70c69e61b0; refund 0.30 USDC 0x70d68aa16db7588b90f172ccb68d20bb4f95ca099650a2755ee1a3436481c94d. Final: deposit 600000, settled 300000, refunded 300000, remaining 0, source chain. Run with `server/scripts/mainnet-loop.ts` against a local API in mainnet mode.

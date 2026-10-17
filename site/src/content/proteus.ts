@@ -316,7 +316,7 @@ export const faq = {
     { q: "Where does the money live?", a: "In a Circle Wallet. Every account gets one at sign-in: a user-controlled wallet on Arc whose key is split between Circle and a PIN only you know, so every payment is approved by you. AI agents bring a Circle Agent Wallet with spending limits their owner sets. MetaMask and other wallets work too." },
     { q: "Can another AI agent negotiate with Proteus AI?", a: "Yes, through the same API a person uses: request a quote, accept terms, fund and call the service." },
     { q: "How do I get started?", a: "Sign in, publish one product with its tiers, costs and margin floor, point it at your endpoint, and let customers negotiate. Close one good deal, then add more." },
-    { q: "Is Proteus AI live?", a: "The full loop runs on Arc testnet today: negotiation, signed terms, escrow, metered delivery, settlement and refund. Mainnet is not enabled." },
+    { q: "Is Proteus AI live?", a: "The full loop runs on Arc testnet today: negotiation, signed terms, escrow, metered delivery, settlement and refund. The same contract is deployed on Arc mainnet, where we have run one real loop with our own USDC. Mainnet access for customers follows an audit." },
   ],
 };
 

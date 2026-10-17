@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { Context, Next } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { db, schema } from "../db";
@@ -9,8 +9,10 @@ import { resolveAuth } from "./auth";
 
 const COOKIE = "proteus_session";
 
-export async function createSandboxSession(c: Context) {
-  const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.label, "sandbox")).limit(1);
+export async function createSandboxSession(c: Context, slug?: string) {
+  const [org] = slug
+    ? await db.select().from(schema.orgs).where(and(eq(schema.orgs.label, "sandbox"), eq(schema.orgs.slug, slug))).limit(1)
+    : await db.select().from(schema.orgs).where(eq(schema.orgs.label, "sandbox")).limit(1);
   if (!org) throw new HttpError(500, "sandbox seller not seeded");
   const sid = id("sess", 24);
   const expiresAt = new Date(Date.now() + 12 * 3600 * 1000);

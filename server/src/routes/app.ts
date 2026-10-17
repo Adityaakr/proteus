@@ -13,7 +13,7 @@ import { features } from "../env";
 
 export const appRoutes = new Hono();
 
-appRoutes.post("/app/session/sandbox", async (c) => json(c, await createSandboxSession(c)));
+appRoutes.post("/app/session/sandbox", async (c) => json(c, await createSandboxSession(c, (await c.req.json().catch(() => ({})) as { slug?: string }).slug)));
 
 appRoutes.use("/app/*", requireSession);
 
