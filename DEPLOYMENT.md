@@ -40,6 +40,8 @@ Avoid anvil account 1 as the buyer: it is the blocklisted test address on Arc.
 
 ## Arc mainnet (second deployment, same code)
 
+Live: testnet at https://guild-site-production-b687.up.railway.app, mainnet at https://proteus-mainnet-production.up.railway.app, each with its own Postgres and `PEER_NETWORK_URL` pointing at the other.
+
 Mainnet is chain 5042, RPC https://rpc.mainnet.arc.io, explorer https://explorer.arc.io, USDC at the same `0x3600…0000` interface. Gas is real USDC at about 20 gwei: the contract costs about 0.04 USDC to deploy and a full deal loop about 0.015 USDC.
 
 1. Put about 10 USDC on Arc mainnet in the deployer address (bridge with CCTP, the Circle CLI `circle bridge transfer`, or an exchange that lists Arc). Move 2 USDC to the relayer.

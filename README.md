@@ -301,7 +301,7 @@ API_URL=http://localhost:8787 ARC_RPC_URL=https://rpc.testnet.arc.io BUYER_PRIVA
 
 ## Verified on Arc mainnet, real USDC
 
-The same contract is deployed on Arc mainnet (chain 5042) at [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46), deployment [`0xf31053ff…f37280`](https://explorer.arc.io/tx/0xf31053ff9ebdf450e739e2a5c5b93316febe7f0af1e0419cfb4f4a7415f37280), owner and arbiter the deployer. One real loop ran on 2026-10-17 with the deployer as buyer and Lumen Voice's callback booking as the service: a 4-booking trial at 0.15 USDC per booking.
+The product also runs on Arc mainnet at https://proteus-mainnet-production.up.railway.app (invite-only; sign-in with Privy there). The same contract is deployed on Arc mainnet (chain 5042) at [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46), deployment [`0xf31053ff…f37280`](https://explorer.arc.io/tx/0xf31053ff9ebdf450e739e2a5c5b93316febe7f0af1e0419cfb4f4a7415f37280), owner and arbiter the deployer. One real loop ran on 2026-10-17 with the deployer as buyer and Lumen Voice's callback booking as the service: a 4-booking trial at 0.15 USDC per booking.
 
 | Step | Transaction |
 |---|---|
