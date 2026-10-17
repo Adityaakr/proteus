@@ -9,6 +9,7 @@ import { dealView, listDeals, sellerCloseTerm } from "../services/deals";
 import { listNegotiations, reviveCandidate, sellerNegotiationView } from "../services/negotiation";
 import { decideApproval } from "../services/quotes";
 import { createSandboxSession, requireSession, session } from "./session";
+import { features } from "../env";
 
 export const appRoutes = new Hono();
 
@@ -43,7 +44,7 @@ appRoutes.get("/app/overview", async (c) => {
     pendingLiability: fundedValue - earned - refunded,
     refunded,
     usageUnits: Number(usage[0]?.n ?? 0),
-    labels: { seller: org?.label ?? "sandbox", network: "testnet", note: org?.label === "sandbox" ? "Example seller: figures are testnet USDC and are excluded from live traction counters." : "Arc testnet USDC." },
+    labels: { seller: org?.label ?? "sandbox", network: features.network, note: org?.label === "sandbox" ? "Example seller: figures are testnet USDC and are excluded from live traction counters." : "Arc testnet USDC." },
   });
 });
 
@@ -202,5 +203,5 @@ appRoutes.get("/app/finance", async (c) => {
   const earnedUnsettled = deals.reduce((s, d) => s + ((chargedByDeal.get(d.id) ?? 0n) - d.settled > 0n ? (chargedByDeal.get(d.id) ?? 0n) - d.settled : 0n), 0n);
   const journal = await db.select().from(schema.journalEntries).where(eq(schema.journalEntries.orgId, orgId)).orderBy(desc(schema.journalEntries.createdAt)).limit(200);
   const discrepancies = deals.filter((d) => d.balancesSource === "chain" && d.deposit - d.settled - d.refunded < 0n).map((d) => ({ dealId: d.id, issue: "negative remaining" }));
-  return json(c, { funded, settled, earnedUnsettled, liability: funded - settled - refunded, refunded, journal, reconciliation: { lastRunAt: deals.reduce<Date | null>((m, d) => (!m || d.updatedAt > m ? d.updatedAt : m), null), discrepancies }, labels: { network: "testnet", note: "Deposits are customer liabilities until usage is accepted and settled. Unused balances are never seller revenue." } });
+  return json(c, { funded, settled, earnedUnsettled, liability: funded - settled - refunded, refunded, journal, reconciliation: { lastRunAt: deals.reduce<Date | null>((m, d) => (!m || d.updatedAt > m ? d.updatedAt : m), null), discrepancies }, labels: { network: features.network, note: "Deposits are customer liabilities until usage is accepted and settled. Unused balances are never seller revenue." } });
 });

@@ -4,7 +4,7 @@ import { TERMS_TYPES, domain, hashTerms, productIdHash, publicTermsHash, type Te
 import { escrowAddress, usdcAddress } from "../chain/client";
 import { orgSignerAccount } from "../chain/signer";
 import { db, schema } from "../db";
-import { env } from "../env";
+import { env, features } from "../env";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, publicId, randomDealId } from "../lib/ids";
 import { loadProductById } from "./catalog";
@@ -33,7 +33,7 @@ export function buildPublicTerms(lp: Awaited<ReturnType<typeof loadProductById>>
     graceSeconds: env.DEAL_GRACE_SECONDS,
     refundPolicy: lp.product.refundPolicy,
     network: "arc-testnet",
-    labels: ["testnet", lp.org.label],
+    labels: [features.network, lp.org.label],
   };
 }
 
@@ -135,7 +135,7 @@ export async function quoteView(quoteId: string, buyer?: Address) {
     typedData: terms && escrow ? bigintsToStrings({ domain: domain(env.CHAIN_ID, escrow), types: TERMS_TYPES, primaryType: "Terms", message: terms }) : null,
     publicTerms: q.publicTerms,
     approval: approval ? { id: approval.id, status: approval.status, reason: approval.reason, decidedAt: approval.decidedAt, decisionReason: approval.decisionReason } : undefined,
-    labels: { seller: lp.org.label, network: "testnet" },
+    labels: { seller: lp.org.label, network: features.network },
   };
 }
 

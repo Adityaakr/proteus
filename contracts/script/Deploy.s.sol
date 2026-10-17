@@ -23,5 +23,6 @@ contract Deploy is Script {
         console2.log("DealEscrow deployed at", address(escrow));
         string memory json = string.concat('{"dealEscrow":"', vm.toString(address(escrow)), '","usdc":"', vm.toString(usdc), '","chainId":', vm.toString(block.chainid), "}");
         vm.writeFile("deployments/latest.json", json);
+        vm.writeFile(string.concat("deployments/", vm.toString(block.chainid), ".json"), json);
     }
 }

@@ -58,7 +58,7 @@ export function ExplorerLink({ href, hash, children }: { href: string; hash?: st
     <a href={href} target="_blank" rel="noreferrer" className={s.monoValue} style={{ color: "var(--c-primary)", textDecoration: "underline", textUnderlineOffset: 3 }}>
       <span className={s.monoText}>{children ?? (hash ? shortHex(hash, 8, 6) : "View on explorer")}</span>
       <ExternalLink size={14} strokeWidth={2} aria-hidden />
-      <span className="sr-only">(opens Arc testnet explorer in a new tab)</span>
+      <span className="sr-only">(opens the Arc explorer in a new tab)</span>
     </a>
   );
 }

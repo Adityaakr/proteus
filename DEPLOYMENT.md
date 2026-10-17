@@ -38,6 +38,16 @@ Avoid anvil account 1 as the buyer: it is the blocklisted test address on Arc.
 5. Optional Circle relayer: set `CIRCLE_API_KEY` and `CIRCLE_ENTITY_SECRET`, run `npx tsx scripts/circle-wallet.ts` to create an `ARC-TESTNET` wallet and request faucet tokens; put the printed `CIRCLE_WALLET_ID` / `CIRCLE_WALLET_ADDRESS` in `server/.env`.
 6. Run `API_URL=http://localhost:8787 BUYER_PRIVATE_KEY=<funded buyer> npx tsx scripts/testnet-demo.ts` and record the printed hashes in `docs/acceptance-report.md`.
 
+## Arc mainnet (second deployment, same code)
+
+Mainnet is chain 5042, RPC https://rpc.mainnet.arc.io, explorer https://explorer.arc.io, USDC at the same `0x3600…0000` interface. Gas is real USDC at about 20 gwei: the contract costs about 0.04 USDC to deploy and a full deal loop about 0.015 USDC.
+
+1. Put about 10 USDC on Arc mainnet in the deployer address (bridge with CCTP, the Circle CLI `circle bridge transfer`, or an exchange that lists Arc). Move 2 USDC to the relayer.
+2. `cd contracts && source ../server/.env && USDC_ADDRESS=0x3600000000000000000000000000000000000000 pnpm deploy:mainnet`, then `ESCROW_ADDRESS=<address> pnpm verify:mainnet`. The record lands in `contracts/deployments/5042.json`; `latest.json` is overwritten, so restore it from git if the testnet record should stay there.
+3. Create a second Railway service from the same repo with its own Postgres and the same variables as the testnet one, changed as follows: `CHAIN_ID=5042`, `ARC_RPC_URL=https://rpc.mainnet.arc.io`, `ESCROW_ADDRESS=<mainnet address>`, `X402_NETWORK=eip155:5042`, `WEB_ORIGIN=<its own URL>`, `PEER_NETWORK_URL=<testnet URL>`. On the testnet service set `PEER_NETWORK_URL=<mainnet URL>`. The header then shows a switch between the two.
+4. Mint invite codes on the mainnet service (its database is separate) and sign in there once with Circle; the Circle chain code becomes `ARC` automatically from `CHAIN_ID`.
+5. Run one small real loop and record the hashes in the README with explorer.arc.io links.
+
 ## Hosting on Railway (site and API in one service)
 
 The repo carries `railway.json` and `railpack.json`. One Railway service pointed at this repo builds the domain and server type checks plus the site (`pnpm --filter proteus-site build`), then starts with `pnpm --filter @proteus/server start:prod` (`scripts/start-prod.ts`): check the variables and print what is missing, wait for Postgres, push the Drizzle schema, bootstrap an empty market (`scripts/bootstrap.ts`), serve. A service without `DATABASE_URL` does not crash: it serves the site only and answers `/api` with a 503 that says what is missing; set `API_ORIGIN` to the API service's URL on it to forward `/api` there instead. The clean setup is still one service with the Postgres plugin. The API serves the built site from `site/dist` on the same origin, so there is no proxy and no second service. Health check: `/api/health`.

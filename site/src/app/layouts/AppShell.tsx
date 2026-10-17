@@ -12,6 +12,8 @@ import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { Activity, BarChart3, Briefcase, ChevronDown, Handshake, Home, KeyRound, Landmark, LayoutDashboard, LogOut, MessagesSquare, Package, Settings, ShieldCheck, SlidersHorizontal, Store, Users, Wallet } from "lucide-react";
 import { T_DEFAULT } from "../../lib/motion";
 import { NetworkBadge, StatusTag } from "../ui/StatusTag";
+import { useQuery } from "@tanstack/react-query";
+import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 import { CopyButton, shortHex } from "../ui/misc";
 import { useAuth } from "../auth/useAuth";
 import { walletLabel } from "../auth/context";
@@ -134,7 +136,7 @@ export function AppShell({ children, title, actions }: AppShellProps) {
           <div className={s.sellerTitle}>{typeof heading === "string" ? <h1 className="h5">{heading}</h1> : heading}</div>
           {actions}
           {isMock() && <span className="hide-phone"><StatusTag network="illustrative" label="Mock data" /></span>}
-          <NetworkBadge network="testnet" />
+          <NetworkSwitch />
           <AccountMenu />
         </header>
         <main id="app-main" tabIndex={-1} className={s.sellerMain}>
@@ -180,6 +182,22 @@ function SideItem({ it, on }: { it: AppNavItem; on: boolean }) {
       <span className={s.sideIcon} aria-hidden>{it.icon}</span>
       <span className={s.sideLabel}>{it.label}</span>
     </NavLink>
+  );
+}
+
+/** The network badge, and a link to this product's deployment on the other Arc network when one exists. */
+function NetworkSwitch() {
+  const health = useQuery({ queryKey: qk.health, queryFn: api.health, staleTime: 60_000, retry: false });
+  const peer = health.data?.peer;
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      <NetworkBadge network={defaultNetwork()} />
+      {peer && (
+        <a href={peer.url} className="body3 hide-phone" style={{ color: "var(--c-dark-60)", textDecoration: "underline", textUnderlineOffset: 3 }}>
+          Switch to {ARC_NETWORK_NAMES[peer.network]}
+        </a>
+      )}
+    </span>
   );
 }
 
@@ -241,7 +259,7 @@ function AccountMenu() {
                   <CopyButton value={wallet.address} label="Copy wallet address" />
                 </span>
               )}
-              <span className="body3">{wallet ? walletLabel(wallet) : "Wallet"} on Arc testnet{wallet?.type === "external" && !wallet.connected ? ", not connected" : ""}</span>
+              <span className="body3">{wallet ? walletLabel(wallet) : "Wallet"} on {ARC_NETWORK_NAMES[defaultNetwork()]}{wallet?.type === "external" && !wallet.connected ? ", not connected" : ""}</span>
             </div>
             <div className={s.menuGroup}>
               <span className={s.menuGroupLabel}>Wallets</span>

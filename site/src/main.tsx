@@ -8,6 +8,7 @@ import App from "./App";
 import { RouteFallback, NotFound } from "./app/RouteFallback";
 import { RequireAuth } from "./app/auth/RequireAuth";
 
+import { NetworkBoot } from "./app/NetworkBoot";
 const AuthRoot = lazy(() => import("./app/auth/AuthRoot"));
 const LoginPage = lazy(() => import("./app/auth/LoginPage"));
 const InvitePage = lazy(() => import("./app/auth/InvitePage"));
@@ -55,6 +56,7 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <MotionConfig reducedMotion="user">
         <BrowserRouter>
+          <NetworkBoot>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/" element={<App />} />
@@ -92,6 +94,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+          </NetworkBoot>
         </BrowserRouter>
       </MotionConfig>
     </QueryClientProvider>

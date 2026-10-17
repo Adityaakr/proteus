@@ -10,14 +10,14 @@ import { PrivyProvider, useCreateWallet, usePrivy, useWallets, type ConnectedWal
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createWalletClient, getAddress, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { arcTestnet } from "@proteus/domain";
+import { defaultChain } from "@proteus/domain";
 
 /**
  * The chain the embedded wallet talks to. Its RPC goes through the same-origin relay (POST /api/rpc,
  * reads plus eth_sendRawTransaction) so browser content blockers that block rpc.testnet.arc.io cannot
  * stop a signature or a broadcast. Chain id, currency and explorer are unchanged.
  */
-const walletChain = typeof window !== "undefined" ? { ...arcTestnet, rpcUrls: { default: { http: [`${window.location.origin}/api/rpc`] } } } : arcTestnet;
+const walletChainFor = () => (typeof window !== "undefined" ? { ...defaultChain(), rpcUrls: { default: { http: [`${window.location.origin}/api/rpc`] } } } : defaultChain());
 import { ApiError, api, isMock, qk, setAccessTokenGetter } from "../lib/api";
 import { WalletError, walletClientFor } from "../lib/wallet";
 import { walletKind, walletLinkMessage, type Address, type MeResponse } from "../lib/types";
@@ -32,6 +32,7 @@ const DEV_KEY = import.meta.env.VITE_DEV_BUYER_KEY as `0x${string}` | undefined;
 export function PrivyAppProvider({ children }: { children: ReactNode }) {
   if (isMock()) return <MockAuthProvider>{children}</MockAuthProvider>;
   if (DEV_USER && DEV_KEY && import.meta.env.DEV) return <DevKeyAuthProvider>{children}</DevKeyAuthProvider>;
+  const walletChain = walletChainFor();
   return (
     <PrivyProvider
       appId={PRIVY_APP_ID}
@@ -373,7 +374,7 @@ function DevKeyAuthProvider({ children }: { children: ReactNode }) {
     me: meQ.data,
     meStatus: meQ.data ? "ready" : meQ.error ? "error" : "loading",
     refetchMe: () => void meQ.refetch(),
-    getWalletClient: async () => createWalletClient({ account, chain: arcTestnet, transport: http(arcTestnet.rpcUrls.default.http[0]) }),
+    getWalletClient: async () => createWalletClient({ account, chain: defaultChain(), transport: http(defaultChain().rpcUrls.default.http[0]) }),
     exportWallet: async () => window.alert("Dev key mode: the key is in VITE_DEV_BUYER_KEY."),
     mock: false,
   };

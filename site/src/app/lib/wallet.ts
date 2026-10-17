@@ -1,10 +1,10 @@
 /**
- * Embedded wallet (Privy) helpers built on viem. The account's wallet is a Privy ConnectedWallet;
+ * Wallet helpers built on viem, for the Arc network this deployment runs on (see NetworkBoot). The account's wallet is a Privy ConnectedWallet;
  * `walletClientFor` wraps its EIP-1193 provider in a viem WalletClient pinned to Arc testnet.
  * Every transaction hash shown in the UI comes back from the wallet; nothing here fabricates one.
  */
 import { createPublicClient, createWalletClient, custom, erc20Abi, fallback, getAddress, http, type Address, type Hex, type WalletClient } from "viem";
-import { ACCEPTANCE_TYPES, ARC_TESTNET_RPC, ARC_TESTNET_USDC, TERMS_TYPES, arcTestnet, domain } from "@proteus/domain";
+import { ACCEPTANCE_TYPES, ARC_TESTNET_USDC, TERMS_TYPES, defaultChain, defaultChainId, domain } from "@proteus/domain";
 import type { AcceptanceWire, PayAccept, PayAuthorization, TermsWire, TypedDataWire } from "./types";
 
 export const ESCROW_ABI = [
@@ -41,13 +41,20 @@ const relayRpcUrl = typeof window !== "undefined" ? `${window.location.origin}/a
  * Reads go to the public Arc RPC first and fall back to the API relay. Browsers sometimes cannot reach the
  * public endpoint (CORS preflight, bot challenge, corporate proxy); the relay only forwards read methods.
  */
-export const publicClient = createPublicClient({
-  chain: arcTestnet,
-  transport: fallback(
-    [http(ARC_TESTNET_RPC, { timeout: 8_000, retryCount: 1 }), ...(relayRpcUrl ? [http(relayRpcUrl, { timeout: 20_000, retryCount: 1 })] : [])],
-    { rank: false, retryCount: 0 },
-  ),
-});
+let cachedPublic: { id: number; client: ReturnType<typeof createPublicClient> } | null = null;
+export function publicClient() {
+  const chain = defaultChain();
+  if (cachedPublic?.id === chain.id) return cachedPublic.client;
+  const client = createPublicClient({
+    chain,
+    transport: fallback(
+      [http(chain.rpcUrls.default.http[0], { timeout: 8_000, retryCount: 1 }), ...(relayRpcUrl ? [http(relayRpcUrl, { timeout: 20_000, retryCount: 1 })] : [])],
+      { rank: false, retryCount: 0 },
+    ),
+  });
+  cachedPublic = { id: chain.id, client };
+  return client;
+}
 
 /** Turn wallet / RPC errors into short, human copy. */
 export function walletErrorMessage(e: unknown): string {
@@ -74,12 +81,12 @@ export interface EmbeddedWalletLike {
 /** Switch the wallet to Arc testnet and return a viem WalletClient bound to its address. */
 export async function walletClientFor(w: EmbeddedWalletLike): Promise<WalletClient> {
   try {
-    await w.switchChain(arcTestnet.id);
+    await w.switchChain(defaultChain().id);
   } catch (e) {
-    throw new WalletError(`Could not switch the wallet to Arc testnet. ${walletErrorMessage(e)}`);
+    throw new WalletError(`Could not switch the wallet to the Arc network this app runs on. ${walletErrorMessage(e)}`);
   }
   const provider = await w.getEthereumProvider();
-  return createWalletClient({ account: getAddress(w.address), chain: arcTestnet, transport: custom(provider as never) });
+  return createWalletClient({ account: getAddress(w.address), chain: defaultChain(), transport: custom(provider as never) });
 }
 
 function accountOf(client: WalletClient): Address {
@@ -145,28 +152,28 @@ export async function signAcceptance(client: WalletClient, td: TypedDataWire<"Ac
 }
 
 export async function readUsdcBalance(owner: Address, usdc: Address = ARC_TESTNET_USDC): Promise<bigint> {
-  return publicClient.readContract({ address: usdc, abi: erc20Abi, functionName: "balanceOf", args: [owner] });
+  return publicClient().readContract({ address: usdc, abi: erc20Abi, functionName: "balanceOf", args: [owner] });
 }
 
 /** Native USDC balance in wei (18 decimals). Same funds as the ERC-20 view, which uses 6 decimals. */
 export async function readNativeBalance(owner: Address): Promise<bigint> {
-  return publicClient.getBalance({ address: owner });
+  return publicClient().getBalance({ address: owner });
 }
 
 export async function readUsdcAllowance(owner: Address, spender: Address, usdc: Address = ARC_TESTNET_USDC): Promise<bigint> {
-  return publicClient.readContract({ address: usdc, abi: erc20Abi, functionName: "allowance", args: [owner, spender] });
+  return publicClient().readContract({ address: usdc, abi: erc20Abi, functionName: "allowance", args: [owner, spender] });
 }
 
 /** ERC-20 approve(escrow, amount) on the Arc testnet USDC interface (6 decimals). Returns the wallet's tx hash. */
 export async function approveUsdc(client: WalletClient, spender: Address, amount: bigint, usdc: Address = ARC_TESTNET_USDC): Promise<Hex> {
-  return client.writeContract({ account: client.account ?? accountOf(client), chain: arcTestnet, address: usdc, abi: erc20Abi, functionName: "approve", args: [spender, amount] });
+  return client.writeContract({ account: client.account ?? accountOf(client), chain: defaultChain(), address: usdc, abi: erc20Abi, functionName: "approve", args: [spender, amount] });
 }
 
 /** Buyer submits createAndFundDeal(terms, buyerSig, sellerSig) on the escrow. Returns the wallet's tx hash. */
 export async function createAndFundDeal(client: WalletClient, escrow: Address, terms: TermsWire, buyerSig: Hex, sellerSig: Hex): Promise<Hex> {
   return client.writeContract({
     account: client.account ?? accountOf(client),
-    chain: arcTestnet,
+    chain: defaultChain(),
     address: escrow,
     abi: ESCROW_ABI,
     functionName: "createAndFundDeal",
@@ -175,7 +182,7 @@ export async function createAndFundDeal(client: WalletClient, escrow: Address, t
 }
 
 export async function waitForReceipt(hash: Hex) {
-  const r = await publicClient.waitForTransactionReceipt({ hash, timeout: 120_000 });
+  const r = await publicClient().waitForTransactionReceipt({ hash, timeout: 120_000 });
   return { status: r.status, blockNumber: r.blockNumber, hash: r.transactionHash };
 }
 
@@ -195,7 +202,7 @@ export const TRANSFER_WITH_AUTHORIZATION_TYPES = {
 } as const;
 
 /** Sign the payment authorization for one x402 requirement. The nonce comes from the server. */
-export async function signTransferAuthorization(client: WalletClient, req: PayAccept, nonce: Hex, chainId: number = arcTestnet.id): Promise<{ signature: Hex; authorization: PayAuthorization }> {
+export async function signTransferAuthorization(client: WalletClient, req: PayAccept, nonce: Hex, chainId: number = defaultChainId()): Promise<{ signature: Hex; authorization: PayAuthorization }> {
   const from = accountOf(client);
   const validBefore = BigInt(Math.floor(Date.now() / 1000) + Math.min(120, req.maxTimeoutSeconds || 120));
   const authorization: PayAuthorization = { from, to: getAddress(req.payTo), value: req.amount, validAfter: "0", validBefore: validBefore.toString(), nonce };

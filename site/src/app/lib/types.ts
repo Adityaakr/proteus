@@ -9,7 +9,7 @@ export type UnitsStr = string;
 export type Hex = `0x${string}`;
 export type Address = `0x${string}`;
 export type IsoTime = string;
-export type NetworkLabel = "testnet" | "sandbox" | "illustrative";
+export type NetworkLabel = "testnet" | "mainnet" | "sandbox" | "illustrative";
 export type SellerLabel = "sandbox" | "live";
 
 export interface Health {
@@ -20,6 +20,10 @@ export interface Health {
   usdcAddress: Address;
   agentAdapter: "rule-based" | "anthropic";
   relayer: "circle" | "viem" | "none";
+  /** Explorer base URL for this deployment's chain. */
+  explorer?: string;
+  /** The same product on the other network, when deployed, for the header switch. */
+  peer?: { network: "testnet" | "mainnet"; url: string } | null;
   /** Which sign-in the site should offer, and the public ids it needs. */
   auth?: { provider: "privy" | "circle"; privyAppId: string; circleAppId: string | null; circleChain: string; devBypass?: boolean };
 }

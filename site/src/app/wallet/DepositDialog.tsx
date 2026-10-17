@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, ExternalLink, X } from "lucide-react";
-import { ARC_TESTNET_FAUCET, explorerAddress } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, ARC_TESTNET_FAUCET, defaultNetwork, explorerAddress } from "@proteus/domain";
 import { useAuth } from "../auth/useAuth";
 import { ActionButton } from "../ui/ActionButton";
 import { CopyButton, ExplorerLink } from "../ui/misc";
@@ -67,7 +67,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
       <div className={w.sheetHandle} aria-hidden />
       <header className={w.sheetHead}>
         <div className={w.sheetTitleRow}>
-          <span className={w.sheetLabel}><ArcMark size={12} style={{ marginRight: 6, verticalAlign: "-1px" }} />Arc testnet</span>
+          <span className={w.sheetLabel}><ArcMark size={12} style={{ marginRight: 6, verticalAlign: "-1px" }} />{ARC_NETWORK_NAMES[defaultNetwork()]}</span>
           <h2 id={titleId} className={w.sheetTitle}>Deposit testnet USDC</h2>
         </div>
         <button ref={closeRef} type="button" className={w.sheetClose} onClick={onClose} aria-label="Close">
@@ -96,7 +96,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
           <motion.div key="deposit" className={w.sheetBody} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             <div className={w.sheetQrCol}>
               {address ? <Qr value={address} className={w.sheetQr} /> : <span className={w.sheetQrEmpty} />}
-              <span className="body3">Scan to send Arc testnet USDC</span>
+              <span className="body3">Scan to send USDC on {ARC_NETWORK_NAMES[defaultNetwork()]}</span>
             </div>
             <div className={w.sheetMain}>
               <div className={w.sheetField}>
@@ -108,11 +108,11 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
               </div>
               <ol className={w.sheetSteps}>
                 <li><span>1</span>Copy your address.</li>
-                <li><span>2</span>Open the Circle faucet, choose Arc testnet, paste it and request USDC.</li>
+                <li><span>2</span>{defaultNetwork() === "testnet" ? "Open the Circle faucet, choose Arc testnet, paste it and request USDC." : "Send USDC on Arc from your exchange or wallet, or bridge with CCTP."}</li>
                 <li><span>3</span>Keep this open. The balance updates here the moment it lands.</li>
               </ol>
               <div className={w.sheetActions}>
-                <ActionButton href={ARC_TESTNET_FAUCET} newTab icon={<ExternalLink size={16} strokeWidth={2} />}>Open Circle faucet</ActionButton>
+                {defaultNetwork() === "testnet" && <ActionButton href={ARC_TESTNET_FAUCET} newTab icon={<ExternalLink size={16} strokeWidth={2} />}>Open Circle faucet</ActionButton>}
                 {address && <ExplorerLink href={explorerAddress(address)}>View on explorer</ExplorerLink>}
               </div>
               <div className={w.sheetStatus} aria-live="polite">
@@ -132,7 +132,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
                   </>
                 )}
               </div>
-              <p className={w.sheetFoot}>Only USDC sent on Arc testnet to this address shows up here.</p>
+              <p className={w.sheetFoot}>Only USDC sent on {ARC_NETWORK_NAMES[defaultNetwork()]} to this address shows up here.</p>
             </div>
           </motion.div>
         )}

@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { z } from "zod";
-import { ARC_TESTNET_CHAIN_ID, ARC_TESTNET_RPC, ARC_TESTNET_USDC } from "@proteus/domain";
+import { ARC_TESTNET_CHAIN_ID, ARC_TESTNET_RPC, ARC_TESTNET_USDC, networkOf, setDefaultChainId } from "@proteus/domain";
 
 // Load server/.env (untracked) when present. Secrets never live in the repo.
 for (const p of [resolve(process.cwd(), ".env"), resolve(process.cwd(), "server/.env")]) {
@@ -59,6 +59,9 @@ const Env = z.object({
   /** Encrypts per-org seller signer keys at rest. */
   KEY_ENCRYPTION_SECRET: z.string().min(16).optional(),
 
+  /** The other network's deployment of this product, shown as a switch in the app header (e.g. the mainnet URL on the testnet service). */
+  PEER_NETWORK_URL: z.string().optional(),
+
   /** Invite gate: "1" requires a redeemed invite code for every signed-in account (default on in production). "0" opens the product. */
   INVITE_GATE: z.string().optional(),
   /** Keys the HMAC of invite codes at rest; falls back to SESSION_SECRET. Changing it invalidates every code. */
@@ -77,7 +80,11 @@ const Env = z.object({
 
 export const env = Env.parse(process.env);
 
+setDefaultChainId(env.CHAIN_ID);
+
 export const features = {
+  /** "testnet" or "mainnet", from CHAIN_ID. Every label, explorer link and Circle chain code follows it. */
+  network: networkOf(env.CHAIN_ID),
   openrouter: Boolean(env.OPENROUTER_API_KEY),
   anthropic: Boolean(env.ANTHROPIC_API_KEY),
   privyDevBypass: env.PRIVY_DEV_BYPASS === "1" && env.NODE_ENV !== "production",

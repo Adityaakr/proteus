@@ -11,6 +11,7 @@ import { startReconciler } from "./chain/reconciler";
 import { relayerKind } from "./chain/relayer";
 import { sellerSignerAddress } from "./chain/client";
 import { env, features } from "./env";
+import { explorerBase } from "@proteus/domain";
 import { HttpError, json } from "./lib/http";
 import { appRoutes } from "./routes/app";
 import { dealRoutes } from "./routes/deals";
@@ -29,8 +30,10 @@ app.use("/api/*", cors({ origin: env.WEB_ORIGIN, credentials: true }));
 app.get("/api/health", (c) =>
   json(c, {
     ok: true,
-    network: "testnet",
+    network: features.network,
     chainId: env.CHAIN_ID,
+    explorer: explorerBase(env.CHAIN_ID),
+    peer: env.PEER_NETWORK_URL ? { network: features.network === "testnet" ? "mainnet" : "testnet", url: env.PEER_NETWORK_URL } : null,
     escrowAddress: env.ESCROW_ADDRESS ?? null,
     usdcAddress: env.USDC_ADDRESS,
     agentAdapter: agentAdapterName(),

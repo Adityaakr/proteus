@@ -1,6 +1,6 @@
 import { createWalletClient, encodeFunctionData, http, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { CIRCLE_BLOCKCHAIN_ARC_TESTNET } from "@proteus/domain";
+import { circleBlockchainFor } from "@proteus/domain";
 import { env, features } from "../env";
 import { dealEscrowAbi } from "./abi";
 import { chain, escrowAddress, feeParams, publicClient } from "./client";
@@ -88,4 +88,5 @@ function circleRelayer(): Relayer {
   };
 }
 
-export { CIRCLE_BLOCKCHAIN_ARC_TESTNET };
+/** Circle chain code for the configured network. */
+export const CIRCLE_BLOCKCHAIN = circleBlockchainFor(env.CHAIN_ID);

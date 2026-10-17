@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createWalletClient, encodeFunctionData, getAddress, http, numberToHex, type Hex, type WalletClient } from "viem";
 import { toAccount } from "viem/accounts";
-import { arcTestnet } from "@proteus/domain";
+import { defaultChain } from "@proteus/domain";
 import { ApiError, api, qk, setAccessTokenGetter } from "../lib/api";
 import { WalletError, walletClientFor } from "../lib/wallet";
 import { walletKind, walletLinkMessage, walletLoginMessage, type Address, type MeResponse } from "../lib/types";
@@ -61,7 +61,7 @@ async function injectedClient(address: Address): Promise<WalletClient> {
         if ((e as { code?: number }).code !== 4902) throw e;
         await eth.request({
           method: "wallet_addEthereumChain",
-          params: [{ chainId: numberToHex(id), chainName: arcTestnet.name, nativeCurrency: arcTestnet.nativeCurrency, rpcUrls: [...arcTestnet.rpcUrls.default.http], blockExplorerUrls: arcTestnet.blockExplorers ? [arcTestnet.blockExplorers.default.url] : undefined }],
+          params: [{ chainId: numberToHex(id), chainName: defaultChain().name, nativeCurrency: defaultChain().nativeCurrency, rpcUrls: [...defaultChain().rpcUrls.default.http], blockExplorerUrls: defaultChain().blockExplorers ? [defaultChain().blockExplorers!.default.url] : undefined }],
         });
       }
     },
@@ -209,8 +209,9 @@ export function CircleAuthProvider({ appId, children }: { appId: string; childre
           throw new WalletError("Circle wallets send transactions through Circle; this path is not used.");
         },
       });
-      const relay = typeof window !== "undefined" ? `${window.location.origin}/api/rpc` : arcTestnet.rpcUrls.default.http[0];
-      const client = createWalletClient({ account, chain: arcTestnet, transport: http(relay) });
+      const chain = defaultChain();
+      const relay = typeof window !== "undefined" ? `${window.location.origin}/api/rpc` : chain.rpcUrls.default.http[0];
+      const client = createWalletClient({ account, chain, transport: http(relay) });
       // Contract writes go through a Circle transaction challenge: Circle signs with the MPC key, pays gas from
       // the wallet's USDC and broadcasts; we wait for the hash so the UI links the real transaction.
       const writeContract = async (args: { address: Address; abi: readonly unknown[]; functionName: string; args?: readonly unknown[] }): Promise<Hex> => {

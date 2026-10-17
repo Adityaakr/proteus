@@ -1,9 +1,9 @@
 import { createPublicClient, createWalletClient, http, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { ARC_MIN_BASE_FEE_WEI, arcTestnet } from "@proteus/domain";
+import { ARC_MIN_BASE_FEE_WEI, chainFor } from "@proteus/domain";
 import { env } from "../env";
 
-export const chain = { ...arcTestnet, id: env.CHAIN_ID, rpcUrls: { default: { http: [env.ARC_RPC_URL] } } };
+export const chain = { ...chainFor(env.CHAIN_ID), id: env.CHAIN_ID, rpcUrls: { default: { http: [env.ARC_RPC_URL] } } };
 
 export const publicClient = createPublicClient({ chain, transport: http(env.ARC_RPC_URL) });
 

@@ -1,7 +1,7 @@
 import { asc, desc, eq } from "drizzle-orm";
 import { explorerAddress, explorerTx, formatUsd } from "@proteus/domain";
 import { db, schema } from "../db";
-import { env } from "../env";
+import { env, features } from "../env";
 import { HttpError } from "../lib/http";
 import { loadProductById } from "./catalog";
 
@@ -11,7 +11,7 @@ export async function listRecords() {
   const out = [];
   for (const d of rows) {
     const lp = await loadProductById(d.productId);
-    out.push({ publicId: d.publicId, sellerLabel: lp.org.label, productName: lp.product.name, status: d.status, fundedUsd: formatUsd(d.deposit), settledUsd: formatUsd(d.settled), refundedUsd: formatUsd(d.refunded), network: "testnet", createdAt: d.createdAt });
+    out.push({ publicId: d.publicId, sellerLabel: lp.org.label, productName: lp.product.name, status: d.status, fundedUsd: formatUsd(d.deposit), settledUsd: formatUsd(d.settled), refundedUsd: formatUsd(d.refunded), network: features.network, createdAt: d.createdAt });
   }
   return out;
 }
@@ -50,6 +50,6 @@ export async function recordView(publicIdValue: string) {
     balances: { deposit: d.deposit, settled: d.settled, refunded: d.refunded, remaining: d.deposit - d.settled - d.refunded, source: d.balancesSource },
     timeline,
     explorer: { escrow: env.ESCROW_ADDRESS ? explorerAddress(env.ESCROW_ADDRESS) : null },
-    labels: { network: "testnet", seller: lp.org.label, data: "redacted public record" },
+    labels: { network: features.network, seller: lp.org.label, data: "redacted public record" },
   };
 }

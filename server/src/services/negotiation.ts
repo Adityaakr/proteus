@@ -5,6 +5,7 @@ import { db, schema } from "../db";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, publicId } from "../lib/ids";
 import { evaluationContext, loadProductById, loadProductBySlugs, unitPriceUsd, type LoadedProduct } from "./catalog";
+import { features } from "../env";
 
 /* ------------------------------------------------------------------ */
 /* revive helpers                                                       */
@@ -97,7 +98,7 @@ export async function negotiationView(negId: string) {
     turns: turnRows.map((t) => ({ id: t.id, role: t.role, kind: t.kind, content: t.content, createdAt: t.createdAt, ...(t.payload as Record<string, unknown> | null) })),
     offers,
     activity: neg.activity,
-    labels: { seller: lp.org.label, network: "testnet", pricing: "illustrative" },
+    labels: { seller: lp.org.label, network: features.network, pricing: "illustrative" },
   };
 }
 

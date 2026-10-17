@@ -98,5 +98,5 @@ export function StatusTag({ network, state, tone, label, icon, className, title 
 /** "Arc testnet" network badge used in shells. */
 export function NetworkBadge({ network = "testnet", label }: { network?: NetworkKind; label?: string }) {
   const arc = network === "testnet" || network === "mainnet";
-  return <StatusTag network={network} label={label ?? (network === "testnet" ? "Arc testnet" : NETWORK_LABELS[network])} icon={arc ? <ArcMark size={12} /> : undefined} />;
+  return <StatusTag network={network} label={label ?? (network === "testnet" ? "Arc testnet" : network === "mainnet" ? "Arc mainnet" : NETWORK_LABELS[network])} icon={arc ? <ArcMark size={12} /> : undefined} />;
 }

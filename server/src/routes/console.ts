@@ -5,6 +5,7 @@ import { json } from "../lib/http";
 import { loadProductById } from "../services/catalog";
 import { reviveCandidate } from "../services/negotiation";
 import { session } from "./session";
+import { features } from "../env";
 
 /**
  * Seller console additions: a dashboard-grade overview, customers, usage and delivery, insights.
@@ -72,7 +73,7 @@ consoleRoutes.get("/app/dashboard", async (c) => {
     dealsFunded: funded.length,
     attention,
     recentDeals: deals.slice(0, 6).map((d) => ({ id: d.id, publicId: d.publicId, buyerAddress: d.buyerAddress, productName: names.get(d.productId) ?? "Product", deposit: d.deposit, settled: d.settled, status: d.status, createdAt: d.createdAt })),
-    labels: { seller: org?.label ?? "live", network: "testnet" },
+    labels: { seller: org?.label ?? "live", network: features.network },
   });
 });
 

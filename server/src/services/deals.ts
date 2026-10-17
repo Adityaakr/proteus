@@ -6,7 +6,7 @@ import { escrowAddress, publicClient, feeParams, usdcAddress } from "../chain/cl
 import { orgWalletClient } from "../chain/signer";
 import { getRelayer, relayerKind } from "../chain/relayer";
 import { db, schema } from "../db";
-import { env } from "../env";
+import { env, features } from "../env";
 import { HttpError } from "../lib/http";
 import { apiKey, id } from "../lib/ids";
 import { loadProductById } from "./catalog";
@@ -88,7 +88,7 @@ export async function dealView(dealId: string, opts: { apiKeyOnce?: string } = {
       refund: deal.refundTxHash ? explorerTx(deal.refundTxHash) : undefined,
       txs: txs.map((t) => ({ kind: t.kind, txHash: t.txHash, status: t.status, via: t.submittedVia, url: explorerTx(t.txHash), at: t.createdAt })),
     },
-    labels: { network: "testnet", seller: lp.org.label, relayer: relayerKind() },
+    labels: { network: features.network, seller: lp.org.label, relayer: relayerKind() },
     createdAt: deal.createdAt,
   };
 }

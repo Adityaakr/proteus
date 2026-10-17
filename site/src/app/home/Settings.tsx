@@ -7,6 +7,7 @@ import { Card } from "../ui/Card";
 import { KeyValue, MonoValue } from "../ui/misc";
 import { LoadingCard } from "../ui/Skeleton";
 import { useAuth } from "../auth/useAuth";
+import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 import { PageHeader } from "../buyer/common";
 import h from "./home.module.css";
 
@@ -46,7 +47,7 @@ export default function Settings() {
               items={[
                 { k: "Address", v: wallet ? <MonoValue value={wallet.address} short copy label="wallet address" /> : "Being created" },
                 { k: "Type", v: wallet?.type === "external" ? "External wallet" : "Embedded wallet" },
-                { k: "Network", v: "Arc testnet" },
+                { k: "Network", v: ARC_NETWORK_NAMES[defaultNetwork()] },
               ]}
             />
             <p className="body3">{wallet?.type === "external" ? "Your key stays in your own wallet app." : "Export your key from the account menu."}</p>

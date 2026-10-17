@@ -86,20 +86,20 @@ export async function meView(userId: string) {
     access: features.inviteGate ? Boolean(u.accessGrantedAt) : true,
     wallets: wallets.map((w) => ({ address: w.address, kind: w.kind, primary: w.primary })),
     org: org ? { id: org.id, slug: org.slug, name: org.name, label: org.label, role: org.role, payee: org.payeeAddress, brand: (org.brand as Brand | null) ?? {} } : undefined,
-    labels: { network: "testnet", note: "Arc testnet. Testnet USDC has no value." },
+    labels: { network: features.network, note: features.network === "testnet" ? "Arc testnet. Testnet USDC has no value." : "Arc mainnet. Real USDC." },
   };
 }
 
 export async function walletView(userId: string) {
   const wallets = await userWallets(userId);
   const primary = wallets.find((w) => w.primary) ?? wallets[0];
-  if (!primary) return { address: null, usdc: "0", native: "0", faucetUrl: "https://faucet.circle.com", chainId: env.CHAIN_ID, explorerUrl: null };
+  if (!primary) return { address: null, usdc: "0", native: "0", faucetUrl: features.network === "testnet" ? "https://faucet.circle.com" : null, chainId: env.CHAIN_ID, explorerUrl: null };
   const address = primary.address as Address;
   const [usdc, native] = await Promise.all([
     publicClient.readContract({ address: usdcAddress, abi: erc20Abi, functionName: "balanceOf", args: [address] }) as Promise<bigint>,
     publicClient.getBalance({ address }),
   ]);
-  return { address, usdc, usdcUsd: formatUsd(usdc), native: native.toString(), faucetUrl: "https://faucet.circle.com", chainId: env.CHAIN_ID, explorerUrl: `https://explorer.testnet.arc.io/address/${address}`, labels: { network: "testnet" } };
+  return { address, usdc, usdcUsd: formatUsd(usdc), native: native.toString(), faucetUrl: features.network === "testnet" ? "https://faucet.circle.com" : null, chainId: env.CHAIN_ID, explorerUrl: `https://explorer.testnet.arc.io/address/${address}`, labels: { network: features.network } };
 }
 
 /**
