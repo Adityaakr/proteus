@@ -90,6 +90,8 @@ export const features = {
   privyDevBypass: env.PRIVY_DEV_BYPASS === "1" && env.NODE_ENV !== "production",
   circle: Boolean(env.CIRCLE_API_KEY && env.CIRCLE_ENTITY_SECRET && env.CIRCLE_WALLET_ID),
   circleAuth: Boolean(env.CIRCLE_API_KEY && env.CIRCLE_APP_ID),
+  /** Circle email sign-in creates a wallet on this chain; a TEST key cannot do that on mainnet (Circle refuses), so email is hidden there until a LIVE key is set. */
+  circleEmail: Boolean(env.CIRCLE_API_KEY && env.CIRCLE_APP_ID) && !(networkOf(env.CHAIN_ID) === "mainnet" && env.CIRCLE_API_KEY!.startsWith("TEST_API_KEY")),
   authProvider: (env.AUTH_PROVIDER ?? (env.CIRCLE_API_KEY && env.CIRCLE_APP_ID ? "circle" : "privy")) as "privy" | "circle",
   viemRelayer: Boolean(env.RELAYER_PRIVATE_KEY),
   escrow: Boolean(env.ESCROW_ADDRESS),

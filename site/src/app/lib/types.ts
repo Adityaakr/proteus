@@ -25,7 +25,7 @@ export interface Health {
   /** The same product on the other network, when deployed, for the header switch. */
   peer?: { network: "testnet" | "mainnet"; url: string } | null;
   /** Which sign-in the site should offer, and the public ids it needs. */
-  auth?: { provider: "privy" | "circle"; privyAppId: string; circleAppId: string | null; circleChain: string; devBypass?: boolean };
+  auth?: { provider: "privy" | "circle"; privyAppId: string; circleAppId: string | null; circleChain: string; circleEmail?: boolean; devBypass?: boolean };
 }
 
 export interface PublicTier {

@@ -42,7 +42,7 @@ async function upsertUser(did: string, email?: string) {
 /* ---------- Circle email OTP ---------- */
 
 circleAuthRoutes.post("/auth/circle/email", async (c) => {
-  if (!features.circleAuth) throw new HttpError(404, "not found");
+  if (!features.circleEmail) throw new HttpError(404, "Email sign-in is not available on this network yet. Sign in with a wallet.");
   limit(`circle-email:${ip(c)}`, 10);
   const b = z.object({ email: z.string().email().max(254), deviceId: z.string().min(8).max(128) }).parse(await c.req.json());
   return json(c, await emailDeviceToken(b.email.trim().toLowerCase(), b.deviceId));

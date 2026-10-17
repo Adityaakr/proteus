@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { LogIn, Mail, Wallet } from "lucide-react";
 import { T_DEFAULT } from "../../lib/motion";
 import { Wordmark } from "../layouts/Wordmark";
@@ -10,6 +11,7 @@ import { Field } from "../ui/Field";
 import { ArcMark, CircleMark } from "../ui/Marks";
 import { Notice } from "../ui/misc";
 import { useAuth } from "./useAuth";
+import { api, qk } from "../lib/api";
 import { safeNext } from "./RequireAuth";
 import "../app.css";
 import s from "./auth.module.css";
@@ -73,6 +75,8 @@ export default function LoginPage() {
 /** Circle: email OTP (the code entry opens in Circle's window) or a browser wallet signing a nonce. */
 function CircleSignIn({ onDone }: { onDone: () => void }) {
   const { emailLogin, loginWithWallet } = useAuth();
+  const health = useQuery({ queryKey: qk.health, queryFn: api.health, staleTime: 60_000, retry: false });
+  const emailAvailable = health.data?.auth?.circleEmail !== false;
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState<"email" | "wallet" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -107,19 +111,23 @@ function CircleSignIn({ onDone }: { onDone: () => void }) {
 
   return (
     <div className={s.form}>
-      <form className={s.form} onSubmit={submit} noValidate>
-        <Field label="Email" hideLabel type="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(null); }} placeholder="you@company.com" autoComplete="email" inputMode="email" autoFocus />
-        <ActionButton type="submit" size="lg" fullWidth loading={busy === "email"} loadingLabel="Check your inbox" iconLeft={<Mail size={16} strokeWidth={2} />}>
-          Continue with email
-        </ActionButton>
-      </form>
-      {hasWallet && (
-        <ActionButton variant="secondary" size="lg" fullWidth onClick={wallet} loading={busy === "wallet"} loadingLabel="Check your wallet" iconLeft={<Wallet size={16} strokeWidth={2} />}>
+      {emailAvailable && (
+        <form className={s.form} onSubmit={submit} noValidate>
+          <Field label="Email" hideLabel type="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(null); }} placeholder="you@company.com" autoComplete="email" inputMode="email" autoFocus />
+          <ActionButton type="submit" size="lg" fullWidth loading={busy === "email"} loadingLabel="Check your inbox" iconLeft={<Mail size={16} strokeWidth={2} />}>
+            Continue with email
+          </ActionButton>
+        </form>
+      )}
+      {(hasWallet || !emailAvailable) && (
+        <ActionButton variant={emailAvailable ? "secondary" : "primary"} size="lg" fullWidth onClick={wallet} loading={busy === "wallet"} loadingLabel="Check your wallet" iconLeft={<Wallet size={16} strokeWidth={2} />}>
           Continue with a wallet
         </ActionButton>
       )}
       {error && <Notice tone="danger">{error}</Notice>}
-      <p className={s.lede} style={{ fontSize: 13 }}>Email creates a wallet for you, secured by Circle and a PIN only you know.{hasWallet ? " Or bring your own." : ""}</p>
+      <p className={s.lede} style={{ fontSize: 13 }}>
+        {emailAvailable ? `Email creates a wallet for you, secured by Circle and a PIN only you know.${hasWallet ? " Or bring your own." : ""}` : "Sign in with MetaMask or another browser wallet on Arc. Email sign-in with a Circle wallet arrives on mainnet with Circle production access."}
+      </p>
     </div>
   );
 }

@@ -39,7 +39,7 @@ app.get("/api/health", (c) =>
     agentAdapter: agentAdapterName(),
     relayer: relayerKind(),
     sellerSigner: sellerSignerAddress() ?? null,
-    auth: { provider: features.authProvider, privyAppId: env.PRIVY_APP_ID, circleAppId: features.circleAuth ? env.CIRCLE_APP_ID : null, circleChain: env.CHAIN_ID === 5042002 ? "ARC-TESTNET" : "ARC", devBypass: features.privyDevBypass },
+    auth: { provider: features.authProvider, privyAppId: env.PRIVY_APP_ID, circleAppId: features.circleAuth ? env.CIRCLE_APP_ID : null, circleEmail: features.circleEmail, circleChain: env.CHAIN_ID === 5042002 ? "ARC-TESTNET" : "ARC", devBypass: features.privyDevBypass },
     features,
     time: new Date().toISOString(),
   }),
