@@ -5,7 +5,7 @@ import { Check, ExternalLink, X } from "lucide-react";
 import { ARC_NETWORK_NAMES, ARC_TESTNET_FAUCET, defaultNetwork, explorerAddress } from "@proteus/domain";
 import { useAuth } from "../auth/useAuth";
 import { ActionButton } from "../ui/ActionButton";
-import { CopyButton, ExplorerLink } from "../ui/misc";
+import { CopyButton } from "../ui/misc";
 import { Money } from "../ui/Money";
 import { Qr } from "./QrCode";
 import { ArcMark } from "../ui/Marks";
@@ -63,12 +63,13 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
       exit={reduce ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.985 }}
       transition={{ type: "spring", stiffness: 420, damping: 36, mass: 0.9 }}
       onClick={(e) => e.stopPropagation()}
+      style={{ maxWidth: 520 }}
     >
       <div className={w.sheetHandle} aria-hidden />
       <header className={w.sheetHead}>
         <div className={w.sheetTitleRow}>
           <span className={w.sheetLabel}><ArcMark size={12} style={{ marginRight: 6, verticalAlign: "-1px" }} />{ARC_NETWORK_NAMES[defaultNetwork()]}</span>
-          <h2 id={titleId} className={w.sheetTitle}>Deposit testnet USDC</h2>
+          <h2 id={titleId} className={w.sheetTitle}>Deposit USDC</h2>
         </div>
         <button ref={closeRef} type="button" className={w.sheetClose} onClick={onClose} aria-label="Close">
           <X size={18} strokeWidth={2} />
@@ -93,46 +94,43 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
             </div>
           </motion.div>
         ) : (
-          <motion.div key="deposit" className={w.sheetBody} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-            <div className={w.sheetQrCol}>
-              {address ? <Qr value={address} className={w.sheetQr} /> : <span className={w.sheetQrEmpty} />}
-              <span className="body3">Scan to send USDC on {ARC_NETWORK_NAMES[defaultNetwork()]}</span>
-            </div>
-            <div className={w.sheetMain}>
-              <div className={w.sheetField}>
+          <motion.div key="deposit" className={w.sheetSingle} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+            <div className={w.depositRow}>
+              <div className={w.depositMain}>
                 <span className={w.sheetLabelSm}>Your address</span>
-                <div className={w.addr}>
-                  <span style={{ minWidth: 0 }}>{address || "Setting up your wallet"}</span>
+                <div className={w.addrCompact}>
+                  <span className={w.addrShort} title={address}>{address ? `${address.slice(0, 10)}…${address.slice(-8)}` : "Setting up your wallet"}</span>
                   {address && <CopyButton value={address} label="Copy wallet address" />}
                 </div>
+                <p className={w.hint}>
+                  Send USDC on {ARC_NETWORK_NAMES[defaultNetwork()]} to this address. {defaultNetwork() === "testnet" ? "Testnet USDC is free from the Circle faucet." : "From an exchange, a wallet, or a CCTP bridge."}
+                </p>
+                <div className={w.sheetActions}>
+                  {defaultNetwork() === "testnet" && <ActionButton variant="secondary" size="sm" href={ARC_TESTNET_FAUCET} newTab icon={<ExternalLink size={14} strokeWidth={2} />}>Circle faucet</ActionButton>}
+                  {address && <a className={w.quietLink} href={explorerAddress(address)} target="_blank" rel="noreferrer">View on explorer</a>}
+                </div>
               </div>
-              <ol className={w.sheetSteps}>
-                <li><span>1</span>Copy your address.</li>
-                <li><span>2</span>{defaultNetwork() === "testnet" ? "Open the Circle faucet, choose Arc testnet, paste it and request USDC." : "Send USDC on Arc from your exchange or wallet, or bridge with CCTP."}</li>
-                <li><span>3</span>Keep this open. The balance updates here the moment it lands.</li>
-              </ol>
-              <div className={w.sheetActions}>
-                {defaultNetwork() === "testnet" && <ActionButton href={ARC_TESTNET_FAUCET} newTab icon={<ExternalLink size={16} strokeWidth={2} />}>Open Circle faucet</ActionButton>}
-                {address && <ExplorerLink href={explorerAddress(address)}>View on explorer</ExplorerLink>}
-              </div>
-              <div className={w.sheetStatus} aria-live="polite">
-                {watch.watching ? (
-                  <>
-                    Watching for the deposit. Balance <Money micro={watch.q.data?.usdc ?? 0n} /> USDC.
-                  </>
-                ) : watch.result?.kind === "none" ? (
-                  <>
-                    Nothing yet. Faucet transfers can take a minute.
-                    <button type="button" className={w.linkBtn} onClick={watch.start}>Keep watching</button>
-                  </>
-                ) : (
-                  <>
-                    Balance <Money micro={watch.q.data?.usdc ?? 0n} /> USDC.
-                    <button type="button" className={w.linkBtn} onClick={watch.start}>Check again</button>
-                  </>
-                )}
-              </div>
-              <p className={w.sheetFoot}>Only USDC sent on {ARC_NETWORK_NAMES[defaultNetwork()]} to this address shows up here.</p>
+              {address ? <Qr value={address} className={w.qrSmall} /> : <span className={w.qrSmallEmpty} />}
+            </div>
+            <div className={w.sheetStatus} aria-live="polite">
+              {watch.watching ? (
+                <>
+                  <span className={w.pulse} aria-hidden />
+                  Watching for the deposit
+                  <span className={w.statusSep}>·</span>
+                  Balance <Money micro={watch.q.data?.usdc ?? 0n} /> USDC
+                </>
+              ) : watch.result?.kind === "none" ? (
+                <>
+                  Nothing yet. Faucet transfers can take a minute.
+                  <button type="button" className={w.linkBtn} onClick={watch.start}>Keep watching</button>
+                </>
+              ) : (
+                <>
+                  Balance <Money micro={watch.q.data?.usdc ?? 0n} /> USDC
+                  <button type="button" className={w.linkBtn} onClick={watch.start}>Check again</button>
+                </>
+              )}
             </div>
           </motion.div>
         )}

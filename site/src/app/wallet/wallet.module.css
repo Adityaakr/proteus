@@ -63,3 +63,19 @@
   .sheetQr, .sheetQrEmpty { width: 180px; height: 180px; }
   .sheetActions > :first-child { flex: 1 1 100%; }
 }
+
+/* Deposit sheet, compact layout */
+.depositRow { display: flex; gap: 20px; align-items: flex-start; }
+.depositMain { display: flex; flex-direction: column; gap: 10px; min-width: 0; flex: 1 1 auto; }
+.addrCompact { display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px 8px 12px; border-radius: 10px; background: var(--c-dark-5); max-width: 100%; }
+.addrShort { font-family: var(--font-mono); font-size: 14px; color: var(--c-dark); letter-spacing: 0.01em; }
+.hint { margin: 0; font-family: var(--font-body); font-size: 14px; line-height: 1.5; color: var(--c-dark-70, var(--c-dark-80)); }
+.quietLink { font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--c-dark-60); text-decoration: underline; text-underline-offset: 3px; }
+.quietLink:hover { color: var(--c-dark); }
+.qrSmall { flex: none; width: 128px; height: 128px; border-radius: 12px; background: var(--c-white); box-shadow: inset 0 0 0 1px var(--c-dark-10); padding: 8px; }
+.qrSmallEmpty { flex: none; width: 128px; height: 128px; border-radius: 12px; background: var(--c-dark-5); }
+.pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--c-primary); margin-right: 2px; animation: pulse 1.6s ease-in-out infinite; }
+.statusSep { color: var(--c-dark-30); padding: 0 2px; }
+@keyframes pulse { 0%, 100% { opacity: 0.35; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1); } }
+@media (max-width: 809.98px) { .depositRow { flex-direction: column-reverse; align-items: center; } .depositMain { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; opacity: 1; } }
