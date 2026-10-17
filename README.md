@@ -4,12 +4,20 @@
 
 <p align="center">
   <a href="contracts/src/DealEscrow.sol">DealEscrow.sol</a> ·
-  <a href="https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46">Deployed on Arc testnet</a> ·
+  <a href="https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46">Arc testnet</a> ·
+  <a href="https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46">Arc mainnet</a> ·
   <a href="https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract">Read the contract</a> ·
   <a href="docs/acceptance-report.md">Acceptance report</a> ·
   <a href="docs/api.md">API</a> ·
   <a href="#verify-it-yourself-on-arc-testnet">Verify it yourself</a>
 </p>
+
+<p align="center"><sub>DealEscrow is deployed at the same address on both networks: <code>0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46</code></sub></p>
+
+| Network | Chain id | DealEscrow | Source |
+|---|---|---|---|
+| Arc testnet | 5042002 | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) | verified · [read](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract) |
+| Arc mainnet | 5042 | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) | verified (exact match) · [read](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract) |
 
 <p align="center">
   <code>0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46</code> · chain 5042002 · source verified on Blockscout · solc 0.8.28<br/>
@@ -245,7 +253,8 @@ Every hash is a confirmed Arc testnet transaction and links to the explorer. The
 
 | Contract | |
 |---|---|
-| DealEscrow | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) (source verified, [read tab](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract)) |
+| DealEscrow, Arc testnet (5042002) | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) (source verified, [read tab](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract)) |
+| DealEscrow, Arc mainnet (5042) | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) (source verified, exact match; [read tab](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract)); deployment [`0xf31053ff…37280`](https://explorer.arc.io/tx/0xf31053ff9ebdf450e739e2a5c5b93316febe7f0af1e0419cfb4f4a7415f37280) |
 | Deploy | [`0x406c7f87…cba2a7`](https://explorer.testnet.arc.io/tx/0x406c7f8745d3381e0be492bab698f9bc2a137db96fdab30e69d647dac8cba2a7) |
 | USDC | [`0x3600000000000000000000000000000000000000`](https://explorer.testnet.arc.io/address/0x3600000000000000000000000000000000000000) |
 | Owner and arbiter | [`0x86448dad5B26285379fc7CeE260362A5F4F174D5`](https://explorer.testnet.arc.io/address/0x86448dad5B26285379fc7CeE260362A5F4F174D5) (the deployer) |
