@@ -7,7 +7,7 @@ import { Wordmark } from "../layouts/Wordmark";
 import { ActionButton } from "../ui/ActionButton";
 import { Card } from "../ui/Card";
 import { Field } from "../ui/Field";
-import { ArcMark } from "../ui/Marks";
+import { ArcMark, CircleMark } from "../ui/Marks";
 import { Notice } from "../ui/misc";
 import { useAuth } from "./useAuth";
 import { safeNext } from "./RequireAuth";
@@ -62,7 +62,7 @@ export default function LoginPage() {
                 {mock ? "Continue as the demo user" : "Sign in"}
               </ActionButton>
             )}
-            <p className={s.builtOn}><span>Built on</span><ArcMark size={14} /><span>Arc</span></p>
+            <p className={s.builtOn}><span>Built on</span><ArcMark size={14} /><span>Arc</span><span className={s.dot}>·</span><span>Wallets by</span><CircleMark size={14} /><span>Circle</span></p>
           </Card>
         </motion.div>
       </main>

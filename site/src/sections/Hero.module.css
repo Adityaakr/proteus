@@ -75,6 +75,9 @@
   align-items: center;
   gap: 16px;
 }
+.trust { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; font-family: var(--font-body); font-size: 13px; color: var(--c-dark-60); margin-top: -4px; }
+.trust span { display: inline-flex; align-items: center; gap: 6px; }
+.trustDot { color: var(--c-dark-30); }
 /* McyCsXoTB BG: image fill, padding 100, radius 24, maxWidth 1200 */
 .bg {
   position: relative;

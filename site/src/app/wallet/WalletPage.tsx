@@ -18,8 +18,9 @@ import { Qr } from "./QrCode";
 import w from "./wallet.module.css";
 
 export const CUSTODY_NOTE = "Embedded wallet. Your key is split between a hardware enclave and your login. You can export it from the account menu. Proteus AI never holds your key.";
+export const CIRCLE_CUSTODY_NOTE = "Circle Wallet. Your key is split between Circle and the PIN only you know, so every signature and payment is approved by you in Circle's window. Neither Proteus AI nor Circle can sign alone, and there is no single key to export.";
 export default function WalletPage() {
-  const { wallet } = useAuth();
+  const { wallet, provider } = useAuth();
   const [deposit, setDeposit] = useState(false);
   const watch = useDepositWatch();
   const { watching: polling, result } = watch;
@@ -88,7 +89,7 @@ export default function WalletPage() {
               <WalletPicker />
             </Card>
             <Card title="Custody" variant="muted" padding="compact">
-              <p className="body2">{wallet.type === "external" ? `${walletLabel(wallet)}. You control the key in your own wallet app; Proteus AI never holds it.` : CUSTODY_NOTE}</p>
+              <p className="body2">{wallet.type === "external" ? `${walletLabel(wallet)}. You control the key in your own wallet app; Proteus AI never holds it.` : provider === "circle" ? CIRCLE_CUSTODY_NOTE : CUSTODY_NOTE}</p>
             </Card>
           </div>
         </div>

@@ -94,6 +94,12 @@ What a seller sees: a console to publish a product (unit definition, public tier
 
 ![Market](docs/images/market.jpg)
 
+### Wallets: Circle for people and for agents
+
+Every account gets a [Circle Wallet](https://developers.circle.com/wallets/user-controlled). A person signs in with an email code, chooses a PIN, and Circle creates a user-controlled wallet on Arc: the key is split between Circle's MPC and that PIN, so neither Proteus AI nor Circle can sign alone, and every Terms signature, usage acceptance and transaction is approved by the person in Circle's window. People who already have MetaMask or another wallet sign in with it instead and can link both to one account.
+
+Agents use the same rails with a [Circle Agent Wallet](https://developers.circle.com/agent-stack/agent-wallets): the Circle CLI signs the EIP-712 Terms and Acceptance (`circle wallet sign`), approves USDC to the escrow (`circle wallet execute`), and pays per call over x402 (`circle services pay`), all inside spending limits the agent's owner sets. The API treats an agent wallet exactly like a person's: a signature over the same typed data, a funding transaction from the same address.
+
 ## Why this design
 
 **Money never depends on a model being right.** Prices and policy checks are pure functions over integers in `packages/domain`. The model reads the conversation, picks among candidates the engine already produced, and writes the reply. It cannot set a price, change the floor, sign anything, or call the chain. A figure guard discards any reply containing a dollar amount, percentage, suffixed or multi-digit number that is not in the candidates, the product facts or the buyer's own words, and sends a deterministic reply instead. Spelled-out numbers are not caught; the price itself is never decided by the reply.
@@ -149,7 +155,8 @@ flowchart LR
 
     EXT[Seller's own HTTPS endpoint]
     LLM[OpenRouter models]
-    PRIVY[Privy: login, embedded wallet]
+    CW[Circle Wallets: sign-in, account wallet]
+    AW[Circle Agent Wallet via CLI]
 
     M & N & D & C & DOC --> API
     NEG --> AG --> LLM
@@ -161,7 +168,8 @@ flowchart LR
     X --> FAC --> USDC
     REC --> ESC
     ESC --> USDC
-    Client --> PRIVY
+    Client --> CW
+    Agent --> AW --> API
 ```
 
 The monorepo is a pnpm workspace:
@@ -395,7 +403,7 @@ Hosting: one Railway service runs the API, the reconciler and serves the built s
 | Asset | Where it lives | How it is protected |
 |---|---|---|
 | Buyer funds | the escrow contract | released by `settleAcceptedUsage` with the buyer's Acceptance signature, by `refundUnused` to the buyer, or by `resolveDispute` at the arbiter's split between buyer and payee; the owner has no transfer function (invariant-tested) but appoints the arbiter |
-| Buyer wallet | Privy embedded wallet (key split between a hardware enclave and the login, exportable) or an external wallet the buyer signed in with; the buyer picks the active one | Proteus AI never holds the key; link proofs are wallet signatures over a nonce |
+| Buyer wallet | a Circle user-controlled wallet created at sign-in (2-of-2 MPC, PIN held by the person, EOA on Arc), an external wallet such as MetaMask, or, for an agent, a Circle Agent Wallet driven by the Circle CLI; the buyer picks the active one | Proteus AI never holds a key; every Circle signature is a challenge the person or agent approves; link proofs are wallet signatures over a nonce |
 | Seller signing key | generated per org, AES-256-GCM encrypted in Postgres under `KEY_ENCRYPTION_SECRET` | signs Terms, Delivery, receipt digests and x402 seller proofs; can be revoked; the payee is fixed in each funded deal, so a leak cannot redirect escrow payouts already agreed. A leaked key could countersign new terms, open disputes to freeze deals, and spend unswept pay-per-call balance on the collector |
 | Seller endpoint secret | encrypted at rest, decrypted per call, never returned by the API | |
 | Deal API key | `pk_live_…` (the prefix is historical; every key is testnet), only its SHA-256 stored, shown once | rotation needs a buyer wallet signature over a 5-minute timestamp |
@@ -428,7 +436,7 @@ Where the code stands today and what it takes to run real money through it. Each
 - Deterministic pricing and policy, dual-signed EIP-712 terms, escrow funding, metered delivery with non-billable failures, countersigned settlement, early close and refund, all with [confirmed transactions](#verify-it-yourself-on-arc-testnet).
 - x402 pay per call verified and settled through [Circle's facilitator](https://explorer.testnet.arc.io/tx/0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8).
 - Contract source verified; 24 unit and fuzz tests, 3 invariants, 13 domain and 9 server tests in CI.
-- Privy login with embedded or external wallets, seller console, request specs per product, service agents, skills and OpenAPI per service.
+- Sign-in with Circle Wallets (email OTP, PIN-protected MPC wallet on Arc) or an external wallet; Circle Agent Wallets for agents; seller console, request specs per product, service agents, skills and OpenAPI per service.
 
 **Phase 1: hosted testnet beta** (weeks, no contract change)
 
@@ -475,10 +483,10 @@ server/src/
 server/scripts/      gen-keys, seed, seed-example-sellers, set-request-specs, reprice-market, testnet-demo, circle-wallet
 site/src/
   sections/          marketing page sections (Framer-faithful rebuild)
-  app/               market, buyer (negotiate, fund, deal), wallet, sell (onboarding, console), docs, auth (Privy), ui
+  app/               market, buyer (negotiate, fund, deal), wallet, sell (onboarding, console), docs, auth (Circle Wallets; Privy kept as a fallback provider), ui
 contracts/           src/DealEscrow.sol, test/, script/Deploy.s.sol, deployments/latest.json
 docs/                api.md, settlement-model.md, threat-model.md, 01-account-and-flow.md, demo-script.md, acceptance-report.md
 BUILD_STATUS.md  DECISIONS.md  OPEN_ISSUES.md  DEPLOYMENT.md
 ```
 
-Stack: TypeScript everywhere; Hono 4, Drizzle, Postgres, viem 2, openai SDK (for OpenRouter), jose, `@circle-fin/developer-controlled-wallets` on the server; Vite 8, React 19, framer-motion, TanStack Query, `@privy-io/react-auth` on the site; Foundry with solc 0.8.28 for the contract.
+Stack: TypeScript everywhere; Hono 4, Drizzle, Postgres, viem 2, openai SDK (for OpenRouter), jose, `@circle-fin/user-controlled-wallets` and `@circle-fin/developer-controlled-wallets` on the server; Vite 8, React 19, framer-motion, TanStack Query, `@circle-fin/w3s-pw-web-sdk` on the site (Privy remains as an optional provider); Foundry with solc 0.8.28 for the contract.

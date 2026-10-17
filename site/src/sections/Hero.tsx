@@ -4,6 +4,7 @@ import { Button } from "../ui/Button";
 import { Tag } from "../ui/Tag";
 import { PromptCard } from "../ui/PromptCard";
 import s from "./Hero.module.css";
+import { ArcMark, CircleMark, UsdcMark } from "../app/ui/Marks";
 
 const MARK = "/assets/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png";
 
@@ -42,6 +43,13 @@ export function Hero() {
               <Appear preset="fade-0.8" animate="visible" whileInView={undefined} className={s.buttons}>
                 <Button label={hero.secondary.label} href={hero.secondary.href} variant="secondary" icon={false} />
                 <Button label={hero.primary.label} hoverLabel={hero.primary.hoverLabel} href={hero.primary.href} variant="primary" icon />
+              </Appear>
+              <Appear preset="fade-0.8" animate="visible" whileInView={undefined} className={s.trust}>
+                <span><ArcMark size={14} /> Built on Arc</span>
+                <span className={s.trustDot} aria-hidden>·</span>
+                <span><CircleMark size={14} /> Circle Wallets</span>
+                <span className={s.trustDot} aria-hidden>·</span>
+                <span><UsdcMark size={14} /> Settled in USDC</span>
               </Appear>
             </div>
           </div>

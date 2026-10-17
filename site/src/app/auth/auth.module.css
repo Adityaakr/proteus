@@ -7,7 +7,8 @@
 .title { font-family: var(--font-heading); font-weight: 500; font-size: 32px; line-height: 1.1; margin: 0; color: var(--c-dark); }
 .titleLong { font-size: 28px; letter-spacing: -0.015em; line-height: 1.15; }
 .builtOn { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; font-family: var(--font-body); font-size: 13px; color: var(--c-dark-60); }
-.builtOn span:last-child { color: var(--c-dark); font-weight: 500; }
+.builtOn span:last-child, .builtOn img + span { color: var(--c-dark); font-weight: 500; }
+.builtOn .dot { color: var(--c-dark-40); font-weight: 400; padding: 0 2px; }
 .methods { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; font-family: var(--font-body); font-size: 14px; color: var(--c-dark-80); }
 .methods li { display: flex; align-items: center; gap: 10px; }
 @media (max-width: 809.98px) { .top { padding: 8px 16px; } .title { font-size: 28px; } .titleLong { font-size: 24px; } }
