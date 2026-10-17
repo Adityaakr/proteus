@@ -54,7 +54,7 @@ export default function LoginPage() {
           <Card>
             <div className={s.head}>
               <h1 className={s.title}>Sign in to Proteus AI</h1>
-              <p className="body2">Buy and sell AI services from one account. Your wallet is ready the moment you sign in.</p>
+              <p className="body2">Negotiate, pay and get paid from one account. A wallet is waiting the moment you sign in.</p>
             </div>
             {provider === "circle" && !mock ? (
               <CircleSignIn onDone={() => navigate(next, { replace: true })} />
@@ -120,7 +120,7 @@ function CircleSignIn({ onDone }: { onDone: () => void }) {
         </ActionButton>
       )}
       {error && <Notice tone="danger">{error}</Notice>}
-      <p className={s.lede} style={{ fontSize: 13 }}>Email sign-in creates a wallet for you, secured by Circle and a PIN you choose.</p>
+      <p className={s.lede} style={{ fontSize: 13 }}>Email creates a wallet for you, secured by Circle and a PIN only you know. Or bring your own.</p>
     </div>
   );
 }
