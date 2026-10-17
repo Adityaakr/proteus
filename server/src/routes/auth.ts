@@ -6,6 +6,8 @@ import { env, features } from "../env";
 import { HttpError } from "../lib/http";
 import { id } from "../lib/ids";
 import { bindGrantCookie } from "../services/invites";
+import { getCookie } from "hono/cookie";
+import { verifySession } from "../lib/jwt";
 
 /**
  * Privy access tokens are ES256 JWTs signed by the app's key; we verify them against the app's public
@@ -65,7 +67,20 @@ export async function resolveAuth(c: Context): Promise<AuthInfo | undefined> {
     return info;
   }
   const bearer = c.req.header("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!bearer || bearer.startsWith("pk_live_")) return undefined; // service api keys are handled elsewhere
+  if (bearer?.startsWith("pk_live_")) return undefined; // service api keys are handled elsewhere
+  // Proteus AI's own session (Circle or wallet sign-in): bearer token or the proteus_auth cookie.
+  const own = bearer ? await verifySession(bearer) : null;
+  const cookieUser = own ? null : await verifySession(getCookie(c, "proteus_auth") ?? "");
+  const sessionUser = own ?? cookieUser;
+  if (sessionUser) {
+    const [u] = await db.select().from(schema.users).where(eq(schema.users.id, sessionUser));
+    if (!u) throw new HttpError(401, "session user no longer exists");
+    await db.update(schema.users).set({ lastSeenAt: new Date() }).where(eq(schema.users.id, u.id));
+    const info = { userId: u.id, did: u.privyDid, access: await gate(c, u.id, Boolean(u.accessGrantedAt)) };
+    c.set("auth", info);
+    return info;
+  }
+  if (!bearer) return undefined;
   try {
     const { did } = await verifyPrivyToken(bearer);
     const u = await upsertUser(did);

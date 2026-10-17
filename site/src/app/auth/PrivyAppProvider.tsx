@@ -249,6 +249,8 @@ function PrivyBridge({ children }: { children: ReactNode }) {
   }, [privy, embedded]);
 
   const value: AuthValue = {
+    provider: "privy",
+    canExportWallet: true,
     ready,
     authenticated,
     user: authUser,
@@ -301,6 +303,8 @@ function MockAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const value: AuthValue = {
+    provider: "mock",
+    canExportWallet: true,
     ready: true,
     authenticated,
     user: authenticated ? { id: meQ.data?.userId ?? "did:privy:mock-buyer", email: meQ.data?.email ?? "demo@proteus.dev", loginMethods: ["email"] } : null,
@@ -352,6 +356,8 @@ function DevKeyAuthProvider({ children }: { children: ReactNode }) {
     })().catch((e) => console.warn("[proteus] dev wallet link failed", e));
   }, [meQ.data, account, meQ]);
   const value: AuthValue = {
+    provider: "dev",
+    canExportWallet: false,
     ready: true,
     authenticated: true,
     user: { id: `did:privy:dev:${DEV_USER}`, email: meQ.data?.email ?? `${DEV_USER}@dev.local`, loginMethods: ["dev-key"] },

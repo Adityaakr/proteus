@@ -20,6 +20,8 @@ export interface Health {
   usdcAddress: Address;
   agentAdapter: "rule-based" | "anthropic";
   relayer: "circle" | "viem" | "none";
+  /** Which sign-in the site should offer, and the public ids it needs. */
+  auth?: { provider: "privy" | "circle"; privyAppId: string; circleAppId: string | null; circleChain: string; devBypass?: boolean };
 }
 
 export interface PublicTier {
@@ -512,6 +514,11 @@ export interface MeWallet {
 
 export function walletKind(w: MeWallet): "embedded" | "external" {
   return w.kind ?? w.type ?? "embedded";
+}
+
+/** The exact message signed (personal_sign) to sign in with a browser wallet. */
+export function walletLoginMessage(address: string, nonce: string): string {
+  return `PROTEUS sign in\naddress: ${address}\nnonce: ${nonce}`;
 }
 
 /** The exact message signed (personal_sign) to link a wallet to the account. */

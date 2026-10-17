@@ -184,7 +184,7 @@ function SideItem({ it, on }: { it: AppNavItem; on: boolean }) {
 }
 
 function AccountMenu() {
-  const { user, wallet, logout, exportWallet } = useAuth();
+  const { user, wallet, logout, exportWallet, canExportWallet } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -250,17 +250,19 @@ function AccountMenu() {
             <Link role="menuitem" to="/app/wallet" className={s.menuItem} onClick={() => setOpen(false)}>
               <Wallet size={16} strokeWidth={2} aria-hidden /> Wallet
             </Link>
-            <button
-              role="menuitem"
-              type="button"
-              className={s.menuItem}
-              onClick={() => {
-                setOpen(false);
-                void exportWallet().catch(() => {});
-              }}
-            >
-              <KeyRound size={16} strokeWidth={2} aria-hidden /> Export embedded key
-            </button>
+            {canExportWallet && (
+              <button
+                role="menuitem"
+                type="button"
+                className={s.menuItem}
+                onClick={() => {
+                  setOpen(false);
+                  void exportWallet().catch(() => {});
+                }}
+              >
+                <KeyRound size={16} strokeWidth={2} aria-hidden /> Export embedded key
+              </button>
+            )}
             <Link role="menuitem" to="/app/settings" className={s.menuItem} onClick={() => setOpen(false)}>
               <Settings size={16} strokeWidth={2} aria-hidden /> Settings
             </Link>

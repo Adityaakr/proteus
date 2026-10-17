@@ -19,6 +19,7 @@ import { meRoutes } from "./routes/me";
 import { payRoutes } from "./routes/pay";
 import { rpcRoutes } from "./routes/rpc";
 import { inviteRoutes } from "./routes/invites";
+import { circleAuthRoutes } from "./routes/circle-auth";
 import { consoleRoutes } from "./routes/console";
 
 const app = new Hono();
@@ -35,13 +36,14 @@ app.get("/api/health", (c) =>
     agentAdapter: agentAdapterName(),
     relayer: relayerKind(),
     sellerSigner: sellerSignerAddress() ?? null,
-    auth: { privyAppId: env.PRIVY_APP_ID, devBypass: features.privyDevBypass },
+    auth: { provider: features.authProvider, privyAppId: env.PRIVY_APP_ID, circleAppId: features.circleAuth ? env.CIRCLE_APP_ID : null, circleChain: env.CHAIN_ID === 5042002 ? "ARC-TESTNET" : "ARC", devBypass: features.privyDevBypass },
     features,
     time: new Date().toISOString(),
   }),
 );
 
 app.route("/api", inviteRoutes);
+app.route("/api", circleAuthRoutes);
 app.route("/api", publicRoutes);
 app.route("/api", dealRoutes);
 app.route("/api", meRoutes);

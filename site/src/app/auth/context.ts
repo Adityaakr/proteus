@@ -31,13 +31,23 @@ export function walletLabel(w: Pick<AuthWallet, "type" | "clientType">): string 
   return "External wallet";
 }
 
+export type AuthProvider = "privy" | "circle" | "mock" | "dev";
+
 export interface AuthValue {
-  /** Privy has finished loading the session. */
+  /** Which sign-in backs this session. */
+  provider: AuthProvider;
+  /** The auth layer has finished loading the session. */
   ready: boolean;
   authenticated: boolean;
   user: AuthUser | null;
-  /** Opens the Privy login modal (mock: signs the demo user in). */
+  /** Opens the sign-in flow (Privy: its modal; Circle: the sign-in page; mock: signs the demo user in). */
   login: () => void;
+  /** Circle only: sends an email OTP, opens Circle's code entry, and finishes with a Proteus AI session. */
+  emailLogin?: (email: string) => Promise<void>;
+  /** Circle only: sign in with a browser wallet by signing a nonce. */
+  loginWithWallet?: () => Promise<void>;
+  /** False for MPC wallets (Circle) where there is no key to export. */
+  canExportWallet: boolean;
   logout: () => Promise<void>;
   getAccessToken: () => Promise<string | null>;
   /** The active account wallet: balances, deposits, funding, payouts and signatures use it. */
@@ -62,6 +72,8 @@ export interface AuthValue {
 
 const noop = () => {};
 export const DEFAULT_AUTH: AuthValue = {
+  provider: "privy",
+  canExportWallet: true,
   ready: false,
   authenticated: false,
   user: null,

@@ -41,6 +41,10 @@ const Env = z.object({
   CIRCLE_ENTITY_SECRET: z.string().optional(),
   CIRCLE_WALLET_ID: z.string().optional(),
   CIRCLE_WALLET_ADDRESS: address.optional(),
+  /** Circle user-controlled wallets app id (console > Wallets > User-controlled). With CIRCLE_API_KEY it enables Circle sign-in. */
+  CIRCLE_APP_ID: z.string().optional(),
+  /** Which sign-in the site offers: "circle" (email OTP + Circle wallet) or "privy". Defaults to circle when configured. */
+  AUTH_PROVIDER: z.enum(["privy", "circle"]).optional(),
 
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
@@ -78,6 +82,8 @@ export const features = {
   anthropic: Boolean(env.ANTHROPIC_API_KEY),
   privyDevBypass: env.PRIVY_DEV_BYPASS === "1" && env.NODE_ENV !== "production",
   circle: Boolean(env.CIRCLE_API_KEY && env.CIRCLE_ENTITY_SECRET && env.CIRCLE_WALLET_ID),
+  circleAuth: Boolean(env.CIRCLE_API_KEY && env.CIRCLE_APP_ID),
+  authProvider: (env.AUTH_PROVIDER ?? (env.CIRCLE_API_KEY && env.CIRCLE_APP_ID ? "circle" : "privy")) as "privy" | "circle",
   viemRelayer: Boolean(env.RELAYER_PRIVATE_KEY),
   escrow: Boolean(env.ESCROW_ADDRESS),
   sellerSigner: Boolean(env.SELLER_SIGNER_PRIVATE_KEY),
