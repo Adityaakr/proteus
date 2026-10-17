@@ -53,7 +53,7 @@ export default function LoginPage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={T_DEFAULT} className={s.cardWrap}>
           <Card>
             <div className={s.head}>
-              <h1 className={s.title}>The autonomous deal service desk for internet businesses</h1>
+              <h1 className={`${s.title} ${s.titleLong}`}>The autonomous deal service desk for internet businesses</h1>
             </div>
             {provider === "circle" && !mock ? (
               <CircleSignIn onDone={() => navigate(next, { replace: true })} />
@@ -119,7 +119,7 @@ function CircleSignIn({ onDone }: { onDone: () => void }) {
         </ActionButton>
       )}
       {error && <Notice tone="danger">{error}</Notice>}
-      <p className={s.lede} style={{ fontSize: 13 }}>Email creates a wallet for you, secured by Circle and a PIN only you know. Or bring your own.</p>
+      <p className={s.lede} style={{ fontSize: 13 }}>Email creates a wallet for you, secured by Circle and a PIN only you know.{hasWallet ? " Or bring your own." : ""}</p>
     </div>
   );
 }
