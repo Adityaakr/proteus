@@ -75,7 +75,7 @@ circleAuthRoutes.post("/auth/circle/wallet", requireAuth, async (c) => {
     if (!mine.some((w) => w.address === addr.toLowerCase())) await insertWalletLink(auth(c).userId, addr, "embedded", "0x" as Hex);
     return json(c, { wallet: { id: r.wallet.id, address: addr, chain: CIRCLE_CHAIN } });
   }
-  return json(c, { challengeId: r.challengeId });
+  return json(c, { challengeId: r.challengeId, setsPin: r.setsPin ?? false });
 });
 
 circleAuthRoutes.post("/auth/circle/sign-typed-data", requireAuth, async (c) => {

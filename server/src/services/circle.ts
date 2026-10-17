@@ -56,11 +56,22 @@ export async function refreshToken(userToken: string, refreshToken: string, devi
 
 export interface CircleWallet { id: string; address: string; blockchain: string; state: string }
 
-/** The user's live wallet on the configured chain, or a challenge the browser must execute to create one. */
-export async function ensureWallet(userToken: string): Promise<{ wallet?: CircleWallet; challengeId?: string }> {
+/**
+ * The user's live wallet on the configured chain, or a challenge the browser must execute to create one.
+ * A brand-new Circle user has no PIN yet, and Circle refuses plain wallet creation until one exists, so the
+ * first challenge is the combined "set PIN, security questions and create wallet" one; later users with a PIN
+ * but no wallet on this chain get the plain creation challenge.
+ */
+export async function ensureWallet(userToken: string): Promise<{ wallet?: CircleWallet; challengeId?: string; setsPin?: boolean }> {
   const list = await call("listWallets", () => client().listWallets({ userToken, blockchain: CIRCLE_CHAIN }));
   const live = (list.data?.wallets ?? []).find((w) => w.blockchain === CIRCLE_CHAIN && w.state === "LIVE");
   if (live) return { wallet: { id: live.id, address: live.address, blockchain: live.blockchain, state: live.state } };
+  const u = await userFromToken(userToken);
+  if (u.pinStatus !== "ENABLED") {
+    const r = await call("createUserPinWithWallets", () => client().createUserPinWithWallets({ userToken, blockchains: [CIRCLE_CHAIN], accountType: "EOA" }));
+    if (!r.data?.challengeId) throw new HttpError(502, "Circle did not return a PIN setup challenge.");
+    return { challengeId: r.data.challengeId, setsPin: true };
+  }
   const r = await call("createWallet", () => client().createWallet({ userToken, blockchains: [CIRCLE_CHAIN], accountType: "EOA" }));
   if (!r.data?.challengeId) throw new HttpError(502, "Circle did not return a wallet creation challenge.");
   return { challengeId: r.data.challengeId };
