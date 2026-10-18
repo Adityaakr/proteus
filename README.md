@@ -100,7 +100,7 @@ What a buyer sees: a market of services with published unit prices, a chat with 
 
 What a seller sees: a console to publish a product (unit definition, public tiers, private costs, margin floor, capacity, approval threshold, the fields a buyer must send), every negotiation with the agent's reasoning and the rule ids behind each refusal, approvals waiting, deals, usage and payouts.
 
-![Market](docs/images/market.jpg)
+
 
 ### Wallets: Circle for people and for agents
 
