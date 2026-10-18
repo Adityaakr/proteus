@@ -6,7 +6,8 @@ import { Wordmark } from "../layouts/Wordmark";
 import { ActionButton } from "../ui/ActionButton";
 import { Field } from "../ui/Field";
 import { ArcMark } from "../ui/Marks";
-import { ApiError, api } from "../lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { ApiError, api, qk } from "../lib/api";
 import { useAuth } from "./useAuth";
 import { loginHref, safeNext } from "./RequireAuth";
 import "../app.css";
@@ -37,10 +38,17 @@ export default function InvitePage() {
   const [shake, setShake] = useState(0);
   const leaveTo = useRef<string | null>(null);
 
-  // Already in: nothing to do here.
+  const health = useQuery({ queryKey: qk.health, queryFn: api.health, staleTime: 60_000, retry: false });
+  const gateOff = health.data?.features?.inviteGate === false;
+
+  // Already in, or no gate on this deployment: nothing to do here.
   useEffect(() => {
-    if (mock || (authenticated && meStatus === "ready" && me?.access !== false)) navigate(next, { replace: true });
-  }, [mock, authenticated, meStatus, me?.access, next, navigate]);
+    if (mock || (authenticated && meStatus === "ready" && me?.access !== false)) {
+      void navigate(next, { replace: true });
+      return;
+    }
+    if (gateOff) void navigate(authenticated ? next : loginHref(next), { replace: true });
+  }, [mock, authenticated, meStatus, me?.access, next, navigate, gateOff]);
 
   const fail = (msg: string) => {
     setError(msg);

@@ -4,6 +4,8 @@ import { Button } from "../ui/Button";
 import { Tag } from "../ui/Tag";
 import { PromptCard } from "../ui/PromptCard";
 import s from "./Hero.module.css";
+import { useQuery } from "@tanstack/react-query";
+import { api, qk } from "../app/lib/api";
 import { ArcMark, CircleMark, UsdcMark } from "../app/ui/Marks";
 
 const MARK = "/assets/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png";
@@ -14,6 +16,9 @@ const MARK = "/assets/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png";
  * than waiting for 50% visibility (the BG frame is taller than half a viewport).
  */
 export function Hero() {
+  // The invite step exists only on deployments whose API runs the gate; elsewhere the button goes straight to the app.
+  const health = useQuery({ queryKey: qk.health, queryFn: api.health, staleTime: 60_000, retry: false });
+  const gated = health.data?.features?.inviteGate !== false;
   return (
     <section id="hero" className={s.section}>
       <div className={s.content}>
@@ -42,7 +47,7 @@ export function Hero() {
               </div>
               <Appear preset="fade-0.8" animate="visible" whileInView={undefined} className={s.buttons}>
                 <Button label={hero.secondary.label} href={hero.secondary.href} variant="secondary" icon={false} />
-                <Button label={hero.primary.label} hoverLabel={hero.primary.hoverLabel} href={hero.primary.href} variant="primary" icon />
+                <Button label={hero.primary.label} hoverLabel={gated ? hero.primary.hoverLabel : undefined} href={gated ? hero.primary.href : "/app"} variant="primary" icon />
               </Appear>
               <Appear preset="fade-0.8" animate="visible" whileInView={undefined} className={s.trust}>
                 <span><ArcMark size={14} /> Built on Arc</span>

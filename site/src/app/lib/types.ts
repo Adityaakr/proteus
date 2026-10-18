@@ -24,6 +24,8 @@ export interface Health {
   explorer?: string;
   /** The same product on the other network, when deployed, for the header switch. */
   peer?: { network: "testnet" | "mainnet"; url: string } | null;
+  /** Server feature flags that change what the site shows. */
+  features?: { inviteGate?: boolean; admin?: boolean; [k: string]: boolean | undefined };
   /** Which sign-in the site should offer, and the public ids it needs. */
   auth?: { provider: "privy" | "circle"; privyAppId: string; circleAppId: string | null; circleChain: string; circleEmail?: boolean; devBypass?: boolean };
 }
