@@ -199,7 +199,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
             </dl>
             <p className={d.fine}>
               {demo
-                ? "An example seller, modeled on a real customer segment, with Proteus AI's own brand. Deals on it are real transactions on {ARC_NETWORK_NAMES[defaultNetwork()]}. Its service work is done by Proteus AI's agent on the model named in each receipt, from exactly what you send; it never counts toward live totals."
+                ? `An example seller, modeled on a real customer segment, with Proteus AI's own brand. Deals on it are real transactions on ${ARC_NETWORK_NAMES[defaultNetwork()]}. Its service work is done by Proteus AI's agent on the model named in each receipt, from exactly what you send; it never counts toward live totals.`
                 : "The owner signed in, published these terms and holds the payout wallet. The service answers from the seller's own endpoint."}
             </p>
           </div>
