@@ -270,7 +270,7 @@ export function deal(raw: W.SellerDeal | Loose): DealDetail {
     usage: d.usage ?? { units: "0", charged: "0", settled: "0" },
     refundableAt: String(d.refundableAt ?? ""),
     explorer: d.explorer ?? { escrow: "", settlements: [] },
-    labels: { network: "testnet", seller: d.labels?.seller ?? "sandbox" },
+    labels: { network: (d.labels?.network as "testnet" | "mainnet" | undefined) ?? "testnet", seller: d.labels?.seller ?? "sandbox" },
     economics: econ && econ.expectedRevenue !== undefined ? (econ as DealDetail["economics"]) : undefined,
     journal: journal(d.journal),
     chainTxs: ((d.chainTxs as Loose[] | undefined) ?? []).map((t) => ({ kind: String(t.kind), txHash: String(t.txHash), at: String(t.at ?? ""), amount: str(t.amount), explorerUrl: str(t.explorerUrl), status: str(t.status) })),

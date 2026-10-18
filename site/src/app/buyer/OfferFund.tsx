@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Clock3 } from "lucide-react";
-import { explorerAddress, publicTermsHash } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, defaultNetwork, explorerAddress, publicTermsHash } from "@proteus/domain";
 import { AppShell } from "../layouts/AppShell";
 import { ReasoningText } from "../agentic/ReasoningText";
 import { ActionButton } from "../ui/ActionButton";
@@ -95,7 +95,7 @@ function OfferView({ quote }: { quote: Quote }) {
         <section className={f.section} aria-labelledby="h-chain">
           <div className={f.sectionHead}>
             <h2 id="h-chain" className={f.h2}>Onchain details</h2>
-            <span className={f.h2Sub}>Arc testnet, chain {quote.chainId}</span>
+            <span className={f.h2Sub}>{ARC_NETWORK_NAMES[defaultNetwork()]}, chain {quote.chainId}</span>
           </div>
           <dl className={f.kv}>
             <div><dt>Escrow contract</dt><dd><MonoValue value={quote.escrowAddress} short copy label="escrow address" href={explorerAddress(quote.escrowAddress)} /></dd></div>

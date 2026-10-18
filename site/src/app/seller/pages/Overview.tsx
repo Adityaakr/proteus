@@ -7,6 +7,7 @@ import { PageHeader } from "../parts/PageHeader";
 import { RULE_TEXT, pct, relTime, units } from "../format";
 import s from "../seller.module.css";
 import d from "../dashboard.module.css";
+import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 
 /** Seller overview: four numbers that matter, what needs the owner, and the latest deals. Every figure is a sum over real rows. */
 export default function Overview() {
@@ -101,7 +102,7 @@ export default function Overview() {
                 </ul>
               )}
             </section>
-            <p className={d.fine}>Figures are testnet USDC from your own deals table and the chain reconciler. Nothing here is estimated.</p>
+            <p className={d.fine}>Figures are USDC on {ARC_NETWORK_NAMES[defaultNetwork()]} from your own deals table and the chain reconciler. Nothing here is estimated.</p>
           </>
         )}
       </QueryView>

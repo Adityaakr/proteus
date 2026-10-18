@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
-import { explorerTx } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, defaultNetwork, explorerTx } from "@proteus/domain";
 import { ActionButton, Card, DataTable, ExplorerLink, KeyValue, Money, MonoValue, Notice, StatusTag } from "../kit";
 import { useCloseTerm, useDeal } from "../api";
 import { QueryView } from "../parts/QueryView";
@@ -192,7 +192,7 @@ function CloseTerm({ d }: { d: Deal }) {
       ) : confirming ? (
         <div className={s.confirm} role="group" aria-label="Confirm closing the term">
           <p className="body3">
-            Close deal #{shortId(d.dealIdOnchain)} now? <Money micro={d.balances.remaining} /> remains in escrow. This sends a transaction on Arc testnet and cannot be undone.
+            Close deal #{shortId(d.dealIdOnchain)} now? <Money micro={d.balances.remaining} /> remains in escrow. This sends a transaction on {ARC_NETWORK_NAMES[defaultNetwork()]} and cannot be undone.
           </p>
           {m.isError && <Notice tone="danger">{errorMessage(m.error)}</Notice>}
           <div className={s.formActions}>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { StatusTag } from "../kit";
 import s from "./parts.module.css";
+import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 
 export interface PageHeaderProps {
   /** Detail pages pass a title; top-level pages rely on the shell heading and omit it. */
@@ -38,7 +39,7 @@ export function PageHeader({ title, description, back, status, actions, labels =
         {labels && (
           <div className={s.labels}>
             <StatusTag network={sellerLabel === "live" ? "live" : "sandbox"} label={sellerLabel === "live" ? "Live seller" : "Example seller"} />
-            <StatusTag network="testnet" label="Arc testnet" />
+            <StatusTag network={defaultNetwork()} label={ARC_NETWORK_NAMES[defaultNetwork()]} />
           </div>
         )}
       </div>

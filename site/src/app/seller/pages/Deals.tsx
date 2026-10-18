@@ -7,6 +7,7 @@ import { PageHeader } from "../parts/PageHeader";
 import { dateTime } from "../format";
 import type { DealSummary } from "../types";
 import s from "../seller.module.css";
+import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 
 export default function Deals() {
   const q = useDeals();
@@ -33,7 +34,7 @@ export default function Deals() {
   ];
   return (
     <div className={s.page}>
-      <PageHeader description={buyer ? <>Deals with buyer <span className={s.mono}>{buyer.slice(0, 6)}…{buyer.slice(-4)}</span>. <Link to="/app/sell/deals" className={s.link}>Show all</Link></> : "Signed agreements funded into escrow on Arc testnet."} />
+      <PageHeader description={buyer ? <>Deals with buyer <span className={s.mono}>{buyer.slice(0, 6)}…{buyer.slice(-4)}</span>. <Link to="/app/sell/deals" className={s.link}>Show all</Link></> : `Signed agreements funded into escrow on ${ARC_NETWORK_NAMES[defaultNetwork()]}.`} />
       <QueryView q={q} label="deals">
         {(all) => {
           const rows = buyer ? all.filter((d) => d.buyerAddress?.toLowerCase() === buyer) : all;

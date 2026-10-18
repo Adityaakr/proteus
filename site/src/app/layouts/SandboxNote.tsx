@@ -1,5 +1,6 @@
 import { NetworkBadge } from "../ui/StatusTag";
 import s from "./shells.module.css";
+import { defaultNetwork } from "@proteus/domain";
 
 /** @deprecated kept for callers; renders only the network badge now. */
 export const SANDBOX_TEXT = "";
@@ -8,7 +9,7 @@ export const SANDBOX_TEXT = "";
 export function SandboxNote(_props: { compact?: boolean }) {
   return (
     <p className={s.sandboxNote}>
-      <NetworkBadge network="testnet" />
+      <NetworkBadge network={defaultNetwork()} />
     </p>
   );
 }

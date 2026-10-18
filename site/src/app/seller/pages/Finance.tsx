@@ -6,6 +6,7 @@ import { PageHeader } from "../parts/PageHeader";
 import { JournalTable } from "../parts/JournalTable";
 import { dateTime, relTime } from "../format";
 import s from "../seller.module.css";
+import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 
 export default function Finance() {
   const q = useFinance();
@@ -17,7 +18,7 @@ export default function Finance() {
           const rec = f.reconciliation;
           const ran = Boolean(rec.lastRunAt);
           const ok = rec.discrepancies.length === 0;
-          const testnet = <StatusTag network="testnet" label="Testnet" noDot />;
+          const testnet = <StatusTag network={defaultNetwork()} label={defaultNetwork() === "testnet" ? "Testnet" : "Mainnet"} noDot />;
           return (
             <>
               <div className={s.stats}>
@@ -32,7 +33,7 @@ export default function Finance() {
                 actions={!ran ? <StatusTag tone="neutral" label="Not run yet" /> : <StatusTag tone={ok ? "success" : "danger"} icon={ok ? <CircleCheck size={12} /> : <TriangleAlert size={12} />} label={ok ? "Matches chain" : `${rec.discrepancies.length} discrepanc${rec.discrepancies.length === 1 ? "y" : "ies"}`} />}
               >
                 {!ran ? (
-                  <p className="body3">No comparison against the escrow contract has run, so these balances are unverified. The check runs on a schedule inside the API once it is connected to Arc testnet.</p>
+                  <p className="body3">No comparison against the escrow contract has run, so these balances are unverified. The check runs on a schedule inside the API once it is connected to {ARC_NETWORK_NAMES[defaultNetwork()]}.</p>
                 ) : ok ? (
                   <p className="body3">Every journal balance matches the escrow contract. The check runs on a schedule inside the API.</p>
                 ) : (

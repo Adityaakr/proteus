@@ -5,6 +5,7 @@ import { Wordmark } from "./Wordmark";
 import { isMock } from "../lib/api";
 import "../app.css";
 import s from "./shells.module.css";
+import { defaultNetwork } from "@proteus/domain";
 
 export function ReviewShell({ children }: { children: ReactNode }) {
   return (
@@ -17,7 +18,7 @@ export function ReviewShell({ children }: { children: ReactNode }) {
         </nav>
         <div className={s.topRight}>
           {isMock() && <StatusTag network="illustrative" label="Mock data" />}
-          <NetworkBadge network="testnet" />
+          <NetworkBadge network={defaultNetwork()} />
         </div>
       </header>
       <main id="main" tabIndex={-1} className={s.main}>

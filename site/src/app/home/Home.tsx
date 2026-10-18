@@ -19,6 +19,7 @@ import { api, errorMessage, isAuthError, qk, type DealSummary, type NegotiationS
 import { formatNative, useBalances } from "../wallet/useBalances";
 import { fmtDate, prettySlug } from "../buyer/common";
 import h from "./home.module.css";
+import { defaultNetwork } from "@proteus/domain";
 
 export default function Home() {
   const { me, meStatus, user } = useAuth();
@@ -35,7 +36,7 @@ export default function Home() {
   const funded = (bal.data?.usdc ?? 0n) > 0n;
   const negotiated = negs.length > 0 || deals.length > 0;
   const todos: TodoItem[] = [
-    { id: "fund", label: <Link to="/app/wallet" className={h.todoLink}>Add testnet USDC</Link>, status: funded ? "completed" : "in-progress", detail: funded ? "Your wallet has a balance" : "Free from the Circle faucet" },
+    { id: "fund", label: <Link to="/app/wallet" className={h.todoLink}>{defaultNetwork() === "testnet" ? "Add testnet USDC" : "Add USDC"}</Link>, status: funded ? "completed" : "in-progress", detail: funded ? "Your wallet has a balance" : defaultNetwork() === "testnet" ? "Free from the Circle faucet" : "Send USDC on Arc to your wallet" },
     { id: "neg", label: <Link to="/app/market" className={h.todoLink}>Negotiate your first deal</Link>, status: negotiated ? "completed" : funded ? "in-progress" : "pending", detail: negotiated ? undefined : "Pick a product in the market and talk to the seller's agent" },
     { id: "sell", label: <Link to="/app/sell" className={h.todoLink}>Start selling</Link>, status: hasOrg ? "completed" : "pending", detail: hasOrg ? `Selling as ${me!.org!.name}` : "Publish an AI service and let your agent negotiate" },
   ];
@@ -81,7 +82,7 @@ export default function Home() {
               </span>
             </div>
             <div className={h.fineRow}>
-              <NetworkBadge network="testnet" />
+              <NetworkBadge network={defaultNetwork()} />
               <p className={h.fine}>Gas on Arc is paid from this same balance{bal.data ? `, native ${formatNative(bal.data.native)}` : ""}.</p>
             </div>
             <DepositDialog open={deposit} onClose={() => setDeposit(false)} />

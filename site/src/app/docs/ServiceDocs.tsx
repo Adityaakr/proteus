@@ -9,6 +9,7 @@ import { api, qk, type PublicProduct, type RequestField, type RequestSpec } from
 import { DEFAULT_SPEC } from "../buyer/RequestForm";
 import { Code } from "./Code";
 import s from "./docs.module.css";
+import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 
 const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://proteus.example";
 
@@ -146,7 +147,7 @@ print(r["status"], r["answer"])`}</Code>
         {p.payPerCallUsd && (
           <section id="paypercall" className={s.section}>
             <h2 className={s.h2}><span className={s.num}>05</span>Pay per call</h2>
-            <p>Without a deal, one request costs {money(p.payPerCallUsd)} in USDC on Arc testnet through x402. The first call answers <code>402</code> with the exact amount; sign one USDC authorization and resend the same body with <code>payment</code>. Failed answers are not charged.</p>
+            <p>Without a deal, one request costs {money(p.payPerCallUsd)} in USDC on {ARC_NETWORK_NAMES[defaultNetwork()]} through x402. The first call answers <code>402</code> with the exact amount; sign one USDC authorization and resend the same body with <code>payment</code>. Failed answers are not charged.</p>
             <Code lang="http">{`POST ${ORIGIN}/api/pay/${sellerSlug}/${p.slug}/execute
 { "requestId": "…", "input": ${JSON.stringify(example)}, "payer": "0x…", "payment": { "signature": "0x…", "authorization": { … } } }`}</Code>
           </section>

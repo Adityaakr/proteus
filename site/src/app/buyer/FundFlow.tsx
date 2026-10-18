@@ -6,7 +6,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
-import { ARC_TESTNET_FAUCET, explorerTx } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, ARC_TESTNET_FAUCET, defaultNetwork, explorerTx } from "@proteus/domain";
 import { getAddress, type Address, type Hex, type WalletClient } from "viem";
 import type { ToolApprovalStatus } from "../agentic/ToolApproval";
 import type { TodoItem, TodoStatus } from "../agentic/TodoList";
@@ -141,7 +141,7 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
           const have = await readUsdcBalance(account, d.usdcAddress);
           if (have < amount) {
             setLowBalance(true);
-            throw new Error(`Not enough testnet USDC. This deal needs ${formatMoney(amount)} and your balance is ${formatMoney(have)}.`);
+            throw new Error(`Not enough USDC. This deal needs ${formatMoney(amount)} and your balance is ${formatMoney(have)}.`);
           }
           await step("approve", async () => {
             const allowance = await readUsdcAllowance(account, d!.escrowAddress, d!.usdcAddress);
@@ -220,7 +220,7 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
         <div className={f.big}><dt>Prepaid amount</dt><dd><Money micro={amountMicro} unit /></dd></div>
         <div><dt>Units</dt><dd>{fmtUnits(units)}</dd></div>
         <div><dt>From</dt><dd>{wallet ? <MonoValue value={wallet.address} short /> : "Setting up your wallet"}</dd></div>
-        <div><dt>Escrow</dt><dd>{escrow ? <MonoValue value={escrow} short /> : "Arc testnet escrow"}</dd></div>
+        <div><dt>Escrow</dt><dd>{escrow ? <MonoValue value={escrow} short /> : `${ARC_NETWORK_NAMES[defaultNetwork()]} escrow`}</dd></div>
         <div><dt>Your balance</dt><dd>{bal.data ? <Money micro={bal.data.usdc} unit /> : "Reading"}</dd></div>
         {before !== null && <div><dt>Balance before</dt><dd><Money micro={before} unit /></dd></div>}
         {done && after !== null && <div><dt>Balance after</dt><dd><Money micro={after} unit /></dd></div>}
@@ -238,7 +238,7 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
       </ol>
       {lowBalance && (
         <p className={f.fine}>
-          Not enough testnet USDC. Get some from the <a href={ARC_TESTNET_FAUCET} target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>Circle faucet</a>, then try again. Your address is on the <a href="/app/wallet" style={{ textDecoration: "underline" }}>Wallet</a> page.
+          Not enough USDC. {defaultNetwork() === "testnet" ? <>Get some from the <a href={ARC_TESTNET_FAUCET} target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>Circle faucet</a>, then try again.</> : "Deposit USDC on Arc to your wallet, then try again."} Your address is on the <a href="/app/wallet" style={{ textDecoration: "underline" }}>Wallet</a> page.
         </p>
       )}
       {!done && relayerAvailable && steps.fund !== "completed" && (

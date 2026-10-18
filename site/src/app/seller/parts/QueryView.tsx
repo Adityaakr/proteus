@@ -32,11 +32,11 @@ export function SandboxGate() {
     <div className={s.gate}>
       <Card
         title="Try the demo seller"
-        subtitle="No account needed. You get the labeled demo seller with one product, live negotiations and real Arc testnet deals."
+        subtitle="No account needed. You get the labeled demo seller with one product, live negotiations and real deals on Arc."
         actions={<StatusTag network="sandbox" label="Sandbox seller" icon={<FlaskConical size={12} />} />}
       >
         <ul className={s.gateList}>
-          {["See the private cost model and policy behind every quote", "Approve or decline quotes above your threshold", "Follow funded deals, settlements and the journal on Arc testnet"].map((t) => (
+          {["See the private cost model and policy behind every quote", "Approve or decline quotes above your threshold", "Follow funded deals, settlements and the journal on Arc"].map((t) => (
             <li key={t} className="body3">
               <Check size={16} strokeWidth={2} color="var(--c-green)" aria-hidden style={{ flex: "none", marginTop: 2 }} />
               {t}

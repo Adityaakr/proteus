@@ -13,6 +13,7 @@ import { useMe, useRevokeSigner, useSigner } from "../hooks";
 import { useAuth } from "../v1";
 import { REVOKE_NOTE, type RevokeSignerResponse } from "../types";
 import s from "../sell.module.css";
+import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 
 export default function Settings() {
   const { me } = useMe();
@@ -32,7 +33,7 @@ export default function Settings() {
         <Notice tone="info" title="Example seller">
           <span className={s.row}>
             <StatusTag network="sandbox" label="Example seller" icon={<FlaskConical size={12} />} />
-            This is the seeded demo seller with a sample order store. Its deals run on Arc testnet for real but never count toward live totals.
+            This is the seeded demo seller with a sample order store. Its deals run on {ARC_NETWORK_NAMES[defaultNetwork()]} for real but never count toward live totals.
           </span>
         </Notice>
       )}
@@ -87,7 +88,7 @@ export default function Settings() {
         )}
       </Card>
 
-      <Card title="Payout address" subtitle="Settled USDC is paid to your Proteus AI account wallet." actions={<StatusTag network="testnet" label="Arc testnet" />}>
+      <Card title="Payout address" subtitle="Settled USDC is paid to your Proteus AI account wallet." actions={<StatusTag network={defaultNetwork()} label={ARC_NETWORK_NAMES[defaultNetwork()]} />}>
         {payout ? (
           <div className={s.fields}>
             <span className={s.row}>

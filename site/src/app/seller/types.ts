@@ -9,7 +9,7 @@ export type MicroStr = string;
 export type IntStr = string;
 
 export interface Labels {
-  network: "testnet" | "sandbox" | "illustrative";
+  network: "testnet" | "mainnet" | "sandbox" | "illustrative";
   seller: "sandbox" | "live";
 }
 

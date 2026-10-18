@@ -14,6 +14,7 @@ import { ErrorState, fmtDate, fmtUnits, prettyIntegration } from "../buyer/commo
 import { PayPerCallCard } from "./PayPerCallCard";
 import { decimalsFor } from "./Market";
 import d from "./product.module.css";
+import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 
 export default function ProductPage() {
   const { sellerSlug = "", productSlug = "" } = useParams();
@@ -86,7 +87,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
             <li><CalendarDays size={13} aria-hidden />{product.termDays}-day term</li>
             {bestUnit && <li><CircleDollarSign size={13} aria-hidden />From <Money usd={bestUnit} digits={decimalsFor(bestUnit)} /> per {product.unitLabel}</li>}
             {product.payPerCallUsd && <li><Zap size={13} aria-hidden /><Money usd={product.payPerCallUsd} digits={decimalsFor(product.payPerCallUsd)} /> per call</li>}
-            <li><ShieldCheck size={13} aria-hidden />Escrow on Arc testnet</li>
+            <li><ShieldCheck size={13} aria-hidden />Escrow on {ARC_NETWORK_NAMES[defaultNetwork()]}</li>
             <li><Server size={13} aria-hidden />{product.service === "seller-endpoint" ? "Seller-run endpoint" : product.service === "example" ? "Run by Proteus AI's service agent" : "Sample order store"}</li>
             {category && <li>{categoryLabel(category)}</li>}
             <li><BookOpen size={13} aria-hidden /><Link to={`/docs/${seller.slug}/${product.slug}`} className={d.chipLink}>API reference</Link></li>
@@ -198,7 +199,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
             </dl>
             <p className={d.fine}>
               {demo
-                ? "An example seller, modeled on a real customer segment, with Proteus AI's own brand. Deals on it are real Arc testnet transactions. Its service work is done by Proteus AI's agent on the model named in each receipt, from exactly what you send; it never counts toward live totals."
+                ? "An example seller, modeled on a real customer segment, with Proteus AI's own brand. Deals on it are real transactions on {ARC_NETWORK_NAMES[defaultNetwork()]}. Its service work is done by Proteus AI's agent on the model named in each receipt, from exactly what you send; it never counts toward live totals."
                 : "The owner signed in, published these terms and holds the payout wallet. The service answers from the seller's own endpoint."}
             </p>
           </div>
