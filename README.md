@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=5ydgV2iDsus">
-    <img src="https://img.youtube.com/vi/5ydgV2iDsus/maxresdefault.jpg" alt="Watch the Proteus AI demo" width="720">
+    <img src="docs/images/demo-thumbnail.png" alt="Watch the Proteus AI demo" width="720">
   </a>
   <br><sub>▶ Watch the 3-minute demo</sub>
 </p>
