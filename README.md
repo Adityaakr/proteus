@@ -14,11 +14,12 @@
 
 <p align="center"><sub>DealEscrow is deployed at the same address on both networks: <code>0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46</code></sub></p>
 
+<p align="center"><a href="https://www.youtube.com/watch?v=5ydgV2iDsus"><strong>▶ Click here to watch the demo</strong></a></p>
+
 <p align="center">
   <a href="https://www.youtube.com/watch?v=5ydgV2iDsus">
     <img src="docs/images/demo-thumbnail.png" alt="Watch the Proteus AI demo" width="720">
   </a>
-  <br><sub>▶ Watch the 3-minute demo</sub>
 </p>
 
 | Network | Chain id | DealEscrow | Source |
