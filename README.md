@@ -28,8 +28,8 @@
 | Arc mainnet | 5042 | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) | verified (exact match) · [read](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract) |
 
 <p align="center">
-  <code>0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46</code> · chain 5042002 · source verified on Blockscout · solc 0.8.28<br/>
-  Arc testnet only · testnet USDC · contract unaudited · no mainnet path in the code
+  <code>0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46</code> · Arc mainnet (5042) and testnet (5042002) · source verified on Blockscout · solc 0.8.28<br/>
+  USDC escrow · contract unaudited
 </p>
 
 A seller publishes what it sells, what each unit costs it, and the margin it will not go below. A buyer, or a buyer's agent, says what it needs. Proteus AI negotiates inside the seller's rules, has both sides sign identical terms, locks the prepaid amount in an escrow contract on Arc, meters delivery, and pays the seller only for the units the buyer countersigns. Whatever is unused goes back to the buyer.
@@ -38,7 +38,7 @@ The rule the whole system is built around, implemented literally:
 
 > **The model proposes. The seller's policy decides. The signed agreement controls the money.**
 
-Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. Self-run proof of the mechanism on testnet and one real loop on mainnet; no customers or revenue; activity are claimed.
+Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. Live on Arc mainnet at [app.proteus.co.in](https://app.proteus.co.in) and on testnet at [ai.proteus.co.in](https://ai.proteus.co.in).
 
 ---
 
