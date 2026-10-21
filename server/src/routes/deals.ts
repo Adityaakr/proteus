@@ -6,6 +6,7 @@ import { HttpError, json, toBig } from "../lib/http";
 import { env } from "../env";
 import { confirmRating, ratingInputs } from "../services/ratings";
 import { disputeView, recordDispute } from "../services/disputes";
+import { fundGasless, permitRequest } from "../services/gasless";
 import { dealView, fundingIntent, provisionIfFunded, requestRefund, rotateServiceKey } from "../services/deals";
 import { authenticateDeal, execute } from "../services/gateway";
 import { acknowledgeUsage, pendingAcceptance } from "../services/usage";
@@ -22,6 +23,16 @@ dealRoutes.post("/deals/:id/funding-intent", async (c) => {
   const body = (await c.req.json().catch(() => ({}))) as { txHash?: string };
   const view = await fundingIntent(c.req.param("id"), body.txHash as Hex | undefined);
   // Kick the reconciler so the UI sees confirmation quickly (Arc finalizes on inclusion).
+  setTimeout(() => reconcileOnce().catch(() => {}), 1500);
+  return json(c, view);
+});
+
+/* Gasless funding: the buyer signs a USDC permit (no transaction); the relayer submits permit + createAndFundDeal at once. */
+dealRoutes.get("/deals/:id/permit", async (c) => json(c, await permitRequest(c.req.param("id"))));
+dealRoutes.post("/deals/:id/fund-gasless", async (c) => {
+  const b = (await c.req.json().catch(() => ({}))) as { deadline?: string; signature?: string };
+  if (!b.deadline || !/^\d{1,12}$/.test(b.deadline) || !b.signature || !/^0x[0-9a-fA-F]{130,4000}$/.test(b.signature)) throw new HttpError(400, "deadline (unix seconds) and signature (hex) are required");
+  const view = await fundGasless(c.req.param("id"), { deadline: b.deadline, signature: b.signature as Hex });
   setTimeout(() => reconcileOnce().catch(() => {}), 1500);
   return json(c, view);
 });

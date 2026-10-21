@@ -1,9 +1,9 @@
-import { createWalletClient, encodeFunctionData, http, type Address, type Hex } from "viem";
+import { createWalletClient, encodeFunctionData, http, parseAbi, type Address, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { circleBlockchainFor } from "@proteus/domain";
 import { env, features } from "../env";
 import { dealEscrowAbi } from "./abi";
-import { chain, escrowAddress, feeParams, publicClient } from "./client";
+import { chain, escrowAddress, feeParams, publicClient, usdcAddress } from "./client";
 
 /**
  * The relayer submits transactions whose authority comes entirely from signatures inside the calldata
@@ -17,6 +17,25 @@ export interface Relayer {
   readonly kind: "circle" | "viem";
   readonly address: Address;
   submit(fn: "createAndFundDeal" | "settleAcceptedUsage" | "refundUnused", args: readonly unknown[]): Promise<{ txHash: Hex }>;
+  /** Several calls in one transaction through Multicall3 (atomic unless a call allows failure). Targets: USDC and the escrow only. */
+  submitBatch(calls: readonly BatchCall[]): Promise<{ txHash: Hex }>;
+}
+
+export interface BatchCall {
+  target: Address;
+  allowFailure: boolean;
+  callData: Hex;
+}
+
+/** Multicall3, deployed at its canonical address on Arc mainnet and testnet (checked with eth_getCode). */
+export const MULTICALL3 = "0xcA11bde05977b3631167028862bE2a173976CA11" as Address;
+export const multicall3Abi = parseAbi(["struct Call3 { address target; bool allowFailure; bytes callData; }", "struct Result { bool success; bytes returnData; }", "function aggregate3(Call3[] calls) payable returns (Result[] returnData)"]);
+
+/** The relayer only batches calls into the two contracts whose authority is signature-based. */
+function batchData(calls: readonly BatchCall[]): Hex {
+  const allowed = new Set([escrowAddress().toLowerCase(), usdcAddress.toLowerCase()]);
+  for (const c of calls) if (!allowed.has(c.target.toLowerCase())) throw new Error(`relayer batch target not allowed: ${c.target}`);
+  return encodeFunctionData({ abi: multicall3Abi, functionName: "aggregate3", args: [calls] });
 }
 
 export function relayerKind(): "circle" | "viem" | "none" {
@@ -50,6 +69,16 @@ function viemRelayer(): Relayer {
         return { txHash };
       });
     },
+    async submitBatch(calls) {
+      const data = batchData(calls);
+      return withRpcRetry(async () => {
+        const fees = await feeParams();
+        await publicClient.call({ account, to: MULTICALL3, data });
+        const gas = await publicClient.estimateGas({ account, to: MULTICALL3, data });
+        const txHash = await wallet.sendTransaction({ account, chain, to: MULTICALL3, data, gas: (gas * 12n) / 10n, ...fees });
+        return { txHash };
+      });
+    },
   };
 }
 
@@ -60,32 +89,37 @@ function circleRelayer(): Relayer {
     clientPromise ??= import("@circle-fin/developer-controlled-wallets").then((m) => m.initiateDeveloperControlledWalletsClient({ apiKey: env.CIRCLE_API_KEY!, entitySecret: env.CIRCLE_ENTITY_SECRET! }));
     return clientPromise;
   };
+  async function execute(contractAddress: Address, callData: Hex): Promise<{ txHash: Hex }> {
+    const client = await getClient();
+    // Simulate with the public client from the Circle wallet address to catch reverts before paying gas.
+    await publicClient.call({ account: env.CIRCLE_WALLET_ADDRESS as Address, to: contractAddress, data: callData });
+    const res = await client.createContractExecutionTransaction({
+      walletId: env.CIRCLE_WALLET_ID!,
+      contractAddress,
+      callData,
+      fee: { type: "level", config: { feeLevel: "HIGH" } },
+    });
+    const txId = res.data?.id;
+    if (!txId) throw new Error("Circle: no transaction id returned");
+    // Poll for the tx hash. Circle states: INITIATED, QUEUED, SENT, CONFIRMED, COMPLETE, FAILED, ...
+    const deadline = Date.now() + 90_000;
+    while (Date.now() < deadline) {
+      const tx = await client.getTransaction({ id: txId });
+      const t = tx.data?.transaction;
+      if (t?.txHash) return { txHash: t.txHash as Hex };
+      if (t?.state && ["FAILED", "DENIED", "CANCELLED"].includes(String(t.state))) throw new Error(`Circle transaction ${t.state}: ${String((t as { errorReason?: string }).errorReason ?? "")}`);
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+    throw new Error("Circle transaction did not return a hash in time");
+  }
   return {
     kind: "circle",
     address: env.CIRCLE_WALLET_ADDRESS as Address,
-    async submit(fn, args) {
-      const client = await getClient();
-      const callData = encodeFunctionData({ abi: dealEscrowAbi, functionName: fn, args: args as never });
-      // Simulate with the public client from the Circle wallet address to catch reverts before paying gas.
-      await publicClient.call({ account: env.CIRCLE_WALLET_ADDRESS as Address, to: escrowAddress(), data: callData });
-      const res = await client.createContractExecutionTransaction({
-        walletId: env.CIRCLE_WALLET_ID!,
-        contractAddress: escrowAddress(),
-        callData,
-        fee: { type: "level", config: { feeLevel: "HIGH" } },
-      });
-      const txId = res.data?.id;
-      if (!txId) throw new Error("Circle: no transaction id returned");
-      // Poll for the tx hash. Circle states: INITIATED, QUEUED, SENT, CONFIRMED, COMPLETE, FAILED, ...
-      const deadline = Date.now() + 90_000;
-      while (Date.now() < deadline) {
-        const tx = await client.getTransaction({ id: txId });
-        const t = tx.data?.transaction;
-        if (t?.txHash) return { txHash: t.txHash as Hex };
-        if (t?.state && ["FAILED", "DENIED", "CANCELLED"].includes(String(t.state))) throw new Error(`Circle transaction ${t.state}: ${String((t as { errorReason?: string }).errorReason ?? "")}`);
-        await new Promise((r) => setTimeout(r, 2000));
-      }
-      throw new Error("Circle transaction did not return a hash in time");
+    submit(fn, args) {
+      return execute(escrowAddress(), encodeFunctionData({ abi: dealEscrowAbi, functionName: fn, args: args as never }));
+    },
+    submitBatch(calls) {
+      return execute(MULTICALL3, batchData(calls));
     },
   };
 }

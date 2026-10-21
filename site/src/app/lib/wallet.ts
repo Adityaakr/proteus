@@ -5,7 +5,7 @@
  */
 import { createPublicClient, createWalletClient, custom, erc20Abi, fallback, getAddress, http, type Address, type Hex, type WalletClient } from "viem";
 import { ACCEPTANCE_TYPES, ARC_TESTNET_USDC, IDENTITY_REGISTRY_ABI, REPUTATION_REGISTRY_ABI, TERMS_TYPES, defaultChain, defaultChainId, domain } from "@proteus/domain";
-import type { AcceptanceWire, PayAccept, PayAuthorization, TermsWire, TypedDataWire } from "./types";
+import type { AcceptanceWire, PayAccept, PayAuthorization, PermitRequest, TermsWire, TypedDataWire } from "./types";
 
 export const ESCROW_ABI = [
   {
@@ -138,6 +138,36 @@ export async function signTerms(client: WalletClient, td: TypedDataWire<"Terms",
     types: TERMS_TYPES,
     primaryType: "Terms",
     message: termsToMessage(td.message),
+  });
+}
+
+/** EIP-2612 Permit, canonical field order (part of the type hash). */
+const PERMIT_TYPES = {
+  Permit: [
+    { name: "owner", type: "address" },
+    { name: "spender", type: "address" },
+    { name: "value", type: "uint256" },
+    { name: "nonce", type: "uint256" },
+    { name: "deadline", type: "uint256" },
+  ],
+} as const;
+
+/**
+ * Gasless funding: sign a USDC permit for exactly the deal's prepaid amount to the deal's escrow. Refuses to sign
+ * if the server-prepared permit names any other owner, spender, amount or token than the deal itself.
+ */
+export async function signPermit(client: WalletClient, req: PermitRequest, expect: { owner: Address; spender: Address; value: bigint; usdc: Address }): Promise<Hex> {
+  const m = req.message;
+  const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
+  if (!same(m.owner, expect.owner) || !same(m.spender, expect.spender) || BigInt(m.value) !== expect.value || !same(req.domain.verifyingContract, expect.usdc)) {
+    throw new Error("The permit does not match this deal (owner, escrow, amount or token). Nothing was signed.");
+  }
+  return client.signTypedData({
+    account: client.account ?? accountOf(client),
+    domain: { name: req.domain.name, version: req.domain.version, chainId: Number(req.domain.chainId), verifyingContract: getAddress(req.domain.verifyingContract) },
+    types: PERMIT_TYPES,
+    primaryType: "Permit",
+    message: { owner: getAddress(m.owner), spender: getAddress(m.spender), value: BigInt(m.value), nonce: BigInt(m.nonce), deadline: BigInt(m.deadline) },
   });
 }
 

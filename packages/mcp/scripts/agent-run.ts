@@ -61,7 +61,7 @@ const agent = await connect(String(Number(pick.prepaid.replace(/[$,]/g, "")) + 0
 const accepted = await call<{ dealId: string; prepaid: string; verification: unknown }>(agent, "proteus_accept_offer", { negotiationId: neg.negotiationId, candidateId: pick.candidateId });
 step("accepted within mandate", accepted);
 const funded = await call<{ dealId: string; status: string; approveTx: string; fundTx: string; serviceKey: string }>(agent, "proteus_fund_deal", { dealId: accepted.dealId });
-step("funded", funded);
+step("funded (gasless: the agent wallet sent no transaction)", funded);
 const used = await call(agent, "proteus_call_service", { dealId: accepted.dealId, product: PRODUCT, requestId: `agent-${Date.now()}`, input: { question: "Book a cleaning for Ana next Tuesday at 10am; her number is +1 555 0100.", name: "Ana", phone: "+15550100" } });
 step("service call", used);
 const settled = await call(agent, "proteus_settle_usage", { dealId: accepted.dealId });

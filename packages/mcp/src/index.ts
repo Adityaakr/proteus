@@ -167,24 +167,40 @@ server.registerTool(
 
 server.registerTool(
   "proteus_fund_deal",
-  { description: "Fund a signed deal: approve USDC for the escrow (the only transaction the buyer sends) and let the relayer submit createAndFundDeal. Waits until funded and keeps the service API key in memory.", inputSchema: z.object({ dealId: z.string() }) },
-  async ({ dealId }) => {
-    if (!buyer) throw new Error("Funding needs PROTEUS_BUYER_PRIVATE_KEY, or approve with: circle wallet execute \"approve(address,uint256)\" <escrow> <prepaid> --contract <usdc> --address <wallet> --chain ARC-TESTNET, then POST /api/deals/{id}/funding-intent {}.");
+  {
+    description:
+      "Fund a signed deal. Default (gasless): sign a USDC EIP-2612 permit for exactly the prepaid amount to the escrow; the Proteus relayer submits permit + createAndFundDeal in one transaction and pays gas, so the buyer wallet sends nothing. gasless=false: approve USDC from the buyer wallet, then the relayer funds. Waits until funded and keeps the service API key in memory.",
+    inputSchema: z.object({ dealId: z.string(), gasless: z.boolean().default(true) }),
+  },
+  async ({ dealId, gasless }) => {
     const { chain, pub, escrowAddress, usdcAddress } = await net();
     const d = await get<{ terms: { prepaid: string; buyer: string }; status: string }>(`/api/deals/${dealId}`);
     const prepaid = BigInt(d.terms.prepaid);
     if (prepaid > MAX_PREPAID) throw new Error(`Refused: prepaid ${usd(prepaid)} exceeds the mandate ${usd(MAX_PREPAID)}.`);
-    const wallet = createWalletClient({ account: buyer, chain, transport: http() });
-    const approve = await wallet.writeContract({ address: usdcAddress, abi: erc20Abi, functionName: "approve", args: [escrowAddress!, prepaid] });
-    await pub.waitForTransactionReceipt({ hash: approve });
-    const f = await post<{ funding?: { txHash?: string } }>(`/api/deals/${dealId}/funding-intent`, {});
+    let approve: Hex | undefined;
+    let f: { funding?: { txHash?: string } };
+    if (gasless) {
+      const p = await get<{ domain: { name: string; version: string; chainId: number; verifyingContract: Address }; types: Record<string, { name: string; type: string }[]>; message: { owner: Address; spender: Address; value: string; nonce: string; deadline: string } }>(`/api/deals/${dealId}/permit`);
+      // Never sign a permit that names another owner, spender, amount or token than this deal.
+      const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
+      if (!same(p.message.owner, d.terms.buyer) || !same(p.message.spender, escrowAddress!) || BigInt(p.message.value) !== prepaid || !same(p.domain.verifyingContract, usdcAddress)) throw new Error("Refused: the permit does not match this deal.");
+      if (!buyer) return text({ sign: { domain: p.domain, types: p.types, primaryType: "Permit", message: p.message }, then: `POST ${API}/api/deals/${dealId}/fund-gasless {"deadline":"${p.message.deadline}","signature":"0x..."}` });
+      const signature = await buyer.signTypedData({ domain: p.domain, types: { Permit: p.types.Permit! }, primaryType: "Permit", message: { ...p.message, value: BigInt(p.message.value), nonce: BigInt(p.message.nonce), deadline: BigInt(p.message.deadline) } });
+      f = await post(`/api/deals/${dealId}/fund-gasless`, { deadline: p.message.deadline, signature });
+    } else {
+      if (!buyer) throw new Error("gasless=false needs PROTEUS_BUYER_PRIVATE_KEY, or approve with: circle wallet execute \"approve(address,uint256)\" <escrow> <prepaid> --contract <usdc> --address <wallet> --chain ARC-TESTNET, then POST /api/deals/{id}/funding-intent {}.");
+      const wallet = createWalletClient({ account: buyer, chain, transport: http() });
+      approve = await wallet.writeContract({ address: usdcAddress, abi: erc20Abi, functionName: "approve", args: [escrowAddress!, prepaid] });
+      await pub.waitForTransactionReceipt({ hash: approve });
+      f = await post(`/api/deals/${dealId}/funding-intent`, {});
+    }
     for (let i = 0; i < 40; i++) {
       const s = await get<{ status: string; service: { status: string; apiKey?: string }; product?: { slug: string }; productSlug?: string }>(`/api/deals/${dealId}`);
       if (s.service.apiKey) keys.set(dealId, { key: s.service.apiKey, product: s.productSlug ?? s.product?.slug ?? "" });
-      if (["funded", "active"].includes(s.status) && s.service.status === "provisioned") return text({ dealId, status: s.status, approveTx: approve, fundTx: f.funding?.txHash, serviceKey: keys.has(dealId) ? "held in memory" : "missed; rotate with a wallet signature" });
+      if (["funded", "active"].includes(s.status) && s.service.status === "provisioned") return text({ dealId, status: s.status, mode: gasless ? "gasless permit" : "approve", approveTx: approve, fundTx: f.funding?.txHash, serviceKey: keys.has(dealId) ? "held in memory" : "missed; rotate with a wallet signature" });
       await new Promise((r) => setTimeout(r, 3000));
     }
-    return text({ dealId, approveTx: approve, fundTx: f.funding?.txHash, status: "funding submitted; check proteus_deal_status" });
+    return text({ dealId, mode: gasless ? "gasless permit" : "approve", approveTx: approve, fundTx: f.funding?.txHash, status: "funding submitted; check proteus_deal_status" });
   },
 );
 

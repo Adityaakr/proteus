@@ -18,6 +18,7 @@ import { evaluationContext, loadProductById } from "../src/services/catalog";
 import { startNegotiation } from "../src/services/negotiation";
 import { acceptQuote, createQuote, quoteView } from "../src/services/quotes";
 import { fundingIntent, loadDeal } from "../src/services/deals";
+import { fundGasless, permitRequest } from "../src/services/gasless";
 import { confirmDelivery } from "../src/services/delivery";
 import { acknowledgeUsage, pendingAcceptance } from "../src/services/usage";
 import { bigintsToStrings } from "../src/lib/http";
@@ -84,12 +85,24 @@ const dealId = await acceptQuote(quote.id, buyer.address as Address, buyerSig);
 const prepaid = terms.prepaid as bigint;
 log("deal", { dealId, prepaid, units: terms.maxUnits });
 
-// 2. Buyer approves USDC, relayer funds escrow
+// 2. Fund the escrow. Default: buyer approves USDC, relayer funds. GASLESS=1: buyer only signs a USDC permit and
+//    the relayer submits permit + createAndFundDeal in one Multicall3 transaction; the buyer's nonce must not move.
 const wallet = createWalletClient({ account: buyer, chain, transport: http(env.ARC_RPC_URL) });
-const approveTx = await wallet.writeContract({ address: usdcAddress, abi: erc20Abi, functionName: "approve", args: [escrowAddress(), prepaid], ...(await feeParams()) });
-await publicClient.waitForTransactionReceipt({ hash: approveTx });
-log("approve tx (buyer)", approveTx);
-const funding = (await fundingIntent(dealId)) as { funding?: { txHash?: string } };
+let funding: { funding?: { txHash?: string } };
+if (process.env.GASLESS === "1") {
+  const nonceBefore = await publicClient.getTransactionCount({ address: buyer.address });
+  const req = await permitRequest(dealId);
+  const signature = await buyer.signTypedData({ domain: req.domain, types: req.types, primaryType: "Permit", message: { ...req.message, value: BigInt(req.message.value), nonce: BigInt(req.message.nonce), deadline: BigInt(req.message.deadline) } });
+  funding = (await fundGasless(dealId, { deadline: req.message.deadline, signature })) as typeof funding;
+  log("permit signed (buyer, no tx)", { value: req.message.value, deadline: req.message.deadline });
+  const nonceAfter = await publicClient.getTransactionCount({ address: buyer.address });
+  assert(nonceAfter === nonceBefore, `buyer sent no transaction (nonce ${nonceBefore} -> ${nonceAfter})`);
+} else {
+  const approveTx = await wallet.writeContract({ address: usdcAddress, abi: erc20Abi, functionName: "approve", args: [escrowAddress(), prepaid], ...(await feeParams()) });
+  await publicClient.waitForTransactionReceipt({ hash: approveTx });
+  log("approve tx (buyer)", approveTx);
+  funding = (await fundingIntent(dealId)) as typeof funding;
+}
 log("fund tx (relayer)", funding.funding?.txHash ?? "?");
 await until("deal funded", async () => {
   const d = await loadDeal(dealId);

@@ -740,3 +740,11 @@ export interface NotifySettings {
   webhookUrl: string | null;
   channels: { email: boolean; telegram: boolean; webhook: boolean };
 }
+
+/** USDC EIP-2612 permit prepared by the server for gasless funding (GET /deals/:id/permit). */
+export interface PermitRequest {
+  domain: { name: string; version: string; chainId: number; verifyingContract: string };
+  primaryType: "Permit";
+  message: { owner: string; spender: string; value: string; nonce: string; deadline: string };
+  note: string;
+}

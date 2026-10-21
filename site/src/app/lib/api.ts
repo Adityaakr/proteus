@@ -179,6 +179,9 @@ export const api = {
   /* Deals (buyer) */
   deal: (id: string) => request<T.Deal>("GET", `/deals/${enc(id)}`),
   fundingIntent: (id: string, body: { txHash?: string } = {}) => request<T.Deal>("POST", `/deals/${enc(id)}/funding-intent`, { body }),
+  /** Gasless funding: the permit to sign, then the relayer submits permit + createAndFundDeal in one transaction. */
+  dealPermit: (id: string) => request<T.PermitRequest>("GET", `/deals/${enc(id)}/permit`),
+  fundGasless: (id: string, body: { deadline: string; signature: string }) => request<T.Deal>("POST", `/deals/${enc(id)}/fund-gasless`, { body }),
   usage: (id: string) => request<T.UsageResponse>("GET", `/deals/${enc(id)}/usage`),
   /** ERC-8004 rating: giveFeedback inputs for this deal, and confirmation the server reads back from the chain. */
   dealRating: (id: string) => request<T.DealRating>("GET", `/deals/${enc(id)}/rating`),

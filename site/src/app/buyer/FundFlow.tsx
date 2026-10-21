@@ -1,7 +1,9 @@
 /**
  * FundFlow: the single "Fund deal from balance" approval. From a quote it signs the EIP-712 Terms with
  * the account wallet, records the acceptance, approves exactly the prepaid USDC and calls
- * createAndFundDeal (or asks the relayer to submit it). From an accepted deal it starts at the approval.
+ * createAndFundDeal. Gasless (default when a relayer runs): instead of the approval and funding
+ * transactions the buyer signs a USDC permit, and the relayer submits permit + createAndFundDeal at once.
+ * From an accepted deal it starts at the approval.
  */
 import { useRef, useState, type ReactNode } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -15,7 +17,7 @@ import { Money, formatMoney } from "../ui/Money";
 import { ExplorerLink, MonoValue, Notice } from "../ui/misc";
 import { useAuth } from "../auth/useAuth";
 import { ApiError, api, errorMessage, qk, type Deal, type Quote } from "../lib/api";
-import { approveUsdc, createAndFundDeal, readUsdcAllowance, readUsdcBalance, signTerms, waitForReceipt, walletErrorMessage } from "../lib/wallet";
+import { approveUsdc, createAndFundDeal, readUsdcAllowance, readUsdcBalance, signPermit, signTerms, waitForReceipt, walletErrorMessage } from "../lib/wallet";
 import { useBalances } from "../wallet/useBalances";
 import { fmtUnits } from "./common";
 import f from "./fund.module.css";
@@ -71,7 +73,8 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
     confirm: alreadyFunded ? "completed" : initialDeal?.status === "funding_pending" ? "in-progress" : "pending",
   }));
   const [txs, setTxs] = useState<{ approve?: Hex; fund?: Hex }>({ fund: initialDeal?.funding.txHash });
-  const [useRelayer, setUseRelayer] = useState(false);
+  const [gaslessChoice, setGasless] = useState<boolean | null>(null);
+  const gasless = gaslessChoice ?? relayerAvailable;
   const [phase, setPhase] = useState<ToolApprovalStatus>(alreadyFunded ? "complete" : "pending");
   const [err, setErr] = useState<string | null>(null);
   const [lowBalance, setLowBalance] = useState(false);
@@ -143,25 +146,35 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
             setLowBalance(true);
             throw new Error(`Not enough USDC. This deal needs ${formatMoney(amount)} and your balance is ${formatMoney(have)}.`);
           }
-          await step("approve", async () => {
-            const allowance = await readUsdcAllowance(account, d!.escrowAddress, d!.usdcAddress);
-            if (allowance >= amount) return;
-            const hash = await approveUsdc(c, d!.escrowAddress, amount, d!.usdcAddress);
-            setTxs((t) => ({ ...t, approve: hash }));
+          if (gasless) {
+            const permit = await step("approve", async () => {
+              const req = await api.dealPermit(d!.id);
+              const signature = await signPermit(c, req, { owner: account, spender: d!.escrowAddress, value: amount, usdc: d!.usdcAddress });
+              return { deadline: req.message.deadline, signature };
+            });
             setPhase("running");
-            const r = await waitForReceipt(hash);
-            if (r.status !== "success") throw new Error("The approval transaction reverted.");
-          });
-          setPhase("running");
-          d = await step("fund", async () => {
-            if (useRelayer) return api.fundingIntent(d!.id, {});
-            const hash = await createAndFundDeal(c, d!.escrowAddress, d!.terms, d!.signatures.buyer, d!.signatures.seller);
-            setTxs((t) => ({ ...t, fund: hash }));
-            const intent = api.fundingIntent(d!.id, { txHash: hash }).catch(() => d!);
-            const r = await waitForReceipt(hash);
-            if (r.status !== "success") throw new Error("The funding transaction reverted.");
-            return intent;
-          });
+            d = await step("fund", () => api.fundGasless(d!.id, permit));
+            if (d.funding.txHash) setTxs((t) => ({ ...t, fund: d!.funding.txHash }));
+          } else {
+            await step("approve", async () => {
+              const allowance = await readUsdcAllowance(account, d!.escrowAddress, d!.usdcAddress);
+              if (allowance >= amount) return;
+              const hash = await approveUsdc(c, d!.escrowAddress, amount, d!.usdcAddress);
+              setTxs((t) => ({ ...t, approve: hash }));
+              setPhase("running");
+              const r = await waitForReceipt(hash);
+              if (r.status !== "success") throw new Error("The approval transaction reverted.");
+            });
+            setPhase("running");
+            d = await step("fund", async () => {
+              const hash = await createAndFundDeal(c, d!.escrowAddress, d!.terms, d!.signatures.buyer, d!.signatures.seller);
+              setTxs((t) => ({ ...t, fund: hash }));
+              const intent = api.fundingIntent(d!.id, { txHash: hash }).catch(() => d!);
+              const r = await waitForReceipt(hash);
+              if (r.status !== "success") throw new Error("The funding transaction reverted.");
+              return intent;
+            });
+          }
         }
         dealRef.current = d;
         setDeal(d);
@@ -200,8 +213,8 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
   };
   const items: TodoItem[] = [
     ...(quote && !initialDeal ? [todo("sign", "Sign the terms", "EIP-712 signature, no gas"), todo("accept", "Record your acceptance")] : []),
-    todo("approve", "Approve exactly the prepaid USDC", txs.approve ? <ExplorerLink href={explorerTx(txs.approve)} hash={txs.approve} /> : mockNote ? "Skipped in mock mode" : undefined),
-    todo("fund", useRelayer ? "Relayer funds the escrow" : "Fund the escrow", txs.fund ? <ExplorerLink href={explorerTx(txs.fund)} hash={txs.fund} /> : mockNote ? "Mock mode, no transaction sent" : undefined),
+    todo("approve", gasless ? "Sign a USDC permit for exactly the prepaid amount" : "Approve exactly the prepaid USDC", gasless && steps.approve === "completed" ? "Signature only, no gas" : txs.approve ? <ExplorerLink href={explorerTx(txs.approve)} hash={txs.approve} /> : mockNote ? "Skipped in mock mode" : undefined),
+    todo("fund", gasless ? "Proteus AI submits the funding, gas paid" : "Fund the escrow", txs.fund ? <ExplorerLink href={explorerTx(txs.fund)} hash={txs.fund} /> : mockNote ? "Mock mode, no transaction sent" : undefined),
     todo("confirm", "Funding confirmed"),
   ];
 
@@ -243,8 +256,8 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
       )}
       {!done && relayerAvailable && steps.fund !== "completed" && (
         <label className={f.check}>
-          <input type="checkbox" checked={useRelayer} onChange={(e) => setUseRelayer(e.target.checked)} disabled={phase !== "pending"} />
-          <span>Let Proteus AI submit the funding transaction. You still approve the USDC yourself.</span>
+          <input type="checkbox" checked={gasless} onChange={(e) => setGasless(e.target.checked)} disabled={phase !== "pending" || steps.approve === "completed"} />
+          <span>No gas: you sign, Proteus AI submits. Your wallet sends no transaction; the permit allows only this amount to this escrow.</span>
         </label>
       )}
       {err && <Notice tone="danger">{err}</Notice>}

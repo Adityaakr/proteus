@@ -210,7 +210,7 @@ State the volume and budget plainly ("We need 40 invoices this month, budget $12
 
 ## 4. Fund
 
-Either submit on chain yourself: approve USDC (deal.usdcAddress) for deal.escrowAddress with amount terms.prepaid, then call createAndFundDeal(terms, buyerSignature, sellerSignature) on the escrow and POST /api/deals/{id}/funding-intent { txHash }. Or approve USDC and POST /api/deals/{id}/funding-intent {} and the relayer submits createAndFundDeal for you (it needs the allowance and balance to be in place). Gas on Arc is paid in USDC from the same wallet.
+Either submit on chain yourself: approve USDC (deal.usdcAddress) for deal.escrowAddress with amount terms.prepaid, then call createAndFundDeal(terms, buyerSignature, sellerSignature) on the escrow and POST /api/deals/{id}/funding-intent { txHash }. Or approve USDC and POST /api/deals/{id}/funding-intent {} and the relayer submits createAndFundDeal for you (it needs the allowance and balance to be in place). Gas on Arc is paid in USDC from the same wallet. Or, with no transaction at all: GET /api/deals/{id}/permit, check that message.owner is your wallet, message.spender is deal.escrowAddress and message.value equals terms.prepaid, sign that EIP-2612 typed data, and POST /api/deals/{id}/fund-gasless {deadline, signature}; the relayer submits permit and createAndFundDeal in one Multicall3 transaction and pays the gas.
 
 Then poll GET /api/deals/{id} until status is funded or active and service.status is provisioned. The first such response carries service.apiKey once; store it as PROTEUS_KEY and never log it. If it was missed, POST /api/deals/{id}/service/rotate-key with a wallet signature over "PROTEUS rotate service key\\ndeal: {id}\\nts: {unix seconds}" to issue a new one.
 
