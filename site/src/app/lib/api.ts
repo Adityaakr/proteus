@@ -98,6 +98,19 @@ async function authHeader(): Promise<Record<string, string>> {
   }
 }
 
+/** Downloads a file from the API with the same auth as `request` (cookie or bearer), e.g. accounting CSVs. */
+export async function downloadFile(path: string, fallbackName: string): Promise<void> {
+  const res = await fetch(`${BASE}${path}`, { credentials: "include", headers: { ...(await authHeader()) } });
+  if (!res.ok) throw new Error((await res.json().catch(() => ({ error: `HTTP ${res.status}` }))).error ?? `HTTP ${res.status}`);
+  const name = /filename="([^"]+)"/.exec(res.headers.get("content-disposition") ?? "")?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(await res.blob());
+  const a = Object.assign(document.createElement("a"), { href: url, download: name });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 export interface RequestOpts {
   body?: unknown;
   headers?: Record<string, string>;

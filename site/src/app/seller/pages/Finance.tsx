@@ -1,4 +1,7 @@
-import { Banknote, CircleCheck, Receipt, RotateCcw, TriangleAlert, Wallet } from "lucide-react";
+import { Banknote, CircleCheck, Download, Receipt, RotateCcw, TriangleAlert, Wallet } from "lucide-react";
+import { useState } from "react";
+import { downloadFile } from "../../lib/api";
+import { ActionButton } from "../kit";
 import { Card, EmptyState, Money, Notice, StatCard, StatusTag } from "../kit";
 import { useFinance } from "../api";
 import { QueryView } from "../parts/QueryView";
@@ -13,6 +16,7 @@ export default function Finance() {
   return (
     <div className={s.page}>
       <PageHeader description="Prepaid USDC moves from liability to earned only when the buyer accepts usage and it settles onchain." />
+      <ExportCard />
       <QueryView q={q} label="finance">
         {(f) => {
           const rec = f.reconciliation;
@@ -56,5 +60,33 @@ export default function Finance() {
         }}
       </QueryView>
     </div>
+  );
+}
+
+/** CSV downloads for the seller's accountant; every money row links its Arc transaction. */
+function ExportCard() {
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const get = async (kind: "deals" | "receipts" | "journal") => {
+    setError(null);
+    setBusy(kind);
+    try {
+      await downloadFile(`/app/export.csv?kind=${kind}`, `proteus-${kind}.csv`);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  };
+  return (
+    <Card title="Export for your accountant" subtitle="CSV files with every deal, delivered unit and journal line. Each money movement carries its Arc transaction hash and explorer link.">
+      <div className={s.formActions}>
+        <ActionButton variant="secondary" icon={<Download size={14} />} onClick={() => get("deals")} loading={busy === "deals"} loadingLabel="Preparing">Deals</ActionButton>
+        <ActionButton variant="secondary" icon={<Download size={14} />} onClick={() => get("receipts")} loading={busy === "receipts"} loadingLabel="Preparing">Receipts</ActionButton>
+        <ActionButton variant="secondary" icon={<Download size={14} />} onClick={() => get("journal")} loading={busy === "journal"} loadingLabel="Preparing">Journal (QuickBooks / Xero)</ActionButton>
+      </div>
+      {error && <Notice tone="danger">{error}</Notice>}
+      <p className="body3" style={{ opacity: 0.7, marginTop: 10 }}>The journal file uses the Date, Journal No, Account, Debit, Credit, Description, Reference columns that QuickBooks Online and Xero journal imports map; map the account names to your chart of accounts on import.</p>
+    </Card>
   );
 }

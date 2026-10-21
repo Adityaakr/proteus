@@ -9,6 +9,7 @@ import { dealView, listDeals, sellerCloseTerm } from "../services/deals";
 import { listNegotiations, reviveCandidate, sellerNegotiationView } from "../services/negotiation";
 import { decideApproval } from "../services/quotes";
 import { confirmDelivery } from "../services/delivery";
+import { exportCsv, type ExportKind } from "../services/exports";
 import { createSandboxSession, requireSession, session } from "./session";
 import { features } from "../env";
 
@@ -196,6 +197,14 @@ appRoutes.post("/app/deals/:id/deliveries", async (c) => {
   const s = session(c);
   const b = (await c.req.json()) as { units?: number; note?: string; proofUrl?: string; requestId?: string };
   return json(c, await confirmDelivery(s.orgId, c.req.param("id"), { units: Number(b.units), note: String(b.note ?? ""), proofUrl: b.proofUrl || undefined, requestId: String(b.requestId ?? "") }, s.address ?? `${s.kind}:${s.orgId}`), 201);
+});
+
+/** Accounting CSV: deals, receipts or journal (QuickBooks/Xero journal-import columns); every row links its Arc tx. */
+appRoutes.get("/app/export.csv", async (c) => {
+  const { filename, body } = await exportCsv(session(c).orgId, (c.req.query("kind") ?? "deals") as ExportKind);
+  c.header("content-type", "text/csv; charset=utf-8");
+  c.header("content-disposition", `attachment; filename="${filename}"`);
+  return c.body(body);
 });
 
 appRoutes.get("/app/finance", async (c) => {
