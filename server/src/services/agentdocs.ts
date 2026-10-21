@@ -112,7 +112,7 @@ export function serviceSkill(lp: LP, origin: string): string {
   if (p.payPerCallUsd) {
     lines.push("## Without a deal: pay per call");
     lines.push("");
-    lines.push(`POST ${origin}/api/pay/${seller}/${slug}/execute with { requestId, input, payer } answers 402 with x402 payment requirements (exact amount ${money(p.payPerCallUsd)} in USDC on ${NET()}, chain ${env.CHAIN_ID}). Sign one EIP-3009 TransferWithAuthorization for that amount and resend the same body plus { payment: { signature, authorization } }. Failed answers are not charged.`);
+    lines.push(`POST ${origin}/api/pay/${seller}/${slug}/execute with { requestId, input, payer } answers 402 with x402 payment requirements (exact amount ${money(p.payPerCallUsd)} in USDC on ${NET()}, chain ${env.CHAIN_ID}). Sign one EIP-3009 TransferWithAuthorization for that amount and resend the same body plus { payment: { signature, authorization } }. Or pay with no per-call transfer through Circle Gateway batching: deposit USDC into the GatewayWallet once, sign the same message under the domain in the 402 body's \`gateway.signing\` (validBefore at least \`gateway.minValiditySeconds\` ahead) and send { payment: { scheme: "gateway", signature, authorization } }. Failed answers are not charged.`);
     lines.push("");
   }
   lines.push("## Getting a key");
@@ -149,7 +149,7 @@ export function serviceOpenApi(lp: LP, origin: string) {
       post: {
         operationId: `pay_${p.slug.replace(/-/g, "_")}`,
         summary: `${p.name}: pay per call (x402), ${money(p.payPerCallUsd)} per request`,
-        description: "First call without `payment` answers 402 with the x402 requirements; sign an EIP-3009 USDC authorization for the exact amount and resend with `payment`.",
+        description: "First call without `payment` answers 402 with the x402 requirements (two options: `exact` via Circle's facilitator, and Circle Gateway batched). Sign an EIP-3009 authorization for the exact amount and resend with `payment` (set `payment.scheme` to `gateway` for the batched option).",
         requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["requestId", "input", "payer"], properties: { requestId: { type: "string" }, input, payer: { type: "string", description: "0x address paying" }, payment: { type: "object", properties: { signature: { type: "string" }, authorization: { type: "object" } } } } } } } },
         responses: { "200": { description: "Result plus payment status" }, "402": { description: "Payment required: x402 requirements in the body" }, "413": { description: "Input too large" } },
       },
@@ -234,6 +234,6 @@ After usage has settled, GET /api/deals/{id}/rating -> { eligible, reputationReg
 
 ## Without a deal
 
-Products with a per-call price accept single requests at POST /api/pay/{seller}/{product}/execute via x402: the first call answers 402 with the exact USDC amount; sign an EIP-3009 TransferWithAuthorization and resend with payment. Good for trying a service before committing.
+Products with a per-call price accept single requests at POST /api/pay/{seller}/{product}/execute via x402: the first call answers 402 with the exact USDC amount; sign an EIP-3009 TransferWithAuthorization and resend with payment. Agents that call often can use Circle Gateway batching instead (payment.scheme "gateway"): one GatewayWallet deposit, then each call is a signature with no gas and no per-call transfer. Good for trying a service before committing.
 `;
 }

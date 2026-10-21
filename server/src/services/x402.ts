@@ -1,6 +1,6 @@
 import { assertInputSize } from "./gateway";
 import { and, eq } from "drizzle-orm";
-import { encodePacked, keccak256, toHex, verifyTypedData, type Address, type Hex } from "viem";
+import { encodePacked, getAddress, keccak256, toHex, verifyTypedData, type Address, type Hex } from "viem";
 import { orgSignerAccount } from "../chain/signer";
 import { db, schema } from "../db";
 import { env } from "../env";
@@ -8,6 +8,7 @@ import { HttpError } from "../lib/http";
 import { id } from "../lib/ids";
 import { loadProductBySlugs } from "./catalog";
 import { execute, type ServiceInput, type ServiceOutput } from "./gateway";
+import { BatchFacilitatorClient } from "@circle-fin/x402-batching/server";
 
 /**
  * x402 pay-per-call on Arc testnet through Circle's facilitator (exact scheme, x402Version 2).
@@ -16,6 +17,12 @@ import { execute, type ServiceInput, type ServiceOutput } from "./gateway";
  *  - The seller proves it controls `payTo` with an EIP-712 SellerRequest over the request body.
  *  - Nonce is derived from (payer, requestId, resource, amount) so a retry reuses the same authorization
  *    and the token contract rejects a second transfer. Our (payer, requestId) row makes retries idempotent.
+ *
+ * Second scheme, "gateway": Circle Gateway batched settlement (@circle-fin/x402-batching). The buyer deposits USDC
+ * into the GatewayWallet once, then signs the same EIP-3009 message under the GatewayWallet's domain
+ * ("GatewayWalletBatched", version "1") for each call. Gateway verifies against the buyer's Gateway balance and settles
+ * many calls together, so no per-call on-chain transfer and no gas. Funds land in the seller's payee Gateway balance.
+ * Gateway requires each authorization to stay valid for at least `minValiditySeconds` (7 days on Arc, read live).
  */
 
 export const USDC_DOMAIN = { name: "USDC", version: "2", chainId: env.CHAIN_ID, verifyingContract: env.USDC_ADDRESS as Address } as const;
@@ -61,6 +68,37 @@ export function paymentNonce(payer: Address, requestId: string, resource: string
   return keccak256(encodePacked(["address", "string", "string", "uint256"], [payer, requestId, resource, amount]));
 }
 
+export type PayScheme = "exact" | "gateway";
+export interface GatewayExtra {
+  name: string;
+  version: string;
+  verifyingContract: Address;
+  minValiditySeconds: number;
+}
+
+const GATEWAY_URL = env.CHAIN_ID === 5042 ? "https://gateway-api.circle.com" : "https://gateway-api-testnet.circle.com";
+let gatewayClient: BatchFacilitatorClient | undefined;
+const gateway = () => (gatewayClient ??= new BatchFacilitatorClient({ url: GATEWAY_URL }));
+let gatewayKindP: Promise<GatewayExtra | null> | undefined;
+
+/** Gateway's batched kind for this network, from its /supported endpoint (cached; retried after a failure). */
+export function gatewayKind(): Promise<GatewayExtra | null> {
+  gatewayKindP ??= gateway()
+    .getSupported()
+    .then((s) => {
+      const k = s.kinds.find((x) => x.network === env.X402_NETWORK && x.extra?.name === "GatewayWalletBatched");
+      if (!k?.extra) return null;
+      const e = k.extra as { name: string; version: string; verifyingContract: string; minValiditySeconds?: number };
+      return { name: e.name, version: e.version, verifyingContract: getAddress(e.verifyingContract), minValiditySeconds: Number(e.minValiditySeconds ?? 604800) };
+    })
+    .catch((e) => {
+      gatewayKindP = undefined;
+      console.warn("[x402 gateway] supported", String((e as Error).message).slice(0, 160));
+      return null;
+    });
+  return gatewayKindP;
+}
+
 export async function requirementsFor(sellerSlug: string, productSlug: string, payer: Address, requestId: string) {
   const lp = await loadProductBySlugs(sellerSlug, productSlug);
   const price = lp.row.payPerCallPrice;
@@ -82,7 +120,12 @@ export async function requirementsFor(sellerSlug: string, productSlug: string, p
     mimeType: "application/json",
     extra: { name: "USDC", version: "2" },
   };
-  return { lp, price, resource, nonce, accepts };
+  // Gateway batched: paid straight to the seller's payee (no seller proof is needed), valid for Gateway's minimum window.
+  const kind = await gatewayKind();
+  const gatewayAccepts = kind
+    ? { scheme: "exact", network: env.X402_NETWORK, amount: price.toString(), asset: env.USDC_ADDRESS, payTo: getAddress(lp.org.payeeAddress), maxTimeoutSeconds: kind.minValiditySeconds, resource, description: accepts.description, mimeType: "application/json", extra: { name: kind.name, version: kind.version, verifyingContract: kind.verifyingContract } }
+    : null;
+  return { lp, price, resource, nonce, accepts, gatewayAccepts, gatewayKind: kind };
 }
 
 async function sellerProof(orgId: string, purpose: "verify" | "settle" | "status", method: string, body: string, payTo: Address) {
@@ -121,28 +164,38 @@ async function facilitator(orgId: string, path: "verify" | "settle" | `status/${
   return { ok: res.ok, status: res.status, data, signer: proof.signer };
 }
 
-export async function payAndExecute(sellerSlug: string, productSlug: string, payer: Address, requestId: string, input: ServiceInput, payment: { signature: Hex; authorization: Authorization }) {
-  const { lp, price, resource, nonce, accepts } = await requirementsFor(sellerSlug, productSlug, payer, requestId);
+export async function payAndExecute(sellerSlug: string, productSlug: string, payer: Address, requestId: string, input: ServiceInput, payment: { signature: Hex; authorization: Authorization; scheme?: PayScheme }) {
+  const r = await requirementsFor(sellerSlug, productSlug, payer, requestId);
+  const { lp, price, resource, nonce } = r;
+  const scheme: PayScheme = payment.scheme ?? "exact";
+  if (scheme === "gateway" && (!r.gatewayAccepts || !r.gatewayKind)) throw new HttpError(503, "Circle Gateway batching is not available on this network right now; pay with the exact scheme");
+  const accepts = scheme === "gateway" ? r.gatewayAccepts! : r.accepts;
   const a = payment.authorization;
   if (a.from.toLowerCase() !== payer.toLowerCase() || a.to.toLowerCase() !== accepts.payTo.toLowerCase() || BigInt(a.value) !== price || a.nonce.toLowerCase() !== nonce.toLowerCase()) {
     throw new HttpError(400, "authorization does not match the payment requirements", { expected: { from: payer, to: accepts.payTo, value: price.toString(), nonce } });
   }
   const now = Math.floor(Date.now() / 1000);
-  if (Number(a.validBefore) < now + 10 || Number(a.validBefore) > now + 600) throw new HttpError(400, "validBefore must be within the next 10 minutes");
-  const ok = await verifyTypedData({ address: payer, domain: USDC_DOMAIN, types: TRANSFER_WITH_AUTH_TYPES, primaryType: "TransferWithAuthorization", message: { from: a.from, to: a.to, value: BigInt(a.value), validAfter: BigInt(a.validAfter), validBefore: BigInt(a.validBefore), nonce: a.nonce }, signature: payment.signature });
+  if (scheme === "gateway") {
+    const min = r.gatewayKind!.minValiditySeconds;
+    if (Number(a.validBefore) < now + min || Number(a.validBefore) > now + min + 86400) throw new HttpError(400, `validBefore must be between ${min} and ${min + 86400} seconds from now (Gateway minimum validity)`);
+  } else if (Number(a.validBefore) < now + 10 || Number(a.validBefore) > now + 600) throw new HttpError(400, "validBefore must be within the next 10 minutes");
+  const signDomain = scheme === "gateway" ? { name: r.gatewayKind!.name, version: r.gatewayKind!.version, chainId: env.CHAIN_ID, verifyingContract: r.gatewayKind!.verifyingContract } : USDC_DOMAIN;
+  const ok = await verifyTypedData({ address: payer, domain: signDomain, types: TRANSFER_WITH_AUTH_TYPES, primaryType: "TransferWithAuthorization", message: { from: a.from, to: a.to, value: BigInt(a.value), validAfter: BigInt(a.validAfter), validBefore: BigInt(a.validBefore), nonce: a.nonce }, signature: payment.signature });
   if (!ok) throw new HttpError(400, "payment signature invalid");
 
   // Idempotency: one row per (payer, requestId).
   const [existing] = await db.select().from(schema.payPerCallPayments).where(and(eq(schema.payPerCallPayments.payer, payer.toLowerCase()), eq(schema.payPerCallPayments.requestId, requestId)));
+  if (existing && existing.scheme !== scheme) throw new HttpError(409, `this request id was already used with the ${existing.scheme} scheme`);
   if (existing?.status === "settled" || existing?.status === "executed" || existing?.status === "pending") return { ...(existing.response as Record<string, unknown>), payment: { paymentId: existing.paymentId, settleTxHash: existing.settleTxHash, status: existing.status, replay: true, statusNote: existing.status === "pending" ? "The facilitator is still settling this payment; the transaction hash appears once it lands." : undefined } };
   // A row still quoted or verified is an attempt in flight (or one that crashed). Refuse a parallel run for two minutes rather than executing twice.
   if (existing && (existing.status === "quoted" || existing.status === "verified") && Date.now() - new Date(existing.updatedAt ?? existing.createdAt).getTime() < 120_000) throw new HttpError(409, "this request id is already being processed; retry in a moment with the same request id");
   const rowId = existing?.id ?? id("ppc");
-  if (!existing) await db.insert(schema.payPerCallPayments).values({ id: rowId, orgId: lp.org.id, productId: lp.row.id, payer: payer.toLowerCase(), requestId, resource, amount: price, nonce, status: "quoted" });
+  if (!existing) await db.insert(schema.payPerCallPayments).values({ id: rowId, orgId: lp.org.id, productId: lp.row.id, payer: payer.toLowerCase(), requestId, resource, amount: price, nonce, scheme, status: "quoted" });
 
   const paymentPayload = { x402Version: 2, resource: { url: resource, description: accepts.description, mimeType: accepts.mimeType }, accepted: { scheme: accepts.scheme, network: accepts.network, amount: accepts.amount, asset: accepts.asset, payTo: accepts.payTo, maxTimeoutSeconds: accepts.maxTimeoutSeconds, extra: { ...accepts.extra, assetTransferMethod: "eip3009" } }, payload: { signature: payment.signature, authorization: a }, extensions: { "payment-identifier": { info: { required: true, id: paymentIdentifier(payer, requestId) } } } };
   const paymentRequirements = { scheme: accepts.scheme, network: accepts.network, amount: accepts.amount, asset: accepts.asset, payTo: accepts.payTo, maxTimeoutSeconds: accepts.maxTimeoutSeconds, extra: accepts.extra };
   const body = { x402Version: 2, paymentPayload, paymentRequirements };
+  if (scheme === "gateway") return payViaGateway(lp, rowId, requestId, input, r.gatewayAccepts!, { signature: payment.signature, authorization: a });
 
   const v = await facilitator(lp.org.id, "verify", body, accepts.payTo as Address);
   console.log("[x402 verify]", v.status, JSON.stringify(v.data).slice(0, 400));
@@ -175,9 +228,36 @@ export async function payAndExecute(sellerSlug: string, productSlug: string, pay
   return { ...response, payment: { paymentId, settleTxHash: tx || null, status, facilitator: env.X402_FACILITATOR_URL, network: env.X402_NETWORK, statusNote: pending ? "The facilitator accepted the payment and is settling it on Arc; the transaction hash appears once it lands." : undefined } };
 }
 
+/** Gateway batched path: Gateway verifies against the buyer's Gateway balance, the service runs, Gateway settles in a batch. */
+async function payViaGateway(lp: Awaited<ReturnType<typeof requirementsFor>>["lp"], rowId: string, requestId: string, input: ServiceInput, accepts: NonNullable<Awaited<ReturnType<typeof requirementsFor>>["gatewayAccepts"]>, payload: { signature: Hex; authorization: Authorization }) {
+  const requirements = { scheme: accepts.scheme, network: accepts.network, asset: accepts.asset, amount: accepts.amount, payTo: accepts.payTo, maxTimeoutSeconds: accepts.maxTimeoutSeconds, extra: accepts.extra };
+  const paymentPayload = { x402Version: 2, resource: { url: accepts.resource, description: accepts.description, mimeType: accepts.mimeType }, accepted: requirements, payload };
+  const v = await gateway().verify(paymentPayload, requirements);
+  console.log("[x402 gateway verify]", JSON.stringify(v).slice(0, 300));
+  if (!v.isValid) {
+    await db.update(schema.payPerCallPayments).set({ status: "failed", error: String(v.invalidReason ?? "invalid").slice(0, 500), updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, rowId));
+    throw new HttpError(402, `Circle Gateway refused the payment: ${v.invalidReason ?? "invalid"} (is there enough USDC deposited in your Gateway balance?)`, v);
+  }
+  await db.update(schema.payPerCallPayments).set({ status: "verified", updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, rowId));
+  assertInputSize(input);
+  const out = await executePayPerCall(lp, requestId, input);
+  if (!out.billable) {
+    await db.update(schema.payPerCallPayments).set({ status: "failed", error: "not billable: " + out.status, response: out as unknown as Record<string, unknown>, updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, rowId));
+    return { requestId, ...out, payment: { status: "not_charged", reason: out.status } };
+  }
+  const s = await gateway().settle(paymentPayload, requirements);
+  console.log("[x402 gateway settle]", JSON.stringify(s).slice(0, 300));
+  const response = { requestId, ...out };
+  // Gateway returns a transfer id for the batched transfer, not an Arc transaction hash; the batch lands on chain later.
+  const status = s.success ? "settled" : "failed";
+  await db.update(schema.payPerCallPayments).set({ status, paymentId: s.transaction || null, response, error: s.success ? null : String(s.errorReason ?? "settle failed").slice(0, 500), updatedAt: new Date() }).where(eq(schema.payPerCallPayments.id, rowId));
+  if (!s.success) throw new HttpError(502, `service delivered but Circle Gateway did not settle (${s.errorReason ?? "unknown"}); nothing was charged`, s);
+  return { ...response, payment: { scheme: "gateway", gatewayTransferId: s.transaction, status, network: accepts.network, payTo: accepts.payTo, statusNote: "Circle Gateway accepted this payment from your Gateway balance. It reaches Arc inside a batched transfer, so there is no per-call transaction hash; look up the transfer id on Gateway." } };
+}
+
 /** Poll the facilitator for pending pay-per-call settlements and record the transaction once it lands. */
 export async function checkPendingPayments(): Promise<number> {
-  const rows = await db.select().from(schema.payPerCallPayments).where(eq(schema.payPerCallPayments.status, "pending"));
+  const rows = await db.select().from(schema.payPerCallPayments).where(and(eq(schema.payPerCallPayments.status, "pending"), eq(schema.payPerCallPayments.scheme, "exact")));
   let n = 0;
   for (const r of rows) {
     if (!r.paymentId) continue;

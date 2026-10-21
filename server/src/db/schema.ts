@@ -95,6 +95,8 @@ export const payPerCallPayments = pgTable(
     resource: text("resource").notNull(),
     amount: bigint("amount", { mode: "bigint" }).notNull(),
     nonce: text("nonce").notNull(),
+    /** "exact": Circle facilitator, one EIP-3009 transfer per call. "gateway": Circle Gateway batched settlement from the buyer's Gateway balance. */
+    scheme: text("scheme").notNull().default("exact"),
     status: text("status").notNull().default("quoted"), // quoted | verified | executed | settled | failed
     paymentId: text("payment_id"),
     settleTxHash: text("settle_tx_hash"),
