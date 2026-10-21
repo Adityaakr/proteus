@@ -4,7 +4,7 @@ import { BrandFields, EMPTY_BRAND, brandFromState, validateBrandState, type Bran
 import { Field } from "../../ui/Field";
 import { v1 } from "../v1";
 import type { MeOrg } from "../types";
-import { BadgeCheck, Code2, FlaskConical, KeyRound, Wallet } from "lucide-react";
+import { BadgeCheck, Bell, Code2, FlaskConical, KeyRound, Wallet } from "lucide-react";
 import { ActionButton, Card, KeyValue, LoadingCard, MonoValue, Notice, StatusTag } from "../../seller/kit";
 import { PageHeader } from "../../seller/parts/PageHeader";
 import { errorMessage } from "../../seller/transport";
@@ -106,6 +106,8 @@ export default function Settings() {
       </Card>
 
       {me?.org && !sandbox && <EmbedCard />}
+
+      {me?.org && !sandbox && <NotificationsCard />}
 
       {me?.org && !sandbox && <AgentIdentityCard />}
 
@@ -289,6 +291,47 @@ function EmbedCard() {
           <ActionButton onClick={() => save.mutate(domainText.split(/[\s,]+/).filter(Boolean))} loading={save.isPending} loadingLabel="Saving" disabled={domains === null}>
             Save allowed websites
           </ActionButton>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function NotificationsCard() {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["sell", "notifications"], queryFn: () => v1.app.notifications(), retry: false });
+  const [draft, setDraft] = useState<{ email: string; telegramChatId: string; webhookUrl: string } | null>(null);
+  const [secret, setSecret] = useState<string | null>(null);
+  const save = useMutation({
+    mutationFn: (b: { email: string; telegramChatId: string; webhookUrl: string }) => v1.app.setNotifications({ email: b.email || null, telegramChatId: b.telegramChatId || null, webhookUrl: b.webhookUrl || null }),
+    onSuccess: ({ webhookSecret, ...d }) => { qc.setQueryData(["sell", "notifications"], d); setDraft(null); if (webhookSecret) setSecret(webhookSecret); },
+  });
+  const test = useMutation({ mutationFn: () => v1.app.testNotification() });
+  if (!q.data) return null;
+  const cur = draft ?? { email: q.data.email ?? "", telegramChatId: q.data.telegramChatId ?? "", webhookUrl: q.data.webhookUrl ?? "" };
+  const set = (k: keyof typeof cur) => (e: { target: { value: string } }) => setDraft({ ...cur, [k]: e.target.value });
+  const configured = Boolean(q.data.email || q.data.telegramChatId || q.data.webhookUrl);
+  return (
+    <Card title="Notifications" subtitle="Hear about deals as they happen: funded, usage settled, refunds, disputes and offers waiting for your approval. Messages link to the Arc transaction; the chain stays the record." actions={<StatusTag tone={configured ? "success" : "neutral"} label={configured ? "On" : "Off"} icon={<Bell size={12} />} />}>
+      <div className={s.fields}>
+        <Field label="Email" value={cur.email} onChange={set("email")} placeholder="you@yourshop.com" disabled={!q.data.channels.email} />
+        {!q.data.channels.email && <p className={s.hint}>Email is not enabled on this deployment yet (needs SMTP). Use Telegram or a webhook.</p>}
+        <Field label="Telegram chat id" value={cur.telegramChatId} onChange={set("telegramChatId")} placeholder="123456789" disabled={!q.data.channels.telegram} />
+        {!q.data.channels.telegram && <p className={s.hint}>Telegram is not enabled on this deployment yet (needs a bot token).</p>}
+        <Field label="Webhook URL (https)" value={cur.webhookUrl} onChange={set("webhookUrl")} placeholder="https://yourshop.com/hooks/proteus" />
+        <p className={s.hint}>Each POST carries <code>X-Proteus-Signature: t=&lt;unix&gt;,v1=&lt;hex&gt;</code>, an HMAC-SHA256 of <code>t.body</code> with your signing secret. No API keys or buyer contact details are ever sent.</p>
+        {secret && (
+          <Notice tone="warning">
+            Signing secret, shown once. Store it now: <MonoValue value={secret} copy label="webhook signing secret" />
+          </Notice>
+        )}
+        {save.isError && <Notice tone="danger">{errorMessage(save.error)}</Notice>}
+        {save.isSuccess && draft === null && !secret && <Notice tone="success">Saved.</Notice>}
+        {test.data && (test.data.ok ? <Notice tone="success">Test sent to every channel.</Notice> : <Notice tone="danger">{test.data.errors.join("; ")}</Notice>)}
+        {test.isError && <Notice tone="danger">{errorMessage(test.error)}</Notice>}
+        <div className={s.row}>
+          <ActionButton onClick={() => save.mutate(cur)} loading={save.isPending} loadingLabel="Saving" disabled={draft === null}>Save</ActionButton>
+          <ActionButton variant="secondary" onClick={() => test.mutate()} loading={test.isPending} loadingLabel="Sending" disabled={!configured || draft !== null}>Send a test</ActionButton>
         </div>
       </div>
     </Card>

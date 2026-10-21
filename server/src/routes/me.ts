@@ -12,6 +12,7 @@ import { CATEGORIES, updateBrand } from "../services/brand";
 import { confirmRegistration, registrationInputs } from "../services/agent-registry";
 import { publishAllLatest } from "../services/policy-commit";
 import { embedSettings, setEmbedDomains } from "../services/embed";
+import { saveSettings as saveNotifySettings, sendTest as sendTestNotification, settingsView as notifySettings } from "../services/notify";
 import { env } from "../env";
 
 export const meRoutes = new Hono();
@@ -65,6 +66,12 @@ meRoutes.post("/app/signer/revoke", requireSession, async (c) => json(c, await r
 meRoutes.post("/app/signer/sweep", requireSession, async (c) => json(c, await sweepCollector(session(c).orgId)));
 
 /* Embedded deal agent: which sites may show it. */
+meRoutes.get("/app/notifications", requireSession, async (c) => json(c, await notifySettings(session(c).orgId)));
+meRoutes.put("/app/notifications", requireSession, async (c) => {
+  const b = z.object({ email: z.string().max(254).nullable().optional(), telegramChatId: z.string().max(24).nullable().optional(), webhookUrl: z.string().max(500).nullable().optional() }).parse(await c.req.json());
+  return json(c, await saveNotifySettings(session(c).orgId, b));
+});
+meRoutes.post("/app/notifications/test", requireSession, async (c) => json(c, await sendTestNotification(session(c).orgId)));
 meRoutes.get("/app/embed", requireSession, async (c) => json(c, await embedSettings(session(c).orgId)));
 meRoutes.put("/app/embed", requireSession, async (c) => {
   const { domains } = z.object({ domains: z.array(z.string().max(200)).max(10) }).parse(await c.req.json());

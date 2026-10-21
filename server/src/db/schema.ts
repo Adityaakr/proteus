@@ -494,3 +494,34 @@ export const disputes = pgTable("disputes", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   resolvedAt: timestamp("resolved_at", { withTimezone: true }),
 });
+
+/** Where a seller wants deal events: email, Telegram chat, and/or an HMAC-signed webhook. */
+export const notificationSettings = pgTable("notification_settings", {
+  orgId: text("org_id").primaryKey(),
+  email: text("email"),
+  telegramChatId: text("telegram_chat_id"),
+  webhookUrl: text("webhook_url"),
+  /** HMAC-SHA256 key for the X-Proteus-Signature header, encrypted at rest; shown to the seller once. */
+  webhookSecretEnc: text("webhook_secret_enc"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Outbox: each deal event is written once (unique key) and delivered by the reconciler tick with retries. */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: text("id").primaryKey(),
+    orgId: text("org_id").notNull(),
+    dealId: text("deal_id"),
+    event: text("event").notNull(),
+    /** Unique per event occurrence, e.g. "<event>:<txHash>", so a re-scanned block never notifies twice. */
+    dedupeKey: text("dedupe_key").notNull(),
+    payload: jsonb("payload").notNull(),
+    status: text("status").notNull().default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    error: text("error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+  },
+  (t) => [uniqueIndex("notifications_dedupe").on(t.dedupeKey)],
+);

@@ -56,6 +56,12 @@ const Env = z.object({
   PRIVY_JWKS_URL: z.string().optional(),
   /** Dev only: `x-dev-user: <id>` header impersonates a user when set to "1". Never enable in production. */
   PRIVY_DEV_BYPASS: z.string().optional(),
+  /** Notifications. Email needs an SMTP URL (smtps://user:pass@host:465); Telegram needs a bot token from @BotFather. */
+  SMTP_URL: z.string().optional(),
+  NOTIFY_FROM: z.string().default("Proteus AI <notifications@proteus.co.in>"),
+  TELEGRAM_BOT_TOKEN: z.string().optional(),
+  /** Dev only: let webhooks reach localhost/private addresses for local testing. Ignored in production. */
+  NOTIFY_ALLOW_PRIVATE: z.string().optional(),
   /** Encrypts per-org seller signer keys at rest. */
   KEY_ENCRYPTION_SECRET: z.string().min(16).optional(),
 

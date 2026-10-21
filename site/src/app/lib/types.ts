@@ -732,3 +732,11 @@ export interface DealDispute {
   arbiter: Address;
   dispute: { status: "open" | "resolved"; openedBy: "buyer" | "seller"; reason: string; openTx: string; toSeller: MicroStr | null; toBuyer: MicroStr | null; resolveTx: string | null; createdAt: IsoTime; resolvedAt: IsoTime | null } | null;
 }
+
+/** Seller notification channels. `channels` says which ones this deployment can send (email needs SMTP, Telegram a bot token). */
+export interface NotifySettings {
+  email: string | null;
+  telegramChatId: string | null;
+  webhookUrl: string | null;
+  channels: { email: boolean; telegram: boolean; webhook: boolean };
+}

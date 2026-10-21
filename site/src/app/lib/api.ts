@@ -255,6 +255,10 @@ export const api = {
     revokeSigner: () => request<{ revokedAt: T.IsoTime; note?: string; [k: string]: unknown }>("POST", "/app/signer/revoke", { body: {} }),
     /** ERC-8004 identity on Arc: the inputs the seller's wallet signs, and confirmation read back from the chain. */
     agent: () => request<T.AgentRegistration>("GET", "/app/agent"),
+    /** Deal notifications: email, Telegram chat and an HMAC-signed webhook. `webhookSecret` is returned once, when created. */
+    notifications: () => request<T.NotifySettings>("GET", "/app/notifications"),
+    setNotifications: (body: { email: string | null; telegramChatId: string | null; webhookUrl: string | null }) => request<T.NotifySettings & { webhookSecret: string | null }>("PUT", "/app/notifications", { body }),
+    testNotification: () => request<{ ok: boolean; errors: string[] }>("POST", "/app/notifications/test"),
     /** Embedded deal agent: the seller's slug and the sites allowed to embed it (empty: any site). */
     embed: () => request<{ slug: string; label: string; domains: string[] }>("GET", "/app/embed"),
     setEmbedDomains: (domains: string[]) => request<{ slug: string; label: string; domains: string[] }>("PUT", "/app/embed", { body: { domains } }),

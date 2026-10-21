@@ -11,6 +11,7 @@ import { loadProductById } from "./catalog";
 import { assertAgentBinding } from "./agent-registry";
 import { ensurePolicyCommit, publishPolicyCommit } from "./policy-commit";
 import { loadNegotiation, reviveCandidate, toOffer } from "./negotiation";
+import { enqueue } from "./notify";
 
 /**
  * A quote freezes one candidate (with its cost/policy versions) and the buyer-visible terms.
@@ -110,6 +111,7 @@ export async function createQuote(negId: string, candidateId: string) {
       expiresAt,
     });
     await db.insert(schema.decisions).values({ id: id("dec"), orgId: lp.org.id, negotiationId: negId, kind: "approval", ruleIds: c.rules, candidateId, summary: "Quote requires owner approval", privateBasis: bigintsToStrings({ candidate: c }), publicExplanation: "An agreement of this size needs the seller's approval before it can be offered." });
+    await enqueue(lp.org.id, "approval_required", `approval:${quoteId}`, { product: lp.product.name, tier: c.tierName, units: c.units.toString(), amountUsdc: `${c.prepaidTotal / 1_000_000n}.${(c.prepaidTotal % 1_000_000n).toString().padStart(6, "0")}`, link: `${env.WEB_ORIGIN}/app/sell/approvals` }).catch(() => {});
   } else {
     await db.insert(schema.decisions).values({ id: id("dec"), orgId: lp.org.id, negotiationId: negId, kind: "quote", ruleIds: [], candidateId, summary: `Quote issued for ${c.tierName} ${c.units} units`, privateBasis: bigintsToStrings({ candidate: c, expiresAt }), publicExplanation: "Offer issued within policy." });
   }

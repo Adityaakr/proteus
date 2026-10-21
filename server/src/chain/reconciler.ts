@@ -3,7 +3,9 @@ import { parseEventLogs, type Hex } from "viem";
 import { db, schema } from "../db";
 import { env, features } from "../env";
 import { id } from "../lib/ids";
+import { explorerTx } from "@proteus/domain";
 import { postJournal } from "../services/journal";
+import { drainOutbox, enqueue, type NotifyEvent } from "../services/notify";
 import { dealEscrowAbi } from "./abi";
 import { escrowAddress, publicClient } from "./client";
 import { withRpcRetry } from "./relayer";
@@ -109,6 +111,7 @@ async function reconcileDeals(): Promise<number> {
           .returning({ id: schema.chainEvents.id });
         if (!inserted.length) continue; // already processed
         await applyEvent(deal, ev.eventName, args, ev.transactionHash);
+        await notifyEvent(deal, ev.eventName, args, ev.transactionHash, ev.logIndex);
       }
       // Authoritative balances from the contract.
       // Read balances at the scanned head so a lagging node cannot report a stale zero after we saw the funding event.
@@ -174,12 +177,39 @@ async function applyEvent(deal: typeof schema.deals.$inferSelect, name: string, 
   }
 }
 
+const NOTIFY: Record<string, [NotifyEvent, string | null]> = {
+  DealFunded: ["deal_funded", "deposit"],
+  SellerSettled: ["usage_settled", "amount"],
+  RefundIssued: ["refund_issued", "amount"],
+  DisputeOpened: ["dispute_opened", null],
+  DisputeResolved: ["dispute_resolved", null],
+};
+const micro = (v: unknown) => {
+  const n = BigInt(String(v ?? "0"));
+  return `${n / 1_000_000n}.${(n % 1_000_000n).toString().padStart(6, "0")}`;
+};
+
+/** Queues a seller notification for an on-chain event; the dedupe key is the log, so re-scans never notify twice. */
+async function notifyEvent(deal: typeof schema.deals.$inferSelect, name: string, args: Record<string, unknown>, txHash: string, logIndex: number) {
+  const m = NOTIFY[name];
+  if (!m) return;
+  const [event, amountKey] = m;
+  const payload: Record<string, unknown> = { deal: deal.publicId, explorer: explorerTx(txHash, env.CHAIN_ID), txHash, link: `${env.WEB_ORIGIN}/app/sell/deals/${deal.id}` };
+  if (amountKey) payload.amountUsdc = micro(args[amountKey]);
+  if (name === "DisputeResolved") Object.assign(payload, { toSellerUsdc: micro(args.toSeller), toBuyerUsdc: micro(args.toBuyer) });
+  await enqueue(deal.orgId, event, `${txHash}:${logIndex}`, payload, deal.id).catch((e) => console.warn("[notify] enqueue", String((e as Error).message).slice(0, 160)));
+}
+
 export function startReconciler() {
   if (!features.escrow) {
     console.log("[reconciler] disabled: ESCROW_ADDRESS not set");
     return;
   }
-  const tick = () => reconcileOnce().catch((e) => console.warn("[reconciler]", String((e as Error).message).slice(0, 200)));
+  const tick = () =>
+    reconcileOnce()
+      .catch((e) => console.warn("[reconciler]", String((e as Error).message).slice(0, 200)))
+      .then(() => drainOutbox())
+      .catch((e) => console.warn("[notify]", String((e as Error).message).slice(0, 200)));
   setTimeout(tick, 2000);
   setInterval(tick, env.RECONCILE_INTERVAL_MS);
   console.log(`[reconciler] every ${env.RECONCILE_INTERVAL_MS}ms against ${env.ESCROW_ADDRESS}`);
