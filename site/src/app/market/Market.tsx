@@ -99,44 +99,37 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
   const wide = useLogoShape(s.brand.logoUrl) === "wide";
   const hasTrack = Boolean(st && (st.dealsFunded > 0 || settled > 0n || held > 0n));
   return (
-    <motion.article className={`${m.seller} ${s.products.length === 1 ? m.sellerHalf : ""}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ ...T_DEFAULT, delay: Math.min(i, 8) * 0.04 }} aria-label={s.name}>
-      <div className={m.sellerAside}>
-        <header className={m.sellerHead}>
-          {!wide && <SellerMark name={s.name} brand={s.brand} size="md" />}
-          <div className={m.sellerId}>
+    <motion.article className={`${m.seller} ${s.products.length === 1 ? m.sellerHalf : ""}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...T_DEFAULT, delay: Math.min(i, 8) * 0.04 }} aria-label={s.name}>
+      <header className={m.sellerHead}>
+        {!wide && <SellerMark name={s.name} brand={s.brand} size="sm" />}
+        <div className={m.sellerId}>
+          <div className={m.sellerName}>
             <Link to={`/app/market/${s.slug}`} className={m.sellerLink}>{wide ? <SellerMark name={s.name} brand={s.brand} variant="wordmark" size="md" /> : s.name}</Link>
-            <div className={m.sellerMeta}>
-              {s.brand.category && <span>{categoryLabel(s.brand.category)}</span>}
-              {st && <span>Since {fmtDate(st.since)}</span>}
-            </div>
-          </div>
-        </header>
-        {(s.brand.verified || s.agent) && (
-          <div className={m.badges}>
-            {s.brand.verified && <span className={m.badgeOk} title="Verified by Proteus AI: identity and endpoint checked by the platform operator"><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
+            {s.brand.verified && <span className={m.verified} title="Verified by Proteus AI: identity and endpoint checked by the platform operator"><BadgeCheck size={14} strokeWidth={2.25} aria-hidden />Verified</span>}
             {s.agent && <AgentBadge agent={s.agent} />}
           </div>
-        )}
-        {s.brand.tagline && <p className={m.tagline}>{s.brand.tagline}</p>}
-        {st && (hasTrack ? (
-          <dl className={m.stats}>
-            <div><dt>Deals</dt><dd className="app-mono">{st.dealsFunded}</dd></div>
-            <div><dt>Settled</dt><dd><Money micro={settled} digits={2} /></dd></div>
-            <div><dt title="Held in escrow on Arc">Escrow</dt><dd><Money micro={held} digits={2} /></dd></div>
-            {s.agent && <div><dt>Rating</dt><dd><RatingValue ratings={st.ratings} /></dd></div>}
-          </dl>
-        ) : (
-          <p className={m.noTrack}>No deals yet. Every deal here settles on Arc and shows up in these numbers.</p>
-        ))}
-        <div className={m.asideFoot}>
-          {s.brand.website && <a href={s.brand.website} target="_blank" rel="noreferrer" className={m.site}>{new URL(s.brand.website).hostname}</a>}
-          {s.products.length > 1 && (
-            <Link to={`/app/market/${s.slug}`} className={m.sellerMore}>
-              All {s.products.length} services <ArrowRight size={14} strokeWidth={2} aria-hidden />
-            </Link>
-          )}
+          <div className={m.sellerMeta}>
+            {s.brand.category && <span>{categoryLabel(s.brand.category)}</span>}
+            {s.brand.website && <a href={s.brand.website} target="_blank" rel="noreferrer" className={m.site}>{new URL(s.brand.website).hostname}</a>}
+            {st && <span>Since {fmtDate(st.since)}</span>}
+          </div>
         </div>
-      </div>
+        {st && (
+          <div className={m.track}>
+            {hasTrack ? (
+              <>
+                <span><strong className="app-mono">{st.dealsFunded}</strong> {st.dealsFunded === 1 ? "deal" : "deals"}</span>
+                <span><strong><Money micro={settled} digits={2} /></strong> settled</span>
+                <span><strong><Money micro={held} digits={2} /></strong> in escrow</span>
+                {s.agent && <span><RatingValue ratings={st.ratings} /></span>}
+              </>
+            ) : (
+              <span>No deals yet</span>
+            )}
+          </div>
+        )}
+      </header>
+      {s.brand.tagline && <p className={m.tagline}>{s.brand.tagline}</p>}
       <ul className={m.products}>
         {s.products.map((p) => <ProductCard key={p.slug} seller={s.slug} p={p} />)}
       </ul>
@@ -151,19 +144,21 @@ function ProductCard({ seller, p }: { seller: string; p: MarketSellerProduct }) 
       <Link to={`/app/market/${seller}/${p.slug}`} className={m.product}>
         <span className={m.productTop}>
           <span className={m.productName}>{p.name}</span>
-          <ArrowRight size={16} strokeWidth={2} aria-hidden className={m.productArrow} />
+          <ArrowRight size={15} strokeWidth={2} aria-hidden className={m.productArrow} />
         </span>
         {p.summary && <span className={m.productSummary}>{p.summary}</span>}
-        {p.bestUnitPriceUsd && (
-          <span className={m.productPrice}>
-            <Money usd={p.bestUnitPriceUsd} digits={decimalsFor(p.bestUnitPriceUsd)} />
-            <span className={m.factUnit}>per {p.unitLabel}</span>
+        <span className={m.productFoot}>
+          {p.bestUnitPriceUsd && (
+            <span className={m.productPrice}>
+              <Money usd={p.bestUnitPriceUsd} digits={decimalsFor(p.bestUnitPriceUsd)} />
+              <span className={m.factUnit}>/ {p.unitLabel}</span>
+            </span>
+          )}
+          <span className={m.productTerms}>
+            {p.startingTierUsd && <span>From <Money usd={p.startingTierUsd} digits={startingDigits} /> prepaid</span>}
+            {p.perCallUsd && <span><Money usd={p.perCallUsd} digits={decimalsFor(p.perCallUsd)} /> per call</span>}
+            {p.termDays !== 30 && <span>{p.termDays}-day term</span>}
           </span>
-        )}
-        <span className={m.productChips}>
-          {p.startingTierUsd && <span className={m.chip}>From <Money usd={p.startingTierUsd} digits={startingDigits} /> prepaid</span>}
-          {p.perCallUsd && <span className={m.chip}><Money usd={p.perCallUsd} digits={decimalsFor(p.perCallUsd)} /> per call</span>}
-          {p.termDays !== 30 && <span className={m.chip}>{p.termDays}-day term</span>}
         </span>
       </Link>
     </li>
