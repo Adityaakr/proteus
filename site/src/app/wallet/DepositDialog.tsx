@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, ExternalLink, X } from "lucide-react";
@@ -9,11 +9,13 @@ import { CopyButton } from "../ui/misc";
 import { Money } from "../ui/Money";
 import { Qr } from "./QrCode";
 import { ArcMark } from "../ui/Marks";
+import { BridgePanel } from "./BridgePanel";
 import { useDepositWatch } from "./useDepositWatch";
 import w from "./wallet.module.css";
 
 /**
- * Deposit sheet: QR + address, the faucet link, and a live watcher that confirms the moment USDC lands.
+ * Deposit sheet with two methods: send USDC on Arc (QR + address, the faucet link), or bridge it from another
+ * chain with Circle's CCTP. A live watcher confirms the moment USDC lands, whichever way it came.
  * Centered dialog on desktop, bottom sheet on phones. Esc, backdrop click and the close button dismiss it.
  */
 export function DepositDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -22,6 +24,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const watch = useDepositWatch();
+  const [method, setMethod] = useState<"arc" | "bridge">("arc");
 
   // Esc closes; body scroll locks; focus moves in and back out.
   useEffect(() => {
@@ -45,7 +48,10 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
   // Start watching for the deposit as soon as the sheet opens; stop when it closes.
   useEffect(() => {
     if (open) watch.start();
-    else watch.reset();
+    else {
+      watch.reset();
+      setMethod("arc");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -95,6 +101,13 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
           </motion.div>
         ) : (
           <motion.div key="deposit" className={w.sheetSingle} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+            <div className={w.methodTabs} role="tablist" aria-label="Deposit method">
+              <button type="button" role="tab" className={w.methodTab} aria-selected={method === "arc"} onClick={() => setMethod("arc")}>Send on Arc</button>
+              <button type="button" role="tab" className={w.methodTab} aria-selected={method === "bridge"} onClick={() => setMethod("bridge")}>From another chain</button>
+            </div>
+            {method === "bridge" ? (
+              <BridgePanel onArrived={watch.start} />
+            ) : (
             <div className={w.depositRow}>
               <div className={w.depositMain}>
                 <span className={w.sheetLabelSm}>Your address</span>
@@ -103,7 +116,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
                   {address && <CopyButton value={address} label="Copy wallet address" />}
                 </div>
                 <p className={w.hint}>
-                  Send USDC on {ARC_NETWORK_NAMES[defaultNetwork()]} to this address. {defaultNetwork() === "testnet" ? "Testnet USDC is free from the Circle faucet." : "From an exchange, a wallet, or a CCTP bridge."}
+                  Send USDC on {ARC_NETWORK_NAMES[defaultNetwork()]} to this address. {defaultNetwork() === "testnet" ? "Testnet USDC is free from the Circle faucet." : "From an exchange or a wallet. USDC on another chain? Use From another chain."}
                 </p>
                 <div className={w.sheetActions}>
                   {defaultNetwork() === "testnet" && <ActionButton variant="secondary" size="sm" href={ARC_TESTNET_FAUCET} newTab icon={<ExternalLink size={14} strokeWidth={2} />}>Circle faucet</ActionButton>}
@@ -112,6 +125,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
               </div>
               {address ? <Qr value={address} className={w.qrSmall} /> : <span className={w.qrSmallEmpty} />}
             </div>
+            )}
             <div className={w.sheetStatus} aria-live="polite">
               {watch.watching ? (
                 <>

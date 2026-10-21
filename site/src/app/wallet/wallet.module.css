@@ -79,3 +79,24 @@
 @keyframes pulse { 0%, 100% { opacity: 0.35; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1); } }
 @media (max-width: 809.98px) { .depositRow { flex-direction: column-reverse; align-items: center; } .depositMain { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .pulse { animation: none; opacity: 1; } }
+
+/* Deposit methods: send on Arc, or bridge from another chain with CCTP */
+.methodTabs { display: inline-flex; align-self: flex-start; gap: 2px; padding: 3px; border-radius: 10px; background: var(--c-dark-5); }
+.methodTab { padding: 6px 12px; border-radius: 8px; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--c-dark-60); transition: background-color 0.15s ease, color 0.15s ease; }
+.methodTab:hover { color: var(--c-dark); }
+.methodTab[aria-selected="true"] { background: var(--c-white); color: var(--c-dark); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), inset 0 0 0 1px var(--c-dark-10); }
+.chainRow { display: flex; flex-wrap: wrap; gap: 8px; }
+.chainChip { padding: 7px 12px; border-radius: 999px; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--c-dark-80); background: var(--c-white); box-shadow: inset 0 0 0 1px var(--c-dark-20); transition: box-shadow 0.15s ease, color 0.15s ease; }
+.chainChip:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--c-dark-40, var(--c-dark-30)); }
+.chainChip[aria-pressed="true"] { color: var(--c-primary); box-shadow: inset 0 0 0 1.5px var(--c-primary); }
+.chainChip:disabled { opacity: 0.5; }
+.bridgeSteps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-family: var(--font-body); font-size: 13.5px; color: var(--c-dark-80); }
+.bridgeSteps li { display: flex; align-items: center; gap: 10px; }
+.bridgeSteps a { margin-left: auto; font-size: 12.5px; color: var(--c-dark-60); text-decoration: underline; text-underline-offset: 3px; }
+.stepDot { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--c-dark-5); color: var(--c-dark-40, var(--c-dark-30)); }
+.stepDot[data-state="success"] { background: var(--c-green-10); color: var(--c-green-ink); }
+.stepDot[data-state="pending"] { background: transparent; }
+.stepDot[data-state="error"] { color: var(--c-danger, #c0392b); }
+.stepSpin { animation: stepSpin 0.9s linear infinite; }
+@keyframes stepSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .stepSpin { animation-duration: 2.4s; } }
