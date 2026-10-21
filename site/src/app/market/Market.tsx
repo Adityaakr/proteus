@@ -75,7 +75,7 @@ export default function Market() {
         </p>
       )}
       {q.isLoading ? (
-        <div className={m.sellerGrid}>
+        <div className={m.sellerList}>
           <LoadingCard lines={4} />
           <LoadingCard lines={4} />
         </div>
@@ -84,7 +84,7 @@ export default function Market() {
       ) : sellers.length === 0 ? (
         <EmptyState icon={<Store size={20} strokeWidth={1.75} />} title={deferred || cat ? "Nothing matches" : "No sellers listed yet"} description={deferred || cat ? "Try another word or clear the category." : "Sellers appear here once they publish a product."} />
       ) : (
-        <div className={m.sellerGrid}>
+        <div className={m.sellerList}>
           {sellers.map((s, i) => <SellerCard key={s.slug} s={s} i={i} />)}
         </div>
       )}
@@ -97,56 +97,74 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
   const settled = st ? BigInt(st.settled) : 0n;
   const held = st ? BigInt(st.inEscrow) : 0n;
   const wide = useLogoShape(s.brand.logoUrl) === "wide";
+  const hasTrack = Boolean(st && (st.dealsFunded > 0 || settled > 0n || held > 0n));
   return (
-    <motion.article className={m.seller} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ ...T_DEFAULT, delay: Math.min(i, 8) * 0.04 }} aria-label={s.name}>
-      <header className={m.sellerHead}>
-        {!wide && <SellerMark name={s.name} brand={s.brand} size="md" />}
-        <div className={m.sellerId}>
-          <div className={m.sellerName}>
+    <motion.article className={`${m.seller} ${s.products.length === 1 ? m.sellerHalf : ""}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ ...T_DEFAULT, delay: Math.min(i, 8) * 0.04 }} aria-label={s.name}>
+      <div className={m.sellerAside}>
+        <header className={m.sellerHead}>
+          {!wide && <SellerMark name={s.name} brand={s.brand} size="md" />}
+          <div className={m.sellerId}>
             <Link to={`/app/market/${s.slug}`} className={m.sellerLink}>{wide ? <SellerMark name={s.name} brand={s.brand} variant="wordmark" size="md" /> : s.name}</Link>
-            {s.agent && <AgentBadge agent={s.agent} />}
+            <div className={m.sellerMeta}>
+              {s.brand.category && <span>{categoryLabel(s.brand.category)}</span>}
+              {st && <span>Since {fmtDate(st.since)}</span>}
+            </div>
+          </div>
+        </header>
+        {(s.brand.verified || s.agent) && (
+          <div className={m.badges}>
             {s.brand.verified && <span className={m.badgeOk} title="Verified by Proteus AI: identity and endpoint checked by the platform operator"><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
+            {s.agent && <AgentBadge agent={s.agent} />}
           </div>
-          <div className={m.sellerMeta}>
-            {s.brand.category && <span>{categoryLabel(s.brand.category)}</span>}
-            {s.brand.website && (
-              <a href={s.brand.website} target="_blank" rel="noreferrer" className={m.site}>{new URL(s.brand.website).hostname}</a>
-            )}
-            {st && <span>Since {fmtDate(st.since)}</span>}
-          </div>
+        )}
+        {s.brand.tagline && <p className={m.tagline}>{s.brand.tagline}</p>}
+        {st && (hasTrack ? (
+          <dl className={m.stats}>
+            <div><dt>Deals</dt><dd className="app-mono">{st.dealsFunded}</dd></div>
+            <div><dt>Settled</dt><dd><Money micro={settled} digits={2} /></dd></div>
+            <div><dt title="Held in escrow on Arc">Escrow</dt><dd><Money micro={held} digits={2} /></dd></div>
+            {s.agent && <div><dt>Rating</dt><dd><RatingValue ratings={st.ratings} /></dd></div>}
+          </dl>
+        ) : (
+          <p className={m.noTrack}>No deals yet. Every deal here settles on Arc and shows up in these numbers.</p>
+        ))}
+        <div className={m.asideFoot}>
+          {s.brand.website && <a href={s.brand.website} target="_blank" rel="noreferrer" className={m.site}>{new URL(s.brand.website).hostname}</a>}
+          {s.products.length > 1 && (
+            <Link to={`/app/market/${s.slug}`} className={m.sellerMore}>
+              All {s.products.length} services <ArrowRight size={14} strokeWidth={2} aria-hidden />
+            </Link>
+          )}
         </div>
-      </header>
-      {s.brand.tagline && <p className={m.tagline}>{s.brand.tagline}</p>}
-      {st && (
-        <dl className={m.stats}>
-          <div><dt>Deals funded</dt><dd className="app-mono">{st.dealsFunded}</dd></div>
-          <div><dt>Settled</dt><dd><Money micro={settled} digits={2} /></dd></div>
-          <div><dt>In escrow</dt><dd><Money micro={held} digits={2} /></dd></div>
-          {s.agent && <div><dt>Rating</dt><dd><RatingValue ratings={st.ratings} /></dd></div>}
-        </dl>
-      )}
+      </div>
       <ul className={m.products}>
-        {s.products.map((p) => <ProductRow key={p.slug} seller={s.slug} p={p} />)}
+        {s.products.map((p) => <ProductCard key={p.slug} seller={s.slug} p={p} />)}
       </ul>
     </motion.article>
   );
 }
 
-function ProductRow({ seller, p }: { seller: string; p: MarketSellerProduct }) {
+function ProductCard({ seller, p }: { seller: string; p: MarketSellerProduct }) {
+  const startingDigits = p.startingTierUsd && Number(p.startingTierUsd.replace(/[^0-9.]/g, "")) < 1 ? 2 : 0;
   return (
     <li>
       <Link to={`/app/market/${seller}/${p.slug}`} className={m.product}>
-        <span className={m.productMain}>
+        <span className={m.productTop}>
           <span className={m.productName}>{p.name}</span>
-          {p.summary && <span className={m.productSummary}>{p.summary}</span>}
-          <dl className={m.productFacts}>
-            {p.bestUnitPriceUsd && <div><dt>Unit price</dt><dd><Money usd={p.bestUnitPriceUsd} digits={decimalsFor(p.bestUnitPriceUsd)} /><span className={m.factUnit}> / {p.unitLabel}</span></dd></div>}
-            {p.startingTierUsd && <div><dt>Prepaid from</dt><dd><Money usd={p.startingTierUsd} digits={Number(p.startingTierUsd.replace(/[^0-9.]/g, "")) < 1 ? 2 : 0} /></dd></div>}
-            {p.perCallUsd && <div><dt>Per call</dt><dd><Money usd={p.perCallUsd} digits={decimalsFor(p.perCallUsd)} /></dd></div>}
-            <div><dt>Term</dt><dd>{p.termDays} days</dd></div>
-          </dl>
+          <ArrowRight size={16} strokeWidth={2} aria-hidden className={m.productArrow} />
         </span>
-        <ArrowRight size={16} strokeWidth={2} aria-hidden className={m.productArrow} />
+        {p.summary && <span className={m.productSummary}>{p.summary}</span>}
+        {p.bestUnitPriceUsd && (
+          <span className={m.productPrice}>
+            <Money usd={p.bestUnitPriceUsd} digits={decimalsFor(p.bestUnitPriceUsd)} />
+            <span className={m.factUnit}>per {p.unitLabel}</span>
+          </span>
+        )}
+        <span className={m.productChips}>
+          {p.startingTierUsd && <span className={m.chip}>From <Money usd={p.startingTierUsd} digits={startingDigits} /> prepaid</span>}
+          {p.perCallUsd && <span className={m.chip}><Money usd={p.perCallUsd} digits={decimalsFor(p.perCallUsd)} /> per call</span>}
+          {p.termDays !== 30 && <span className={m.chip}>{p.termDays}-day term</span>}
+        </span>
       </Link>
     </li>
   );

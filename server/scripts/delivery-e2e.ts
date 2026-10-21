@@ -82,6 +82,8 @@ const qv = (await quoteView(quote.id, buyer.address)) as unknown as { typedData:
 const terms = toBig(qv.typedData.message);
 const buyerSig = await buyer.signTypedData({ domain: domain(env.CHAIN_ID, escrowAddress()), types: TERMS_TYPES, primaryType: "Terms", message: terms as never });
 const dealId = await acceptQuote(quote.id, buyer.address as Address, buyerSig);
+// The test seller exists only for this run; unlist it once the deal exists so it never stays in the market.
+await db.update(schema.products).set({ active: false }).where(eq(schema.products.id, productId));
 const prepaid = terms.prepaid as bigint;
 log("deal", { dealId, prepaid, units: terms.maxUnits });
 
