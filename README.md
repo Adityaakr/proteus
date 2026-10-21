@@ -111,6 +111,8 @@ sequenceDiagram
     B->>E: refundUnused after the term (or after the seller closes early)
 ```
 
+![The market: each seller's published services, unit prices and on-chain track record](docs/images/market.jpg)
+
 What a buyer sees: a market of services with published unit prices, a chat with the seller's agent that only ever quotes offers the seller's rules allow, a review page with the exact terms and the on-chain details, a deal page with a live balance, a request form shaped to the service, receipts per request, and one button to settle or refund.
 
 What a seller sees: a console to publish a product (unit definition, public tiers, private costs, margin floor, capacity, approval threshold, the fields a buyer must send), every negotiation with the agent's reasoning and the rule ids behind each refusal, approvals waiting, deals, usage and payouts.
@@ -494,7 +496,7 @@ Hosting: one Railway service runs the API, the reconciler and serves the built s
 |---|---|---|
 | Buyer funds | the escrow contract | released by `settleAcceptedUsage` with the buyer's Acceptance signature, by `refundUnused` to the buyer, or by `resolveDispute` at the arbiter's split between buyer and payee; the owner has no transfer function (invariant-tested) but appoints the arbiter |
 | Buyer wallet | a Circle user-controlled wallet created at sign-in (2-of-2 MPC, PIN held by the person, EOA on Arc), an external wallet such as MetaMask, or, for an agent, a Circle Agent Wallet driven by the Circle CLI; the buyer picks the active one | Proteus AI never holds a key; every Circle signature is a challenge the person or agent approves; link proofs are wallet signatures over a nonce |
-| Seller signing key | generated per org, AES-256-GCM encrypted in Postgres under `KEY_ENCRYPTION_SECRET` | signs Terms, Delivery, receipt digests and x402 seller proofs; can be revoked; the payee is fixed in each funded deal, so a leak cannot redirect escrow payouts already agreed. A leaked key could countersign new terms, open disputes to freeze deals, and spend unswept pay-per-call balance on the collector |
+| Seller signing key | generated per org, AES-256-GCM encrypted in Postgres under `KEY_ENCRYPTION_SECRET` (required on mainnet; keys written earlier under the `SESSION_SECRET` fallback still decrypt, GCM authenticates every attempt) | signs Terms, Delivery, receipt digests and x402 seller proofs; can be revoked; the payee is fixed in each funded deal, so a leak cannot redirect escrow payouts already agreed. A leaked key could countersign new terms, open disputes to freeze deals, and spend unswept pay-per-call balance on the collector |
 | Seller endpoint secret | encrypted at rest, decrypted per call, never returned by the API | |
 | Deal API key | `pk_live_…` (the prefix is historical; every key is testnet), only its SHA-256 stored, shown once | rotation needs a buyer wallet signature over a 5-minute timestamp |
 | Relayer key | `RELAYER_PRIVATE_KEY` or a Circle developer-controlled wallet | calls `createAndFundDeal`, `settleAcceptedUsage`, `refundUnused`, and for gasless funding a Multicall3 batch of USDC `permit` plus `createAndFundDeal` (batch targets are restricted to USDC and the escrow); authority is in the signatures it relays |
