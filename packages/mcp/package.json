@@ -1,0 +1,26 @@
+{
+  "name": "@proteus/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Proteus AI as an MCP server: AI agents find services, verify sellers on Arc, negotiate within a budget, fund USDC escrow and use the service.",
+  "type": "module",
+  "bin": {
+    "proteus-mcp": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.3.1",
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.3.1",
+    "@proteus/domain": "workspace:*",
+    "viem": "^2.57.7",
+    "zod": "^4.6.7"
+  }
+}
