@@ -321,7 +321,7 @@ function NotificationsCard() {
         <Field label="Webhook URL (https)" value={cur.webhookUrl} onChange={set("webhookUrl")} placeholder="https://yourshop.com/hooks/proteus" />
         <p className={s.hint}>Each POST carries <code>X-Proteus-Signature: t=&lt;unix&gt;,v1=&lt;hex&gt;</code>, an HMAC-SHA256 of <code>t.body</code> with your signing secret. No API keys or buyer contact details are ever sent.</p>
         {secret && (
-          <Notice tone="warning">
+          <Notice tone="warn">
             Signing secret, shown once. Store it now: <MonoValue value={secret} copy label="webhook signing secret" />
           </Notice>
         )}

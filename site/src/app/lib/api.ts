@@ -76,7 +76,7 @@ export function stringifyBigSafe(v: unknown): string {
   return JSON.stringify(v, (_k, val) => (typeof val === "bigint" ? val.toString() : val));
 }
 
-type Method = "GET" | "POST" | "PATCH" | "DELETE";
+type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /**
  * Access token source for `Authorization: Bearer`. PrivyAppProvider registers Privy's
