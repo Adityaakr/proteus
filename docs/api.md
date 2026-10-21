@@ -231,3 +231,25 @@ The endpoint answers with JSON: `{ "answer": "...", "billable": true | false, "s
 - `GET /api/app/customers`: one row per buyer wallet with negotiation and deal counts, funded, settled, in escrow, products and first/last activity.
 - `GET /api/app/usage`: totals plus the latest 300 service requests with outcome, billed units, cumulative charge, latency and whether the seller receipt is signed.
 - `GET /api/app/insights`: a 30-day daily series (negotiations, deals funded, USDC funded, USDC settled from confirmed usage acceptances, requests, billable units) plus conversion and delivery counts. Counts and sums only.
+
+## Deal desk additions (2026-10-22)
+
+All amounts are micro-USDC strings. Seller routes need the owner session.
+
+### Gasless funding (buyer, no transaction)
+- `GET /api/deals/:id/permit` returns the EIP-2612 USDC permit to sign: `{ domain: { name, version, chainId, verifyingContract: USDC }, types: { Permit }, primaryType: "Permit", message: { owner, spender: escrow, value: prepaid, nonce, deadline } }`. Check that `owner` is your wallet, `spender` is `deal.escrowAddress`, and `value` equals `terms.prepaid` before signing.
+- `POST /api/deals/:id/fund-gasless { deadline, signature }`: the relayer submits `permit` and `createAndFundDeal` in one Multicall3 transaction. 409 if the deal is not awaiting funding, the balance is short, or the simulation reverts. Returns the deal with `status: "funding_pending"` and `funding.txHash`.
+
+### Disputes
+- `GET /api/deals/:id/dispute`: the dispute (if any) and the escrow's arbiter.
+- `POST /api/deals/:id/dispute { txHash, reason }`: record a dispute that the buyer opened on chain with `openDispute(dealId, keccak256(reason))`. The server checks the DisputeOpened event and the reason hash.
+
+### Pay per call: second x402 option
+The 402 body's `accepts` lists `exact` (Circle facilitator, `extra.name = "USDC"`) and, when Gateway supports the network, Circle Gateway batched (`extra.name = "GatewayWalletBatched"`, `extra.verifyingContract` = GatewayWallet). A `gateway` object gives the signing domain, `minValiditySeconds` and `payTo`. To pay with it, deposit USDC into the GatewayWallet once, sign `TransferWithAuthorization` under that domain with `validBefore` at least `minValiditySeconds` ahead and the `nonce` from the 402 body, and send `payment: { scheme: "gateway", signature, authorization }`. The response carries `payment.gatewayTransferId`; there is no per-call transaction hash.
+
+### Seller console
+- `POST /api/app/deals/:id/deliveries { units, note?, proofUrl?, requestId }`: record a seller-confirmed delivery batch. It is idempotent per `requestId` and refused beyond the agreement.
+- `GET /api/app/export.csv?kind=deals|receipts|journal`: CSV download. Journal columns: Date, Journal No, Account, Debit, Credit, Description, Reference (Arc tx), Explorer.
+- `GET /api/app/notifications`, `PUT /api/app/notifications { email?, telegramChatId?, webhookUrl? }` (returns `webhookSecret` once, when a webhook is created), `POST /api/app/notifications/test` (returns `{ ok, errors }`).
+- Webhook request: `POST <url>`, JSON `{ id, event, createdAt, data }`. `event` is one of `deal_funded`, `usage_settled`, `refund_issued`, `dispute_opened`, `dispute_resolved`, `approval_required`, `test`. Header `X-Proteus-Signature: t=<unix>,v1=<hex HMAC-SHA256(secret, "<t>.<body>")>`.
+- `GET /api/app/embed`, `PUT /api/app/embed { domains: ["https://shop.example"] }`: sites allowed to frame `/embed/:seller`. An empty list allows any site.

@@ -55,16 +55,17 @@ Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. L
 4. [Architecture](#architecture)
 5. [The escrow contract](#the-escrow-contract)
 6. [Seller identity, policy commitments and ratings on Arc](#seller-identity-policy-commitments-and-ratings-on-arc)
-7. [Verify it yourself on Arc testnet](#verify-it-yourself-on-arc-testnet)
-8. [The negotiation engine and the agent](#the-negotiation-engine-and-the-agent)
-9. [Services, receipts and settlement](#services-receipts-and-settlement)
-10. [For agents: skills and per-service references](#for-agents-skills-and-per-service-references)
-11. [API](#api)
-12. [Run it locally](#run-it-locally)
-13. [Security model](#security-model)
-14. [Honesty labels](#honesty-labels)
-15. [Roadmap to production](#roadmap-to-production)
-16. [Repository layout](#repository-layout)
+7. [Deal desk features](#deal-desk-features)
+8. [Verify it yourself on Arc testnet](#verify-it-yourself-on-arc-testnet)
+9. [The negotiation engine and the agent](#the-negotiation-engine-and-the-agent)
+10. [Services, receipts and settlement](#services-receipts-and-settlement)
+11. [For agents: skills and per-service references](#for-agents-skills-and-per-service-references)
+12. [API](#api)
+13. [Run it locally](#run-it-locally)
+14. [Security model](#security-model)
+15. [Honesty labels](#honesty-labels)
+16. [Roadmap to production](#roadmap-to-production)
+17. [Repository layout](#repository-layout)
 
 ---
 
@@ -121,7 +122,7 @@ What a seller sees: a console to publish a product (unit definition, public tier
 
 Every account gets a [Circle Wallet](https://developers.circle.com/wallets/user-controlled). A person signs in with an email code, chooses a PIN, and Circle creates a user-controlled wallet on Arc: the key is split between Circle's MPC and that PIN, so neither Proteus AI nor Circle can sign alone, and every Terms signature, usage acceptance and transaction is approved by the person in Circle's window. People who already have MetaMask or another wallet sign in with it instead and can link both to one account.
 
-Agents use the same rails with a [Circle Agent Wallet](https://developers.circle.com/agent-stack/agent-wallets): the Circle CLI signs the EIP-712 Terms and Acceptance (`circle wallet sign`), approves USDC to the escrow (`circle wallet execute`), and pays per call over x402 (`circle services pay`), all inside spending limits the agent's owner sets. The API treats an agent wallet exactly like a person's: a signature over the same typed data, a funding transaction from the same address.
+Agents use the same rails with a [Circle Agent Wallet](https://developers.circle.com/agent-stack/agent-wallets): the Circle CLI signs the EIP-712 Terms and Acceptance (`circle wallet sign`), funds either by signing a USDC permit (gasless, the relayer submits) or by approving USDC to the escrow (`circle wallet execute`), and pays per call over x402 (`circle services pay`), all inside spending limits the agent's owner sets. The [MCP server](packages/mcp) gives any MCP client the same loop as tools. The API treats an agent wallet exactly like a person's: a signature over the same typed data, a funding transaction from the same address.
 
 ## Why this design
 
@@ -293,6 +294,24 @@ The escrow binds the money. These three pieces bind **who the seller is, which r
 
 The same run proves the refusals: a stale v1 offer after the edit, a payee that no longer matches the chain, feedback tagged for another deal, and a seller rating its own agent (rejected by the ERC-8004 registry itself). Contract tests: `pnpm contracts:test` now runs 43 tests, including 15 for `ProteusPolicyRegistry` (authority, replay, expiry, signer rotation, immutability, monotonic versions under fuzzing) and the golden vector.
 
+## Deal desk features
+
+Each feature landed as its own commit, together with the script that proves it. The scripts run against Arc testnet with real transactions, and the transaction hashes are in the commit messages.
+
+| Feature | What it does | Where | Proof |
+|---|---|---|---|
+| Seller-confirmed delivery | For physical goods and offline services, the seller records a delivery batch (units, note, proof URL). It becomes a seller-signed receipt the buyer countersigns, and the escrow pays only countersigned units. Labeled "confirmed by seller, not verified by Proteus". Idempotent per batch key, capped by the agreement | `server/src/services/delivery.ts`, `POST /api/app/deals/:id/deliveries` | `server/scripts/delivery-e2e.ts`: seller paid exactly 4 x $0.05 |
+| Deal agent on the seller's own website | One script tag puts the seller's deal agent on any site, as a floating "Get a quote" button or an inline panel. Customers ask about products and prices and get a policy-checked offer without a call. Signing and payment open Proteus AI in a new tab, never inside the frame. The seller can limit which sites may embed it (CSP `frame-ancestors`) | `site/public/embed.js`, `/embed/:seller`, `server/src/services/embed.ts` | tested from a third-party origin |
+| MCP server for AI agents | 9 tools (discover, negotiate, verify the seller on Arc, accept, fund, call, settle, status) behind a spending mandate (`PROTEUS_MAX_PREPAID_USDC`). Without a key it returns typed data for a Circle Agent Wallet to sign | `packages/mcp` | `packages/mcp/scripts/agent-run.ts` (a scripted client, not an LLM): mandate refusal, gasless fund, call, settle |
+| Gasless funding | The buyer signs Terms and an EIP-2612 USDC permit for exactly the prepaid amount, and sends no transaction. The relayer submits permit and `createAndFundDeal` in one Multicall3 transaction. No contract change. Client, server and MCP all refuse a permit for any other owner, spender, amount or token | `server/src/services/gasless.ts`, `GET /api/deals/:id/permit`, `POST /api/deals/:id/fund-gasless` | `GASLESS=1 delivery-e2e.ts`: buyer nonce unchanged |
+| x402 via Circle Gateway batching | Pay per call gets a second x402 option next to `exact`. The buyer deposits USDC into the GatewayWallet once, then every call is a signature: no gas, no per-call transfer, settled by Gateway in batches (`@circle-fin/x402-batching`) | `server/src/services/x402.ts` | `server/scripts/x402-gateway-e2e.ts`: Gateway transfer id, replay not charged |
+| Disputes | The buyer opens a dispute from their own wallet (`openDispute`, reason hash on chain, text kept by the server). The deal freezes, and the arbiter splits only the unspent balance. Journal entries balance | `server/src/services/disputes.ts`, `server/scripts/resolve-dispute.ts` | `DISPUTE=1 delivery-e2e.ts` |
+| Accounting export | CSVs for deals, receipts and double-entry journal lines in the column shape QuickBooks Online and Xero import. Every money row links its Arc transaction. Cells are protected against spreadsheet formula injection | `server/src/services/exports.ts`, `GET /api/app/export.csv?kind=` | |
+| Notifications | Email, Telegram or HMAC-signed webhook when a deal is funded, settled, refunded or disputed, or an offer needs approval. Each event is queued once per on-chain log. Webhooks are SSRF-guarded. Messages carry no API keys or buyer contact details | `server/src/services/notify.ts` | `server/scripts/notify-check.ts` |
+| Fund from any chain | CCTP via Circle Bridge Kit from 25 source chains, Solana included, straight to the buyer's Arc wallet | `site/src/app/lib/bridge.ts` | a real 0.98 USDC mainnet bridge |
+
+Not built, on purpose: treasury yield on idle seller USDC. Circle Earn is not generally available on Arc mainnet, and USYC is limited to allowlisted non-US institutions with a high minimum. A yield toggle would also turn a payments tool into custody of seller funds, which is a regulatory step and not a feature.
+
 ## Verify it yourself on Arc testnet
 
 Every hash is a confirmed Arc testnet transaction and links to the explorer. The buyer in these runs was the project's own funded key: proof of the mechanism, not of traction.
@@ -423,11 +442,12 @@ All routes are under `/api`. Amounts are micro-USDC strings. Full detail in [`do
 | Discover | `GET /market`, `GET /market/sellers`, `GET /public/sellers/:s`, `GET /public/sellers/:s/products/:p`, plus `skill.md` and `openapi.json` beneath each product, `GET /public/agents/skill.md` |
 | Negotiate | `POST /negotiations`, `GET /negotiations/:id`, `POST /negotiations/:id/messages`, `POST /negotiations/:id/counter`, `POST /negotiations/:id/quotes` |
 | Sign | `GET /quotes/:id?buyer=0x…` (typed data), `POST /quotes/:id/accept { buyerAddress, buyerSignature }` |
-| Fund and use | `GET /deals/:id` (the deal id is an unguessable capability; the API key is returned once, when provisioned), `POST /deals/:id/funding-intent { txHash? }`, `POST /services/:product/execute` (Bearer key), `POST /deals/:id/service/rotate-key` |
+| Fund and use | `GET /deals/:id` (the deal id is an unguessable capability; the API key is returned once, when provisioned), `POST /deals/:id/funding-intent { txHash? }`, gasless: `GET /deals/:id/permit` then `POST /deals/:id/fund-gasless { deadline, signature }`, `POST /services/:product/execute` (Bearer key), `POST /deals/:id/service/rotate-key` |
 | Settle | `GET /deals/:id/usage`, `POST /deals/:id/usage-acknowledgments`, `POST /deals/:id/refund-request` |
-| Pay per call | `POST /pay/:seller/:product/execute` (402 then payment) |
+| Disputes | `GET /deals/:id/dispute`, `POST /deals/:id/dispute { txHash, reason }` (after `openDispute` from the buyer's wallet) |
+| Pay per call | `POST /pay/:seller/:product/execute` (402 lists two x402 options: `exact` via Circle's facilitator, and Circle Gateway batched; send `payment.scheme: "gateway"` for the second) |
 | Account | `GET /me`, `PATCH /me { mode }`, `GET /me/wallet`, `POST /me/wallets/link`, `PATCH /me/wallets/primary`, `GET /me/negotiations`, `GET /me/deals` |
-| Seller | `POST /orgs`, `POST /me/products`, `PATCH /app/products/:id/listing`, `DELETE /app/products/:id`, `GET /app/negotiations`, approvals, deals, usage, finance, `GET /app/signer` |
+| Seller | `POST /orgs`, `POST /me/products`, `PATCH /app/products/:id/listing`, `DELETE /app/products/:id`, `GET /app/negotiations`, approvals, deals, usage, finance, `GET /app/signer`, `POST /app/deals/:id/deliveries`, `GET /app/export.csv?kind=deals\|receipts\|journal`, `GET/PUT /app/notifications`, `POST /app/notifications/test`, `GET/PUT /app/embed` |
 | Invite gate | `GET /invites/status`, `POST /invites/redeem { code }` (signed in: binds to the account; signed out: sets a 7-day signed grant cookie that binds on the first signed-in call), `POST /admin/invites { count, label?, maxUses?, expiresInDays? }`, `GET /admin/invites`, `POST /admin/invites/revoke { invite }` (bearer `ADMIN_TOKEN`) |
 | Public records | `GET /review`, `GET /review/:publicId` (redacted, with transaction hashes) |
 | Chain relay | `POST /rpc` (same-origin read relay plus `eth_sendRawTransaction`, so a browser content blocker cannot stop a signature or a broadcast) |
@@ -477,13 +497,15 @@ Hosting: one Railway service runs the API, the reconciler and serves the built s
 | Seller signing key | generated per org, AES-256-GCM encrypted in Postgres under `KEY_ENCRYPTION_SECRET` | signs Terms, Delivery, receipt digests and x402 seller proofs; can be revoked; the payee is fixed in each funded deal, so a leak cannot redirect escrow payouts already agreed. A leaked key could countersign new terms, open disputes to freeze deals, and spend unswept pay-per-call balance on the collector |
 | Seller endpoint secret | encrypted at rest, decrypted per call, never returned by the API | |
 | Deal API key | `pk_live_…` (the prefix is historical; every key is testnet), only its SHA-256 stored, shown once | rotation needs a buyer wallet signature over a 5-minute timestamp |
-| Relayer key | `RELAYER_PRIVATE_KEY` or a Circle developer-controlled wallet | can only call `createAndFundDeal`, `settleAcceptedUsage`, `refundUnused`; authority is in the calldata it relays |
+| Relayer key | `RELAYER_PRIVATE_KEY` or a Circle developer-controlled wallet | calls `createAndFundDeal`, `settleAcceptedUsage`, `refundUnused`, and for gasless funding a Multicall3 batch of USDC `permit` plus `createAndFundDeal` (batch targets are restricted to USDC and the escrow); authority is in the signatures it relays |
+| Seller webhooks | URL plus a signing secret (shown once, AES-256-GCM encrypted) | https only; DNS resolved and private, loopback, link-local and IPv6-ULA addresses refused at save and at send; no redirects; 5 s timeout; body ignored; `X-Proteus-Signature: t=,v1=` HMAC-SHA256. A DNS answer that changes between the check and the request is not fully excluded |
+| Embedded deal agent | `/embed/:seller` on Proteus AI's origin, framed by the seller's site | only `/embed/*` may be framed (`frame-ancestors` is the seller's allow-list, or any site); every other page sends `frame-ancestors 'self'` and `X-Frame-Options: SAMEORIGIN`; no signing or payment happens inside the frame |
 | Invite gate | codes are `PRX-XXXX-XXXX-XXXX`, 12 symbols from a 31-symbol alphabet (60 bits); only an HMAC under `INVITE_PEPPER` is stored, the plaintext is returned once at minting | every signed-in account needs a bound code before any product route answers (403 `invite_required`); a code is consumed atomically on binding so the last use cannot be shared; attempts are limited per IP and per account; codes expire and revoke; anonymous agents present a code in `X-Invite-Code` to start a negotiation; the admin routes need a constant-time-compared `ADMIN_TOKEN` and are absent when it is unset |
 | Login | Circle: email OTP in Circle's web SDK, the user token verified server side with the API key, then a Proteus AI HS256 session (14 days, HttpOnly cookie or bearer). Browser wallets: a nonce signed with `personal_sign`, verified with viem. Privy: JWT verified against the app's JWKS, issuer `privy.io`, audience the app id |
 | Account wallet (Circle) | Circle user-controlled wallet, 2-of-2 MPC, EOA on Arc, PIN held by the person | every signature and transaction is a challenge created by the API and approved by the person in Circle's UI; the API key never reaches the browser; there is no exportable key | the dev bypass is disabled when `NODE_ENV=production`; `NODE_ENV` defaults to development, so set it on any shared host |
 | Prompt injection | buyer text is data to every model call, including the service agents | the policy engine never reads prose; the figure guard discards replies with unlisted numbers |
 
-Residual risks are written down, not hidden: a hostile arbiter, legal enforceability and quality disputes are out of scope of the contract ([`docs/threat-model.md`](docs/threat-model.md)); the server holds every org's seller key, so the server as a whole has seller authority; deal and negotiation routes rely on unguessable ids rather than login, so an agent can drive them with wallet signatures alone; there is no rate limiting on public routes yet; the invariant tests do not cover the dispute path; a seller payee blocklisted on Arc would make settlement revert until the arbiter routes funds.
+Residual risks are written down, not hidden: a hostile arbiter, legal enforceability and quality disputes are out of scope of the contract ([`docs/threat-model.md`](docs/threat-model.md)); the server holds every org's seller key, so the server as a whole has seller authority; deal and negotiation routes rely on unguessable ids rather than login, so an agent can drive them with wallet signatures alone; public routes are not rate limited yet, except negotiation start and messages (per IP); the invariant tests do not cover the dispute path; a seller payee blocklisted on Arc would make settlement revert until the arbiter routes funds.
 
 ## Honesty labels
 
@@ -507,6 +529,7 @@ Where the code stands today and what it takes to run real money through it. Each
 - x402 pay per call verified and settled through [Circle's facilitator](https://explorer.testnet.arc.io/tx/0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8).
 - Contract source verified; 43 contract tests (DealEscrow unit, fuzz and invariants, ProteusPolicyRegistry, policy golden vector), 17 domain and 9 server tests, plus the on-chain end-to-end script server/scripts/arc-registry-e2e.ts.
 - Sign-in with Circle Wallets (email OTP, PIN-protected MPC wallet on Arc) or an external wallet; Circle Agent Wallets for agents; seller console, request specs per product, service agents, skills and OpenAPI per service.
+- The [deal desk features](#deal-desk-features): gasless funding with a USDC permit (Arc USDC supports EIP-2612), x402 through Circle Gateway batching, seller-confirmed delivery, disputes, the embeddable deal agent, the MCP server, accounting exports and seller notifications.
 
 **Phase 1: hosted testnet beta** (weeks, no contract change)
 
@@ -518,7 +541,6 @@ Where the code stands today and what it takes to run real money through it. Each
 | One recorded loop negotiated by the model adapter and one driven by an autonomous buyer agent using the buyer skill | the on-chain proof negotiated rule-based and was scripted | [`docs/acceptance-report.md`](docs/acceptance-report.md) |
 | Independent buyers on testnet with their own wallets | the proof used the project's key | |
 | Playwright end-to-end suite over the browser loop | UI is walked by screenshots today | `site/scripts/` |
-| Single-transaction funding with `permit` or EIP-3009 if Arc USDC supports it | funding is approve plus transferFrom | [`OPEN_ISSUES.md`](OPEN_ISSUES.md) |
 
 **Phase 2: production readiness** (before any real funds)
 
@@ -530,7 +552,7 @@ Where the code stands today and what it takes to run real money through it. Each
 | Org signer keys and endpoint secrets in a KMS or HSM, key rotation, and the pay-per-call collector swept automatically | AES-256-GCM under one env secret today | `server/src/lib/crypto.ts` |
 | Seller verification (domain and payee proof) behind the "Verified seller" flag | the flag is platform-set today | |
 | Observability: structured logs, traces on the relayer and reconciler, alerts on reconciler lag and failed settlements; database backups and a restore drill | none today | |
-| Webhook delivery of receipts and settlements to the buyer's system; an MCP server exposing a funded deal as a tool | polling only today | |
+| Webhook delivery of receipts and settlements to the buyer's system (sellers have webhooks; buyers poll) | buyer side polls today | `server/src/services/notify.ts` |
 | Live list provider for Lantern, and compliance screening on counterparties before money moves | Lantern's memo says plainly it has no live list access | `server/src/services/workers.ts` |
 | Legal: terms of service, the enforceability of signed terms per jurisdiction, and what the arbiter is | out of scope of the contract today | |
 
@@ -544,13 +566,16 @@ Where the code stands today and what it takes to run real money through it. Each
 
 ```
 packages/domain/     money.ts (micro-USDC bigint math), pricing.ts (candidates, policy), terms.ts (EIP-712), api.ts (zod), arc.ts
+packages/mcp/        Proteus AI MCP server (stdio) for AI agents, scripts/agent-run.ts
 server/src/
   agent/             adapter.ts (contract + injection patterns), rule-based.ts, openrouter.ts, anthropic.ts
-  services/          negotiation, quotes, deals, usage, gateway (metering), workers (service agents), x402, accounts, agentdocs
+  services/          negotiation, quotes, deals, usage, gateway (metering), workers (service agents), x402 (exact + Gateway batched),
+                     accounts, agentdocs, delivery, disputes, gasless, embed, exports, notify
   chain/             relayer (viem | Circle), signer (encrypted org keys), reconciler (balances from chain), client
   routes/            public, deals, pay, me, app (seller console), auth, session
   db/schema.ts       Drizzle schema
-server/scripts/      gen-keys, seed, seed-example-sellers, set-request-specs, reprice-market, testnet-demo, circle-wallet
+server/scripts/      gen-keys, seed, seed-example-sellers, set-request-specs, reprice-market, testnet-demo, circle-wallet,
+                     delivery-e2e (DISPUTE=1, GASLESS=1), x402-gateway-e2e, notify-check, resolve-dispute
 site/src/
   sections/          marketing page sections (Framer-faithful rebuild)
   app/               market, buyer (negotiate, fund, deal), wallet, sell (onboarding, console), docs, auth (Circle Wallets; Privy kept as a fallback provider), ui
