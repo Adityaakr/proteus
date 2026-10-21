@@ -23,3 +23,13 @@
 ## Invariants (added 2026-10-22)
 - policyCommitment encoding is pinned by a golden vector in both contracts/test/PolicyCommitment.t.sol and packages/domain/test/policy.test.ts; change both or neither.
 - Mainnet blockscout API is behind Cloudflare: verify new mainnet contracts with --verifier sourcify.
+
+## Decision log (2026-10-22, deal desk features)
+- Gasless funding uses EIP-2612 permit + createAndFundDeal batched through Multicall3 (canonical 0xcA11…CA11, present on 5042 and 5042002). No contract change. The relayer's batch targets are restricted to USDC and the escrow (server/src/chain/relayer.ts batchData). The permit field order is owner, spender, value, nonce, deadline; the wrong order fails with "EIP2612: invalid signature".
+- x402 has a second scheme, "gateway" (Circle Gateway batched, @circle-fin/x402-batching 3.5.0). The verifying contract and minValiditySeconds (604800) are read from Gateway /v1/x402/supported. Gateway refuses known public-key payees ("unauthorized"), so test sellers must have real payees.
+- Notifications use a single outbox keyed by txHash:logIndex and are drained after each reconciler tick. Webhook URLs are re-checked against the SSRF rules at send time.
+- Treasury yield was cut: Earn is not GA on Arc mainnet, USYC is allowlisted, and it would be custody.
+
+## Lessons (2026-10-22)
+- `tsc -p .` at site/ does not typecheck the app (project references). Use `pnpm --filter ./site build` (tsc -b) before declaring the site green.
+
