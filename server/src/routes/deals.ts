@@ -2,7 +2,9 @@ import { Hono } from "hono";
 import { ServiceExecuteBody, UsageAckBody } from "@proteus/domain";
 import type { Hex } from "viem";
 import { reconcileOnce } from "../chain/reconciler";
-import { json, toBig } from "../lib/http";
+import { HttpError, json, toBig } from "../lib/http";
+import { env } from "../env";
+import { confirmRating, ratingInputs } from "../services/ratings";
 import { dealView, fundingIntent, provisionIfFunded, requestRefund, rotateServiceKey } from "../services/deals";
 import { authenticateDeal, execute } from "../services/gateway";
 import { acknowledgeUsage, pendingAcceptance } from "../services/usage";
@@ -30,6 +32,14 @@ dealRoutes.post("/deals/:id/usage-acknowledgments", async (c) => {
   const settlement = await acknowledgeUsage(c.req.param("id"), { buyerSignature: body.buyerSignature as Hex, cumulativeUnits: toBig(body.cumulativeUnits), cumulativeAmount: toBig(body.cumulativeAmount), receiptsRoot: body.receiptsRoot as Hex, nonce: toBig(body.nonce), expiry: toBig(body.expiry) });
   setTimeout(() => reconcileOnce().catch(() => {}), 1500);
   return json(c, { settlement, deal: await dealView(c.req.param("id")) });
+});
+
+/* Ratings: the buyer's wallet posts giveFeedback on Arc's ERC-8004 ReputationRegistry; the server verifies it on chain. */
+dealRoutes.get("/deals/:id/rating", async (c) => json(c, await ratingInputs(c.req.param("id"), env.WEB_ORIGIN || new URL(c.req.url).origin)));
+dealRoutes.post("/deals/:id/rating", async (c) => {
+  const { txHash } = (await c.req.json()) as { txHash?: string };
+  if (!txHash || !/^0x[0-9a-fA-F]{64}$/.test(txHash)) throw new HttpError(400, "txHash: the giveFeedback transaction hash");
+  return json(c, await confirmRating(c.req.param("id"), txHash as Hex));
 });
 
 dealRoutes.post("/deals/:id/service/rotate-key", async (c) => {

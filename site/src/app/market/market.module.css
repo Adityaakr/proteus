@@ -38,7 +38,7 @@
 .badgeOk { color: var(--c-green-ink); background: var(--c-green-10); }
 .badgeMuted { color: var(--c-dark-60); background: var(--c-dark-5); }
 .tagline { margin: 0; font-family: var(--font-body); font-size: 14.5px; line-height: 1.5; color: var(--c-dark-80); }
-.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 12px 0 0; border-top: 1px solid var(--c-dark-10); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; margin: 0; padding: 12px 0 0; border-top: 1px solid var(--c-dark-10); }
 .stats div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .stats dt { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--c-dark-60); }
 .stats dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 14px; color: var(--c-dark); }
@@ -146,3 +146,11 @@
 .bareText { margin: 0; font-family: var(--font-body); font-size: 14px; line-height: 1.5; color: var(--c-dark-60); }
 .priceInline { font-size: 18px; letter-spacing: -0.2px; }
 .fine { font-size: 12.5px; color: var(--c-dark-60); }
+
+/* ERC-8004 identity and verified ratings */
+.agentBadge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-family: var(--font-body); font-size: 12px; font-weight: 500; color: var(--c-dark-80); background: var(--c-dark-5); box-shadow: inset 0 0 0 1px var(--c-dark-10); text-decoration: none; }
+.agentBadge:hover { color: var(--c-dark); box-shadow: inset 0 0 0 1px var(--c-dark-20); }
+.rating { display: inline-flex; align-items: center; gap: 3px; font-family: var(--font-mono); }
+.ratingStar { color: #f5a524; fill: #f5a524; }
+.ratingCount { color: var(--c-dark-60); }
+.ratingNone { font-family: var(--font-body); font-size: 12.5px; color: var(--c-dark-60); }

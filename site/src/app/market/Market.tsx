@@ -1,4 +1,5 @@
 import { useDeferredValue, useMemo, useState } from "react";
+import { AgentBadge, RatingValue } from "./OnArc";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, Search, Store } from "lucide-react";
@@ -103,6 +104,7 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
         <div className={m.sellerId}>
           <div className={m.sellerName}>
             <Link to={`/app/market/${s.slug}`} className={m.sellerLink}>{wide ? <SellerMark name={s.name} brand={s.brand} variant="wordmark" size="md" /> : s.name}</Link>
+            {s.agent && <AgentBadge agent={s.agent} />}
             {s.brand.verified && <span className={m.badgeOk} title="Verified by Proteus AI: identity and endpoint checked by the platform operator"><BadgeCheck size={13} strokeWidth={2.25} aria-hidden /> Verified seller</span>}
           </div>
           <div className={m.sellerMeta}>
@@ -120,6 +122,7 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
           <div><dt>Deals funded</dt><dd className="app-mono">{st.dealsFunded}</dd></div>
           <div><dt>Settled</dt><dd><Money micro={settled} digits={2} /></dd></div>
           <div><dt>In escrow</dt><dd><Money micro={held} digits={2} /></dd></div>
+          {s.agent && <div><dt>Rating</dt><dd><RatingValue ratings={st.ratings} /></dd></div>}
         </dl>
       )}
       <ul className={m.products}>

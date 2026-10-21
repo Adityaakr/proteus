@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { verifyTypedData, type Address, type Hex } from "viem";
-import { TERMS_TYPES, domain, hashTerms, productIdHash, publicTermsHash, type Terms } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, TERMS_TYPES, agentRegistryId, domain, hashTerms, policyRegistryFor, productIdHash, publicTermsHash, stableId, type Terms } from "@proteus/domain";
 import { escrowAddress, usdcAddress } from "../chain/client";
 import { orgSignerAccount } from "../chain/signer";
 import { db, schema } from "../db";
@@ -8,6 +8,8 @@ import { env, features } from "../env";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, publicId, randomDealId } from "../lib/ids";
 import { loadProductById } from "./catalog";
+import { assertAgentBinding } from "./agent-registry";
+import { ensurePolicyCommit, publishPolicyCommit } from "./policy-commit";
 import { loadNegotiation, reviveCandidate, toOffer } from "./negotiation";
 
 /**
@@ -16,8 +18,19 @@ import { loadNegotiation, reviveCandidate, toOffer } from "./negotiation";
  * from the same frozen fields; the server re-derives the hash at accept and refuses mismatches.
  */
 
-export function buildPublicTerms(lp: Awaited<ReturnType<typeof loadProductById>>, c: ReturnType<typeof reviveCandidate>) {
+/** What the public terms commit to about the seller's policy and on-chain identity (publicTermsVersion 2). */
+export interface PolicyBinding {
+  version: number;
+  commitment: string;
+  /** ProteusPolicyRegistry the commitment is (or will be) written to, as eip155:<chainId>:<address>. */
+  registry: string;
+  /** The seller's ERC-8004 agent, as {agentRegistry, agentId}, or null if the seller is not registered on Arc. */
+  sellerAgent: { agentRegistry: string; agentId: string } | null;
+}
+
+export function buildPublicTerms(lp: Awaited<ReturnType<typeof loadProductById>>, c: ReturnType<typeof reviveCandidate>, binding: PolicyBinding) {
   return {
+    publicTermsVersion: 2,
     product: lp.product.name,
     tier: c.tierName,
     units: c.units.toString(),
@@ -32,7 +45,10 @@ export function buildPublicTerms(lp: Awaited<ReturnType<typeof loadProductById>>
     termDays: lp.product.termDays,
     graceSeconds: env.DEAL_GRACE_SECONDS,
     refundPolicy: lp.product.refundPolicy,
-    network: "arc-testnet",
+    network: ARC_NETWORK_NAMES[features.network],
+    chainId: env.CHAIN_ID,
+    sellerAgent: binding.sellerAgent,
+    policy: { version: binding.version, commitment: binding.commitment, registry: binding.registry },
     labels: [features.network, lp.org.label],
   };
 }
@@ -47,10 +63,26 @@ export async function createQuote(negId: string, candidateId: string) {
   const [existing] = await db.select().from(schema.quotes).where(and(eq(schema.quotes.negotiationId, negId), eq(schema.quotes.candidateId, candidateId)));
   if (existing && ["draft", "approval_required", "approved"].includes(existing.status) && existing.expiresAt.getTime() > Date.now()) return quoteView(existing.id);
 
+  // The candidate id hashes the policy and cost versions it was priced under (pricing.ts stableId); if the seller edited
+  // either since, the offer no longer reflects the current rules, so the buyer must ask for a fresh one.
+  const current = stableId([lp.product.id, c.tierId, c.units.toString(), c.unitPrice.num.toString(), c.unitPrice.den.toString(), lp.cost.version, lp.policy.version]);
+  if (current !== candidateId) throw new HttpError(409, "The seller updated its pricing rules after this offer was made. Ask for a fresh offer.");
+  await assertAgentBinding(lp.org);
+  const commit = await ensurePolicyCommit(lp.policyRow, lp.product.slug);
+  if (lp.org.agentId) {
+    // Put this policy version on chain before the buyer can fund; a failure is logged and retried on the next quote.
+    await publishPolicyCommit(lp.org, { ...lp.policyRow, salt: commit.salt, policyCommit: commit.commit }, lp.product.slug).catch((e) => console.warn(`[quotes] policy commit for ${lp.org.slug}: ${(e as Error).message}`));
+  }
+  const binding: PolicyBinding = {
+    version: lp.policy.version,
+    commitment: commit.commit,
+    registry: `eip155:${env.CHAIN_ID}:${policyRegistryFor(env.CHAIN_ID)}`,
+    sellerAgent: lp.org.agentId ? { agentRegistry: agentRegistryId(env.CHAIN_ID), agentId: lp.org.agentId } : null,
+  };
   const quoteId = id("q");
   const dealIdOnchain = randomDealId();
   const expiresAt = new Date(Date.now() + lp.policy.quoteTtlSeconds * 1000);
-  const publicTerms = buildPublicTerms(lp, c);
+  const publicTerms = buildPublicTerms(lp, c, binding);
   // Terms hash placeholder until buyer address is known; stored for traceability of the frozen offer.
   await db.insert(schema.quotes).values({
     id: quoteId,
@@ -157,6 +189,8 @@ export async function acceptQuote(quoteId: string, buyer: Address, buyerSignatur
   if (!ok) throw new HttpError(400, "buyer signature does not match the quoted terms");
   const termsHash = hashTerms(env.CHAIN_ID, escrow, terms);
 
+  // A seller registered on Arc must still name this payee and signer on chain before its key countersigns.
+  await assertAgentBinding(lp.org);
   // Seller-side delegated signer countersigns identical terms (policy already enforced deterministically).
   const signer = await orgSignerAccount(lp.org.id);
   if (signer.address.toLowerCase() !== terms.seller.toLowerCase()) throw new HttpError(500, "seller signer mismatch; the org signer changed after the quote was issued");

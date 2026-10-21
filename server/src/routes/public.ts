@@ -9,6 +9,7 @@ import { addBuyerMessage, counter, negotiationView, startNegotiation } from "../
 import { env, features } from "../env";
 import { acceptQuote, createQuote, quoteView } from "../services/quotes";
 import { platformSkill, serviceOpenApi, serviceSkill } from "../services/agentdocs";
+import { policyLog, registrationFile } from "../services/agent-registry";
 import { listRecords, recordView } from "../services/review";
 import { resolveAuth } from "./auth";
 import { checkCode, clientIp } from "../services/invites";
@@ -48,6 +49,10 @@ publicRoutes.get("/public/sellers/:sellerSlug/products/:productSlug/openapi.json
   const lp = await loadProductBySlugs(c.req.param("sellerSlug"), c.req.param("productSlug"));
   return json(c, serviceOpenApi(lp, originOf(c)));
 });
+/** ERC-8004 registration file for a seller's agent (the agentURI its Arc identity points at). */
+publicRoutes.get("/public/sellers/:sellerSlug/agent.json", async (c) => json(c, await registrationFile(c.req.param("sellerSlug"), originOf(c))));
+/** Policy commitments per product and version, with the ProteusPolicyRegistry transaction for each one on chain. */
+publicRoutes.get("/public/sellers/:sellerSlug/policies", async (c) => json(c, await policyLog(c.req.param("sellerSlug"))));
 publicRoutes.get("/public/agents/skill.md", (c) => {
   c.header("content-type", "text/markdown; charset=utf-8");
   c.header("content-disposition", `inline; filename="SKILL.md"`);

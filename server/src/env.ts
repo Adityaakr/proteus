@@ -80,6 +80,13 @@ const Env = z.object({
 
 export const env = Env.parse(process.env);
 
+// Seller signer keys are encrypted with KEY_ENCRYPTION_SECRET. Without it they fall back to SESSION_SECRET, which has a
+// public default; on mainnet that is not acceptable, so refuse to start. Testnet keeps the fallback so existing keys stay readable.
+if (!env.KEY_ENCRYPTION_SECRET) {
+  if (networkOf(env.CHAIN_ID) === "mainnet") throw new Error("KEY_ENCRYPTION_SECRET is required on Arc mainnet: it encrypts every seller signer key.");
+  if (env.NODE_ENV === "production") console.warn("[env] KEY_ENCRYPTION_SECRET is not set; seller signer keys are encrypted with SESSION_SECRET. Set it.");
+}
+
 setDefaultChainId(env.CHAIN_ID);
 
 export const features = {

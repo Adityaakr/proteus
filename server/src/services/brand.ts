@@ -1,6 +1,9 @@
 import { eq, inArray, sql } from "drizzle-orm";
 import { db, schema } from "../db";
 import { HttpError } from "../lib/http";
+import { agentRegistryId } from "@proteus/domain";
+import { env } from "../env";
+import { ratingSummaries } from "./ratings";
 
 export interface Brand {
   logoUrl?: string;
@@ -76,6 +79,8 @@ export interface SellerStats {
   settled: bigint;
   /** micro-USDC currently held in escrow for this seller's deals. */
   inEscrow: bigint;
+  /** Verified ERC-8004 ratings from buyers of settled deals (services/ratings.ts), or null if none yet. */
+  ratings: { count: number; average: number; settledBehind: bigint } | null;
   since: Date;
 }
 
@@ -84,7 +89,7 @@ export async function sellerStats(orgIds: string[]): Promise<Map<string, SellerS
   const out = new Map<string, SellerStats>();
   if (!orgIds.length) return out;
   const orgs = await db.select({ id: schema.orgs.id, createdAt: schema.orgs.createdAt }).from(schema.orgs).where(inArray(schema.orgs.id, orgIds));
-  for (const o of orgs) out.set(o.id, { dealsFunded: 0, settled: 0n, inEscrow: 0n, since: o.createdAt });
+  for (const o of orgs) out.set(o.id, { dealsFunded: 0, settled: 0n, inEscrow: 0n, since: o.createdAt, ratings: null });
   const rows = await db
     .select({
       orgId: schema.deals.orgId,
@@ -103,6 +108,10 @@ export async function sellerStats(orgIds: string[]): Promise<Map<string, SellerS
       s.inEscrow = BigInt(r.held);
     }
   }
+  for (const [orgId, r] of await ratingSummaries(orgIds)) {
+    const s = out.get(orgId);
+    if (s) s.ratings = { count: r.count, average: r.average, settledBehind: r.settledBehind };
+  }
   return out;
 }
 
@@ -113,7 +122,9 @@ export function sellerCard(org: typeof schema.orgs.$inferSelect, stats?: SellerS
     name: org.name,
     label: org.label as "sandbox" | "live",
     brand,
-    stats: stats ? { dealsFunded: stats.dealsFunded, settled: stats.settled, inEscrow: stats.inEscrow, since: stats.since } : undefined,
+    stats: stats ? { dealsFunded: stats.dealsFunded, settled: stats.settled, inEscrow: stats.inEscrow, since: stats.since, ratings: stats.ratings } : undefined,
+    /** The seller's ERC-8004 agent on Arc, owned by its own wallet; null until it registers. */
+    agent: org.agentId ? { agentId: org.agentId, agentRegistry: agentRegistryId(env.CHAIN_ID) } : null,
   };
 }
 

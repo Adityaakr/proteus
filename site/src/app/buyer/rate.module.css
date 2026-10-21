@@ -1,0 +1,10 @@
+/* Seller rating on the buyer deal page */
+.picker { display: inline-flex; gap: 4px; }
+.starBtn { display: inline-flex; padding: 4px; border-radius: 8px; transition: transform 0.12s ease, background-color 0.12s ease; }
+.starBtn:hover:not(:disabled) { transform: scale(1.08); background: var(--c-dark-5); }
+.starBtn:disabled { opacity: 0.6; }
+.on { color: #f5a524; fill: #f5a524; }
+.off { color: var(--c-dark-20); fill: transparent; }
+.stars { display: inline-flex; gap: 2px; }
+.done { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+@media (prefers-reduced-motion: reduce) { .starBtn { transition: none; } .starBtn:hover:not(:disabled) { transform: none; } }

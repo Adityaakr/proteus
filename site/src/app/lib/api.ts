@@ -166,6 +166,9 @@ export const api = {
   deal: (id: string) => request<T.Deal>("GET", `/deals/${enc(id)}`),
   fundingIntent: (id: string, body: { txHash?: string } = {}) => request<T.Deal>("POST", `/deals/${enc(id)}/funding-intent`, { body }),
   usage: (id: string) => request<T.UsageResponse>("GET", `/deals/${enc(id)}/usage`),
+  /** ERC-8004 rating: giveFeedback inputs for this deal, and confirmation the server reads back from the chain. */
+  dealRating: (id: string) => request<T.DealRating>("GET", `/deals/${enc(id)}/rating`),
+  confirmDealRating: (id: string, txHash: string) => request<{ value: number; txHash: string }>("POST", `/deals/${enc(id)}/rating`, { body: { txHash } }),
   acknowledgeUsage: (id: string, body: T.UsageAckBody) => request<T.UsageAckResponse>("POST", `/deals/${enc(id)}/usage-acknowledgments`, { body }),
   requestRefund: (id: string) => request<T.RefundResponse>("POST", `/deals/${enc(id)}/refund-request`, { body: {} }),
 
@@ -231,6 +234,9 @@ export const api = {
     finance: () => request<T.SellerFinance>("GET", "/app/finance"),
     signer: () => request<T.SignerInfo>("GET", "/app/signer"),
     revokeSigner: () => request<{ revokedAt: T.IsoTime; note?: string; [k: string]: unknown }>("POST", "/app/signer/revoke", { body: {} }),
+    /** ERC-8004 identity on Arc: the inputs the seller's wallet signs, and confirmation read back from the chain. */
+    agent: () => request<T.AgentRegistration>("GET", "/app/agent"),
+    confirmAgent: (txHash: string) => request<{ agentId: string; owner: string; payee: string; signer: string; tx: string }>("POST", "/app/agent/confirm", { body: { txHash } }),
     createProduct: (body: T.ProductCreateBody) => request<T.ProductWithPrivate>("POST", "/app/products", { body }),
     setListing: (id: string, active: boolean) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/listing`, { body: { active } }),
     deleteProduct: (id: string) => request<{ deleted: string }>("DELETE", `/app/products/${enc(id)}`),

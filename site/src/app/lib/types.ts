@@ -58,6 +58,15 @@ export interface SellerStats {
   settled: MicroStr;
   inEscrow: MicroStr;
   since: IsoTime;
+  /** Verified ERC-8004 ratings from buyers of settled deals: weighted average, count, USDC settled behind them. */
+  ratings?: { count: number; average: number; settledBehind: MicroStr } | null;
+}
+
+/** The seller's ERC-8004 agent on Arc (owned by the seller's wallet), or null until it registers. */
+export interface SellerAgent {
+  agentId: string;
+  /** eip155:<chainId>:<IdentityRegistry> */
+  agentRegistry: string;
 }
 
 export type ServiceKind = "seller-endpoint" | "sample-store" | "example";
@@ -102,6 +111,7 @@ export interface PublicSeller {
   label: SellerLabel;
   brand?: SellerBrand;
   stats?: SellerStats;
+  agent?: SellerAgent | null;
   products: PublicProduct[];
   network?: NetworkLabel;
 }
@@ -644,6 +654,7 @@ export interface MarketSeller {
   label: SellerLabel;
   brand: SellerBrand;
   stats?: SellerStats;
+  agent?: SellerAgent | null;
   products: MarketSellerProduct[];
 }
 
@@ -689,3 +700,25 @@ export type PayExecuteResponse = Partial<ExecuteResponse> & {
   status: ReceiptStatus;
   payment: { paymentId: string; settleTxHash?: Hex; status: "settled" | "pending" };
 };
+
+/** GET /app/agent: inputs for register(agentURI, metadata[]) on Arc's ERC-8004 IdentityRegistry. */
+export interface AgentRegistration {
+  chainId: number;
+  registry: Address;
+  agentURI: string;
+  owner: Address;
+  payee: Address;
+  signer: Address;
+  metadata: { metadataKey: string; metadataValue: `0x${string}` }[];
+  registered: { agentId: string; owner: string | null; tx: string | null } | null;
+}
+
+/** GET /deals/:id/rating: giveFeedback inputs on Arc's ERC-8004 ReputationRegistry, and any rating already verified. */
+export interface DealRating {
+  eligible: boolean;
+  reason: string | null;
+  reputationRegistry: Address;
+  buyer: Address;
+  args: { agentId: string; valueDecimals: number; tag1: string; tag2: string; endpoint: string; feedbackURI: string; feedbackHash: `0x${string}` } | null;
+  existing: { value: number; txHash: string; createdAt: IsoTime } | null;
+}

@@ -4,7 +4,7 @@ import { BrandFields, EMPTY_BRAND, brandFromState, validateBrandState, type Bran
 import { Field } from "../../ui/Field";
 import { v1 } from "../v1";
 import type { MeOrg } from "../types";
-import { FlaskConical, KeyRound, Wallet } from "lucide-react";
+import { BadgeCheck, FlaskConical, KeyRound, Wallet } from "lucide-react";
 import { ActionButton, Card, KeyValue, LoadingCard, MonoValue, Notice, StatusTag } from "../../seller/kit";
 import { PageHeader } from "../../seller/parts/PageHeader";
 import { errorMessage } from "../../seller/transport";
@@ -13,7 +13,10 @@ import { useMe, useRevokeSigner, useSigner } from "../hooks";
 import { useAuth } from "../v1";
 import { REVOKE_NOTE, type RevokeSignerResponse } from "../types";
 import s from "../sell.module.css";
-import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, defaultNetwork, explorerAddress, explorerTx } from "@proteus/domain";
+import { useQuery } from "@tanstack/react-query";
+import type { Hex } from "viem";
+import { registerAgent, waitForReceipt, walletErrorMessage } from "../../lib/wallet";
 
 export default function Settings() {
   const { me } = useMe();
@@ -102,6 +105,8 @@ export default function Settings() {
         )}
       </Card>
 
+      {me?.org && !sandbox && <AgentIdentityCard />}
+
       {me?.org && <BrandCard org={me.org} />}
 
       {me?.org && (
@@ -153,6 +158,84 @@ function BrandCard({ org }: { org: MeOrg }) {
           </ActionButton>
         </div>
       </div>
+    </Card>
+  );
+}
+
+/**
+ * ERC-8004 identity on Arc. The seller's own wallet registers its agent in one transaction, publishing the payee and the
+ * delegated signer as on-chain metadata; Proteus reads them back and refuses to quote if they ever stop matching.
+ */
+function AgentIdentityCard() {
+  const qc = useQueryClient();
+  const auth = useAuth();
+  const q = useQuery({ queryKey: ["sell", "agent"], queryFn: () => v1.app.agent(), retry: false });
+  const [stage, setStage] = useState<"idle" | "signing" | "confirming">("idle");
+  const [hash, setHash] = useState<Hex | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const network = ARC_NETWORK_NAMES[defaultNetwork()];
+  const reg = q.data;
+  const registered = reg?.registered;
+
+  const register = async () => {
+    if (!reg) return;
+    setError(null);
+    try {
+      setStage("signing");
+      const client = await auth.getWalletClient();
+      const signerAddr = client.account?.address;
+      if (signerAddr && signerAddr.toLowerCase() !== reg.owner.toLowerCase()) throw new Error(`Switch to your owner wallet ${reg.owner.slice(0, 6)}…${reg.owner.slice(-4)}; the identity must belong to it.`);
+      const h = await registerAgent(client, reg.registry, reg.agentURI, reg.metadata);
+      setHash(h);
+      setStage("confirming");
+      const r = await waitForReceipt(h);
+      if (r.status !== "success") throw new Error("The registration transaction reverted on chain.");
+      await v1.app.confirmAgent(h);
+      await qc.invalidateQueries({ queryKey: ["sell", "agent"] });
+    } catch (e) {
+      setError(errorMessage(e) || walletErrorMessage(e));
+    } finally {
+      setStage("idle");
+    }
+  };
+
+  return (
+    <Card
+      title="Agent identity on Arc"
+      subtitle={`Register your deal agent on ${network}'s ERC-8004 registry. Your wallet owns it, and it publishes where you are paid and which key signs for you, so buyers and their agents can check both before they sign.`}
+      actions={registered ? <StatusTag tone="success" label={`Agent #${registered.agentId}`} icon={<BadgeCheck size={12} />} /> : undefined}
+    >
+      {q.isPending ? (
+        <LoadingCard label="Loading identity" />
+      ) : q.isError ? (
+        <Notice tone="info">{errorMessage(q.error)}</Notice>
+      ) : reg ? (
+        <div className={s.fields}>
+          <KeyValue
+            items={[
+              { k: "Owner", v: <MonoValue value={reg.owner} copy label="owner wallet" /> },
+              { k: "Payee", v: <MonoValue value={reg.payee} copy label="payee" /> },
+              { k: "Signer", v: <MonoValue value={reg.signer} copy label="signer" /> },
+              { k: "Registry", v: <a href={explorerAddress(reg.registry)} target="_blank" rel="noreferrer"><MonoValue value={reg.registry} short /></a> },
+              ...(registered?.tx ? [{ k: "Registered", v: <a href={explorerTx(registered.tx)} target="_blank" rel="noreferrer"><MonoValue value={registered.tx} short /></a> }] : []),
+            ]}
+          />
+          {registered ? (
+            <p className={s.hint}>Quotes check this identity on chain before your signer countersigns. If the owner, payee or signer stops matching, quoting pauses until it is fixed.</p>
+          ) : (
+            <>
+              {error && <Notice tone="danger">{error}</Notice>}
+              {hash && stage === "confirming" && <p className={s.hint}>Sent. Waiting for confirmation… <a href={explorerTx(hash)} target="_blank" rel="noreferrer">View</a></p>}
+              <div className={s.row}>
+                <ActionButton onClick={register} loading={stage !== "idle"} loadingLabel={stage === "signing" ? "Confirm in your wallet" : "Confirming on Arc"}>
+                  Register on Arc
+                </ActionButton>
+              </div>
+              <p className={s.hint}>One transaction from your wallet, a few cents of USDC in gas. Proteus never owns or controls the identity.</p>
+            </>
+          )}
+        </div>
+      ) : null}
     </Card>
   );
 }

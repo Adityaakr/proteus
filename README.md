@@ -27,6 +27,11 @@
 | Arc testnet | 5042002 | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) | verified · [read](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract) |
 | Arc mainnet | 5042 | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) | verified (exact match) · [read](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract) |
 
+| Network | Chain id | ProteusPolicyRegistry | Source |
+|---|---|---|---|
+| Arc testnet | 5042002 | [`0xa3f759525b5657182A8D7deCB0B40d4C66aC4A5A`](https://explorer.testnet.arc.io/address/0xa3f759525b5657182A8D7deCB0B40d4C66aC4A5A) | verified on Blockscout |
+| Arc mainnet | 5042 | [`0x376dFc4f1D356E78cc46983478A0F2e12CA7C84B`](https://explorer.arc.io/address/0x376dFc4f1D356E78cc46983478A0F2e12CA7C84B) | verified on [Sourcify](https://sourcify.dev/#/lookup/0x376dFc4f1D356E78cc46983478A0F2e12CA7C84B) (exact match) |
+
 <p align="center">
   <code>0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46</code> · Arc mainnet (5042) and testnet (5042002) · source verified on Blockscout · solc 0.8.28<br/>
   USDC escrow · contract unaudited
@@ -49,16 +54,17 @@ Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. L
 3. [Why this design](#why-this-design)
 4. [Architecture](#architecture)
 5. [The escrow contract](#the-escrow-contract)
-6. [Verify it yourself on Arc testnet](#verify-it-yourself-on-arc-testnet)
-7. [The negotiation engine and the agent](#the-negotiation-engine-and-the-agent)
-8. [Services, receipts and settlement](#services-receipts-and-settlement)
-9. [For agents: skills and per-service references](#for-agents-skills-and-per-service-references)
-10. [API](#api)
-11. [Run it locally](#run-it-locally)
-12. [Security model](#security-model)
-13. [Honesty labels](#honesty-labels)
-14. [Roadmap to production](#roadmap-to-production)
-15. [Repository layout](#repository-layout)
+6. [Seller identity, policy commitments and ratings on Arc](#seller-identity-policy-commitments-and-ratings-on-arc)
+7. [Verify it yourself on Arc testnet](#verify-it-yourself-on-arc-testnet)
+8. [The negotiation engine and the agent](#the-negotiation-engine-and-the-agent)
+9. [Services, receipts and settlement](#services-receipts-and-settlement)
+10. [For agents: skills and per-service references](#for-agents-skills-and-per-service-references)
+11. [API](#api)
+12. [Run it locally](#run-it-locally)
+13. [Security model](#security-model)
+14. [Honesty labels](#honesty-labels)
+15. [Roadmap to production](#roadmap-to-production)
+16. [Repository layout](#repository-layout)
 
 ---
 
@@ -255,6 +261,37 @@ stateDiagram-v2
 - A leaked seller key can close terms and open disputes, and an open dispute blocks the buyer's refund until the arbiter acts; it cannot be paid through settlement without a buyer Acceptance. A leaked buyer key can sign Acceptances but payouts go only to the fixed payee.
 
 Tests: `pnpm contracts:test` runs 24 unit and fuzz tests in `test/DealEscrow.t.sol` and 3 invariants in `test/DealEscrow.invariants.t.sol` (handler fuzzing with 64 runs, depth 32). The invariant handler does not exercise the dispute path yet.
+
+## Seller identity, policy commitments and ratings on Arc
+
+The escrow binds the money. These three pieces bind **who the seller is, which rules priced the deal, and how past buyers rated it**, each checkable on Arc without trusting Proteus AI. The escrow contract is unchanged.
+
+| What | Where on Arc | Who writes it | What a buyer or agent checks |
+|---|---|---|---|
+| Seller identity | ERC-8004 IdentityRegistry, v2.0.0: mainnet `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`, testnet `0x8004A818BFB912233c491871b3d84c89A494BD9e` | The seller's own wallet, in one `register(agentURI, metadata[])` call | `getMetadata(agentId, "proteus.signer") == Terms.seller` and `getMetadata(agentId, "proteus.payee") == Terms.payee` |
+| Policy commitments | `ProteusPolicyRegistry` ([source](contracts/src/ProteusPolicyRegistry.sol)), addresses above | `commitBySig`: the seller's published `proteus.signer` signs EIP-712, the relayer pays gas | `policyOf(agentId, keccak256(productSlug), version).commitment == publicTerms.policy.commitment` |
+| Ratings | ERC-8004 ReputationRegistry: mainnet `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`, testnet `0x8004B663056A597Dffe9eCcC1965A193B7388713` | The buyer's own wallet, `giveFeedback` tagged `("proteus-deal", <on-chain dealId>)` | Each rating shown links to its transaction; only the deal's buyer, on a deal with settled USDC, counts |
+
+**How a deal is bound to them.** Quotes now carry `publicTermsVersion: 2` with `sellerAgent {agentRegistry, agentId}` and `policy {version, commitment, registry}` ([`server/src/services/quotes.ts`](server/src/services/quotes.ts)). `publicTermsHash` is the keccak of that JSON and is a field of the EIP-712 `Terms` the escrow verifies ([`DealEscrow.sol:48,94,163`](contracts/src/DealEscrow.sol)), so every funded deal commits to one seller identity and one policy version.
+
+**What the server enforces.** Before a quote is issued and again before the seller's key countersigns, a registered seller's on-chain owner, payee and signer must still match; otherwise quoting stops with the reason ([`server/src/services/agent-registry.ts`](server/src/services/agent-registry.ts)). An offer priced under an older policy or cost version is refused after the seller edits either one ([`quotes.ts`](server/src/services/quotes.ts), using the version-bearing `candidateId` from [`pricing.ts`](packages/domain/src/pricing.ts)).
+
+**The commitment.** `policyCommitment(fields, salt)` in [`packages/domain/src/abi/policyRegistry.ts`](packages/domain/src/abi/policyRegistry.ts) is `keccak256(abi.encode(typehash, productId, version, minMarginBps, maxDiscountBps, approvalThreshold, prepaidMinimum, availableCapacityUnits, quoteTtlSeconds, allowNonPositiveContribution, salt))` with a 32-byte random salt per version, so the small integer space of a policy cannot be brute-forced to recover the seller's margins. Unit costs are never part of it. A golden vector is asserted in both [`contracts/test/PolicyCommitment.t.sol`](contracts/test/PolicyCommitment.t.sol) and [`packages/domain/test/policy.test.ts`](packages/domain/test/policy.test.ts).
+
+**What it does not prove.** The commitment shows which policy version the seller committed to and when; it does not prove the off-chain pricing engine obeyed it (the engine is the open code in `packages/domain`). Ratings raise the cost of faking reputation; a seller can still fund a deal from a second wallet, which is why each rating shows the USDC settled behind it.
+
+**Public endpoints.** `GET /api/public/sellers/{seller}/agent.json` (ERC-8004 registration file), `GET /api/public/sellers/{seller}/policies` (every version with its transaction), `GET|POST /api/deals/{id}/rating`.
+
+**Tested end to end on Arc testnet** with [`server/scripts/arc-registry-e2e.ts`](server/scripts/arc-registry-e2e.ts) (18 checks, all passing):
+
+| Step | Transaction |
+|---|---|
+| Seller registers agent #897421 | [`0x25937c06…67d3`](https://explorer.testnet.arc.io/tx/0x25937c06e3944d68c8398925a526beddd2dbce2ca8da517d2b0a0952465e67d3) |
+| Policy v1 committed by `commitBySig` | [`0x2c9574eb…b24f`](https://explorer.testnet.arc.io/tx/0x2c9574eb56f689ea546bc106edab4f3a730bdd500955a9e3d483991a2692b24f) |
+| Policy v2 committed when a quote was issued | [`0x1d3df618…c8ba`](https://explorer.testnet.arc.io/tx/0x1d3df6183f57b16f39999988866fc93a0ac40623ab51604f0821284dfcf2c8ba) |
+| Buyer rates the seller (5 stars) | [`0x37a44f07…72be`](https://explorer.testnet.arc.io/tx/0x37a44f076e5a7cbaa0175e743fdf70d51446d78363b51cfdd6c9e25e0a3072be) |
+
+The same run proves the refusals: a stale v1 offer after the edit, a payee that no longer matches the chain, feedback tagged for another deal, and a seller rating its own agent (rejected by the ERC-8004 registry itself). Contract tests: `pnpm contracts:test` now runs 43 tests, including 15 for `ProteusPolicyRegistry` (authority, replay, expiry, signer rotation, immutability, monotonic versions under fuzzing) and the golden vector.
 
 ## Verify it yourself on Arc testnet
 
@@ -468,7 +505,7 @@ Where the code stands today and what it takes to run real money through it. Each
 
 - Deterministic pricing and policy, dual-signed EIP-712 terms, escrow funding, metered delivery with non-billable failures, countersigned settlement, early close and refund, all with [confirmed transactions](#verify-it-yourself-on-arc-testnet).
 - x402 pay per call verified and settled through [Circle's facilitator](https://explorer.testnet.arc.io/tx/0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8).
-- Contract source verified; 24 unit and fuzz tests, 3 invariants, 13 domain and 9 server tests in CI.
+- Contract source verified; 43 contract tests (DealEscrow unit, fuzz and invariants, ProteusPolicyRegistry, policy golden vector), 17 domain and 9 server tests, plus the on-chain end-to-end script server/scripts/arc-registry-e2e.ts.
 - Sign-in with Circle Wallets (email OTP, PIN-protected MPC wallet on Arc) or an external wallet; Circle Agent Wallets for agents; seller console, request specs per product, service agents, skills and OpenAPI per service.
 
 **Phase 1: hosted testnet beta** (weeks, no contract change)

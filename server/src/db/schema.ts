@@ -119,6 +119,11 @@ export const orgs = pgTable("orgs", {
   /** Seller signer (delegated, server-held for the sandbox seller). */
   sellerSignerAddress: text("seller_signer_address").notNull(),
   payeeAddress: text("payee_address").notNull(),
+  /** ERC-8004 identity of this seller's agent on Arc, owned by the seller's own wallet (null until registered). */
+  agentId: text("agent_id"),
+  /** The identity's owner when it was confirmed; quotes are refused if ownerOf(agentId) has moved since. */
+  agentOwner: text("agent_owner"),
+  agentRegisteredTx: text("agent_registered_tx"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -176,6 +181,12 @@ export const policies = pgTable(
     availableCapacityUnits: bigint("available_capacity_units", { mode: "bigint" }).notNull(),
     quoteTtlSeconds: integer("quote_ttl_seconds").notNull(),
     allowNonPositiveContribution: boolean("allow_non_positive_contribution").notNull().default(false),
+    /** 32-byte random salt for this version's commitment (hex). Kept private unless the seller reveals the version. */
+    salt: text("salt"),
+    /** policyCommitment(fields, salt) from @proteus/domain; carried in every quote's public terms. */
+    policyCommit: text("policy_commit"),
+    /** ProteusPolicyRegistry commitBySig transaction, once this version is on chain for the seller's ERC-8004 agent. */
+    commitTx: text("commit_tx"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("policies_product_version").on(t.productId, t.version)],
@@ -439,4 +450,22 @@ export const sampleOrders = pgTable("sample_orders", {
   eta: text("eta"),
   items: jsonb("items").notNull(),
   total: text("total").notNull(),
+});
+
+/**
+ * Buyer ratings of sellers, each one an ERC-8004 ReputationRegistry giveFeedback transaction on Arc that the server
+ * verified: posted by the deal's buyer address, for the seller's agentId, tagged ("proteus-deal", <on-chain dealId>),
+ * on a deal with settled USDC. One rating per deal; a newer verified rating replaces the older one.
+ */
+export const sellerRatings = pgTable("seller_ratings", {
+  dealId: text("deal_id").primaryKey(),
+  orgId: text("org_id").notNull(),
+  agentId: text("agent_id").notNull(),
+  buyerAddress: text("buyer_address").notNull(),
+  /** 1 to 5 stars (ERC-8004 value with valueDecimals 0). */
+  value: integer("value").notNull(),
+  /** USDC settled on the deal when the rating was verified (micro), used as the rating's weight. */
+  weight: bigint("weight", { mode: "bigint" }).notNull(),
+  txHash: text("tx_hash").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

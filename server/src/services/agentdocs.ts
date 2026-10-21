@@ -4,8 +4,12 @@
  * prices, unit and limits differ per product. The platform skill covers discovering, negotiating,
  * funding, using and settling a deal through the public API.
  */
-import { formatUsd } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, circleBlockchainFor, formatUsd, networkOf } from "@proteus/domain";
 import { env } from "../env";
+
+/** Network wording follows the deployment (CHAIN_ID), so a mainnet skill never says testnet. */
+const NET = () => ARC_NETWORK_NAMES[networkOf(env.CHAIN_ID)];
+const USDC = () => (networkOf(env.CHAIN_ID) === "mainnet" ? "USDC" : "testnet USDC");
 import type { loadProductById } from "./catalog";
 import { publicProduct } from "./catalog";
 
@@ -45,7 +49,7 @@ export function serviceSkill(lp: LP, origin: string): string {
   const lines: string[] = [];
   lines.push("---");
   lines.push(`name: proteus-${seller}-${slug}`);
-  lines.push(`description: ${sentences(`Call ${lp.org.name}'s "${p.name}" service on Proteus AI`, `Use when the task needs one ${p.unitLabel}: ${p.summary ?? p.billableUnit}`, "Needs a deal API key (PROTEUS_KEY) or an Arc testnet USDC wallet for pay per call")}.`);
+  lines.push(`description: ${sentences(`Call ${lp.org.name}'s "${p.name}" service on Proteus AI`, `Use when the task needs one ${p.unitLabel}: ${p.summary ?? p.billableUnit}`, "Needs a deal API key (PROTEUS_KEY) or an ${NET()} USDC wallet for pay per call")}.`);
   lines.push("---");
   lines.push("");
   lines.push(`# ${p.name} by ${lp.org.name}`);
@@ -57,7 +61,7 @@ export function serviceSkill(lp: LP, origin: string): string {
   lines.push("");
   lines.push("## When to use this skill");
   lines.push("");
-  lines.push(`Use it when the user needs ${p.unitLabel}s of exactly this kind and has a funded deal (an API key) or an Arc testnet USDC wallet. Do not use it for anything outside the capabilities above; the service hands those back unbilled.`);
+  lines.push(`Use it when the user needs ${p.unitLabel}s of exactly this kind and has a funded deal (an API key) or an ${NET()} USDC wallet. Do not use it for anything outside the capabilities above; the service hands those back unbilled.`);
   lines.push("");
   lines.push("## Endpoint");
   lines.push("");
@@ -108,14 +112,14 @@ export function serviceSkill(lp: LP, origin: string): string {
   if (p.payPerCallUsd) {
     lines.push("## Without a deal: pay per call");
     lines.push("");
-    lines.push(`POST ${origin}/api/pay/${seller}/${slug}/execute with { requestId, input, payer } answers 402 with x402 payment requirements (exact amount ${money(p.payPerCallUsd)} in USDC on Arc testnet, chain ${env.CHAIN_ID}). Sign one EIP-3009 TransferWithAuthorization for that amount and resend the same body plus { payment: { signature, authorization } }. Failed answers are not charged.`);
+    lines.push(`POST ${origin}/api/pay/${seller}/${slug}/execute with { requestId, input, payer } answers 402 with x402 payment requirements (exact amount ${money(p.payPerCallUsd)} in USDC on ${NET()}, chain ${env.CHAIN_ID}). Sign one EIP-3009 TransferWithAuthorization for that amount and resend the same body plus { payment: { signature, authorization } }. Failed answers are not charged.`);
     lines.push("");
   }
   lines.push("## Getting a key");
   lines.push("");
   lines.push(`A funded deal issues the key. A person does it at ${origin}/s/${seller}/${slug}; an agent can do it through the public API with the Proteus AI buyer skill at ${origin}/api/public/agents/skill.md (negotiate, sign terms, fund escrow, read the key from the deal, settle usage).`);
   lines.push("");
-  lines.push(`Reference: ${origin}/docs/${seller}/${slug}. OpenAPI: ${origin}/api/public/sellers/${seller}/products/${slug}/openapi.json. Network: Arc testnet, testnet USDC.`);
+  lines.push(`Reference: ${origin}/docs/${seller}/${slug}. OpenAPI: ${origin}/api/public/sellers/${seller}/products/${slug}/openapi.json. Network: ${NET()}, ${USDC()}.`);
   return lines.join("\n") + "\n";
 }
 
@@ -153,7 +157,7 @@ export function serviceOpenApi(lp: LP, origin: string) {
   }
   return {
     openapi: "3.1.0",
-    info: { title: `${p.name} (${lp.org.name}) on Proteus AI`, version: "1", description: `${p.summary ?? ""} Network: Arc testnet (chain ${env.CHAIN_ID}), testnet USDC. Reference: ${origin}/docs/${lp.org.slug}/${p.slug}` },
+    info: { title: `${p.name} (${lp.org.name}) on Proteus AI`, version: "1", description: `${p.summary ?? ""} Network: ${NET()} (chain ${env.CHAIN_ID}), ${USDC()}. Reference: ${origin}/docs/${lp.org.slug}/${p.slug}` },
     servers: [{ url: origin }],
     components: { securitySchemes: { dealKey: { type: "http", scheme: "bearer", description: "The deal's API key, shown once when the service is provisioned" } } },
     paths,
@@ -163,12 +167,12 @@ export function serviceOpenApi(lp: LP, origin: string) {
 export function platformSkill(origin: string): string {
   return `---
 name: proteus-ai-buyer
-description: Buy AI services for a business on Proteus AI through its public API. Use when the user wants an agent to find a service on the Proteus AI market, negotiate a prepaid deal with the seller's agent within a budget, sign and fund it with Arc testnet USDC, call the service, and settle usage. Requires an EVM wallet the agent can sign with and a spending mandate from the user.
+description: Buy AI services for a business on Proteus AI through its public API. Use when the user wants an agent to find a service on the Proteus AI market, negotiate a prepaid deal with the seller's agent within a budget, sign and fund it with ${NET()} USDC, call the service, and settle usage. Requires an EVM wallet the agent can sign with and a spending mandate from the user.
 ---
 
 # Proteus AI buyer skill
 
-Proteus AI is a market of AI services sold by businesses. A deal is prepaid USDC held in an escrow contract on Arc testnet (chain ${env.CHAIN_ID}); the seller is paid only for delivered units the buyer countersigns, and the rest is refundable after the term. Base URL: ${origin}. All amounts are micro-USDC strings (1000000 = $1.00).
+Proteus AI is a market of AI services sold by businesses. A deal is prepaid USDC held in an escrow contract on ${NET()} (chain ${env.CHAIN_ID}); the seller is paid only for delivered units the buyer countersigns, and the rest is refundable after the term. Base URL: ${origin}. All amounts are micro-USDC strings (1000000 = $1.00).
 
 ## Mandate first
 
@@ -176,7 +180,7 @@ Before anything that signs or spends, hold an explicit mandate from the user: wh
 
 ## Wallets
 
-Any Arc testnet wallet that can sign EIP-712 typed data and send a transaction works. With a Circle Agent Wallet (Circle CLI, chain ARC-TESTNET): "circle wallet sign" signs the Terms and Acceptance typed data below, "circle wallet execute" sends the USDC approve (then let the relayer fund, section 4), and "circle services pay" handles pay per call over x402. The spending limits the wallet's owner set apply to every step; the exact flags are in Circle's use-agent-wallet and pay-via-agent-wallet skills.
+Any ${NET()} wallet that can sign EIP-712 typed data and send a transaction works. With a Circle Agent Wallet (Circle CLI, chain ${circleBlockchainFor(env.CHAIN_ID)}): "circle wallet sign" signs the Terms and Acceptance typed data below, "circle wallet execute" sends the USDC approve (then let the relayer fund, section 4), and "circle services pay" handles pay per call over x402. The spending limits the wallet's owner set apply to every step; the exact flags are in Circle's use-agent-wallet and pay-via-agent-wallet skills.
 
 ## 1. Discover
 
@@ -198,6 +202,10 @@ State the volume and budget plainly ("We need 40 invoices this month, budget $12
 - POST /api/negotiations/{id}/quotes { candidateId } -> quote { id, status }. If status is approval_required, poll GET /api/quotes/{id} until approved (the seller's owner decides) or declined.
 - GET /api/quotes/{id}?buyer=0x... -> terms, publicTerms and typedData (EIP-712 domain, types, primaryType "Terms", message).
 - Check: terms.prepaid, terms.unitNum/unitDen, terms.maxUnits and terms.end are within the mandate; publicTermsHash equals keccak256 of the canonical JSON (sorted keys) of publicTerms.
+- Verify the seller on Arc when publicTerms.sellerAgent is set (publicTermsVersion 2). The seller's own wallet owns an ERC-8004 identity at sellerAgent.agentRegistry (eip155:<chainId>:<IdentityRegistry>):
+  - getMetadata(agentId, "proteus.signer") must equal terms.seller, and getMetadata(agentId, "proteus.payee") must equal terms.payee (each value is the 20 raw address bytes).
+  - publicTerms.policy {version, commitment, registry} names the seller's pricing-policy version: policyOf(agentId, keccak256(productSlug), version).commitment on the ProteusPolicyRegistry at policy.registry must equal policy.commitment. GET /api/public/sellers/{seller}/policies lists every version with its transaction.
+  - If any check fails, do not sign. Proteus refuses to quote on such a mismatch too, so a mismatch here means something changed between quote and signing.
 - Sign typedData with the buyer wallet (eth_signTypedData_v4) and POST /api/quotes/{id}/accept { buyerAddress, buyerSignature } -> deal { id, status: awaiting_funding, escrowAddress, usdcAddress, terms }.
 
 ## 4. Fund
@@ -215,6 +223,10 @@ POST /api/services/{productSlug}/execute with Authorization: Bearer PROTEUS_KEY 
 - GET /api/deals/{id}/usage -> pendingAcceptance { acceptance { cumulativeUnits, cumulativeAmount, receiptsRoot, nonce, expiry }, typedData }. Verify cumulativeAmount equals units times the unit price and matches the receipts you hold, then sign typedData (primaryType "Acceptance") and POST /api/deals/{id}/usage-acknowledgments { buyerSignature, cumulativeUnits, cumulativeAmount, receiptsRoot, nonce, expiry }. The escrow pays the seller the difference since the last settlement; no gas for the buyer.
 - After terms.end plus grace (deal.refundableAt), or earlier if the seller closed the term: POST /api/deals/{id}/refund-request returns the unused balance to the buyer wallet.
 - GET /api/review/{publicId}: the public record of any deal with transaction hashes, for the user's audit.
+
+## 7. Rate the seller (optional)
+
+After usage has settled, GET /api/deals/{id}/rating -> { eligible, reputationRegistry, args }. From the buyer wallet that funded the deal, call giveFeedback(agentId, stars 1-5, 0, args.tag1, args.tag2, args.endpoint, args.feedbackURI, args.feedbackHash) on reputationRegistry (Arc's ERC-8004 ReputationRegistry), then POST /api/deals/{id}/rating { txHash }. Proteus counts it only after reading the transaction from the chain: posted by this deal's buyer, for this seller's agent, tagged ("proteus-deal", <on-chain dealId>).
 
 ## Errors
 

@@ -4,7 +4,7 @@
  * Every transaction hash shown in the UI comes back from the wallet; nothing here fabricates one.
  */
 import { createPublicClient, createWalletClient, custom, erc20Abi, fallback, getAddress, http, type Address, type Hex, type WalletClient } from "viem";
-import { ACCEPTANCE_TYPES, ARC_TESTNET_USDC, TERMS_TYPES, defaultChain, defaultChainId, domain } from "@proteus/domain";
+import { ACCEPTANCE_TYPES, ARC_TESTNET_USDC, IDENTITY_REGISTRY_ABI, REPUTATION_REGISTRY_ABI, TERMS_TYPES, defaultChain, defaultChainId, domain } from "@proteus/domain";
 import type { AcceptanceWire, PayAccept, PayAuthorization, TermsWire, TypedDataWire } from "./types";
 
 export const ESCROW_ABI = [
@@ -183,6 +183,23 @@ export async function createAndFundDeal(client: WalletClient, escrow: Address, t
     abi: ESCROW_ABI,
     functionName: "createAndFundDeal",
     args: [termsToMessage(terms), buyerSig, sellerSig],
+  });
+}
+
+/** ERC-8004 register(agentURI, metadata[]) on Arc's IdentityRegistry, from the seller's own wallet. One transaction. */
+export async function registerAgent(client: WalletClient, registry: Address, agentURI: string, metadata: { metadataKey: string; metadataValue: Hex }[]): Promise<Hex> {
+  return client.writeContract({ account: client.account ?? accountOf(client), chain: defaultChain(), address: registry, abi: IDENTITY_REGISTRY_ABI, functionName: "register", args: [agentURI, metadata] });
+}
+
+/** ERC-8004 giveFeedback on Arc's ReputationRegistry, from the buyer's own wallet: whole stars, valueDecimals 0. */
+export async function giveFeedback(client: WalletClient, registry: Address, a: { agentId: string; stars: number; tag1: string; tag2: string; endpoint: string; feedbackURI: string; feedbackHash: Hex }): Promise<Hex> {
+  return client.writeContract({
+    account: client.account ?? accountOf(client),
+    chain: defaultChain(),
+    address: registry,
+    abi: REPUTATION_REGISTRY_ABI,
+    functionName: "giveFeedback",
+    args: [BigInt(a.agentId), BigInt(a.stars), 0, a.tag1, a.tag2, a.endpoint, a.feedbackURI, a.feedbackHash],
   });
 }
 

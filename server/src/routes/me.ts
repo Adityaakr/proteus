@@ -9,6 +9,9 @@ import { createOrg, createProduct, issueLinkNonce, linkWallet, setPrimaryWallet,
 import { auth, requireAuth } from "./auth";
 import { requireSession, session } from "./session";
 import { CATEGORIES, updateBrand } from "../services/brand";
+import { confirmRegistration, registrationInputs } from "../services/agent-registry";
+import { publishAllLatest } from "../services/policy-commit";
+import { env } from "../env";
 
 export const meRoutes = new Hono();
 
@@ -59,6 +62,17 @@ meRoutes.patch("/app/org", requireSession, async (c) => {
 meRoutes.get("/app/signer", requireSession, async (c) => json(c, await signerView(session(c).orgId)));
 meRoutes.post("/app/signer/revoke", requireSession, async (c) => json(c, await revokeOrgSigner(session(c).orgId)));
 meRoutes.post("/app/signer/sweep", requireSession, async (c) => json(c, await sweepCollector(session(c).orgId)));
+
+/* ERC-8004 identity on Arc: the seller's own wallet registers; the server only prepares inputs and confirms from the chain. */
+const publicOrigin = (c: { req: { url: string } }) => env.WEB_ORIGIN || new URL(c.req.url).origin;
+meRoutes.get("/app/agent", requireSession, async (c) => json(c, await registrationInputs(session(c).orgId, publicOrigin(c))));
+meRoutes.post("/app/agent/confirm", requireSession, async (c) => {
+  const { txHash } = z.object({ txHash: z.string().regex(/^0x[0-9a-fA-F]{64}$/) }).parse(await c.req.json());
+  const confirmed = await confirmRegistration(session(c).orgId, txHash as Hex);
+  // Now that the seller's signer is published on chain, commit each product's current policy version to ProteusPolicyRegistry.
+  const policies = await publishAllLatest(session(c).orgId);
+  return json(c, { ...confirmed, policies });
+});
 
 const Units = z.union([z.string().regex(/^\d+$/), z.number().int().nonnegative()]).transform((v) => String(v));
 const Tier = z.object({ name: z.string().min(1), includedUnits: Units, unitPriceUsd: z.string().regex(/^\d+(\.\d+)?$/), includes: z.array(z.string()).default([]) });

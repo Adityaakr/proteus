@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AgentBadge, RatingValue } from "./OnArc";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, BadgeCheck, BookOpen, Bot, CalendarDays, Check, ChevronRight, CircleDollarSign, Landmark, MessagesSquare, PenLine, Server, ShieldCheck, Undo2, Zap } from "lucide-react";
@@ -194,6 +195,12 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
                   <dt>Settled to seller</dt><dd><Money micro={BigInt(st.settled)} digits={2} /></dd>
                   <dt>In escrow now</dt><dd><Money micro={BigInt(st.inEscrow)} digits={2} /></dd>
                   <dt>On Proteus AI since</dt><dd>{fmtDate(st.since)}</dd>
+                  {seller.agent && (
+                    <>
+                      <dt>On Arc</dt><dd><AgentBadge agent={seller.agent} /></dd>
+                      <dt>Rating</dt><dd><RatingValue ratings={st.ratings} /></dd>
+                    </>
+                  )}
                 </>
               )}
             </dl>
