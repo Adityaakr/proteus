@@ -13,6 +13,7 @@ import { policyLog, registrationFile } from "../services/agent-registry";
 import { listRecords, recordView } from "../services/review";
 import { resolveAuth } from "./auth";
 import { checkCode, clientIp } from "../services/invites";
+import { limit } from "../lib/ratelimit";
 import { insertWalletLink, userOwnsAddress, userWallets } from "../services/accounts";
 import { sellerCard, sellerStats } from "../services/brand";
 
@@ -64,7 +65,11 @@ publicRoutes.post("/negotiations", async (c) => {
   const a = await resolveAuth(c);
   // While the invite gate is on, an agent without an account starts a negotiation by presenting a code in
   // X-Invite-Code. The code is checked, not consumed, and the usual per-IP attempt limit applies.
-  if (!a && features.inviteGate) {
+  const ipKey = clientIp((n) => c.req.header(n));
+  limit(`neg-start:${ipKey}`, 30);
+  // A live seller's embedded deal agent (on the seller's own site) may start a negotiation without an invite code.
+  const fromEmbed = c.req.header("x-proteus-embed") === body.sellerSlug && (await sellerIsLive(body.sellerSlug));
+  if (!a && features.inviteGate && !fromEmbed) {
     const code = c.req.header("x-invite-code");
     if (!code) throw new HttpError(403, "An invite code is required: send it in the X-Invite-Code header.", { code: "invite_required" });
     await checkCode(code, clientIp((n) => c.req.header(n)));
@@ -80,6 +85,8 @@ publicRoutes.post("/negotiations", async (c) => {
 publicRoutes.get("/negotiations/:id", async (c) => json(c, await negotiationView(c.req.param("id"))));
 
 publicRoutes.post("/negotiations/:id/messages", async (c) => {
+  // Each message runs the seller's agent (a model call): cap per visitor so an embed cannot be used to burn credits.
+  limit(`neg-msg:${clientIp((n) => c.req.header(n))}`, 60);
   const body = MessageBody.parse(await c.req.json());
   return json(c, await addBuyerMessage(c.req.param("id"), body.content));
 });
@@ -114,3 +121,8 @@ publicRoutes.post("/quotes/:id/accept", async (c) => {
 
 publicRoutes.get("/review", async (c) => json(c, await listRecords()));
 publicRoutes.get("/review/:publicId", async (c) => json(c, await recordView(c.req.param("publicId"))));
+
+async function sellerIsLive(slug: string): Promise<boolean> {
+  const [org] = await db.select({ label: schema.orgs.label }).from(schema.orgs).where(eq(schema.orgs.slug, slug));
+  return org?.label === "live";
+}

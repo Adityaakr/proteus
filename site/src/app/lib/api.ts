@@ -149,8 +149,9 @@ export const api = {
   product: (sellerSlug: string, productSlug: string) => request<T.PublicProduct>("GET", `/public/sellers/${enc(sellerSlug)}/products/${enc(productSlug)}`),
 
   /* Negotiation (buyer) */
-  startNegotiation: (body: { sellerSlug: string; productSlug: string; buyerAddress?: string; mandateCap?: T.MicroStr }) =>
-    request<T.Negotiation>("POST", "/negotiations", { body }),
+  /** `opts.embed`: the seller slug when started from that seller's embedded deal agent on its own website. */
+  startNegotiation: (body: { sellerSlug: string; productSlug: string; buyerAddress?: string; mandateCap?: T.MicroStr }, opts?: { embed?: string }) =>
+    request<T.Negotiation>("POST", "/negotiations", { body, headers: opts?.embed ? { "X-Proteus-Embed": opts.embed } : undefined }),
   negotiation: (id: string) => request<T.Negotiation>("GET", `/negotiations/${enc(id)}`),
   sendMessage: (id: string, content: string) => request<T.Negotiation>("POST", `/negotiations/${enc(id)}/messages`, { body: { content } }),
   counter: (id: string, body: { candidateId: string; targetTotal?: T.MicroStr; targetUnits?: T.UnitsStr }) =>
@@ -238,6 +239,9 @@ export const api = {
     revokeSigner: () => request<{ revokedAt: T.IsoTime; note?: string; [k: string]: unknown }>("POST", "/app/signer/revoke", { body: {} }),
     /** ERC-8004 identity on Arc: the inputs the seller's wallet signs, and confirmation read back from the chain. */
     agent: () => request<T.AgentRegistration>("GET", "/app/agent"),
+    /** Embedded deal agent: the seller's slug and the sites allowed to embed it (empty: any site). */
+    embed: () => request<{ slug: string; label: string; domains: string[] }>("GET", "/app/embed"),
+    setEmbedDomains: (domains: string[]) => request<{ slug: string; label: string; domains: string[] }>("PUT", "/app/embed", { body: { domains } }),
     confirmAgent: (txHash: string) => request<{ agentId: string; owner: string; payee: string; signer: string; tx: string }>("POST", "/app/agent/confirm", { body: { txHash } }),
     createProduct: (body: T.ProductCreateBody) => request<T.ProductWithPrivate>("POST", "/app/products", { body }),
     setListing: (id: string, active: boolean) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/listing`, { body: { active } }),

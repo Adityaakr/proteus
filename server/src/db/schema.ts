@@ -124,6 +124,12 @@ export const orgs = pgTable("orgs", {
   /** The identity's owner when it was confirmed; quotes are refused if ownerOf(agentId) has moved since. */
   agentOwner: text("agent_owner"),
   agentRegisteredTx: text("agent_registered_tx"),
+  /**
+   * Sites allowed to embed this seller's deal agent (/embed/<slug>), as origins like "https://shop.example.com".
+   * Empty or null: any site may embed it (it only shows public prices and starts a negotiation; signing always
+   * happens in a top-level Proteus window).
+   */
+  embedDomains: jsonb("embed_domains").$type<string[]>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

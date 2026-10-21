@@ -26,6 +26,7 @@ const OfferFund = lazy(() => import("./app/buyer/OfferFund"));
 const Deals = lazy(() => import("./app/buyer/Deals"));
 const PortalDeal = lazy(() => import("./app/buyer/PortalDeal"));
 const ReviewList = lazy(() => import("./app/review/ReviewList"));
+const EmbedAgent = lazy(() => import("./app/embed/EmbedAgent"));
 const ReviewRecord = lazy(() => import("./app/review/ReviewRecord"));
 
 // The sell side (/app/sell/*) is owned by a sibling module. Resolve it with a glob so the build never
@@ -64,6 +65,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/docs" element={<ApiDocs />} />
               <Route path="/docs/:sellerSlug/:productSlug" element={<ServiceDocs />} />
               <Route path="/records/:publicId" element={<ReviewRecord />} />
+              <Route path="/embed/:sellerSlug" element={<EmbedAgent />} />
               <Route element={<AuthRoot />}>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/invite" element={<InvitePage />} />

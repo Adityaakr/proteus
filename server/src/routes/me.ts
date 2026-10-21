@@ -11,6 +11,7 @@ import { requireSession, session } from "./session";
 import { CATEGORIES, updateBrand } from "../services/brand";
 import { confirmRegistration, registrationInputs } from "../services/agent-registry";
 import { publishAllLatest } from "../services/policy-commit";
+import { embedSettings, setEmbedDomains } from "../services/embed";
 import { env } from "../env";
 
 export const meRoutes = new Hono();
@@ -62,6 +63,13 @@ meRoutes.patch("/app/org", requireSession, async (c) => {
 meRoutes.get("/app/signer", requireSession, async (c) => json(c, await signerView(session(c).orgId)));
 meRoutes.post("/app/signer/revoke", requireSession, async (c) => json(c, await revokeOrgSigner(session(c).orgId)));
 meRoutes.post("/app/signer/sweep", requireSession, async (c) => json(c, await sweepCollector(session(c).orgId)));
+
+/* Embedded deal agent: which sites may show it. */
+meRoutes.get("/app/embed", requireSession, async (c) => json(c, await embedSettings(session(c).orgId)));
+meRoutes.put("/app/embed", requireSession, async (c) => {
+  const { domains } = z.object({ domains: z.array(z.string().max(200)).max(10) }).parse(await c.req.json());
+  return json(c, await setEmbedDomains(session(c).orgId, domains));
+});
 
 /* ERC-8004 identity on Arc: the seller's own wallet registers; the server only prepares inputs and confirms from the chain. */
 const publicOrigin = (c: { req: { url: string } }) => env.WEB_ORIGIN || new URL(c.req.url).origin;

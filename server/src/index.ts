@@ -22,10 +22,26 @@ import { rpcRoutes } from "./routes/rpc";
 import { inviteRoutes } from "./routes/invites";
 import { circleAuthRoutes } from "./routes/circle-auth";
 import { consoleRoutes } from "./routes/console";
+import { embedAncestors } from "./services/embed";
 
 const app = new Hono();
 app.use("*", logger((s) => console.log(s)));
 app.use("/api/*", cors({ origin: env.WEB_ORIGIN, credentials: true }));
+
+// Framing policy. /embed/<seller> is the deal agent sellers put on their own websites, so other sites may frame it
+// (restricted to the seller's own domains when it lists them). Every other page, including offer signing, funding and
+// the app, refuses to be framed by other sites: a buyer only ever signs in a top-level Proteus window (clickjacking).
+app.use("*", async (c, next) => {
+  await next();
+  if (c.req.path.startsWith("/api/")) return;
+  if (c.req.path.startsWith("/embed/")) {
+    c.header("Content-Security-Policy", `frame-ancestors ${await embedAncestors(c.req.path.split("/")[2] ?? "")}`);
+    c.header("X-Frame-Options", undefined);
+  } else {
+    c.header("Content-Security-Policy", "frame-ancestors 'self'");
+    c.header("X-Frame-Options", "SAMEORIGIN");
+  }
+});
 
 app.get("/api/health", (c) =>
   json(c, {
