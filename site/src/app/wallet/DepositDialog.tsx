@@ -8,8 +8,9 @@ import { ActionButton } from "../ui/ActionButton";
 import { CopyButton } from "../ui/misc";
 import { Money } from "../ui/Money";
 import { Qr } from "./QrCode";
-import { ArcMark } from "../ui/Marks";
-import { BridgePanel } from "./BridgePanel";
+import { ArcMark, UsdcMark } from "../ui/Marks";
+import { BridgePanel, type BridgeArrival } from "./BridgePanel";
+import { ChainLogo } from "./ChainSelect";
 import { useDepositWatch } from "./useDepositWatch";
 import w from "./wallet.module.css";
 
@@ -25,6 +26,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
   const closeRef = useRef<HTMLButtonElement>(null);
   const watch = useDepositWatch();
   const [method, setMethod] = useState<"arc" | "bridge">("arc");
+  const [bridged, setBridged] = useState<BridgeArrival | null>(null);
 
   // Esc closes; body scroll locks; focus moves in and back out.
   useEffect(() => {
@@ -51,6 +53,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
     else {
       watch.reset();
       setMethod("arc");
+      setBridged(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -84,19 +87,53 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
 
       <AnimatePresence mode="wait" initial={false}>
         {arrived ? (
-          <motion.div key="done" className={w.sheetDone} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-            <motion.span className={w.doneBadge} initial={reduce ? false : { scale: 0.6 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 22 }}>
-              <Check size={28} strokeWidth={2.5} />
-            </motion.span>
-            <p className={w.doneTitle}>
-              <Money micro={arrived.delta} /> USDC arrived
-            </p>
-            <p className="body2">
-              Balance now <strong><Money micro={watch.q.data?.usdc ?? 0n} /></strong> USDC. You can fund deals and pay per call.
-            </p>
-            <div className={w.sheetActions}>
-              <ActionButton onClick={onClose} icon>Done</ActionButton>
-              <ActionButton variant="secondary" to="/app/market" onClick={onClose}>Browse the market</ActionButton>
+          <motion.div key="done" className={w.sheetSingle} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+            <div className={w.doneHero}>
+              <motion.span className={w.doneRing} initial={reduce ? false : { scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 500, damping: 22 }}>
+                <Check size={30} strokeWidth={2.5} />
+              </motion.span>
+              <p className={w.doneAmount}>
+                <UsdcMark size={28} />
+                <Money micro={arrived.delta} />
+              </p>
+              <p className={w.doneCaption}>USDC arrived in your account wallet</p>
+            </div>
+            <div className={w.doneRoute}>
+              {bridged && (
+                <div className={w.doneRow}>
+                  <span>Route</span>
+                  <span className={w.doneChain}>
+                    <ChainLogo chain={{ label: bridged.sourceLabel, logo: bridged.sourceLogo }} />
+                    {bridged.sourceLabel}
+                    <span aria-hidden style={{ color: "var(--c-dark-40)" }}>→</span>
+                    <ArcMark size={14} />
+                    {ARC_NETWORK_NAMES[defaultNetwork()]}
+                  </span>
+                </div>
+              )}
+              <div className={w.doneRow}>
+                <span>New balance</span>
+                <span className="app-mono" style={{ color: "var(--c-dark)" }}><Money micro={watch.q.data?.usdc ?? 0n} /> USDC</span>
+              </div>
+              {bridged && (bridged.burnUrl || bridged.mintUrl) && (
+                <div className={w.doneRow}>
+                  <span>Transactions</span>
+                  <span className={w.doneLinks}>
+                    {bridged.burnUrl && <a href={bridged.burnUrl} target="_blank" rel="noreferrer">On {bridged.sourceLabel}</a>}
+                    {bridged.mintUrl && <a href={bridged.mintUrl} target="_blank" rel="noreferrer">On Arc</a>}
+                  </span>
+                </div>
+              )}
+              {!bridged && address && (
+                <div className={w.doneRow}>
+                  <span>Wallet</span>
+                  <a className={w.quietLink} href={explorerAddress(address)} target="_blank" rel="noreferrer">View on explorer</a>
+                </div>
+              )}
+            </div>
+            <div className={w.doneActions}>
+              <ActionButton to="/app/market" onClick={onClose} fullWidth>Browse the market</ActionButton>
+              <ActionButton variant="secondary" onClick={onClose} fullWidth>Done</ActionButton>
             </div>
           </motion.div>
         ) : (
@@ -106,7 +143,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
               <button type="button" role="tab" className={w.methodTab} aria-selected={method === "bridge"} onClick={() => setMethod("bridge")}>From another chain</button>
             </div>
             {method === "bridge" ? (
-              <BridgePanel onArrived={watch.start} />
+              <BridgePanel onArrived={(info) => { setBridged(info); watch.start(); }} />
             ) : (
             <div className={w.depositRow}>
               <div className={w.depositMain}>

@@ -93,6 +93,9 @@ importers:
 
   site:
     dependencies:
+      '@circle-fin/adapter-solana':
+        specifier: ^1.7.6
+        version: 1.7.6(@solana/web3.js@1.99.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6))(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)
       '@circle-fin/adapter-viem-v2':
         specifier: ^1.19.2
         version: 1.19.2(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(viem@2.57.7(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.6.7))
@@ -108,6 +111,9 @@ importers:
       '@proteus/domain':
         specifier: workspace:*
         version: link:../packages/domain
+      '@solana/web3.js':
+        specifier: ^1.99.0
+        version: 1.99.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)
       '@tanstack/react-query':
         specifier: ^5.104.3
         version: 5.104.3(react@19.3.1)
@@ -211,6 +217,12 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  '@circle-fin/adapter-solana@1.7.6':
+    resolution: {integrity: sha512-K7p74Z0qe2v2q/jFFM3wnFJRm4cINsOVmE6i+qMtp2QQQiamPw8s9smzyfqAIm36IsPDLpJeA8ZjSb54M6lLAw==}
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      '@solana/web3.js': ^1.98.2
 
   '@circle-fin/adapter-viem-v2@1.19.2':
     resolution: {integrity: sha512-7xjKoueb6vCqrG22gkXWXlsj1k4oBkoM+BZwn91TNkDh6xaknV4ZFfI7ZtnaTNHpWyOki7d/DBXT8QjIrKakoA==}
@@ -4929,6 +4941,27 @@ snapshots:
       use-sync-external-store: 1.7.0(react@19.3.1)
     optionalDependencies:
       '@types/react': 19.3.0
+
+  '@circle-fin/adapter-solana@1.7.6(@solana/web3.js@1.99.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6))(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)':
+    dependencies:
+      '@coral-xyz/anchor': 0.31.1(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)
+      '@ethersproject/abi': 5.8.0
+      '@ethersproject/address': 5.8.0
+      '@ethersproject/bytes': 5.8.0
+      '@ethersproject/units': 5.8.0
+      '@noble/curves': 1.4.2
+      '@solana/web3.js': 1.99.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)
+      abitype: 1.2.3(typescript@6.0.3)(zod@3.25.67)
+      bn.js: 5.2.5
+      bs58: 6.0.0
+      buffer: 6.0.3
+      pino: 10.1.0
+      zod: 3.25.67
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - typescript
+      - utf-8-validate
 
   '@circle-fin/adapter-viem-v2@1.19.2(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(viem@2.57.7(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6)(zod@4.6.7))':
     dependencies:
