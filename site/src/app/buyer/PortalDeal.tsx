@@ -8,6 +8,7 @@ import { AppShell } from "../layouts/AppShell";
 import { useAuth } from "../auth/useAuth";
 import { FundFlow } from "./FundFlow";
 import { RateSeller } from "./RateSeller";
+import { Dispute } from "./Dispute";
 import type { TodoItem } from "../agentic/TodoList";
 import type { ToolApprovalStatus } from "../agentic/ToolApproval";
 import { ActionButton } from "../ui/ActionButton";
@@ -223,6 +224,7 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
         </dl>
 
         {BigInt(deal.balances.settled) > 0n && <RateSeller dealId={deal.id} />}
+        <Dispute dealId={deal.id} />
 
         <section className={f.section} aria-labelledby="h-try">
           <div className={f.sectionHead}>

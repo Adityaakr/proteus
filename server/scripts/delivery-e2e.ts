@@ -130,5 +130,42 @@ const done = await until("settlement on chain", async () => {
 log("settled to seller (micro-USDC)", done.settled);
 assert(done.settled === 4n * 50_000n, "seller paid exactly 4 x $0.05 from escrow");
 
+// 5. Dispute (run with DISPUTE=1): the buyer disputes the rest; the arbiter splits the unspent balance.
+//    On this testnet run the deployer key is both the buyer and the escrow's arbiter.
+if (process.env.DISPUTE === "1") {
+  const { keccak256, toHex } = await import("viem");
+  const { dealEscrowAbi } = await import("../src/chain/abi");
+  const { recordDispute, disputeView } = await import("../src/services/disputes");
+  const reason = "2 of the remaining hoodies arrived with the wrong print; photos at https://example.com/photos";
+  const before = await loadDeal(dealId);
+  const openTx = await wallet.writeContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: "openDispute", args: [before.dealIdOnchain, keccak256(toHex(reason))], ...(await feeParams()) });
+  log("openDispute tx (buyer)", openTx);
+  const v = await recordDispute(dealId, openTx, reason);
+  assert(v.dispute?.status === "open" && v.dispute.openedBy === "buyer", "dispute recorded from the on-chain event with the buyer's reason");
+  let mismatchRejected = false;
+  try {
+    await recordDispute(dealId, openTx, "a different reason than the one hashed on chain");
+  } catch (e) {
+    mismatchRejected = /does not match the hash/.test((e as Error).message);
+  }
+  assert(mismatchRejected, "a reason that does not match the on-chain hash is rejected");
+  const remaining = before.deposit - before.settled - before.refunded;
+  const toSeller = 100_000n; // $0.10 for partially usable work
+  const toBuyer = remaining - toSeller;
+  const arbiterWallet = wallet;
+  const { request } = await publicClient.simulateContract({ account: buyer, address: escrowAddress(), abi: dealEscrowAbi, functionName: "resolveDispute", args: [before.dealIdOnchain, toSeller, toBuyer], ...(await feeParams()) });
+  const resolveTx = await arbiterWallet.writeContract(request);
+  log("resolveDispute tx (arbiter)", resolveTx);
+  const after = await until("dispute resolution reconciled", async () => {
+    const d = await disputeView(dealId);
+    return d.dispute?.status === "resolved" ? d : undefined;
+  });
+  assert(after.dispute?.toSeller === toSeller && after.dispute.toBuyer === toBuyer, "reconciler recorded the arbiter's split");
+  const journal = await db.select().from(schema.journalEntries).where(eq(schema.journalEntries.dealId, dealId));
+  assert(journal.some((j) => j.kind === "dispute_resolution"), "dispute payout posted to the journal (was missing before)");
+  const final = await loadDeal(dealId);
+  assert(final.deposit === final.settled + final.refunded, "escrow fully distributed: deposit = settled + refunded");
+}
+
 console.log("\nALL CHECKS PASSED on Arc testnet");
 process.exit(0);

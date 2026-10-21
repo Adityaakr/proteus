@@ -475,3 +475,22 @@ export const sellerRatings = pgTable("seller_ratings", {
   txHash: text("tx_hash").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Disputes opened on DealEscrow (openDispute by the buyer or the seller). The reason is stored here and only its hash
+ * goes on chain; the arbiter can only split the deal's unspent balance between buyer and seller (resolveDispute).
+ */
+export const disputes = pgTable("disputes", {
+  dealId: text("deal_id").primaryKey(),
+  orgId: text("org_id").notNull(),
+  openedBy: text("opened_by").notNull(),
+  reason: text("reason").notNull(),
+  reasonHash: text("reason_hash").notNull(),
+  openTx: text("open_tx").notNull(),
+  status: text("status").notNull().default("open"),
+  toSeller: bigint("to_seller", { mode: "bigint" }),
+  toBuyer: bigint("to_buyer", { mode: "bigint" }),
+  resolveTx: text("resolve_tx"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+});

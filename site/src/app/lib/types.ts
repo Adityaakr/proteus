@@ -722,3 +722,13 @@ export interface DealRating {
   args: { agentId: string; valueDecimals: number; tag1: string; tag2: string; endpoint: string; feedbackURI: string; feedbackHash: `0x${string}` } | null;
   existing: { value: number; txHash: string; createdAt: IsoTime } | null;
 }
+
+/** GET /deals/:id/dispute */
+export interface DealDispute {
+  canOpen: boolean;
+  escrow: Address;
+  dealIdOnchain: string;
+  buyer: Address;
+  arbiter: Address;
+  dispute: { status: "open" | "resolved"; openedBy: "buyer" | "seller"; reason: string; openTx: string; toSeller: MicroStr | null; toBuyer: MicroStr | null; resolveTx: string | null; createdAt: IsoTime; resolvedAt: IsoTime | null } | null;
+}

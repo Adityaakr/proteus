@@ -527,6 +527,29 @@ export const dealEscrowAbi = [
   },
   {
     "type": "function",
+    "name": "resolveDispute",
+    "inputs": [
+      {
+        "name": "dealId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "toSeller",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "toBuyer",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "sellerCloseTerm",
     "inputs": [
       {
@@ -1075,6 +1098,27 @@ export const dealEscrowAbi = [
 ] as const;
 
 export const erc20Abi = [
+  {
+    "type": "function",
+    "name": "transfer",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ]
+  },
   {
     "type": "function",
     "name": "approve",

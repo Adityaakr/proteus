@@ -5,6 +5,8 @@ import { ARC_NETWORK_NAMES, defaultNetwork, explorerTx } from "@proteus/domain";
 import { ActionButton, Card, DataTable, ExplorerLink, KeyValue, Money, MonoValue, Notice, StatusTag } from "../kit";
 import { useCloseTerm, useDeal, useRecordDelivery } from "../api";
 import { Field } from "../../ui/Field";
+import { useQuery } from "@tanstack/react-query";
+import { api as appApi } from "../../lib/api";
 import { QueryView } from "../parts/QueryView";
 import { PageHeader } from "../parts/PageHeader";
 import { SellerOnly } from "../parts/SellerOnly";
@@ -173,6 +175,8 @@ function Body({ d }: { d: Deal }) {
         <JournalTable rows={d.journal} />
       </Card>
 
+      <SellerDispute dealId={d.id} />
+
       {(d.status === "funded" || d.status === "active") && <RecordDelivery d={d} />}
 
       <CloseTerm d={d} />
@@ -184,6 +188,33 @@ function Body({ d }: { d: Deal }) {
  * Seller-confirmed delivery for physical goods and offline work. Each batch becomes a signed receipt; the buyer is
  * paid out of escrow only after countersigning the cumulative total, exactly like metered API usage.
  */
+/** A dispute on this deal, as the buyer opened it on the escrow; the arbiter can only split the unspent balance. */
+function SellerDispute({ dealId }: { dealId: string }) {
+  const q = useQuery({ queryKey: ["deal-dispute", dealId], queryFn: () => appApi.dealDispute(dealId), retry: false });
+  const x = q.data?.dispute;
+  if (!x) return null;
+  return (
+    <Card title={x.status === "open" ? "Dispute open" : "Dispute resolved"} subtitle={`Opened by the ${x.openedBy}. Decided by the escrow arbiter, who can only split the unspent balance.`}>
+      <div className={s.fields}>
+        <p className="body2">“{x.reason}”</p>
+        <KeyValue
+          items={[
+            { k: "Opened", v: <ExplorerLink href={explorerTx(x.openTx)} hash={x.openTx} /> },
+            ...(x.status === "resolved"
+              ? [
+                  { k: "To you", v: <Money micro={x.toSeller ?? "0"} /> },
+                  { k: "To the buyer", v: <Money micro={x.toBuyer ?? "0"} /> },
+                  ...(x.resolveTx ? [{ k: "Resolved", v: <ExplorerLink href={explorerTx(x.resolveTx)} hash={x.resolveTx} /> }] : []),
+                ]
+              : []),
+          ]}
+        />
+        {x.status === "open" && <Notice tone="warn">The deal is frozen: no settlement or refund until the arbiter decides. Share any evidence with the arbiter.</Notice>}
+      </div>
+    </Card>
+  );
+}
+
 function RecordDelivery({ d }: { d: Deal }) {
   const m = useRecordDelivery(d.id);
   const left = big(d.terms.maxUnits) - big(d.usage.units);

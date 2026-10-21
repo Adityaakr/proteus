@@ -151,6 +151,26 @@ async function applyEvent(deal: typeof schema.deals.$inferSelect, name: string, 
     const amt = amount("amount");
     await postJournal({ orgId: deal.orgId, dealId: deal.id, kind: "refund", memo: "Unused balance refunded to buyer", lines: [{ account: "customer_liability", debit: amt, credit: 0n }, { account: "escrow_usdc", debit: 0n, credit: amt }], evidence: { txHash } });
     await db.update(schema.deals).set({ refundTxHash: txHash }).where(eq(schema.deals.id, deal.id));
+  } else if (name === "DisputeOpened") {
+    // The reason text is stored by recordDispute; here the deal only freezes (status comes from the contract below).
+    await db.update(schema.deals).set({ status: "disputed", updatedAt: new Date() }).where(eq(schema.deals.id, deal.id));
+  } else if (name === "DisputeResolved") {
+    const toSeller = amount("toSeller");
+    const toBuyer = amount("toBuyer");
+    if (toSeller + toBuyer > 0n) {
+      await postJournal({
+        orgId: deal.orgId,
+        dealId: deal.id,
+        kind: "dispute_resolution",
+        memo: "Arbiter split the unspent balance between seller payee and buyer",
+        lines: [
+          { account: "customer_liability", debit: toSeller + toBuyer, credit: 0n },
+          { account: "escrow_usdc", debit: 0n, credit: toSeller + toBuyer },
+        ],
+        evidence: { txHash, toSeller: toSeller.toString(), toBuyer: toBuyer.toString() },
+      });
+    }
+    await db.update(schema.disputes).set({ status: "resolved", toSeller, toBuyer, resolveTx: txHash, resolvedAt: new Date() }).where(eq(schema.disputes.dealId, deal.id));
   }
 }
 

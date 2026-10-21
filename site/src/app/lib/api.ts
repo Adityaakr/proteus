@@ -169,6 +169,9 @@ export const api = {
   usage: (id: string) => request<T.UsageResponse>("GET", `/deals/${enc(id)}/usage`),
   /** ERC-8004 rating: giveFeedback inputs for this deal, and confirmation the server reads back from the chain. */
   dealRating: (id: string) => request<T.DealRating>("GET", `/deals/${enc(id)}/rating`),
+  /** Disputes: the party's wallet calls openDispute on the escrow; the server verifies the event and keeps the reason. */
+  dealDispute: (id: string) => request<T.DealDispute>("GET", `/deals/${enc(id)}/dispute`),
+  recordDispute: (id: string, txHash: string, reason: string) => request<T.DealDispute>("POST", `/deals/${enc(id)}/dispute`, { body: { txHash, reason } }),
   confirmDealRating: (id: string, txHash: string) => request<{ value: number; txHash: string }>("POST", `/deals/${enc(id)}/rating`, { body: { txHash } }),
   acknowledgeUsage: (id: string, body: T.UsageAckBody) => request<T.UsageAckResponse>("POST", `/deals/${enc(id)}/usage-acknowledgments`, { body }),
   requestRefund: (id: string) => request<T.RefundResponse>("POST", `/deals/${enc(id)}/refund-request`, { body: {} }),
