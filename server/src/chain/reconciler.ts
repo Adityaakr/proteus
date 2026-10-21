@@ -6,6 +6,7 @@ import { id } from "../lib/ids";
 import { postJournal } from "../services/journal";
 import { dealEscrowAbi } from "./abi";
 import { escrowAddress, publicClient } from "./client";
+import { withRpcRetry } from "./relayer";
 
 /**
  * Reconciler: the only writer of deal balances. It reads the chain, never the other way round.
@@ -48,19 +49,57 @@ async function reconcilePendingTxs(): Promise<number> {
   return n;
 }
 
+/**
+ * One shared, chunked scan of DealEscrow logs per tick (not one per deal): Arc's public RPC refuses eth_getLogs spans of
+ * roughly 10,000 blocks and rate-limits bursts, so per-deal scans from each deal's last block both failed and flooded it.
+ * The cursor starts at the oldest open deal's last reconciled block and advances at most SCAN_SPAN x SCAN_CHUNKS blocks
+ * per tick; event rows are unique by (txHash, logIndex), so the 30-block overlap is idempotent.
+ */
+const SCAN_SPAN = 2000n;
+const SCAN_CHUNKS = 5;
+const OVERLAP = 30n;
+let cursor: bigint | null = null;
+
+async function scanEscrow(rows: (typeof schema.deals.$inferSelect)[], latest: bigint) {
+  if (cursor === null) {
+    const starts = rows.map((d) => (d.lastReconciledBlock > 0n ? d.lastReconciledBlock : latest - 5000n));
+    cursor = starts.reduce((m, x) => (x < m ? x : m), latest);
+    if (cursor < 0n) cursor = 0n;
+  }
+  // Never lag more than two ticks of scanning behind the head: older history is skipped with a warning (balances and
+  // status are still read from the contract for every open deal), so new events are never delayed by a long backlog.
+  const maxLag = SCAN_SPAN * BigInt(SCAN_CHUNKS) * 2n;
+  if (latest > maxLag && cursor < latest - maxLag) {
+    console.warn(`[reconciler] log cursor ${cursor} is more than ${maxLag} blocks behind ${latest}; resuming at ${latest - maxLag}`);
+    cursor = latest - maxLag;
+  }
+  let from = cursor > OVERLAP ? cursor - OVERLAP : 0n;
+  const out: ReturnType<typeof parseEventLogs<typeof dealEscrowAbi>> = [];
+  for (let i = 0; i < SCAN_CHUNKS && from <= latest; i++) {
+    const to = from + SCAN_SPAN - 1n < latest ? from + SCAN_SPAN - 1n : latest;
+    const logs = await withRpcRetry(() => publicClient.getLogs({ address: escrowAddress(), fromBlock: from, toBlock: to }));
+    out.push(...parseEventLogs({ abi: dealEscrowAbi, logs }));
+    cursor = to + 1n;
+    from = to + 1n;
+  }
+  return { events: out, scannedTo: (cursor ?? latest + 1n) - 1n };
+}
+
 async function reconcileDeals(): Promise<number> {
   const rows = await db.select().from(schema.deals).where(inArray(schema.deals.status, ["awaiting_funding", "funding_pending", "funded", "active", "disputed"]));
   if (!rows.length) return 0;
   const latest = await publicClient.getBlockNumber();
+  let scan: Awaited<ReturnType<typeof scanEscrow>> | null = null;
+  try {
+    scan = await scanEscrow(rows, latest);
+  } catch (e) {
+    // Balances and status below still come from the contract; the next tick retries the scan from the same cursor.
+    console.warn("[reconciler] log scan", String((e as Error).message).slice(0, 160));
+  }
   let n = 0;
   for (const deal of rows) {
     try {
-      // Re-scan a 30-block overlap: public RPC nodes behind a load balancer can lag, and event rows are unique
-      // by (txHash, logIndex), so overlapping scans are idempotent and never skip a late-visible block.
-      const fromBlock = deal.lastReconciledBlock > 0n ? (deal.lastReconciledBlock > 30n ? deal.lastReconciledBlock - 30n : 0n) : latest - 5000n > 0n ? latest - 5000n : 0n;
-      const logs = await publicClient.getLogs({ address: escrowAddress(), fromBlock, toBlock: latest });
-      const parsed = parseEventLogs({ abi: dealEscrowAbi, logs });
-      for (const ev of parsed) {
+      for (const ev of scan?.events ?? []) {
         const args = ev.args as Record<string, unknown>;
         if (String(args.dealId) !== deal.dealIdOnchain.toString()) continue;
         const inserted = await db
@@ -73,8 +112,8 @@ async function reconcileDeals(): Promise<number> {
       }
       // Authoritative balances from the contract.
       // Read balances at the scanned head so a lagging node cannot report a stale zero after we saw the funding event.
-      const [deposit, settled, refunded] = (await publicClient.readContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: "balances", args: [deal.dealIdOnchain], blockNumber: latest })) as readonly [bigint, bigint, bigint, bigint];
-      const onchain = (await publicClient.readContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: "getDeal", args: [deal.dealIdOnchain], blockNumber: latest })) as { status: number; sellerClosed: boolean };
+      const [deposit, settled, refunded] = (await withRpcRetry(() => publicClient.readContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: "balances", args: [deal.dealIdOnchain], blockNumber: latest }))) as readonly [bigint, bigint, bigint, bigint];
+      const onchain = (await withRpcRetry(() => publicClient.readContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: "getDeal", args: [deal.dealIdOnchain], blockNumber: latest }))) as { status: number; sellerClosed: boolean };
       const statusMap: Record<number, string | undefined> = { 0: undefined, 1: "active", 2: "disputed", 3: "closed" };
       const next = statusMap[onchain.status];
       await db
@@ -84,7 +123,7 @@ async function reconcileDeals(): Promise<number> {
           settled,
           refunded,
           balancesSource: deposit > 0n ? "chain" : "pending",
-          lastReconciledBlock: latest,
+          ...(scan ? { lastReconciledBlock: scan.scannedTo } : {}),
           ...(next ? { status: next } : {}),
           ...(onchain.sellerClosed && !deal.sellerClosedAt ? { sellerClosedAt: new Date() } : {}),
           updatedAt: new Date(),

@@ -27,6 +27,7 @@ export const sellerApi = {
   deals: async () => (await api.app.deals()).map(N.dealSummary),
   deal: async (id: string) => N.deal(await api.app.deal(id)),
   closeTerm: (id: string) => api.app.closeTerm(id),
+  recordDelivery: (id: string, body: { units: number; note: string; proofUrl?: string; requestId: string }) => api.app.recordDelivery(id, body),
   finance: async () => N.finance(await api.app.finance()),
   setListing: async (id: string, active: boolean) => N.product(await api.app.setListing(id, active)),
   deleteProduct: (id: string) => api.app.deleteProduct(id),
@@ -119,4 +120,9 @@ export function useDecideApproval() {
 export function useCloseTerm(id: string) {
   const qc = useQueryClient();
   return useMutation({ mutationFn: () => sellerApi.closeTerm(id), onSuccess: () => qc.invalidateQueries({ queryKey: K.all }) });
+}
+
+export function useRecordDelivery(id: string) {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (body: { units: number; note: string; proofUrl?: string; requestId: string }) => sellerApi.recordDelivery(id, body), onSuccess: () => qc.invalidateQueries({ queryKey: K.all }) });
 }

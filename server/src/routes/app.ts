@@ -8,6 +8,7 @@ import { evaluationContext, loadProductById, publicProduct } from "../services/c
 import { dealView, listDeals, sellerCloseTerm } from "../services/deals";
 import { listNegotiations, reviveCandidate, sellerNegotiationView } from "../services/negotiation";
 import { decideApproval } from "../services/quotes";
+import { confirmDelivery } from "../services/delivery";
 import { createSandboxSession, requireSession, session } from "./session";
 import { features } from "../env";
 
@@ -189,6 +190,13 @@ appRoutes.get("/app/deals/:id", async (c) => {
 });
 
 appRoutes.post("/app/deals/:id/close-term", async (c) => json(c, await sellerCloseTerm(session(c).orgId, c.req.param("id"))));
+
+/** Seller-confirmed delivery (physical goods, offline work): records N delivered units with proof as a signed receipt. */
+appRoutes.post("/app/deals/:id/deliveries", async (c) => {
+  const s = session(c);
+  const b = (await c.req.json()) as { units?: number; note?: string; proofUrl?: string; requestId?: string };
+  return json(c, await confirmDelivery(s.orgId, c.req.param("id"), { units: Number(b.units), note: String(b.note ?? ""), proofUrl: b.proofUrl || undefined, requestId: String(b.requestId ?? "") }, s.address ?? `${s.kind}:${s.orgId}`), 201);
+});
 
 appRoutes.get("/app/finance", async (c) => {
   const { orgId } = session(c);

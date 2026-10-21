@@ -8,6 +8,7 @@
 .formGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .formGrid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .formActions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.fields { display: flex; flex-direction: column; gap: 14px; }
 .muted { color: var(--c-dark-60); }
 .small { font-size: 12px; }
 .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }

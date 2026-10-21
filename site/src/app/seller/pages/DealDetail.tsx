@@ -3,7 +3,8 @@ import { useParams } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { ARC_NETWORK_NAMES, defaultNetwork, explorerTx } from "@proteus/domain";
 import { ActionButton, Card, DataTable, ExplorerLink, KeyValue, Money, MonoValue, Notice, StatusTag } from "../kit";
-import { useCloseTerm, useDeal } from "../api";
+import { useCloseTerm, useDeal, useRecordDelivery } from "../api";
+import { Field } from "../../ui/Field";
 import { QueryView } from "../parts/QueryView";
 import { PageHeader } from "../parts/PageHeader";
 import { SellerOnly } from "../parts/SellerOnly";
@@ -172,8 +173,49 @@ function Body({ d }: { d: Deal }) {
         <JournalTable rows={d.journal} />
       </Card>
 
+      {(d.status === "funded" || d.status === "active") && <RecordDelivery d={d} />}
+
       <CloseTerm d={d} />
     </>
+  );
+}
+
+/**
+ * Seller-confirmed delivery for physical goods and offline work. Each batch becomes a signed receipt; the buyer is
+ * paid out of escrow only after countersigning the cumulative total, exactly like metered API usage.
+ */
+function RecordDelivery({ d }: { d: Deal }) {
+  const m = useRecordDelivery(d.id);
+  const left = big(d.terms.maxUnits) - big(d.usage.units);
+  const [unitsText, setUnits] = useState("1");
+  const [note, setNote] = useState("");
+  const [proof, setProof] = useState("");
+  const [batchKey, setBatchKey] = useState(() => `delivery-${Date.now().toString(36)}`);
+  const n = Number(unitsText);
+  const valid = Number.isInteger(n) && n >= 1 && BigInt(n) <= left && note.trim().length >= 3 && (!proof || /^https:\/\//.test(proof));
+  const submit = () =>
+    m.mutate(
+      { units: n, note: note.trim(), proofUrl: proof.trim() || undefined, requestId: batchKey },
+      { onSuccess: () => { setNote(""); setProof(""); setUnits("1"); setBatchKey(`delivery-${Date.now().toString(36)}`); } },
+    );
+  return (
+    <Card title="Record a delivery" subtitle="For physical goods and work delivered outside an API. Each batch becomes a receipt signed by your signer; you are paid from escrow once the buyer countersigns.">
+      {left <= 0n ? (
+        <Notice>All {units(d.terms.maxUnits)} units in this agreement are recorded.</Notice>
+      ) : (
+        <div className={s.fields}>
+          <Field label={`Units delivered (up to ${units(left.toString())} left)`} value={unitsText} onChange={(e) => setUnits(e.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" />
+          <Field label="What was delivered" value={note} onChange={(e) => setNote(e.target.value)} placeholder="200 custom hoodies, printed and shipped in 4 boxes" maxLength={2000} />
+          <Field label="Proof link (optional)" value={proof} onChange={(e) => setProof(e.target.value.trim())} placeholder="https://tracking.example.com/AB123 or a photo link" />
+          {m.isError && <Notice tone="danger">{errorMessage(m.error)}</Notice>}
+          {m.isSuccess && <Notice tone="success" title="Delivery recorded">{m.data.units} unit{m.data.units === 1 ? "" : "s"} added as a signed receipt. The buyer now sees it under usage to sign.</Notice>}
+          <div className={s.formActions}>
+            <ActionButton onClick={submit} disabled={!valid} loading={m.isPending} loadingLabel="Recording">Record delivery</ActionButton>
+          </div>
+          <p className="body3" style={{ opacity: 0.7 }}>Delivery is confirmed by you, not verified by Proteus AI. The buyer pays only for units they countersign and can open a dispute instead.</p>
+        </div>
+      )}
+    </Card>
   );
 }
 

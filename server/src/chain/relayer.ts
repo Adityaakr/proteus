@@ -42,11 +42,13 @@ function viemRelayer(): Relayer {
     kind: "viem",
     address: account.address,
     async submit(fn, args) {
-      const fees = await feeParams();
-      // Simulate first so a revert surfaces as a typed error instead of a dropped tx.
-      const { request } = await publicClient.simulateContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: fn, args: args as never, account, ...fees });
-      const txHash = await wallet.writeContract(request);
-      return { txHash };
+      return withRpcRetry(async () => {
+        const fees = await feeParams();
+        // Simulate first so a revert surfaces as a typed error instead of a dropped tx.
+        const { request } = await publicClient.simulateContract({ address: escrowAddress(), abi: dealEscrowAbi, functionName: fn, args: args as never, account, ...fees });
+        const txHash = await wallet.writeContract(request);
+        return { txHash };
+      });
     },
   };
 }
@@ -90,3 +92,21 @@ function circleRelayer(): Relayer {
 
 /** Circle chain code for the configured network. */
 export const CIRCLE_BLOCKCHAIN = circleBlockchainFor(env.CHAIN_ID);
+
+/**
+ * Retries a relayed call when the RPC rate-limits it (HTTP 429 or JSON-RPC "limit exceeded"), with backoff.
+ * Contract reverts and every other error surface immediately; nothing is retried that could double-submit,
+ * because a rate-limited request was rejected before it reached the mempool.
+ */
+export async function withRpcRetry<T>(fn: () => Promise<T>, attempts = 4): Promise<T> {
+  for (let i = 0; ; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      const text = `${(e as Error)?.name ?? ""} ${(e as Error)?.message ?? ""} ${String((e as { cause?: unknown })?.cause ?? "")}`;
+      const limited = /LimitExceeded|exceeds defined limit|429|Too Many Requests|rate limit/i.test(text);
+      if (!limited || i >= attempts - 1) throw e;
+      await new Promise((r) => setTimeout(r, 800 * 2 ** i + Math.floor(Math.random() * 300)));
+    }
+  }
+}

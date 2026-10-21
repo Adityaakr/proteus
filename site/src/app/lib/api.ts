@@ -231,6 +231,8 @@ export const api = {
     deals: () => request<T.DealSummary[]>("GET", "/app/deals"),
     deal: (id: string) => request<T.SellerDeal>("GET", `/app/deals/${enc(id)}`),
     closeTerm: (id: string) => request<{ txHash: T.Hex }>("POST", `/app/deals/${enc(id)}/close-term`, { body: {} }),
+    /** Seller-confirmed delivery: records N delivered units with proof as a signed receipt the buyer then countersigns. */
+    recordDelivery: (id: string, body: { units: number; note: string; proofUrl?: string; requestId: string }) => request<{ requestId: string; units: number; deal: { cumulativeUnits: string; cumulativeCharged: string } }>("POST", `/app/deals/${enc(id)}/deliveries`, { body }),
     finance: () => request<T.SellerFinance>("GET", "/app/finance"),
     signer: () => request<T.SignerInfo>("GET", "/app/signer"),
     revokeSigner: () => request<{ revokedAt: T.IsoTime; note?: string; [k: string]: unknown }>("POST", "/app/signer/revoke", { body: {} }),
