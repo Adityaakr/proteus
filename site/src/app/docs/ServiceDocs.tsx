@@ -55,7 +55,7 @@ function Reference({ product: p, sellerSlug, sellerName }: { product: PublicProd
         <span className={s.sideLabel}>On this page</span>
         <nav className={s.toc}>
           {toc.map(([id, label]) => (<a key={id} href={`#${id}`}>{label}</a>))}
-          <Link to="/docs" className={s.tocBack}>All of the API</Link>
+          <Link to="/docs/api" className={s.tocBack}>All of the API</Link>
         </nav>
       </aside>
 
@@ -174,7 +174,7 @@ curl -s ${skillUrl} \\
             <span className={s.small}>Skill URL: <code>{skillUrl}</code></span>
           </div>
           <div className={s.callout}>
-            To let an agent find, negotiate, fund and settle deals on its own, give it the <Link to="/docs#agents">Proteus AI buyer skill</Link> as well. This skill only covers calling this service.
+            To let an agent find, negotiate, fund and settle deals on its own, give it the <Link to="/docs/api#agents">Proteus AI buyer skill</Link> as well. This skill only covers calling this service.
           </div>
         </section>
       </article>
