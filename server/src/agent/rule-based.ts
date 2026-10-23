@@ -60,7 +60,7 @@ export function extractRuleBased(input: ExtractInput): Requirements {
   if (/e-?commerce|stores?|shop/i.test(text)) req.industry = "e-commerce";
   if (/order (tracking|status)|delivery/i.test(text)) req.useCase = "order tracking and delivery questions";
 
-  if (!req.desiredUnits && !req.budget) req.openQuestions.push(`Roughly how many ${pluralUnit(input.unitLabel)} per month do you expect, or what monthly budget are you working with?`);
+  if (!req.desiredUnits && !req.budget) req.openQuestions.push(`How many ${pluralUnit(input.unitLabel)} do you need, and by when? Or tell me your budget and I will fit an option to it.`);
   if (!req.desiredUnits && req.budget) req.openQuestions.push(`How many ${pluralUnit(input.unitLabel)} do you need? That sets the right option for your budget.`);
   return req;
 }

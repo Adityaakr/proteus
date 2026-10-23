@@ -19,6 +19,7 @@ const ApiDocs = lazy(() => import("./app/docs/ApiDocs"));
 const ServiceDocs = lazy(() => import("./app/docs/ServiceDocs"));
 const Welcome = lazy(() => import("./app/auth/Welcome"));
 const Market = lazy(() => import("./app/market/Market"));
+const StorePage = lazy(() => import("./app/market/StorePage"));
 const ProductPage = lazy(() => import("./app/market/ProductPage"));
 const Negotiations = lazy(() => import("./app/buyer/Negotiations"));
 const Negotiate = lazy(() => import("./app/buyer/Negotiate"));
@@ -74,7 +75,7 @@ createRoot(document.getElementById("root")!).render(
                   <Route index element={<Home />} />
                   <Route path="wallet" element={<WalletPage />} />
                   <Route path="market" element={<Market />} />
-                  <Route path="market/:sellerSlug" element={<Market />} />
+                  <Route path="market/:sellerSlug" element={<StorePage />} />
                   <Route path="market/:sellerSlug/:productSlug" element={<ProductPage />} />
                   <Route path="negotiations" element={<Negotiations />} />
                   <Route path="negotiations/:id" element={<Negotiate />} />

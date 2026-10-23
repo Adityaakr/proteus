@@ -159,6 +159,8 @@ export const api = {
   /* Public */
   health: () => request<T.Health>("GET", "/health"),
   seller: (sellerSlug: string) => request<T.PublicSeller>("GET", `/public/sellers/${enc(sellerSlug)}`),
+  /** Store-wide deal desk: which of the seller's products this message is about. */
+  routeSeller: (sellerSlug: string, message: string, current?: string) => request<{ productSlug: string; productName: string; matched: boolean; switched: boolean; reason: string }>("POST", `/public/sellers/${enc(sellerSlug)}/route`, { body: { message, current } }),
   product: (sellerSlug: string, productSlug: string) => request<T.PublicProduct>("GET", `/public/sellers/${enc(sellerSlug)}/products/${enc(productSlug)}`),
 
   /* Negotiation (buyer) */

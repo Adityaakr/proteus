@@ -1,10 +1,11 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { AcceptBody, CounterBody, MessageBody, StartNegotiationBody } from "@proteus/domain";
 import type { Address, Hex } from "viem";
 import { db, schema } from "../db";
 import { HttpError, json, toBig } from "../lib/http";
 import { loadProductById, loadProductBySlugs, publicProduct } from "../services/catalog";
+import { routeToProduct } from "../services/storefront";
 import { addBuyerMessage, counter, negotiationView, startNegotiation } from "../services/negotiation";
 import { env, features } from "../env";
 import { acceptQuote, createQuote, quoteView } from "../services/quotes";
@@ -22,11 +23,20 @@ export const publicRoutes = new Hono();
 publicRoutes.get("/public/sellers/:sellerSlug", async (c) => {
   const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.slug, c.req.param("sellerSlug")));
   if (!org) throw new HttpError(404, "seller not found");
-  const rows = await db.select().from(schema.products).where(eq(schema.products.orgId, org.id));
+  // Only listed products: an unlisted one (for example before the seller is registered on Arc) is not shown anywhere.
+  const rows = await db.select().from(schema.products).where(and(eq(schema.products.orgId, org.id), eq(schema.products.active, true)));
   const products = [];
   for (const r of rows) products.push(publicProduct(await loadProductById(r.id)));
   const stats = await sellerStats([org.id]);
   return json(c, { ...sellerCard(org, stats.get(org.id)), products });
+});
+
+/** Store-wide deal desk: which of this seller's products a buyer message is about. */
+publicRoutes.post("/public/sellers/:sellerSlug/route", async (c) => {
+  limit(`store-route:${clientIp((n) => c.req.header(n))}`, 120);
+  const b = (await c.req.json().catch(() => ({}))) as { message?: unknown; current?: unknown };
+  if (typeof b.message !== "string" || !b.message.trim() || b.message.length > 4000) throw new HttpError(400, "message is required (up to 4000 characters)");
+  return json(c, await routeToProduct(c.req.param("sellerSlug"), b.message, typeof b.current === "string" ? b.current : undefined));
 });
 
 publicRoutes.get("/public/sellers/:sellerSlug/products/:productSlug", async (c) => {
