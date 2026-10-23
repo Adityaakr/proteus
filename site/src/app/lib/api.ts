@@ -226,6 +226,8 @@ export const api = {
   meDeals: () => request<T.DealSummary[]>("GET", "/me/deals"),
   meActivity: () => request<T.MeActivity>("GET", "/me/activity"),
   createOrg: (body: { name: string; slug?: string; brand?: T.SellerBrand }) => request<T.MeOrg>("POST", "/orgs", { body }),
+  /** Removes a seller account that was never used and is not on Arc (published from the wrong wallet). */
+  discardOrg: () => request<{ discarded: string }>("DELETE", "/app/org"),
   market: () => request<T.MarketItem[]>("GET", "/market"),
   marketSellers: () => request<T.MarketSeller[]>("GET", "/market/sellers"),
 

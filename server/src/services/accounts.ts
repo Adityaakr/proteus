@@ -293,3 +293,24 @@ export async function marketSellers() {
 }
 
 export { publicId };
+
+/**
+ * Discards a seller account that was never used: no negotiations, quotes, deals, paid calls, receipts, chain records or
+ * ratings, and no identity on Arc. Used when a listing was published from the wrong wallet, so the business can publish
+ * it from its own. Anything with history stays; unpublish its products instead.
+ */
+export async function discardUnusedOrg(orgId: string) {
+  const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.id, orgId));
+  if (!org) throw new HttpError(404, "seller not found");
+  if (org.agentId) throw new HttpError(409, "this seller is registered on Arc; it cannot be discarded");
+  const history = ["negotiations", "quotes", "approvals", "deals", "pay_per_call_payments", "service_requests", "usage_acceptances", "chain_txs", "journal_entries", "sample_orders", "seller_ratings", "disputes", "agent_runs", "decisions"];
+  for (const t of history) {
+    const r = await db.execute(sql`select count(*)::int as n from ${sql.identifier(t)} where org_id = ${orgId}`);
+    if (Number((r as unknown as { n: number }[])[0]?.n ?? 0) > 0) throw new HttpError(409, "this seller has activity on record; unpublish its products instead");
+  }
+  await db.transaction(async (tx) => {
+    for (const t of [schema.costModels, schema.policies, schema.products, schema.notifications, schema.notificationSettings, schema.orgSigners, schema.sessions, schema.memberships]) await tx.delete(t).where(eq((t as unknown as { orgId: AnyPgColumn }).orgId, orgId));
+    await tx.delete(schema.orgs).where(eq(schema.orgs.id, orgId));
+  });
+  return { discarded: org.slug };
+}

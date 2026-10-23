@@ -4,8 +4,8 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db, schema } from "../db";
 import { revokeOrgSigner, signerView, sweepCollector } from "../chain/signer";
-import { json } from "../lib/http";
-import { createOrg, createProduct, issueLinkNonce, linkWallet, setPrimaryWallet, marketList, marketSellers, meView, myActivity, myDeals, myNegotiations, userOrg, walletView, type ProductCreateInput } from "../services/accounts";
+import { json, HttpError } from "../lib/http";
+import { createOrg, createProduct, discardUnusedOrg, issueLinkNonce, linkWallet, setPrimaryWallet, marketList, marketSellers, meView, myActivity, myDeals, myNegotiations, userOrg, walletView, type ProductCreateInput } from "../services/accounts";
 import { auth, requireAuth } from "./auth";
 import { requireSession, session } from "./session";
 import { CATEGORIES, updateBrand } from "../services/brand";
@@ -54,6 +54,12 @@ const OrgBody = z.object({ name: z.string().min(2).max(80), slug: z.string().min
 meRoutes.post("/orgs", async (c) => {
   const b = OrgBody.parse(await c.req.json());
   return json(c, await createOrg(auth(c).userId, b.name, b.slug, b.brand), 201);
+});
+/** Discard a seller account that was never used (wrong wallet); refused once it has any history or an Arc identity. */
+meRoutes.delete("/app/org", requireSession, async (c) => {
+  const s = session(c);
+  if (s.kind !== "privy") throw new HttpError(403, "sign in as the owner to discard this seller");
+  return json(c, await discardUnusedOrg(s.orgId));
 });
 meRoutes.patch("/app/org", requireSession, async (c) => {
   const b = z.object({ name: z.string().min(2).max(80).optional(), brand: BrandBody.optional() }).parse(await c.req.json());

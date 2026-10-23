@@ -24,7 +24,8 @@ import type { ProductCreateBody, SellerBrand } from "../../lib/types";
 import s from "../sell.module.css";
 
 interface Listing {
-  business: { name: string; slug: string; brand: SellerBrand };
+  /** ownerAddress: the business's own wallet; only it may publish this listing (owner and payee). */
+  business: { name: string; slug: string; ownerAddress?: string; brand: SellerBrand };
   products: (ProductCreateBody & { slug: string })[];
 }
 
@@ -56,6 +57,24 @@ export default function ImportListing() {
   if (listing.isError || !listing.data) return <div className={s.page}><Notice tone="danger" title="Listing not found">{(listing.error as Error)?.message}</Notice></div>;
   const l = listing.data;
   const otherOrg = me?.org && me.org.slug !== l.business.slug ? me.org : null;
+  const primary = me?.wallets?.find((w) => w.primary)?.address;
+  const expected = l.business.ownerAddress;
+  const wrongWallet = Boolean(expected && primary && primary.toLowerCase() !== expected.toLowerCase());
+  const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+  async function discard() {
+    setBusy(true);
+    setError(null);
+    try {
+      await v1.discardOrg();
+      refetchMe();
+      qc.invalidateQueries({ queryKey: ["me"] });
+      qc.invalidateQueries({ queryKey: ["sell"] });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
   const key = (p: string, i: number) => `${p}:${i}`;
 
   async function publish() {
@@ -115,9 +134,19 @@ export default function ImportListing() {
           <SocialLinks socials={l.business.brand.socials} />
         </div>
         {l.business.brand.tagline && <p style={{ marginTop: 8 }}>{l.business.brand.tagline}</p>}
-        <p style={{ marginTop: 8, fontSize: 13, opacity: 0.75 }}>Signed in as {me?.wallets?.find((w) => w.primary)?.address ?? "your wallet"}. This wallet becomes the owner and payout address.</p>
+        <p style={{ marginTop: 8, fontSize: 13, opacity: 0.75 }}>Signed in as {primary ?? "your wallet"}. This wallet becomes the owner and payout address{expected ? `; it must be ${l.business.name}'s wallet ${expected}` : ""}.</p>
       </Card>
 
+      {wrongWallet && (
+        <Notice tone="warn" title={`This listing belongs to ${l.business.name}'s wallet ${short(expected!)}`}>
+          You are signed in as {short(primary!)}. {l.business.name} publishes it from its own wallet, so it owns the account and is paid directly.
+          {me?.org && me.org.slug === l.business.slug && (
+            <span className={s.row} style={{ marginTop: 10 }}>
+              A draft from this wallet is holding the name. <ActionButton size="sm" variant="secondary" onClick={discard} loading={busy}>Discard my draft</ActionButton>
+            </span>
+          )}
+        </Notice>
+      )}
       {otherOrg && <Notice tone="warn" title={`This wallet already sells as ${otherOrg.name}`}>Products will be added to {otherOrg.name}, not to a new {l.business.name} account. Sign in with {l.business.name}'s own wallet instead.</Notice>}
 
       {l.products.map((p) => (
@@ -174,7 +203,7 @@ export default function ImportListing() {
         </>
       ) : (
         <div className={s.row}>
-          <ActionButton onClick={publish} loading={busy} loadingLabel="Publishing">Publish {l.business.name}</ActionButton>
+          <ActionButton onClick={publish} loading={busy} loadingLabel="Publishing" disabled={wrongWallet}>Publish {l.business.name}</ActionButton>
         </div>
       )}
     </div>
