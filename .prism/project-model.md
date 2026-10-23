@@ -33,3 +33,21 @@
 ## Lessons (2026-10-22)
 - `tsc -p .` at site/ does not typecheck the app (project references). Use `pnpm --filter ./site build` (tsc -b) before declaring the site green.
 
+
+## Decision log: product docs at /docs (2026-10-24)
+- `/docs` renders from `site/src/app/docs/docsContent.ts`. The page and Copy Markdown use the same data. The API reference lives at `/docs/api`.
+- Rules for the docs:
+  - Every claim links an Arc tx (checked with eth_getTransactionReceipt), a contract (Sourcify exact match), a code line or a live page.
+  - Every proof carries a network label.
+  - Caveats sit next to the claim they qualify.
+- Corrected facts. Keep these true in any public text:
+  - Refunds need a `refundUnused` call (end + grace, or after sellerCloseTerm); they are not automatic.
+  - The seller's EIP-712 signature comes from a server-held, encrypted per-seller key.
+  - The arbiter is the deployer/owner key, and disputes have no timeout.
+  - x402 pay per call is outside escrow and has no refund path.
+  - Delivery is "confirmed by the seller, not verified by Proteus".
+  - The MCP mandate is per deal and enforced by the local process.
+  - A policy commitment proves the published policy, not that the engine applied it.
+  - The listing PATCH does not check Arc registration (catalog sync does).
+- The Claude MCP run's evidence is in `docs/evidence/2026-10-23-claude-mcp-kitbox.md` (Kitbox fund 0x2802…3c73, settle 0x63ae…8b45, Arc testnet).
+- `docs/images/who-moves-money.png` is stale (it says testnet and Privy). Redraw it before reusing.

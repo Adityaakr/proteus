@@ -108,18 +108,38 @@ export default function ProductDocs() {
   );
 }
 
+/** Renders [label](url) links and `code` inside docs text. */
+function Rich({ text }: { text: string }) {
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\)|`[^`]+`)/g).filter(Boolean);
+  return (
+    <>
+      {parts.map((t, i) => {
+        const link = t.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+        if (link) {
+          const [, raw, href] = link;
+          // A label written as `code` (an address, a function) renders as code inside the link.
+          const label = /^`[^`]+`$/.test(raw!) ? <code className={s.code}>{raw!.slice(1, -1)}</code> : raw;
+          return href!.startsWith("/docs") ? <Link key={i} to={href!} className={s.a}>{label}</Link> : <a key={i} href={href} className={s.a} target={href!.startsWith("http") ? "_blank" : undefined} rel="noreferrer">{label}</a>;
+        }
+        if (t.startsWith("`") && t.endsWith("`")) return <code key={i} className={s.code}>{t.slice(1, -1)}</code>;
+        return <span key={i}>{t}</span>;
+      })}
+    </>
+  );
+}
+
 function BlockView({ b }: { b: Block }) {
   switch (b.kind) {
     case "p":
-      return <p className={s.p}>{b.text}</p>;
+      return <p className={s.p}><Rich text={b.text} /></p>;
     case "callout":
-      return <blockquote className={s.callout}>{b.text}</blockquote>;
+      return <blockquote className={s.callout}><Rich text={b.text} /></blockquote>;
     case "h3":
       return <h3 id={b.id} className={s.h3}>{b.text}</h3>;
     case "list":
       return (
         <ul className={s.list}>
-          {b.items.map((t) => <li key={t}>{t}</li>)}
+          {b.items.map((t) => <li key={t}><Rich text={t} /></li>)}
         </ul>
       );
     case "steps":
@@ -129,7 +149,7 @@ function BlockView({ b }: { b: Block }) {
             <li key={st.title} className={s.step}>
               <span className={s.stepNum}>{String(i + 1).padStart(2, "0")}</span>
               <span className={s.stepTitle}>{st.title}</span>
-              <span className={s.stepText}>{st.text}</span>
+              <span className={s.stepText}><Rich text={st.text} /></span>
             </li>
           ))}
         </ol>
@@ -140,7 +160,7 @@ function BlockView({ b }: { b: Block }) {
           {b.items.map((st) => (
             <div key={st.label} className={s.stat}>
               <span className={s.statValue}>{st.value}</span>
-              <span className={s.statLabel}>{st.label}</span>
+              <span className={s.statLabel}><Rich text={st.label} /></span>
               {st.source && <a href={st.source.url} target="_blank" rel="noreferrer" className={s.statSource}>{st.source.name} <ArrowUpRight size={11} aria-hidden /></a>}
             </div>
           ))}
@@ -156,13 +176,31 @@ function BlockView({ b }: { b: Block }) {
             <tbody>
               {b.rows.map((r, i) => (
                 <tr key={i} className={r[0] === "Proteus AI" ? s.rowUs : undefined}>
-                  {r.map((c, j) => (j === 0 ? <th key={j} scope="row">{c}</th> : <td key={j}>{c}</td>))}
+                  {r.map((c, j) => (j === 0 ? <th key={j} scope="row"><Rich text={c} /></th> : <td key={j}><Rich text={c} /></td>))}
                 </tr>
               ))}
             </tbody>
           </table>
-          {b.note && <p className={s.note}>{b.note}</p>}
+          {b.note && <p className={s.note}><Rich text={b.note} /></p>}
         </div>
+      );
+    case "figure":
+      return (
+        <figure className={s.figure}>
+          <a href={b.src} target="_blank" rel="noreferrer" className={s.shot}>
+            <img src={b.src} alt={b.alt} loading="lazy" decoding="async" />
+          </a>
+          <figcaption className={s.caption}>
+            <span className={b.network === "Arc mainnet" ? s.netMain : b.network === "Arc testnet" ? s.netTest : s.netNone}>{b.network}</span>
+            <span><Rich text={b.caption} /></span>
+          </figcaption>
+        </figure>
+      );
+    case "code":
+      return (
+        <pre className={s.pre} data-lang={b.lang}>
+          <code>{b.text}</code>
+        </pre>
       );
     case "links":
       return (
