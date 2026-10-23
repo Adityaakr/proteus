@@ -39,7 +39,7 @@ export default function ImportListing() {
   const listing = useQuery({
     queryKey: ["sell", "listing", name],
     queryFn: async () => {
-      const r = await fetch(`/listings/${encodeURIComponent(name)}.json`, { headers: { accept: "application/json" } });
+      const r = await fetch(`/listings/${encodeURIComponent(name)}.json`, { cache: "no-store", headers: { accept: "application/json" } });
       if (!r.ok) throw new Error("This listing link is not valid.");
       return (await r.json()) as Listing;
     },
