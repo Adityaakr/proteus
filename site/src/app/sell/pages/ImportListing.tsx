@@ -1,12 +1,18 @@
 /**
  * A prepared seller listing (site/public/listings/<name>.json) that the business publishes from its own signed-in
  * wallet: the account it creates is owned by that wallet, payouts go to it, and the business registers on Arc
- * itself afterwards. Prices are editable here, so nothing goes live that the seller did not see and approve.
+ * itself. Prices are editable here, so nothing goes live that the seller did not see and approve.
+ *
+ * Order matters on chain: products are created unlisted, the seller registers on Arc (ERC-8004, from its own wallet),
+ * the server confirms owner, payee and signer from chain and commits each product's policy to ProteusPolicyRegistry,
+ * and only then are the products listed. No buyer can get a quote from an identity that is not on chain yet.
  */
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
+import { explorerTx } from "@proteus/domain";
+import { AgentIdentityCard } from "./Settings";
 import { Card } from "../../ui/Card";
 import { ActionButton } from "../../ui/ActionButton";
 import { Notice } from "../../ui/misc";
@@ -22,7 +28,7 @@ interface Listing {
   products: (ProductCreateBody & { slug: string })[];
 }
 
-type Status = { slug: string; state: "created" | "exists" | "failed"; detail?: string };
+type Status = { slug: string; id?: string; state: "created" | "exists" | "failed"; detail?: string };
 
 export default function ImportListing() {
   const { name = "" } = useParams();
@@ -43,6 +49,8 @@ export default function ImportListing() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<Status[] | null>(null);
+  const [live, setLive] = useState<{ agentId: string; policies: { product: string; tx: string | null }[] } | null>(null);
+  const agent = useQuery({ queryKey: ["sell", "agent"], queryFn: () => v1.app.agent(), retry: false, enabled: Boolean(done) });
 
   if (!ready || listing.isPending) return <div className={s.page}><Card title="Loading the listing" /></div>;
   if (listing.isError || !listing.data) return <div className={s.page}><Notice tone="danger" title="Listing not found">{(listing.error as Error)?.message}</Notice></div>;
@@ -65,8 +73,9 @@ export default function ImportListing() {
         }
         const body = { ...p, tiers: p.tiers.map((t, i) => ({ ...t, unitPriceUsd: (prices[key(p.slug, i)] ?? t.unitPriceUsd).trim() })) };
         try {
-          await v1.app.createProduct(body);
-          out.push({ slug: p.slug, state: "created" });
+          const created = (await v1.app.createProduct(body)) as unknown as { id: string };
+          await v1.app.setListing(created.id, false); // listed only after the identity and policies are on chain
+          out.push({ slug: p.slug, id: created.id, state: "created" });
         } catch (e) {
           out.push({ slug: p.slug, state: "failed", detail: (e as Error).message });
         }
@@ -79,6 +88,20 @@ export default function ImportListing() {
       refetchMe();
       qc.invalidateQueries({ queryKey: ["me"] });
       qc.invalidateQueries({ queryKey: ["sell"] });
+    }
+  }
+
+  async function goLive(agentId: string, policies: { product: string; tx: string | null }[]) {
+    setBusy(true);
+    setError(null);
+    try {
+      for (const d of done ?? []) if (d.id) await v1.app.setListing(d.id, true);
+      setLive({ agentId, policies });
+      qc.invalidateQueries({ queryKey: ["sell"] });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -122,17 +145,33 @@ export default function ImportListing() {
 
       {error && <Notice tone="danger" title="Could not publish">{error}</Notice>}
       {done ? (
-        <Card title="Published" subtitle="Next, register on Arc from this wallet so buyers and their agents can verify you on chain before paying.">
-          <ul>
-            {done.map((d) => (
-              <li key={d.slug} className={s.row}><CheckCircle2 size={14} aria-hidden /> {d.slug}: {d.state}{d.detail ? `: ${d.detail}` : ""}</li>
-            ))}
-          </ul>
-          <div className={s.row} style={{ marginTop: 12 }}>
-            <ActionButton to="/app/sell/settings" icon>Register on Arc</ActionButton>
-            <ActionButton to={`/app/market/${l.business.slug}`} variant="secondary">See the listing</ActionButton>
-          </div>
-        </Card>
+        <>
+          <Card title="1. Products saved, not listed yet" subtitle="They stay off the market until your identity and pricing policies are on Arc.">
+            <ul>
+              {done.map((d) => (
+                <li key={d.slug} className={s.row}><CheckCircle2 size={14} aria-hidden /> {d.slug}: {d.state === "created" ? "saved" : d.state}{d.detail ? `: ${d.detail}` : ""}</li>
+              ))}
+            </ul>
+          </Card>
+          {live ? (
+            <Card title="3. Live on the market" subtitle={`Agent #${live.agentId} on Arc. Each product's pricing policy is committed to ProteusPolicyRegistry; quotes embed it and buyers can check it before paying.`}>
+              <ul>
+                {live.policies.map((p) => (
+                  <li key={p.product} className={s.row}><CheckCircle2 size={14} aria-hidden /> {p.product}: {p.tx ? <a href={explorerTx(p.tx)} target="_blank" rel="noreferrer">policy committed</a> : "policy commits at the first quote"}</li>
+                ))}
+              </ul>
+              <div className={s.row} style={{ marginTop: 12 }}>
+                <ActionButton to={`/app/market/${l.business.slug}`} icon>See the listing</ActionButton>
+              </div>
+            </Card>
+          ) : agent.data?.registered ? (
+            <Card title="2. Already registered on Arc" subtitle={`Agent #${agent.data.registered.agentId}. New products commit their policy at the first quote.`}>
+              <ActionButton onClick={() => goLive(agent.data!.registered!.agentId, [])} loading={busy}>List on the market</ActionButton>
+            </Card>
+          ) : (
+            <AgentIdentityCard onRegistered={(r) => goLive(r.agentId, r.policies ?? [])} />
+          )}
+        </>
       ) : (
         <div className={s.row}>
           <ActionButton onClick={publish} loading={busy} loadingLabel="Publishing">Publish {l.business.name}</ActionButton>

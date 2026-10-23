@@ -265,7 +265,7 @@ export const api = {
     /** Embedded deal agent: the seller's slug and the sites allowed to embed it (empty: any site). */
     embed: () => request<{ slug: string; label: string; domains: string[] }>("GET", "/app/embed"),
     setEmbedDomains: (domains: string[]) => request<{ slug: string; label: string; domains: string[] }>("PUT", "/app/embed", { body: { domains } }),
-    confirmAgent: (txHash: string) => request<{ agentId: string; owner: string; payee: string; signer: string; tx: string }>("POST", "/app/agent/confirm", { body: { txHash } }),
+    confirmAgent: (txHash: string) => request<{ agentId: string; owner: string; payee: string; signer: string; tx: string; policies?: { product: string; tx: string | null }[] }>("POST", "/app/agent/confirm", { body: { txHash } }),
     createProduct: (body: T.ProductCreateBody) => request<T.ProductWithPrivate>("POST", "/app/products", { body }),
     setListing: (id: string, active: boolean) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/listing`, { body: { active } }),
     deleteProduct: (id: string) => request<{ deleted: string }>("DELETE", `/app/products/${enc(id)}`),

@@ -170,7 +170,8 @@ function BrandCard({ org }: { org: MeOrg }) {
  * ERC-8004 identity on Arc. The seller's own wallet registers its agent in one transaction, publishing the payee and the
  * delegated signer as on-chain metadata; Proteus reads them back and refuses to quote if they ever stop matching.
  */
-function AgentIdentityCard() {
+/** `onRegistered` runs once the server has confirmed the identity from chain and committed each product's policy. */
+export function AgentIdentityCard({ onRegistered }: { onRegistered?: (r: { agentId: string; tx: string; policies?: { product: string; tx: string | null }[] }) => void | Promise<void> } = {}) {
   const qc = useQueryClient();
   const auth = useAuth();
   const q = useQuery({ queryKey: ["sell", "agent"], queryFn: () => v1.app.agent(), retry: false });
@@ -194,7 +195,8 @@ function AgentIdentityCard() {
       setStage("confirming");
       const r = await waitForReceipt(h);
       if (r.status !== "success") throw new Error("The registration transaction reverted on chain.");
-      await v1.app.confirmAgent(h);
+      const confirmed = await v1.app.confirmAgent(h);
+      await onRegistered?.(confirmed);
       await qc.invalidateQueries({ queryKey: ["sell", "agent"] });
     } catch (e) {
       setError(errorMessage(e) || walletErrorMessage(e));
