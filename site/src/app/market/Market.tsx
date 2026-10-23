@@ -1,4 +1,5 @@
 import { SocialLinks } from "../ui/SocialLinks";
+import { defaultNetwork } from "@proteus/domain";
 import { useDeferredValue, useMemo, useState } from "react";
 import { AgentBadge, RatingValue } from "./OnArc";
 import { Link, useParams } from "react-router-dom";
@@ -70,11 +71,7 @@ export default function Market() {
         </div>
       </div>
 
-      {sellers.some((s) => s.label !== "live") && (
-        <p className={m.note}>
-          Most sellers here are examples run by Proteus AI, modeled on the segments the tools in our comparison serve. Their service work is done by Proteus AI's agent from exactly what you send, and a demo seller that says so records deliveries without shipping anything. Every deal on any of them is a real Arc transaction.
-        </p>
-      )}
+      {sellers.some((s) => s.label !== "live") && <MarketNote sellers={q.data ?? []} />}
       {q.isLoading ? (
         <div className={m.sellerList}>
           <LoadingCard lines={4} />
@@ -90,6 +87,26 @@ export default function Market() {
         </div>
       )}
     </AppShell>
+  );
+}
+
+/**
+ * Who is real and who is an example. On mainnet a real business sells under its own name from its own wallet and is
+ * registered on Arc; on testnet every seller is an example or a demo, whatever its label.
+ */
+function MarketNote({ sellers }: { sellers: MarketSeller[] }) {
+  const real = defaultNetwork() === "mainnet" ? sellers.filter((s) => s.label === "live" && s.agent).map((s) => s.name) : [];
+  const names = real.length > 1 ? `${real.slice(0, -1).join(", ")} and ${real.at(-1)}` : real[0];
+  return (
+    <p className={m.note}>
+      {names ? (
+        <>
+          {names} {real.length > 1 ? "are real businesses" : "is a real business"} selling under {real.length > 1 ? "their" : "its"} own name: {real.length > 1 ? "each" : "it"} registered its agent on Arc from its own wallet and is paid directly into it. The other sellers are examples run by Proteus AI, modeled on the segments the tools in our comparison serve; their service work is done by Proteus AI's agent from exactly what you send. Every deal is a real USDC transaction on Arc mainnet.
+        </>
+      ) : (
+        <>Most sellers here are examples run by Proteus AI, modeled on the segments the tools in our comparison serve. Their service work is done by Proteus AI's agent from exactly what you send, and a demo seller that says so records deliveries without shipping anything. Every deal on any of them is a real Arc transaction.</>
+      )}
+    </p>
   );
 }
 
