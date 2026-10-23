@@ -10,7 +10,8 @@ export function AgentBadge({ agent }: { agent: SellerAgent }) {
   return (
     <a
       className={m.agentBadge}
-      href={`${explorerBase(defaultChainId())}/token/${registry}/instance/${agent.agentId}`}
+      // The registration transaction is the proof and opens on every Arc explorer; NFT instance pages do not exist on mainnet.
+      href={agent.registeredTx ? `${explorerBase(defaultChainId())}/tx/${agent.registeredTx}` : `${explorerBase(defaultChainId())}/address/${registry}`}
       target="_blank"
       rel="noreferrer"
       title="ERC-8004 agent identity on Arc, owned by the seller's own wallet. It publishes the seller's payee and signer; quotes are refused if they stop matching."

@@ -69,6 +69,8 @@ export interface SellerAgent {
   agentId: string;
   /** eip155:<chainId>:<IdentityRegistry> */
   agentRegistry: string;
+  /** The ERC-8004 registration transaction, sent from the seller's own wallet. */
+  registeredTx?: string | null;
 }
 
 export type ServiceKind = "seller-endpoint" | "sample-store" | "example";

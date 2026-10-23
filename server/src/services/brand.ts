@@ -152,7 +152,7 @@ export function sellerCard(org: typeof schema.orgs.$inferSelect, stats?: SellerS
     brand,
     stats: stats ? { dealsFunded: stats.dealsFunded, settled: stats.settled, inEscrow: stats.inEscrow, since: stats.since, ratings: stats.ratings } : undefined,
     /** The seller's ERC-8004 agent on Arc, owned by its own wallet; null until it registers. */
-    agent: org.agentId ? { agentId: org.agentId, agentRegistry: agentRegistryId(env.CHAIN_ID) } : null,
+    agent: org.agentId ? { agentId: org.agentId, agentRegistry: agentRegistryId(env.CHAIN_ID), registeredTx: org.agentRegisteredTx ?? null } : null,
   };
 }
 
