@@ -23,7 +23,7 @@ export interface DocSection {
 
 export const DOC_TITLE = "The deal desk for internet businesses.";
 export const DOC_LEDE =
-  "Proteus AI gives every business a deal agent that negotiates inside the seller's own rules, agrees terms with people or their AI agents, holds payment in USDC escrow on Arc, and pays the seller for what is delivered.";
+  "Proteus AI gives every business a deal agent that negotiates inside the seller's own rules, agrees terms with people or their AI agents, holds payment in USDC escrow on Arc, pays the seller for what is delivered and refunds the rest to the buyer.";
 
 const ESCROW = "0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46";
 
@@ -43,13 +43,28 @@ export const SECTIONS: DocSection[] = [
     group: "Getting started",
     title: "The problem",
     blocks: [
-      { kind: "p", text: "Most business sales are not a checkout button. Custom merch, data and API plans, services by the hour, anything with volume pricing: each needs a quote, agreed terms, a prepayment and proof of delivery. Today that runs on email, chat, PDFs and invoices." },
-      { kind: "list", items: [
-        "Slow replies lose orders. A buyer asking for \"20 merch boxes with our logo, Mumbai by Oct 31, final price per box?\" sends the same message to several vendors, and the first credible answer usually wins.",
-        "Every quote is done by hand, so the seller either underprices to win or spends hours per request.",
-        "Trust runs one way. Either the buyer prepays and hopes, or the seller delivers and chases payment.",
-        "AI agents are starting to buy, but they cannot negotiate over email, sign a PDF or wire money.",
+      { kind: "p", text: "Most business sales are not a checkout button. Whenever the price depends on volume, the work is custom or the service is used over time, a sale needs a quote, agreed terms, a prepayment, proof of delivery and, at the end, a refund of whatever was not used. Today each of those steps runs on email, chat, PDFs, spreadsheets and bank transfers, and each one is done by a person." },
+      { kind: "h3", id: "examples", text: "What it looks like" },
+      { kind: "table", head: ["Business", "What the buyer asks", "What happens today"], rows: [
+        ["Custom merch and gifting", "\"20 merch boxes with our logo, Mumbai by Oct 31, final price per box including delivery?\"", "The seller prices boxes, printing and shipping by hand and replies hours later, while the buyer has asked five other vendors. The order is paid in advance on trust, and delivery is confirmed over chat."],
+        ["Invoice processing (AP automation)", "\"About 600 invoices a month, two-way matching, budget $150. What can you do?\"", "A sales call, a custom quote in a PDF, a contract, then a monthly invoice. The buyer pays for a plan, not for the invoices actually processed, and unused volume is lost."],
+        ["Inference compute and GPU hours", "\"10 million tokens of inference this month and 40 H100 hours next week.\"", "Capacity is sold as prepaid credits or reserved blocks. Credits that are not used expire, and getting the unused part back means a support ticket, if it is possible at all."],
+        ["Data and API plans", "\"50,000 calls of your market data API, priced per call, starting tomorrow.\"", "A sales form, an annual plan sized by guesswork, an API key emailed over. Overages are billed later, and disputes over what was delivered are settled by screenshots."],
+        ["AI voice and support agents", "\"After-hours answering for our clinic, about 300 calls a month.\"", "A per-seat or per-month subscription. The buyer pays for calls that failed or were handed to a person, because nothing ties payment to a delivered outcome."],
+        ["Compliance and vendor checks", "\"Screen 200 counterparties and score 30 new suppliers this quarter.\"", "A statement of work, a deposit, and a report weeks later. Partial delivery leads to arguments over what is owed."],
+        ["Infrastructure for AI agents", "An agent needs 3 paid API calls right now to finish a task.", "There is no one to negotiate with and no way to sign a contract. Either a person sets up an account and a card, or the task stops."],
       ] },
+      { kind: "h3", id: "what-breaks", text: "What breaks" },
+      { kind: "list", items: [
+        "Slow replies lose orders. The buyer sends the same request to several sellers, and the first credible answer usually wins.",
+        "Every quote is done by hand, so the seller either underprices to win or spends hours per request, and discounts depend on who is answering.",
+        "Trust runs one way. Either the buyer prepays and hopes it is delivered, or the seller delivers and chases the invoice.",
+        "Buyers pay for capacity, not delivery. Plans, seats and credits are bought upfront, and failed calls, handoffs and half-finished work are billed anyway.",
+        "Refunds are manual and often impossible. Unused credits expire, a cancelled order becomes a support thread, and getting money back depends on the seller's goodwill.",
+        "Nothing is verifiable. The agreed price lives in a chat, delivery in a screenshot, and the payment in a bank statement; when the two sides disagree, there is no shared record.",
+        "AI agents are starting to buy, but they cannot negotiate over email, sign a PDF, wire money or ask for a refund.",
+      ] },
+      { kind: "callout", text: "Proteus turns the whole sale into one signed agreement: the price comes from the seller's rules, the money waits in escrow, the seller is paid per delivered unit, and whatever is not delivered is refunded from the escrow to the buyer's wallet when the term ends." },
     ],
   },
   {
