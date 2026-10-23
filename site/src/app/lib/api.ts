@@ -271,6 +271,10 @@ export const api = {
     setEmbedDomains: (domains: string[]) => request<{ slug: string; label: string; domains: string[] }>("PUT", "/app/embed", { body: { domains } }),
     confirmAgent: (txHash: string) => request<{ agentId: string; owner: string; payee: string; signer: string; tx: string; policies?: { product: string; tx: string | null }[] }>("POST", "/app/agent/confirm", { body: { txHash } }),
     createProduct: (body: T.ProductCreateBody) => request<T.ProductWithPrivate>("POST", "/app/products", { body }),
+    /** Catalog sync from the seller's own endpoint (stock, cost and order rules). */
+    catalogSync: () => request<T.CatalogSync>("GET", "/app/catalog-sync"),
+    setCatalogSync: (body: { url: string | null; authHeader?: string | null; secret?: string | null; enabled?: boolean }) => request<T.CatalogSync>("PUT", "/app/catalog-sync", { body }),
+    runCatalogSync: () => request<T.CatalogSyncResult>("POST", "/app/catalog-sync/run"),
     setListing: (id: string, active: boolean) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/listing`, { body: { active } }),
     deleteProduct: (id: string) => request<{ deleted: string }>("DELETE", `/app/products/${enc(id)}`),
     dashboard: () => request<import("../seller/console").Dashboard>("GET", "/app/dashboard"),

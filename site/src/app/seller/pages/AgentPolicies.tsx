@@ -8,6 +8,7 @@ import { PageHeader } from "../parts/PageHeader";
 import { duration, pct, units } from "../format";
 import s from "../seller.module.css";
 import d from "../dashboard.module.css";
+import { CatalogSyncCard } from "../parts/CatalogSyncCard";
 
 /** The rules every product's agent must obey. The model proposes; these decide. */
 export default function AgentPolicies() {
@@ -19,6 +20,7 @@ export default function AgentPolicies() {
         <ShieldCheck size={16} aria-hidden />
         <span>Every offer the agent shows a buyer is generated from the numbers below by a deterministic pricing engine. Prices under the margin floor are refused, discounts past the cap are refused, and anything above the approval threshold waits for you.</span>
       </div>
+      <CatalogSyncCard />
       <QueryView q={q} label="policies">
         {(rows) =>
           rows.length === 0 ? (

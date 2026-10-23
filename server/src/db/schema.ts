@@ -527,3 +527,18 @@ export const notifications = pgTable(
   },
   (t) => [uniqueIndex("notifications_dedupe").on(t.dedupeKey)],
 );
+
+/** A seller's own catalog endpoint. Proteus pulls stock, cost and order rules from it; every change becomes a new
+ * policy or cost version exactly like an edit in the dashboard (and a new policy version is committed on Arc). */
+export const catalogSyncs = pgTable("catalog_syncs", {
+  orgId: text("org_id").primaryKey(),
+  url: text("url").notNull(),
+  /** Optional header the endpoint expects, e.g. "authorization" or "x-api-key"; its value is stored encrypted. */
+  authHeader: text("auth_header"),
+  secretEnc: text("secret_enc"),
+  enabled: boolean("enabled").notNull().default(true),
+  lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+  lastStatus: text("last_status"),
+  lastResult: jsonb("last_result"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

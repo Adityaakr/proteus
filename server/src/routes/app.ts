@@ -10,6 +10,8 @@ import { listNegotiations, reviveCandidate, sellerNegotiationView } from "../ser
 import { decideApproval } from "../services/quotes";
 import { confirmDelivery } from "../services/delivery";
 import { exportCsv, type ExportKind } from "../services/exports";
+import { updateCost, updatePolicy } from "../services/product-rules";
+import { catalogSyncView, runCatalogSync, saveCatalogSync } from "../services/catalog-sync";
 import { createSandboxSession, requireSession, session } from "./session";
 import { features } from "../env";
 
@@ -117,21 +119,7 @@ appRoutes.patch("/app/products/:id/policy", async (c) => {
   const { orgId } = session(c);
   const lp = await loadProductById(c.req.param("id"));
   if (lp.org.id !== orgId) throw new HttpError(404, "product not found");
-  const body = PolicyUpdateBody.parse(await c.req.json());
-  const prev = lp.policyRow;
-  await db.insert(schema.policies).values({
-    id: id("pol"),
-    orgId,
-    productId: lp.row.id,
-    version: prev.version + 1,
-    minMarginBps: body.minMarginBps ?? prev.minMarginBps,
-    maxDiscountBps: body.maxDiscountBps ?? prev.maxDiscountBps,
-    approvalThreshold: body.approvalThreshold ? toBig(body.approvalThreshold) : prev.approvalThreshold,
-    prepaidMinimum: body.prepaidMinimum ? toBig(body.prepaidMinimum) : prev.prepaidMinimum,
-    availableCapacityUnits: body.availableCapacityUnits ? toBig(body.availableCapacityUnits) : prev.availableCapacityUnits,
-    quoteTtlSeconds: body.quoteTtlSeconds ?? prev.quoteTtlSeconds,
-    allowNonPositiveContribution: prev.allowNonPositiveContribution,
-  });
+  await updatePolicy(lp, PolicyUpdateBody.parse(await c.req.json()));
   return json(c, await productWithPrivate(orgId, lp.row.id));
 });
 
@@ -139,21 +127,19 @@ appRoutes.patch("/app/products/:id/cost", async (c) => {
   const { orgId } = session(c);
   const lp = await loadProductById(c.req.param("id"));
   if (lp.org.id !== orgId) throw new HttpError(404, "product not found");
-  const body = CostUpdateBody.parse(await c.req.json());
-  const prev = lp.costRow;
-  await db.insert(schema.costModels).values({
-    id: id("cost"),
-    orgId,
-    productId: lp.row.id,
-    version: prev.version + 1,
-    variableCostPerUnit: toBig(body.variableCostPerUnit),
-    directCostPerDeal: body.directCostPerDeal ? toBig(body.directCostPerDeal) : prev.directCostPerDeal,
-    txCostBps: body.txCostBps ?? prev.txCostBps,
-    freshUntil: new Date(Date.now() + 30 * 86400 * 1000),
-  });
   // Existing accepted deals are untouched by design: their terms are frozen and hashed.
+  await updateCost(lp, CostUpdateBody.parse(await c.req.json()));
   return json(c, await productWithPrivate(orgId, lp.row.id));
 });
+
+/* Catalog sync: the seller's own endpoint keeps stock, cost and order rules current. */
+appRoutes.get("/app/catalog-sync", async (c) => json(c, await catalogSyncView(session(c).orgId)));
+appRoutes.put("/app/catalog-sync", async (c) => {
+  const s = session(c);
+  if (s.kind !== "privy") throw new HttpError(403, "sign in as the owner to change catalog sync");
+  return json(c, await saveCatalogSync(s.orgId, (await c.req.json()) as Record<string, unknown>));
+});
+appRoutes.post("/app/catalog-sync/run", async (c) => json(c, await runCatalogSync(session(c).orgId)));
 
 appRoutes.get("/app/negotiations", async (c) => json(c, await listNegotiations(session(c).orgId)));
 appRoutes.get("/app/negotiations/:id", async (c) => json(c, await sellerNegotiationView(session(c).orgId, c.req.param("id"))));

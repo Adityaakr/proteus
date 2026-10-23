@@ -83,7 +83,7 @@ function privateAddress(ip: string): boolean {
 
 const allowPrivate = () => env.NOTIFY_ALLOW_PRIVATE === "1" && env.NODE_ENV !== "production";
 
-async function assertPublicHttps(raw: string): Promise<URL> {
+export async function assertPublicHttps(raw: string): Promise<URL> {
   let u: URL;
   try {
     u = new URL(raw);

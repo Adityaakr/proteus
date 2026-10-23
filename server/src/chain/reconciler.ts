@@ -6,6 +6,7 @@ import { id } from "../lib/ids";
 import { explorerTx } from "@proteus/domain";
 import { postJournal } from "../services/journal";
 import { drainOutbox, enqueue, type NotifyEvent } from "../services/notify";
+import { runDueCatalogSyncs } from "../services/catalog-sync";
 import { dealEscrowAbi } from "./abi";
 import { escrowAddress, publicClient } from "./client";
 import { withRpcRetry } from "./relayer";
@@ -209,7 +210,9 @@ export function startReconciler() {
     reconcileOnce()
       .catch((e) => console.warn("[reconciler]", String((e as Error).message).slice(0, 200)))
       .then(() => drainOutbox())
-      .catch((e) => console.warn("[notify]", String((e as Error).message).slice(0, 200)));
+      .catch((e) => console.warn("[notify]", String((e as Error).message).slice(0, 200)))
+      .then(() => runDueCatalogSyncs())
+      .catch((e) => console.warn("[catalog-sync]", String((e as Error).message).slice(0, 200)));
   setTimeout(tick, 2000);
   setInterval(tick, env.RECONCILE_INTERVAL_MS);
   console.log(`[reconciler] every ${env.RECONCILE_INTERVAL_MS}ms against ${env.ESCROW_ADDRESS}`);

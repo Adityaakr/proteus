@@ -752,3 +752,24 @@ export interface PermitRequest {
   message: { owner: string; spender: string; value: string; nonce: string; deadline: string };
   note: string;
 }
+
+/** Result of one catalog sync run: what changed per product, what was already current, what was skipped. */
+export interface CatalogSyncResult {
+  at: string;
+  status: "ok" | "error";
+  updated: { slug: string; changes: string[] }[];
+  unchanged: string[];
+  notOnProteus: string[];
+  errors: string[];
+}
+
+export interface CatalogSync {
+  url: string | null;
+  authHeader: string | null;
+  hasSecret: boolean;
+  enabled: boolean;
+  everyMinutes: number;
+  lastRunAt: string | null;
+  lastStatus: "ok" | "error" | null;
+  lastResult: CatalogSyncResult | null;
+}
