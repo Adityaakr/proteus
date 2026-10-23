@@ -48,6 +48,8 @@ export interface SellerBrand {
   category?: string;
   website?: string;
   accent?: string;
+  /** Public profiles (https links on each network's own domain). */
+  socials?: { x?: string; instagram?: string; farcaster?: string };
   /** Verified by Proteus AI (platform-set). */
   verified?: boolean;
 }

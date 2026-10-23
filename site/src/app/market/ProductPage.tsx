@@ -1,3 +1,4 @@
+import { SocialLinks } from "../ui/SocialLinks";
 import { useState } from "react";
 import { AgentBadge, RatingValue } from "./OnArc";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -15,7 +16,7 @@ import { ErrorState, fmtDate, fmtUnits, prettyIntegration } from "../buyer/commo
 import { PayPerCallCard } from "./PayPerCallCard";
 import { decimalsFor } from "./Market";
 import d from "./product.module.css";
-import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, defaultNetwork, pluralUnit } from "@proteus/domain";
 
 export default function ProductPage() {
   const { sellerSlug = "", productSlug = "" } = useParams();
@@ -63,7 +64,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
 
   const demo = seller.label !== "live";
   const category = product.category ?? seller.brand?.category ?? null;
-  const bestUnit = product.tiers.map((t) => t.unitPriceUsd).sort((a, b) => Number(a) - Number(b))[0];
+  const bestUnit = product.tiers.map((t) => t.unitPriceUsd).sort((a, b) => usdValue(a) - usdValue(b))[0];
   const wide = useLogoShape(seller.brand?.logoUrl) === "wide";
   const st = seller.stats;
   const unitDef = product.billableUnit.replace(/[.\s]+$/, "");
@@ -149,7 +150,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
                       <span className={d.tierName}>{t.name}</span>
                       {best && <span className={d.tierTag}>Best unit price</span>}
                     </td>
-                    <td className={d.num}>{fmtUnits(t.includedUnits)} <span className={d.dim}>{product.unitLabel}s</span></td>
+                    <td className={d.num}>{fmtUnits(t.includedUnits)} <span className={d.dim}>{pluralUnit(product.unitLabel)}</span></td>
                     <td className={d.num}><Money usd={t.unitPriceUsd} digits={decimalsFor(t.unitPriceUsd)} /></td>
                     <td className={`${d.num} ${d.strong}`}><Money usd={t.prepaidTotalUsd} digits={0} /></td>
                     <td className={d.includes}>{t.includes.join(", ") || "—"}</td>
@@ -158,7 +159,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
               })}
             </tbody>
           </table>
-          <p className={d.fine}>{product.refundPolicy}{product.maxUnitsPerDeal ? ` Up to ${fmtUnits(product.maxUnitsPerDeal)} ${product.unitLabel}s per deal.` : ""}</p>
+          <p className={d.fine}>{product.refundPolicy}{product.maxUnitsPerDeal ? ` Up to ${fmtUnits(product.maxUnitsPerDeal)} ${pluralUnit(product.unitLabel)} per deal.` : ""}</p>
         </section>
 
         <section className={d.section} aria-labelledby="h-how">
@@ -189,6 +190,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
             <dl className={d.kv}>
               {category && <><dt>Category</dt><dd>{categoryLabel(category)}</dd></>}
               {seller.brand?.website && <><dt>Website</dt><dd><a href={seller.brand.website} target="_blank" rel="noreferrer" className={d.link}>{new URL(seller.brand.website).hostname} <ArrowUpRight size={12} aria-hidden /></a></dd></>}
+              {seller.brand?.socials && Object.values(seller.brand.socials).some(Boolean) && <><dt>Social</dt><dd><SocialLinks socials={seller.brand.socials} /></dd></>}
               {st && (
                 <>
                   <dt>Deals funded</dt><dd className="app-mono">{st.dealsFunded}</dd>
@@ -250,3 +252,6 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
 function fieldTypeLabel(t: string): string {
   return t === "file" ? "File" : t === "number" ? "Number" : t === "textarea" ? "Text" : "Short text";
 }
+
+/** Display amounts arrive as "$12.5" or "$1,050.00"; compare them as numbers. */
+const usdValue = (v: string) => Number(v.replace(/[^0-9.]/g, ""));

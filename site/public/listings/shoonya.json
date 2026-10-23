@@ -1,0 +1,363 @@
+{
+  "business": {
+    "name": "Shoonya Store",
+    "slug": "shoonya-store",
+    "brand": {
+      "logoUrl": "/assets/logos/shoonya.png",
+      "markUrl": "/assets/logos/shoonya.png",
+      "accent": "#7f1728",
+      "category": "merch",
+      "tagline": "Think Custom, Think Shoonya. A creative production studio for custom merch, packaging and gifting.",
+      "website": "https://www.shoonyastore.com",
+      "socials": {
+        "x": "https://x.com/shoonyastore",
+        "instagram": "https://www.instagram.com/shoonyastore",
+        "farcaster": "https://farcaster.xyz/shoonya"
+      }
+    }
+  },
+  "products": [
+    {
+      "name": "Event merch box",
+      "slug": "event-merch-box",
+      "summary": "A branded box per person: magnetic box, 230 GSM oversized cotton tee, embroidered cotton cap and a handwritten note. Delivery and taxes included.",
+      "category": "merch",
+      "unitLabel": "box",
+      "billableUnit": "One branded merch box (magnetic box, tee, cap, handwritten note) delivered to the buyer's address, confirmed by Shoonya Store with proof.",
+      "capabilities": [
+        "Magnetic gift box",
+        "230 GSM oversized cotton tee",
+        "Embroidered cotton cap",
+        "Handwritten note",
+        "Your logo on every item",
+        "Delivery and taxes included in India",
+        "Delivery date confirmed with every order"
+      ],
+      "supportedIntegrations": [],
+      "tiers": [
+        {
+          "name": "Team pack",
+          "includedUnits": "20",
+          "unitPriceUsd": "15",
+          "includes": [
+            "Magnetic box",
+            "230 GSM oversized cotton tee",
+            "Embroidered cotton cap",
+            "Handwritten note",
+            "Brand logo on each item",
+            "Delivery and taxes included"
+          ]
+        }
+      ],
+      "maxUnitsPerDeal": "500",
+      "termDays": 30,
+      "refundPolicy": "Anything not delivered within the term is refunded to the buyer wallet.",
+      "cost": {
+        "variableCostPerUnitUsd": "12.00",
+        "directCostPerDealUsd": "0",
+        "txCostBps": 50
+      },
+      "policy": {
+        "minMarginBps": 1000,
+        "maxDiscountBps": 0,
+        "approvalThresholdUsd": "1000",
+        "prepaidMinimumUsd": "15",
+        "availableCapacityUnits": "500",
+        "quoteTtlSeconds": 86400
+      },
+      "request": {
+        "intro": "What you need and where it goes.",
+        "fields": [
+          {
+            "key": "quantity",
+            "label": "Quantity",
+            "type": "number",
+            "required": true,
+            "placeholder": "20"
+          },
+          {
+            "key": "delivery",
+            "label": "Delivery city and date",
+            "type": "text",
+            "required": true,
+            "placeholder": "Mumbai, by Oct 31"
+          },
+          {
+            "key": "artwork",
+            "label": "Logo or artwork",
+            "type": "file",
+            "required": false,
+            "hint": "PNG, SVG or PDF"
+          },
+          {
+            "key": "notes",
+            "label": "Sizes, colours, anything else",
+            "type": "textarea",
+            "required": false
+          }
+        ]
+      },
+      "adapter": "http",
+      "upstream": {
+        "url": "https://www.shoonyastore.com"
+      }
+    },
+    {
+      "name": "Custom oversized tees",
+      "slug": "custom-tees",
+      "summary": "Oversized and Terry Luxe tees printed or embroidered with your design, for teams, events and drops.",
+      "category": "merch",
+      "unitLabel": "tee",
+      "billableUnit": "One custom tee printed or embroidered with the buyer's design, delivered and confirmed by Shoonya Store with proof.",
+      "capabilities": [
+        "Oversized and Terry Luxe fits",
+        "Screen print, DTF or embroidery",
+        "Sizes S to XXL",
+        "Delivery date confirmed with every order"
+      ],
+      "supportedIntegrations": [],
+      "tiers": [
+        {
+          "name": "Starter",
+          "includedUnits": "25",
+          "unitPriceUsd": "8.00",
+          "includes": [
+            "Your design, one placement"
+          ]
+        },
+        {
+          "name": "Bulk",
+          "includedUnits": "100",
+          "unitPriceUsd": "6.50",
+          "includes": [
+            "Your design, one placement",
+            "Size mix"
+          ]
+        }
+      ],
+      "maxUnitsPerDeal": "1000",
+      "termDays": 30,
+      "refundPolicy": "Anything not delivered within the term is refunded to the buyer wallet.",
+      "cost": {
+        "variableCostPerUnitUsd": "5.50",
+        "directCostPerDealUsd": "0",
+        "txCostBps": 50
+      },
+      "policy": {
+        "minMarginBps": 1000,
+        "maxDiscountBps": 500,
+        "approvalThresholdUsd": "500",
+        "prepaidMinimumUsd": "50",
+        "availableCapacityUnits": "2000",
+        "quoteTtlSeconds": 86400
+      },
+      "request": {
+        "intro": "What you need and where it goes.",
+        "fields": [
+          {
+            "key": "quantity",
+            "label": "Quantity",
+            "type": "number",
+            "required": true,
+            "placeholder": "25"
+          },
+          {
+            "key": "delivery",
+            "label": "Delivery city and date",
+            "type": "text",
+            "required": true,
+            "placeholder": "Mumbai, by Oct 31"
+          },
+          {
+            "key": "artwork",
+            "label": "Logo or artwork",
+            "type": "file",
+            "required": false,
+            "hint": "PNG, SVG or PDF"
+          },
+          {
+            "key": "notes",
+            "label": "Sizes, colours, anything else",
+            "type": "textarea",
+            "required": false
+          }
+        ]
+      },
+      "adapter": "http",
+      "upstream": {
+        "url": "https://www.shoonyastore.com"
+      }
+    },
+    {
+      "name": "Custom tote bags",
+      "slug": "custom-totes",
+      "summary": "Cotton and canvas totes printed with your logo, for events, launches and gifting.",
+      "category": "merch",
+      "unitLabel": "tote",
+      "billableUnit": "One custom printed tote delivered to the buyer's address, confirmed by Shoonya Store with proof.",
+      "capabilities": [
+        "Cotton or canvas",
+        "Printed with your logo",
+        "Delivery date confirmed with every order"
+      ],
+      "supportedIntegrations": [],
+      "tiers": [
+        {
+          "name": "Event",
+          "includedUnits": "50",
+          "unitPriceUsd": "4.00",
+          "includes": [
+            "One-colour print"
+          ]
+        },
+        {
+          "name": "Bulk",
+          "includedUnits": "200",
+          "unitPriceUsd": "3.20",
+          "includes": [
+            "One-colour print",
+            "Size and colour options"
+          ]
+        }
+      ],
+      "maxUnitsPerDeal": "1000",
+      "termDays": 30,
+      "refundPolicy": "Anything not delivered within the term is refunded to the buyer wallet.",
+      "cost": {
+        "variableCostPerUnitUsd": "2.60",
+        "directCostPerDealUsd": "0",
+        "txCostBps": 50
+      },
+      "policy": {
+        "minMarginBps": 1000,
+        "maxDiscountBps": 500,
+        "approvalThresholdUsd": "500",
+        "prepaidMinimumUsd": "50",
+        "availableCapacityUnits": "3000",
+        "quoteTtlSeconds": 86400
+      },
+      "request": {
+        "intro": "What you need and where it goes.",
+        "fields": [
+          {
+            "key": "quantity",
+            "label": "Quantity",
+            "type": "number",
+            "required": true,
+            "placeholder": "50"
+          },
+          {
+            "key": "delivery",
+            "label": "Delivery city and date",
+            "type": "text",
+            "required": true,
+            "placeholder": "Mumbai, by Oct 31"
+          },
+          {
+            "key": "artwork",
+            "label": "Logo or artwork",
+            "type": "file",
+            "required": false,
+            "hint": "PNG, SVG or PDF"
+          },
+          {
+            "key": "notes",
+            "label": "Sizes, colours, anything else",
+            "type": "textarea",
+            "required": false
+          }
+        ]
+      },
+      "adapter": "http",
+      "upstream": {
+        "url": "https://www.shoonyastore.com"
+      }
+    },
+    {
+      "name": "Pins and badges",
+      "slug": "pins-badges",
+      "summary": "Custom enamel pins and button badges in your design, for communities, events and merch drops.",
+      "category": "merch",
+      "unitLabel": "pin",
+      "billableUnit": "One custom pin or badge in the buyer's design, delivered and confirmed by Shoonya Store with proof.",
+      "capabilities": [
+        "Enamel pins or button badges",
+        "Your artwork",
+        "Backing cards available",
+        "Delivery date confirmed with every order"
+      ],
+      "supportedIntegrations": [],
+      "tiers": [
+        {
+          "name": "Event",
+          "includedUnits": "100",
+          "unitPriceUsd": "1.50",
+          "includes": [
+            "Your design"
+          ]
+        },
+        {
+          "name": "Bulk",
+          "includedUnits": "500",
+          "unitPriceUsd": "1.00",
+          "includes": [
+            "Your design",
+            "Backing cards"
+          ]
+        }
+      ],
+      "maxUnitsPerDeal": "1000",
+      "termDays": 30,
+      "refundPolicy": "Anything not delivered within the term is refunded to the buyer wallet.",
+      "cost": {
+        "variableCostPerUnitUsd": "0.80",
+        "directCostPerDealUsd": "0",
+        "txCostBps": 50
+      },
+      "policy": {
+        "minMarginBps": 1000,
+        "maxDiscountBps": 500,
+        "approvalThresholdUsd": "500",
+        "prepaidMinimumUsd": "50",
+        "availableCapacityUnits": "10000",
+        "quoteTtlSeconds": 86400
+      },
+      "request": {
+        "intro": "What you need and where it goes.",
+        "fields": [
+          {
+            "key": "quantity",
+            "label": "Quantity",
+            "type": "number",
+            "required": true,
+            "placeholder": "100"
+          },
+          {
+            "key": "delivery",
+            "label": "Delivery city and date",
+            "type": "text",
+            "required": true,
+            "placeholder": "Mumbai, by Oct 31"
+          },
+          {
+            "key": "artwork",
+            "label": "Logo or artwork",
+            "type": "file",
+            "required": false,
+            "hint": "PNG, SVG or PDF"
+          },
+          {
+            "key": "notes",
+            "label": "Sizes, colours, anything else",
+            "type": "textarea",
+            "required": false
+          }
+        ]
+      },
+      "adapter": "http",
+      "upstream": {
+        "url": "https://www.shoonyastore.com"
+      }
+    }
+  ]
+}

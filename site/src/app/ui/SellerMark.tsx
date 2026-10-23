@@ -13,6 +13,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   operations: "Operations",
   compliance: "Compliance",
   logistics: "Logistics",
+  merch: "Merch and gifting",
   data: "Data",
   legal: "Legal",
   risk: "Risk and fraud",

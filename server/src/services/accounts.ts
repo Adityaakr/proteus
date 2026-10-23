@@ -1,7 +1,7 @@
 import { and, desc, eq, sql, type SQL } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { verifyMessage, type Address, type Hex } from "viem";
-import { formatUsd, toMicro } from "@proteus/domain";
+import { formatUsd, toMicro, pluralUnit } from "@proteus/domain";
 import { ensureOrgSigner } from "../chain/signer";
 import { erc20Abi } from "../chain/abi";
 import { publicClient, usdcAddress } from "../chain/client";
@@ -250,7 +250,7 @@ export async function createProduct(orgId: string, input: ProductCreateInput) {
   const adapter = "http" as const;
   if (!input.upstream?.url) throw new HttpError(400, "an endpoint URL is required; every product runs on the seller's own service");
   const upstream = adapter === "http" && input.upstream ? { url: validateUpstreamUrl(input.upstream.url), authHeader: input.upstream.authHeader?.trim() || undefined, secretEnc: input.upstream.secret?.trim() ? encryptSecret(input.upstream.secret.trim()) : undefined } : null;
-  await db.insert(schema.products).values({ id: productId, orgId, slug, public: pub, starters: [`We need about ${input.tiers[0]!.includedUnits} ${input.unitLabel}s a month. What can you offer?`], adapter, upstream, payPerCallPrice: input.payPerCall ? toMicro(input.payPerCall.priceUsd) : null });
+  await db.insert(schema.products).values({ id: productId, orgId, slug, public: pub, starters: [`We need about ${input.tiers[0]!.includedUnits} ${input.tiers[0]!.includedUnits === "1" ? input.unitLabel : pluralUnit(input.unitLabel)}. What can you offer?`], adapter, upstream, payPerCallPrice: input.payPerCall ? toMicro(input.payPerCall.priceUsd) : null });
   await db.insert(schema.costModels).values({ id: id("cost"), orgId, productId, version: 1, variableCostPerUnit: toMicro(input.cost.variableCostPerUnitUsd), directCostPerDeal: toMicro(input.cost.directCostPerDealUsd), txCostBps: input.cost.txCostBps, freshUntil: new Date(Date.now() + 30 * 86400 * 1000) });
   await db.insert(schema.policies).values({ id: id("pol"), orgId, productId, version: 1, minMarginBps: input.policy.minMarginBps, maxDiscountBps: input.policy.maxDiscountBps, approvalThreshold: toMicro(input.policy.approvalThresholdUsd), prepaidMinimum: toMicro(input.policy.prepaidMinimumUsd), availableCapacityUnits: BigInt(input.policy.availableCapacityUnits), quoteTtlSeconds: input.policy.quoteTtlSeconds });
   return productId;
@@ -269,6 +269,10 @@ export async function marketList() {
   return out.sort((a, b) => (a.sellerLabel === b.sellerLabel ? 0 : a.sellerLabel === "live" ? -1 : 1));
 }
 
+/** The smallest of display amounts like "$1,050.00" or "$12.5" (they sort as text otherwise). */
+const usdValue = (v: string) => Number(v.replace(/[^0-9.]/g, ""));
+const lowest = (vs: string[]) => [...vs].sort((a, b) => usdValue(a) - usdValue(b))[0] ?? null;
+
 /** Seller-centric market: every seller with its brand, real stats and published products. Live sellers first. */
 export async function marketSellers() {
   const orgs = await db.select().from(schema.orgs);
@@ -281,7 +285,7 @@ export async function marketSellers() {
     const items = [];
     for (const r of mine) {
       const pub = publicProduct(await loadProductById(r.id));
-      items.push({ slug: pub.slug, name: pub.name, summary: pub.summary, category: pub.category, unitLabel: pub.unitLabel, capabilities: pub.capabilities, termDays: pub.termDays, tiers: pub.tiers.length, startingTierUsd: pub.tiers[0]?.prepaidTotalUsd ?? null, bestUnitPriceUsd: pub.tiers.map((t) => t.unitPriceUsd).sort((a, b) => Number(a) - Number(b))[0] ?? null, perCallUsd: pub.payPerCallUsd, service: pub.service });
+      items.push({ slug: pub.slug, name: pub.name, summary: pub.summary, category: pub.category, unitLabel: pub.unitLabel, capabilities: pub.capabilities, termDays: pub.termDays, tiers: pub.tiers.length, startingTierUsd: lowest(pub.tiers.map((t) => t.prepaidTotalUsd)), bestUnitPriceUsd: lowest(pub.tiers.map((t) => t.unitPriceUsd)), perCallUsd: pub.payPerCallUsd, service: pub.service });
     }
     out.push({ ...sellerCard(org, stats.get(org.id)), products: items });
   }

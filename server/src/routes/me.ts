@@ -49,7 +49,7 @@ meRoutes.get("/me/negotiations", async (c) => json(c, await myNegotiations(auth(
 meRoutes.get("/me/deals", async (c) => json(c, await myDeals(auth(c).userId)));
 meRoutes.get("/me/activity", async (c) => json(c, await myActivity(auth(c).userId)));
 
-const BrandBody = z.object({ logoUrl: z.string().max(100_000).optional(), markUrl: z.string().max(100_000).optional(), tagline: z.string().max(140).optional(), category: z.string().max(32).optional(), website: z.string().max(200).optional(), accent: z.string().max(7).optional() });
+const BrandBody = z.object({ logoUrl: z.string().max(100_000).optional(), markUrl: z.string().max(100_000).optional(), tagline: z.string().max(140).optional(), category: z.string().max(32).optional(), website: z.string().max(200).optional(), accent: z.string().max(7).optional(), socials: z.object({ x: z.string().max(200).optional(), instagram: z.string().max(200).optional(), farcaster: z.string().max(200).optional() }).optional() });
 const OrgBody = z.object({ name: z.string().min(2).max(80), slug: z.string().min(2).max(40).optional(), brand: BrandBody.optional() });
 meRoutes.post("/orgs", async (c) => {
   const b = OrgBody.parse(await c.req.json());

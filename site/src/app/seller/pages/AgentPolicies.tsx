@@ -1,3 +1,4 @@
+import { pluralUnit } from "@proteus/domain";
 import { Link } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
 import { ActionButton, EmptyState, Money, StatusTag } from "../kit";
@@ -38,7 +39,7 @@ export default function AgentPolicies() {
                     <dt>Max discount from list</dt><dd>{pct(p.policy.maxDiscountBps)}</dd>
                     <dt>Approval threshold</dt><dd><Money micro={p.policy.approvalThreshold} /></dd>
                     <dt>Prepaid minimum</dt><dd><Money micro={p.policy.prepaidMinimum} /></dd>
-                    <dt>Capacity left to commit</dt><dd>{units(p.policy.availableCapacityUnits)} {p.unitLabel}s</dd>
+                    <dt>Capacity left to commit</dt><dd>{units(p.policy.availableCapacityUnits)} {pluralUnit(p.unitLabel)}</dd>
                     <dt>Offer validity</dt><dd>{duration(p.policy.quoteTtlSeconds)}</dd>
                     <dt>Variable cost per {p.unitLabel}</dt><dd><Money micro={p.cost.variableCostPerUnit} digits={4} /></dd>
                   </dl>

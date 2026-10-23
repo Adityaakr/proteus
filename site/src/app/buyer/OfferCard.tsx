@@ -1,6 +1,6 @@
 import { useId, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { toMicro } from "@proteus/domain";
+import { toMicro, pluralUnit } from "@proteus/domain";
 import { T_DEFAULT } from "../../lib/motion";
 import { ActionButton } from "../ui/ActionButton";
 import { Field } from "../ui/Field";
@@ -53,7 +53,7 @@ export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAc
   const digits = offer.unitPriceUsd.split(".")[1]?.replace(/0+$/, "").length && offer.unitPriceUsd.split(".")[1]!.replace(/0+$/, "").length > 2 ? 4 : 2;
   const reasons = offer.publicReasons.filter((r) => !/integrations are not available/.test(r));
   return (
-    <motion.article layout transition={T_DEFAULT} className={n.offer} aria-label={`${offer.tierName} offer, ${fmtUnits(offer.units)} ${unitLabel}s`}>
+    <motion.article layout transition={T_DEFAULT} className={n.offer} aria-label={`${offer.tierName} offer, ${fmtUnits(offer.units)} ${pluralUnit(unitLabel)}`}>
       <div className={n.offerHead}>
         <span className={n.offerName}>
           {offer.tierName}
@@ -62,7 +62,7 @@ export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAc
         <span className={n.offerTotal}><Money usd={offer.prepaidTotalUsd} /></span>
       </div>
       <p className={n.offerFacts}>
-        <b>{fmtUnits(offer.units)}</b> {unitLabel}s at <b><Money usd={offer.unitPriceUsd} digits={digits} /></b> each, prepaid{termDays ? ` for ${termDays} days` : ""}.
+        <b>{fmtUnits(offer.units)}</b> {pluralUnit(unitLabel)} at <b><Money usd={offer.unitPriceUsd} digits={digits} /></b> each, prepaid{termDays ? ` for ${termDays} days` : ""}.
         {offer.overagePriceUsd ? <> Overage <b><Money usd={offer.overagePriceUsd} /></b>.</> : " Unused balance refunds after the term."}
         {" "}<span className={n.offerTagMuted}>{origins.map((o) => ORIGIN_LABEL[o]).join(", ")}</span>
       </p>
@@ -88,7 +88,7 @@ export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAc
                 <label><input type="radio" name={`${formId}-mode`} checked={mode === "units"} onChange={() => setMode("units")} /> Target units</label>
               </fieldset>
               <Field
-                label={mode === "total" ? `Total for ${fmtUnits(offer.units)} ${unitLabel}s (USDC)` : `${unitLabel[0]!.toUpperCase()}${unitLabel.slice(1)}s for ${offer.prepaidTotalUsd} USDC`}
+                label={mode === "total" ? `Total for ${fmtUnits(offer.units)} ${pluralUnit(unitLabel)} (USDC)` : `${pluralUnit(unitLabel)[0]!.toUpperCase()}${pluralUnit(unitLabel).slice(1)} for ${offer.prepaidTotalUsd} USDC`}
                 inputMode={mode === "total" ? "decimal" : "numeric"}
                 placeholder={mode === "total" ? "1500" : "1800"}
                 value={value}

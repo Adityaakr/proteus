@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { formatUsd, getQuoteCandidates, type Candidate } from "@proteus/domain";
+import { formatUsd, getQuoteCandidates, type Candidate, pluralUnit } from "@proteus/domain";
 import { Gauge } from "lucide-react";
 import { StatusTag } from "../../seller/kit";
 import { SellerOnly } from "../../seller/parts/SellerOnly";
@@ -51,7 +51,7 @@ function PreviewBody({ candidates, floor, unitLabel }: { candidates: Candidate[]
   const rejected = candidates.filter((c) => c.status === "rejected");
   const best = eligible[0];
   const summary = best
-    ? `Your agent could offer ${best.tierName}: ${units(best.units)} ${unitLabel}s for ${formatUsd(best.prepaidTotal)} at ${pct(best.economics.expectedContributionMarginBps.toString())} margin.`
+    ? `Your agent could offer ${best.tierName}: ${units(best.units)} ${pluralUnit(unitLabel)} for ${formatUsd(best.prepaidTotal)} at ${pct(best.economics.expectedContributionMarginBps.toString())} margin.`
     : approval[0]
       ? `Every offer within policy needs your approval first. The smallest is ${formatUsd(approval[0].prepaidTotal)}.`
       : "Your agent would refuse this ask. Every package breaks at least one rule below, so it would explain why and ask for a different volume or budget.";
@@ -81,7 +81,7 @@ function PreviewBody({ candidates, floor, unitLabel }: { candidates: Candidate[]
               <span>
                 <span className={s.strong}>{c.tierName}</span>
                 <span className={s.sub}>
-                  {units(c.units)} {unitLabel}s for {formatUsd(c.prepaidTotal)} · {c.origins.map((o) => ORIGIN[o]).join(", ")}
+                  {units(c.units)} {pluralUnit(unitLabel)} for {formatUsd(c.prepaidTotal)} · {c.origins.map((o) => ORIGIN[o]).join(", ")}
                 </span>
               </span>
               <StatusTag tone={STATUS[c.status].tone} label={STATUS[c.status].label} />

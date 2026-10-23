@@ -1,5 +1,5 @@
 import { asc, desc, eq } from "drizzle-orm";
-import { explorerAddress, explorerTx, formatUsd } from "@proteus/domain";
+import { explorerAddress, explorerTx, formatUsd, pluralUnit } from "@proteus/domain";
 import { db, schema } from "../db";
 import { env, features } from "../env";
 import { HttpError } from "../lib/http";
@@ -31,12 +31,12 @@ export async function recordView(publicIdValue: string) {
     if (dec.kind === "quote") continue; // the quote row below carries the offer
     timeline.push({ at: dec.createdAt, kind: dec.kind === "candidates" ? "options" : dec.kind, summary: dec.publicExplanation });
   }
-  if (q) timeline.push({ at: q.createdAt, kind: "quote", summary: `Offer issued: ${(q.publicTerms as { units: string }).units} ${lp.product.unitLabel}s, ${formatUsd(BigInt((q.publicTerms as { prepaidTotal: string }).prepaidTotal))} prepaid` });
+  if (q) timeline.push({ at: q.createdAt, kind: "quote", summary: `Offer issued: ${(q.publicTerms as { units: string }).units} ${pluralUnit(lp.product.unitLabel)}, ${formatUsd(BigInt((q.publicTerms as { prepaidTotal: string }).prepaidTotal))} prepaid` });
   timeline.push({ at: d.createdAt, kind: "accept", summary: `Identical terms signed by buyer and seller. Terms hash ${d.termsHash.slice(0, 10)}…` });
   for (const t of txs) timeline.push({ at: t.createdAt, kind: t.kind === "fund" ? "fund" : t.kind === "settle" ? "settle" : t.kind === "refund" ? "refund" : t.kind, summary: `${t.kind} transaction (${t.status}, via ${t.submittedVia})`, txHash: t.txHash, explorerUrl: explorerTx(t.txHash) });
   const delivered = reqs.filter((r) => r.billable).length;
   if (reqs.length) timeline.push({ at: reqs.at(-1)!.createdAt, kind: "service", summary: `${reqs.length} service request(s), ${delivered} billable, ${reqs.length - delivered} not billable (failed or handoff)` });
-  for (const a of acks) timeline.push({ at: a.createdAt, kind: "usage_accept", summary: `Buyer accepted cumulative usage: ${a.cumulativeUnits} ${lp.product.unitLabel}s, ${formatUsd(a.cumulativeAmount)}`, txHash: a.settlementTxHash ?? undefined, explorerUrl: a.settlementTxHash ? explorerTx(a.settlementTxHash) : undefined });
+  for (const a of acks) timeline.push({ at: a.createdAt, kind: "usage_accept", summary: `Buyer accepted cumulative usage: ${a.cumulativeUnits} ${pluralUnit(lp.product.unitLabel)}, ${formatUsd(a.cumulativeAmount)}`, txHash: a.settlementTxHash ?? undefined, explorerUrl: a.settlementTxHash ? explorerTx(a.settlementTxHash) : undefined });
   timeline.sort((a, b) => a.at.getTime() - b.at.getTime());
 
   return {

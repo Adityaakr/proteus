@@ -78,3 +78,10 @@ export function min(a: bigint, b: bigint): bigint {
 export function max(a: bigint, b: bigint): bigint {
   return a > b ? a : b;
 }
+
+/** English plural of a unit label for prose: "box" -> "boxes", "inquiry" -> "inquiries", "call" -> "calls". */
+export function pluralUnit(label: string): string {
+  if (/(s|x|z|ch|sh)$/i.test(label)) return `${label}es`;
+  if (/[^aeiou]y$/i.test(label)) return `${label.slice(0, -1)}ies`;
+  return `${label}s`;
+}

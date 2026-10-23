@@ -1,4 +1,4 @@
-import { formatUsd, toMicro, type Requirements } from "@proteus/domain";
+import { formatUsd, toMicro, type Requirements, pluralUnit } from "@proteus/domain";
 import type { AgentAdapter, AgentStep, ComposeInput, ExtractInput } from "./adapter";
 import { detectInjection } from "./adapter";
 
@@ -60,8 +60,8 @@ export function extractRuleBased(input: ExtractInput): Requirements {
   if (/e-?commerce|stores?|shop/i.test(text)) req.industry = "e-commerce";
   if (/order (tracking|status)|delivery/i.test(text)) req.useCase = "order tracking and delivery questions";
 
-  if (!req.desiredUnits && !req.budget) req.openQuestions.push(`Roughly how many ${input.unitLabel}s per month do you expect, or what monthly budget are you working with?`);
-  if (!req.desiredUnits && req.budget) req.openQuestions.push(`What share of your incoming volume is order tracking and delivery questions? That sets how many ${input.unitLabel}s you need.`);
+  if (!req.desiredUnits && !req.budget) req.openQuestions.push(`Roughly how many ${pluralUnit(input.unitLabel)} per month do you expect, or what monthly budget are you working with?`);
+  if (!req.desiredUnits && req.budget) req.openQuestions.push(`What share of your incoming volume is order tracking and delivery questions? That sets how many ${pluralUnit(input.unitLabel)} you need.`);
   return req;
 }
 
@@ -75,7 +75,7 @@ export function composeRuleBased(input: ComposeInput): string {
 
   const understood: string[] = [];
   if (requirements.useCase) understood.push(requirements.useCase);
-  if (requirements.desiredUnits) understood.push(`about ${requirements.desiredUnits.toLocaleString()} ${unitLabel}s a month`);
+  if (requirements.desiredUnits) understood.push(`about ${requirements.desiredUnits.toLocaleString()} ${pluralUnit(unitLabel)} a month`);
   if (requirements.budget) understood.push(`a budget around ${formatUsd(requirements.budget, 0)} a month`);
   if (requirements.integrations.length) understood.push(`integration with ${requirements.integrations.join(", ")}`);
   if (understood.length) lines.push(`Here is what I understood: ${understood.join("; ")}.`);
@@ -88,22 +88,22 @@ export function composeRuleBased(input: ComposeInput): string {
   if (eligible.length) {
     lines.push(eligible.length > 1 ? "There are a couple of ways we could structure this:" : "Here is a package we could structure:");
     for (const o of eligible.slice(0, 2)) {
-      lines.push(`${o.tierName}: ${o.units.toLocaleString()} ${unitLabel}s for ${formatUsd(o.prepaidTotal)} prepaid for the term (${unitPrice(o.unitPrice.num, o.unitPrice.den)} per ${unitLabel}). Includes ${o.includes.join(", ").toLowerCase()}.`);
+      lines.push(`${o.tierName}: ${o.units.toLocaleString()} ${pluralUnit(unitLabel)} for ${formatUsd(o.prepaidTotal)} prepaid for the term (${unitPrice(o.unitPrice.num, o.unitPrice.den)} per ${unitLabel}). Includes ${o.includes.join(", ").toLowerCase()}.`);
     }
   }
   if (needsApproval.length) {
     const o = needsApproval[0]!;
-    lines.push(`${o.units.toLocaleString()} ${unitLabel}s for ${formatUsd(o.prepaidTotal)} is above what I can offer on my own authority. I have sent it to the seller for approval and will update this thread when they decide.`);
+    lines.push(`${o.units.toLocaleString()} ${pluralUnit(unitLabel)} for ${formatUsd(o.prepaidTotal)} is above what I can offer on my own authority. I have sent it to the seller for approval and will update this thread when they decide.`);
   }
   if (rejected.length && !eligible.length) {
     const r = rejected[0]!;
-    lines.push(`I cannot offer ${r.units.toLocaleString()} ${unitLabel}s at ${formatUsd(r.prepaidTotal)}: ${r.publicReasons[0] ?? "it falls outside the seller's policy."}`);
+    lines.push(`I cannot offer ${r.units.toLocaleString()} ${pluralUnit(unitLabel)} at ${formatUsd(r.prepaidTotal)}: ${r.publicReasons[0] ?? "it falls outside the seller's policy."}`);
   } else if (rejected.length) {
     const r = rejected[0]!;
-    lines.push(`${r.units.toLocaleString()} ${unitLabel}s for ${formatUsd(r.prepaidTotal)} does not work: ${(r.publicReasons[0] ?? "it falls outside the seller's policy.").toLowerCase()} The options above are what I can commit to.`);
+    lines.push(`${r.units.toLocaleString()} ${pluralUnit(unitLabel)} for ${formatUsd(r.prepaidTotal)} does not work: ${(r.publicReasons[0] ?? "it falls outside the seller's policy.").toLowerCase()} The options above are what I can commit to.`);
   }
   if (requirements.openQuestions.length) lines.push(requirements.openQuestions[0]!);
-  if (!lines.length) lines.push(`Tell me what you need: expected ${unitLabel}s per month, your budget, and any integrations, and I will put together options.`);
+  if (!lines.length) lines.push(`Tell me what you need: expected ${pluralUnit(unitLabel)} per month, your budget, and any integrations, and I will put together options.`);
   return lines.join("\n\n");
 }
 

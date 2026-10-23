@@ -1,3 +1,4 @@
+import { SocialLinks } from "../ui/SocialLinks";
 import { useDeferredValue, useMemo, useState } from "react";
 import { AgentBadge, RatingValue } from "./OnArc";
 import { Link, useParams } from "react-router-dom";
@@ -14,7 +15,7 @@ import { api, qk, type MarketSeller, type MarketSellerProduct } from "../lib/api
 import { ErrorState, PageHeader, fmtDate } from "../buyer/common";
 import m from "./market.module.css";
 
-const CATEGORY_ORDER = ["support", "voice", "infra", "devtools", "treasury", "payables", "vendors", "operations", "compliance", "logistics", "data", "legal", "risk", "media", "finance", "health", "other"];
+const CATEGORY_ORDER = ["support", "voice", "infra", "devtools", "treasury", "payables", "vendors", "operations", "compliance", "logistics", "merch", "data", "legal", "risk", "media", "finance", "health", "other"];
 
 export default function Market() {
   const { sellerSlug } = useParams();
@@ -71,7 +72,7 @@ export default function Market() {
 
       {sellers.some((s) => s.label !== "live") && (
         <p className={m.note}>
-          Lumen Voice runs on its own endpoint. The other sellers are examples modeled on the segments the tools in our comparison serve; they carry Proteus AI's own marks, and their service work is done by Proteus AI's agent from exactly what you send. Every deal on any of them is a real Arc testnet transaction.
+          Most sellers here are examples run by Proteus AI, modeled on the segments the tools in our comparison serve. Their service work is done by Proteus AI's agent from exactly what you send, and a demo seller that says so records deliveries without shipping anything. Every deal on any of them is a real Arc transaction.
         </p>
       )}
       {q.isLoading ? (
@@ -111,6 +112,7 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
           <div className={m.sellerMeta}>
             {s.brand.category && <span>{categoryLabel(s.brand.category)}</span>}
             {s.brand.website && <a href={s.brand.website} target="_blank" rel="noreferrer" className={m.site}>{new URL(s.brand.website).hostname}</a>}
+            <SocialLinks socials={s.brand.socials} />
             {st && <span>Since {fmtDate(st.since)}</span>}
           </div>
         </div>
@@ -138,7 +140,8 @@ function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
 }
 
 function ProductCard({ seller, p }: { seller: string; p: MarketSellerProduct }) {
-  const startingDigits = p.startingTierUsd && Number(p.startingTierUsd.replace(/[^0-9.]/g, "")) < 1 ? 2 : 0;
+  const starting = p.startingTierUsd ? Number(p.startingTierUsd.replace(/[^0-9.]/g, "")) : 0;
+  const startingDigits = Number.isInteger(starting) ? 0 : 2;
   return (
     <li>
       <Link to={`/app/market/${seller}/${p.slug}`} className={m.product}>

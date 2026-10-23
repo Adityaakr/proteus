@@ -1,5 +1,5 @@
 import { asc, desc, eq } from "drizzle-orm";
-import { evaluateCounteroffer, formatUsd, getQuoteCandidates, toPublicCandidate, type Candidate, type PublicCandidate, type Requirements } from "@proteus/domain";
+import { evaluateCounteroffer, formatUsd, getQuoteCandidates, toPublicCandidate, type Candidate, type PublicCandidate, type Requirements, pluralUnit } from "@proteus/domain";
 import { detectInjection, getAgentAdapter, type AgentStep, type ConversationTurn } from "../agent";
 import { db, schema } from "../db";
 import { HttpError, bigintsToStrings } from "../lib/http";
@@ -193,7 +193,7 @@ export async function counter(negId: string, candidateId: string, ask: { targetT
   const d = evaluateCounteroffer(ctx, base, ask, req);
   const seq = (turnRows.at(-1)?.seq ?? 0) + 1;
 
-  const askText = ask.targetTotal !== undefined ? `${base.units.toLocaleString()} ${lp.product.unitLabel}s for ${formatUsd(ask.targetTotal)}` : `${ask.targetUnits?.toLocaleString()} ${lp.product.unitLabel}s for ${formatUsd(base.prepaidTotal)}`;
+  const askText = ask.targetTotal !== undefined ? `${base.units.toLocaleString()} ${pluralUnit(lp.product.unitLabel)} for ${formatUsd(ask.targetTotal)}` : `${ask.targetUnits?.toLocaleString()} ${pluralUnit(lp.product.unitLabel)} for ${formatUsd(base.prepaidTotal)}`;
   await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", kind: "message", content: `Counteroffer: ${askText}.` });
 
   let reply: string;
@@ -206,13 +206,13 @@ export async function counter(negId: string, candidateId: string, ask: { targetT
   const pub = toPublicCandidate(d.candidate);
   if (d.decision === "approved") {
     upsert(d.candidate);
-    reply = `Yes, I can do ${d.candidate.units.toLocaleString()} ${lp.product.unitLabel}s for ${formatUsd(d.candidate.prepaidTotal)}. That is within what the seller allows, so you can accept it now.`;
+    reply = `Yes, I can do ${d.candidate.units.toLocaleString()} ${pluralUnit(lp.product.unitLabel)} for ${formatUsd(d.candidate.prepaidTotal)}. That is within what the seller allows, so you can accept it now.`;
   } else if (d.decision === "approval_required") {
     upsert(d.candidate);
     reply = `${askText} is above what I can agree on my own. I have sent it to the seller for approval. You can still accept one of the standing options meanwhile.`;
   } else {
     if (d.alternative) upsert(d.alternative);
-    reply = `I cannot do ${askText}: ${(pub.publicReasons[0] ?? "it falls outside the seller's policy.").toLowerCase()}${d.alternative ? ` What I can offer at that budget is ${d.alternative.units.toLocaleString()} ${lp.product.unitLabel}s for ${formatUsd(d.alternative.prepaidTotal)}.` : ""}`;
+    reply = `I cannot do ${askText}: ${(pub.publicReasons[0] ?? "it falls outside the seller's policy.").toLowerCase()}${d.alternative ? ` What I can offer at that budget is ${d.alternative.units.toLocaleString()} ${pluralUnit(lp.product.unitLabel)} for ${formatUsd(d.alternative.prepaidTotal)}.` : ""}`;
   }
 
   await db.insert(schema.decisions).values({

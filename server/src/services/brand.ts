@@ -14,14 +14,40 @@ export interface Brand {
   website?: string;
   /** Accent hex color for the monogram, e.g. "#1b4dff". */
   accent?: string;
+  /** Public profiles, each an https link on that network's own domain. */
+  socials?: Partial<Record<SocialKey, string>>;
   /** Set by the platform operator, never by the seller's own brand form. */
   verified?: boolean;
 }
 
-export const CATEGORIES = ["support", "voice", "infra", "devtools", "treasury", "payables", "vendors", "operations", "compliance", "logistics", "data", "legal", "risk", "media", "finance", "health", "other"] as const;
+export const CATEGORIES = ["support", "voice", "infra", "devtools", "treasury", "payables", "vendors", "operations", "compliance", "logistics", "merch", "data", "legal", "risk", "media", "finance", "health", "other"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 const MAX_DATA_URL = 96 * 1024;
+
+/** Social profiles a seller may show, and the hosts each link must point to. */
+const SOCIAL_HOSTS = { x: ["x.com", "twitter.com"], instagram: ["instagram.com"], farcaster: ["farcaster.xyz", "warpcast.com"] } as const;
+export type SocialKey = keyof typeof SOCIAL_HOSTS;
+
+function validateSocials(input: Brand["socials"]): Brand["socials"] | undefined {
+  if (!input) return undefined;
+  const out: NonNullable<Brand["socials"]> = {};
+  for (const [key, raw] of Object.entries(input)) {
+    if (!raw?.trim()) continue;
+    const hosts = SOCIAL_HOSTS[key as SocialKey] as readonly string[] | undefined;
+    if (!hosts) throw new HttpError(400, `unknown social profile "${key}"`);
+    let u: URL;
+    try {
+      u = new URL(raw.trim());
+    } catch {
+      throw new HttpError(400, `${key} must be an https link`);
+    }
+    const host = u.hostname.replace(/^www\./, "");
+    if (u.protocol !== "https:" || !hosts.includes(host) || u.pathname.length < 2) throw new HttpError(400, `${key} must be a profile link on ${hosts[0]}`);
+    out[key as SocialKey] = u.toString();
+  }
+  return Object.keys(out).length ? out : undefined;
+}
 
 /** Accepts https URLs, same-site asset paths, or small raster/SVG data URLs. */
 export function validateLogoUrl(raw: string | undefined): string | undefined {
@@ -69,6 +95,8 @@ export function validateBrand(input: Partial<Brand> | undefined): Brand | undefi
     if (!/^#[0-9a-fA-F]{6}$/.test(input.accent)) throw new HttpError(400, "accent must be a hex color like #1b4dff");
     b.accent = input.accent.toLowerCase();
   }
+  const socials = validateSocials(input.socials);
+  if (socials) b.socials = socials;
   return b;
 }
 

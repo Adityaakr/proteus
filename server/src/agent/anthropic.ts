@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { formatUsd, toMicro, type Requirements } from "@proteus/domain";
+import { formatUsd, toMicro, type Requirements, pluralUnit } from "@proteus/domain";
 import { env } from "../env";
 import type { AgentAdapter, AgentStep, ComposeInput, ExtractInput } from "./adapter";
 import { composeRuleBased, extractRuleBased } from "./rule-based";
@@ -32,7 +32,7 @@ export function createAnthropicAdapter(): AgentAdapter {
               input_schema: {
                 type: "object",
                 properties: {
-                  desiredUnits: { type: "integer", description: `Desired ${input.unitLabel}s per month if the buyer stated one. Omit if not stated.` },
+                  desiredUnits: { type: "integer", description: `Desired ${pluralUnit(input.unitLabel)} per month if the buyer stated one. Omit if not stated.` },
                   budgetUsd: { type: "number", description: "Monthly budget in USD if stated. Omit if not stated." },
                   integrations: { type: "array", items: { type: "string" }, description: "Lower-case integration names the buyer needs, e.g. zendesk, shopify, rest-api." },
                   industry: { type: "string" },
@@ -100,7 +100,7 @@ export function createAnthropicAdapter(): AgentAdapter {
           messages: [
             {
               role: "user",
-              content: `Product: ${input.productName} (unit: ${input.unitLabel}).\nUNDERSTOOD: ${JSON.stringify(input.requirements, (_k, v) => (typeof v === "bigint" ? v.toString() : v))}\nOPTIONS:\n${input.offers.map((o) => `- ${o.status}: ${o.tierName}, ${o.units} ${input.unitLabel}s, ${formatUsd(o.prepaidTotal)} prepaid, includes ${o.includes.join(", ")}, unsupported integrations: ${o.unsupportedIntegrations.join(", ") || "none"}`).join("\n") || "- none"}\nREJECTED:\n${input.rejected.map((r) => `- ${r.units} ${input.unitLabel}s for ${formatUsd(r.prepaidTotal)}: ${r.publicReasons.join("; ")}`).join("\n") || "- none"}\nOPEN QUESTION: ${input.requirements.openQuestions[0] ?? "none"}\n\nLast buyer message: ${input.turns.filter((t) => t.role === "buyer").at(-1)?.content ?? ""}`,
+              content: `Product: ${input.productName} (unit: ${input.unitLabel}).\nUNDERSTOOD: ${JSON.stringify(input.requirements, (_k, v) => (typeof v === "bigint" ? v.toString() : v))}\nOPTIONS:\n${input.offers.map((o) => `- ${o.status}: ${o.tierName}, ${o.units} ${pluralUnit(input.unitLabel)}, ${formatUsd(o.prepaidTotal)} prepaid, includes ${o.includes.join(", ")}, unsupported integrations: ${o.unsupportedIntegrations.join(", ") || "none"}`).join("\n") || "- none"}\nREJECTED:\n${input.rejected.map((r) => `- ${r.units} ${pluralUnit(input.unitLabel)} for ${formatUsd(r.prepaidTotal)}: ${r.publicReasons.join("; ")}`).join("\n") || "- none"}\nOPEN QUESTION: ${input.requirements.openQuestions[0] ?? "none"}\n\nLast buyer message: ${input.turns.filter((t) => t.role === "buyer").at(-1)?.content ?? ""}`,
             },
           ],
         });

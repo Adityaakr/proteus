@@ -4,7 +4,7 @@
  * prices, unit and limits differ per product. The platform skill covers discovering, negotiating,
  * funding, using and settling a deal through the public API.
  */
-import { ARC_NETWORK_NAMES, circleBlockchainFor, formatUsd, networkOf } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, circleBlockchainFor, formatUsd, networkOf, pluralUnit } from "@proteus/domain";
 import { env } from "../env";
 
 /** Network wording follows the deployment (CHAIN_ID), so a mainnet skill never says testnet. */
@@ -61,7 +61,7 @@ export function serviceSkill(lp: LP, origin: string): string {
   lines.push("");
   lines.push("## When to use this skill");
   lines.push("");
-  lines.push(`Use it when the user needs ${p.unitLabel}s of exactly this kind and has a funded deal (an API key) or an ${NET()} USDC wallet. Do not use it for anything outside the capabilities above; the service hands those back unbilled.`);
+  lines.push(`Use it when the user needs ${pluralUnit(p.unitLabel)} of exactly this kind and has a funded deal (an API key) or an ${NET()} USDC wallet. Do not use it for anything outside the capabilities above; the service hands those back unbilled.`);
   lines.push("");
   lines.push("## Endpoint");
   lines.push("");
