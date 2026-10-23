@@ -25,7 +25,7 @@
 | Network | Chain id | DealEscrow | Source |
 |---|---|---|---|
 | Arc testnet | 5042002 | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) | verified · [read](https://explorer.testnet.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract) |
-| Arc mainnet | 5042 | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) | verified (exact match) · [read](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract) |
+| Arc mainnet | 5042 | [`0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) | verified on Blockscout and [Sourcify](https://sourcify.dev/server/v2/contract/5042/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46) (exact match) · [read](https://explorer.arc.io/address/0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46?tab=read_contract) |
 
 | Network | Chain id | ProteusPolicyRegistry | Source |
 |---|---|---|---|
@@ -44,6 +44,19 @@ The rule the whole system is built around, implemented literally:
 > **The model proposes. The seller's policy decides. The signed agreement controls the money.**
 
 Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. Live on Arc mainnet at [app.proteus.co.in](https://app.proteus.co.in) and on testnet at [ai.proteus.co.in](https://ai.proteus.co.in).
+
+### Live with a real business
+
+[Shoonya Store](https://www.shoonyastore.com), a custom merch and corporate gifting studio, sells on Proteus AI on Arc mainnet: [its store](https://app.proteus.co.in/app/market/shoonya-store-t4e). The team published its catalog and registered its deal agent from its own wallet, so buyers pay Shoonya directly through escrow.
+
+| What | On Arc mainnet |
+|---|---|
+| Seller identity | ERC-8004 Agent #2695, owner and payee `0x995385cB1D15fcC4521442D488d2CB757cb641Da`, [registration tx](https://explorer.arc.io/tx/0x45921b0f981908b7d704b79119863781c21e71498c812965d90db1787bd24e55) |
+| Pricing policies | 4 products, each committed (v1) on [ProteusPolicyRegistry](https://explorer.arc.io/address/0x376dFc4f1D356E78cc46983478A0F2e12CA7C84B) |
+| Catalog | Event merch box at $15 per box with delivery and taxes (Shoonya's real quote), custom tees, tote bags, pins and badges |
+| Paid orders | none yet; the first is next and will be listed here with its transactions |
+
+The other sellers on the market are examples, labelled as such.
 
 ---
 
@@ -302,6 +315,11 @@ Each feature landed as its own commit, together with the script that proves it. 
 
 | Feature | What it does | Where | Proof |
 |---|---|---|---|
+| Store and one deal desk per seller | `/app/market/:seller` lists everything a seller makes and opens one conversation for all of it. Each message is routed to the product it is about (name, unit, capabilities, summary; sticky on follow-ups), that product's rules price the offer, and when the buyer moves on the negotiation page follows to the new product and keeps the earlier messages | `server/src/services/storefront.ts` (`POST /api/public/sellers/:s/route`), `site/src/app/market/StorePage.tsx`, `site/src/app/lib/storeChat.ts` | live on [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e) |
+| Catalog-aware agent | Every negotiation gets the seller's other listed products. When nothing in this product fits the quantity or budget, or the buyer asks for something else, the agent names the right product with its list price (those figures pass the reply guard); it never turns a buyer away | `server/src/services/negotiation.ts` (`sellerCatalog`), `server/src/agent/*` | |
+| Catalog sync | A seller gives its own catalog endpoint (https, JSON) on Agent policies. Every 15 minutes, or on demand, Proteus updates listed, capacity, cost per unit, prepaid minimum, approval threshold, max discount and margin floor, only when a value differs, as new policy or cost versions (committed on Arc at the next quote). List prices and product text are never synced; nothing is listed before the seller is on Arc | `server/src/services/catalog-sync.ts`, `server/src/services/product-rules.ts`, Agent policies page | a local feed: capacity, unlist and minimum changes applied, unknown product skipped, invalid feed rejected, no versions on a quiet run |
+| Onboarding from the seller's own wallet | A prepared listing (`site/public/listings/*.json`, naming the business's wallet) is reviewed, priced and published at `/app/sell/import/:name` by that wallet only. Products stay unlisted until the seller registers on Arc and every policy is committed; an unused draft from the wrong wallet can be discarded (`DELETE /api/app/org`) | `site/src/app/sell/pages/ImportListing.tsx`, `server/src/services/accounts.ts` (`discardUnusedOrg`) | Shoonya Store, Agent #2695 |
+| Seller profiles | Website plus X, Instagram and Farcaster links, each validated to that network's own host, shown as quiet icons on the market, store and product pages | `server/src/services/brand.ts`, `site/src/app/ui/SocialLinks.tsx` | |
 | Seller-confirmed delivery | For physical goods and offline services, the seller records a delivery batch (units, note, proof URL). It becomes a seller-signed receipt the buyer countersigns, and the escrow pays only countersigned units. Labeled "confirmed by seller, not verified by Proteus". Idempotent per batch key, capped by the agreement | `server/src/services/delivery.ts`, `POST /api/app/deals/:id/deliveries` | `server/scripts/delivery-e2e.ts`: seller paid exactly 4 x $0.05 |
 | Deal agent on the seller's own website | One script tag puts the seller's deal agent on any site, as a floating "Get a quote" button or an inline panel. Customers ask about products and prices and get a policy-checked offer without a call. Signing and payment open Proteus AI in a new tab, never inside the frame. The seller can limit which sites may embed it (CSP `frame-ancestors`) | `site/public/embed.js`, `/embed/:seller`, `server/src/services/embed.ts` | tested from a third-party origin |
 | MCP server for AI agents | 9 tools (discover, negotiate, verify the seller on Arc, accept, fund, call, settle, status) behind a spending mandate (`PROTEUS_MAX_PREPAID_USDC`). Without a key it returns typed data for a Circle Agent Wallet to sign | `packages/mcp` | `packages/mcp/scripts/agent-run.ts` (a scripted client, not an LLM): mandate refusal, gasless fund, call, settle |
@@ -441,7 +459,7 @@ All routes are under `/api`. Amounts are micro-USDC strings. Full detail in [`do
 
 | Area | Routes |
 |---|---|
-| Discover | `GET /market`, `GET /market/sellers`, `GET /public/sellers/:s`, `GET /public/sellers/:s/products/:p`, plus `skill.md` and `openapi.json` beneath each product, `GET /public/agents/skill.md` |
+| Discover | `GET /market`, `GET /market/sellers`, `GET /public/sellers/:s` (listed products only), `POST /public/sellers/:s/route { message, current? }` (store deal desk), `GET /public/sellers/:s/products/:p`, plus `skill.md` and `openapi.json` beneath each product, `GET /public/agents/skill.md` |
 | Negotiate | `POST /negotiations`, `GET /negotiations/:id`, `POST /negotiations/:id/messages`, `POST /negotiations/:id/counter`, `POST /negotiations/:id/quotes` |
 | Sign | `GET /quotes/:id?buyer=0x…` (typed data), `POST /quotes/:id/accept { buyerAddress, buyerSignature }` |
 | Fund and use | `GET /deals/:id` (the deal id is an unguessable capability; the API key is returned once, when provisioned), `POST /deals/:id/funding-intent { txHash? }`, gasless: `GET /deals/:id/permit` then `POST /deals/:id/fund-gasless { deadline, signature }`, `POST /services/:product/execute` (Bearer key), `POST /deals/:id/service/rotate-key` |
@@ -449,7 +467,7 @@ All routes are under `/api`. Amounts are micro-USDC strings. Full detail in [`do
 | Disputes | `GET /deals/:id/dispute`, `POST /deals/:id/dispute { txHash, reason }` (after `openDispute` from the buyer's wallet) |
 | Pay per call | `POST /pay/:seller/:product/execute` (402 lists two x402 options: `exact` via Circle's facilitator, and Circle Gateway batched; send `payment.scheme: "gateway"` for the second) |
 | Account | `GET /me`, `PATCH /me { mode }`, `GET /me/wallet`, `POST /me/wallets/link`, `PATCH /me/wallets/primary`, `GET /me/negotiations`, `GET /me/deals` |
-| Seller | `POST /orgs`, `POST /me/products`, `PATCH /app/products/:id/listing`, `DELETE /app/products/:id`, `GET /app/negotiations`, approvals, deals, usage, finance, `GET /app/signer`, `POST /app/deals/:id/deliveries`, `GET /app/export.csv?kind=deals\|receipts\|journal`, `GET/PUT /app/notifications`, `POST /app/notifications/test`, `GET/PUT /app/embed` |
+| Seller | `POST /orgs`, `DELETE /app/org` (only an unused draft, not on Arc), `GET/PUT /app/catalog-sync`, `POST /app/catalog-sync/run`, `POST /me/products`, `PATCH /app/products/:id/listing`, `DELETE /app/products/:id`, `GET /app/negotiations`, approvals, deals, usage, finance, `GET /app/signer`, `POST /app/deals/:id/deliveries`, `GET /app/export.csv?kind=deals\|receipts\|journal`, `GET/PUT /app/notifications`, `POST /app/notifications/test`, `GET/PUT /app/embed` |
 | Invite gate | `GET /invites/status`, `POST /invites/redeem { code }` (signed in: binds to the account; signed out: sets a 7-day signed grant cookie that binds on the first signed-in call), `POST /admin/invites { count, label?, maxUses?, expiresInDays? }`, `GET /admin/invites`, `POST /admin/invites/revoke { invite }` (bearer `ADMIN_TOKEN`) |
 | Public records | `GET /review`, `GET /review/:publicId` (redacted, with transaction hashes) |
 | Chain relay | `POST /rpc` (same-origin read relay plus `eth_sendRawTransaction`, so a browser content blocker cannot stop a signature or a broadcast) |
@@ -501,6 +519,7 @@ Hosting: one Railway service runs the API, the reconciler and serves the built s
 | Deal API key | `pk_live_…` (the prefix is historical; every key is testnet), only its SHA-256 stored, shown once | rotation needs a buyer wallet signature over a 5-minute timestamp |
 | Relayer key | `RELAYER_PRIVATE_KEY` or a Circle developer-controlled wallet | calls `createAndFundDeal`, `settleAcceptedUsage`, `refundUnused`, and for gasless funding a Multicall3 batch of USDC `permit` plus `createAndFundDeal` (batch targets are restricted to USDC and the escrow); authority is in the signatures it relays |
 | Seller webhooks | URL plus a signing secret (shown once, AES-256-GCM encrypted) | https only; DNS resolved and private, loopback, link-local and IPv6-ULA addresses refused at save and at send; no redirects; 5 s timeout; body ignored; `X-Proteus-Signature: t=,v1=` HMAC-SHA256. A DNS answer that changes between the check and the request is not fully excluded |
+| Catalog sync | the seller's endpoint URL, plus an optional header value (AES-256-GCM encrypted, never returned) | fetched with the webhook guard: https only, private and metadata addresses refused at save and at fetch, no redirects, 8 s timeout, 1 MB cap; the feed is schema-checked and bounded (discounts and margins 0 to 90%); changes are versioned, never in place |
 | Embedded deal agent | `/embed/:seller` on Proteus AI's origin, framed by the seller's site | only `/embed/*` may be framed (`frame-ancestors` is the seller's allow-list, or any site); every other page sends `frame-ancestors 'self'` and `X-Frame-Options: SAMEORIGIN`; no signing or payment happens inside the frame |
 | Invite gate | codes are `PRX-XXXX-XXXX-XXXX`, 12 symbols from a 31-symbol alphabet (60 bits); only an HMAC under `INVITE_PEPPER` is stored, the plaintext is returned once at minting | every signed-in account needs a bound code before any product route answers (403 `invite_required`); a code is consumed atomically on binding so the last use cannot be shared; attempts are limited per IP and per account; codes expire and revoke; anonymous agents present a code in `X-Invite-Code` to start a negotiation; the admin routes need a constant-time-compared `ADMIN_TOKEN` and are absent when it is unset |
 | Login | Circle: email OTP in Circle's web SDK, the user token verified server side with the API key, then a Proteus AI HS256 session (14 days, HttpOnly cookie or bearer). Browser wallets: a nonce signed with `personal_sign`, verified with viem. Privy: JWT verified against the app's JWKS, issuer `privy.io`, audience the app id |
@@ -572,7 +591,8 @@ packages/mcp/        Proteus AI MCP server (stdio) for AI agents, scripts/agent-
 server/src/
   agent/             adapter.ts (contract + injection patterns), rule-based.ts, openrouter.ts, anthropic.ts
   services/          negotiation, quotes, deals, usage, gateway (metering), workers (service agents), x402 (exact + Gateway batched),
-                     accounts, agentdocs, delivery, disputes, gasless, embed, exports, notify
+                     accounts, agentdocs, delivery, disputes, gasless, embed, exports, notify, storefront (store deal desk),
+                     catalog-sync, product-rules (versioned policy and cost changes)
   chain/             relayer (viem | Circle), signer (encrypted org keys), reconciler (balances from chain), client
   routes/            public, deals, pay, me, app (seller console), auth, session
   db/schema.ts       Drizzle schema

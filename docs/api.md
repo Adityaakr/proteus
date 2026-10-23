@@ -253,3 +253,16 @@ The 402 body's `accepts` lists `exact` (Circle facilitator, `extra.name = "USDC"
 - `GET /api/app/notifications`, `PUT /api/app/notifications { email?, telegramChatId?, webhookUrl? }` (returns `webhookSecret` once, when a webhook is created), `POST /api/app/notifications/test` (returns `{ ok, errors }`).
 - Webhook request: `POST <url>`, JSON `{ id, event, createdAt, data }`. `event` is one of `deal_funded`, `usage_settled`, `refund_issued`, `dispute_opened`, `dispute_resolved`, `approval_required`, `test`. Header `X-Proteus-Signature: t=<unix>,v1=<hex HMAC-SHA256(secret, "<t>.<body>")>`.
 - `GET /api/app/embed`, `PUT /api/app/embed { domains: ["https://shop.example"] }`: sites allowed to frame `/embed/:seller`. An empty list allows any site.
+
+## Store, catalog sync and onboarding (2026-10-24)
+
+- `GET /api/public/sellers/:s`: the seller card and its **listed** products only.
+- `POST /api/public/sellers/:s/route { message, current? }`: returns `{ productSlug, productName, matched, switched, reason }`, the product a buyer message is about. The store deal desk starts or continues that product's negotiation. With no product named (`matched: false`), the desk answers with a store overview.
+- `GET /api/app/catalog-sync`: returns `{ url, authHeader, hasSecret, enabled, everyMinutes, lastRunAt, lastStatus, lastResult }`.
+- `PUT /api/app/catalog-sync { url, authHeader?, secret?, enabled? }`: `url: null` removes the sync. The owner session is required.
+- `POST /api/app/catalog-sync/run`: syncs now. Returns `{ at, status, updated: [{ slug, changes }], unchanged, notOnProteus, errors }`.
+- Catalog feed: the seller's endpoint answers `GET` with JSON `{ "products": [{ "slug", "available"?, "capacityUnits"?, "costPerUnitUsd"?, "prepaidMinimumUsd"?, "approvalThresholdUsd"?, "maxDiscountPct"?, "minMarginPct"? }] }`.
+  - Percentages run from 0 to 90.
+  - Only fields that differ are written, each as a new policy or cost version.
+  - List prices are not part of the feed.
+- `DELETE /api/app/org`: discards a seller account with no history and no ERC-8004 identity (for example, a draft published from the wrong wallet). Otherwise it returns 409.
