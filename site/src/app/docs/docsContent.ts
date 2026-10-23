@@ -204,7 +204,7 @@ export const SECTIONS: DocSection[] = [
   {
     id: "reference",
     group: "Reference",
-    title: "Reference",
+    title: "Links",
     blocks: [
       { kind: "links", items: [
         { label: "API reference", href: "/docs/api", note: "calling a funded service, billing, settlement, the seller endpoint" },

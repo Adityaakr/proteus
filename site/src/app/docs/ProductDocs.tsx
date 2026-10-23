@@ -67,13 +67,14 @@ export default function ProductDocs() {
               {SECTIONS.filter((x) => x.group === g).map((x) => (
                 <a key={x.id} href={`#${x.id}`} className={`${s.sideLink} ${active === x.id ? s.sideOn : ""}`}>{x.title}</a>
               ))}
+              {g === "Reference" && (
+                <>
+                  <Link to="/docs/api" className={s.sideLink}>API reference</Link>
+                  <a href="/api/public/agents/skill.md" className={s.sideLink}>Agent skill</a>
+                </>
+              )}
             </div>
           ))}
-          <div className={s.sideGroup}>
-            <span className={s.sideLabel}>Developers</span>
-            <Link to="/docs/api" className={s.sideLink}>API reference</Link>
-            <a href="/api/public/agents/skill.md" className={s.sideLink}>Agent skill</a>
-          </div>
         </aside>
 
         <main className={s.doc} id="main">
