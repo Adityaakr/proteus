@@ -1,4 +1,4 @@
-import { pluralUnit } from "@proteus/domain";
+import { pluralUnit, unitFor } from "@proteus/domain";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -107,7 +107,7 @@ export default function EmbedAgent() {
               {product.tiers.map((t) => (
                 <li key={t.id}>
                   <span>{t.name}</span>
-                  <span className={e.mono}>{Number(t.includedUnits).toLocaleString()} {pluralUnit(product.unitLabel)} · {t.prepaidTotalUsd}</span>
+                  <span className={e.mono}>{Number(t.includedUnits).toLocaleString()} {unitFor(t.includedUnits, product.unitLabel)} · {t.prepaidTotalUsd}</span>
                 </li>
               ))}
             </ul>
@@ -134,7 +134,7 @@ export default function EmbedAgent() {
               <div key={o.candidateId} className={e.offer}>
                 <div>
                   <p className={e.offerTitle}>{o.tierName}</p>
-                  <p className={e.mono}>{Number(o.units).toLocaleString()} {pluralUnit(product?.unitLabel ?? "unit")} · {o.prepaidTotalUsd}</p>
+                  <p className={e.mono}>{Number(o.units).toLocaleString()} {unitFor(o.units, product?.unitLabel ?? "unit")} · {o.prepaidTotalUsd}</p>
                   {o.status === "approval_required" && <p className={e.muted}>Needs the seller's approval</p>}
                 </div>
                 <button type="button" className={e.take} onClick={() => take(o)}>Get this offer <ArrowUpRight size={14} /></button>

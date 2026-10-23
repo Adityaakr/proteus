@@ -26,6 +26,8 @@ export interface ComposeInput {
   turns: ConversationTurn[];
   /** Public product terms the model may answer questions from. Anything not here is "I will confirm with the seller". */
   facts?: { termDays: number; refundPolicy: string; billableUnit: string; supportedIntegrations: string[]; capabilities: string[] };
+  /** The seller's other listed products, one public line each (name, what it is, list tiers). Not offers: the buyer opens that product to negotiate it. */
+  catalog?: { sellerName: string; products: { name: string; unitLabel: string; detail: string; smallestPack: string }[] };
 }
 
 export interface AgentStep {

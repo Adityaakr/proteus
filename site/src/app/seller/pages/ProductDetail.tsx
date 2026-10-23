@@ -1,4 +1,4 @@
-import { pluralUnit } from "@proteus/domain";
+import { unitFor } from "@proteus/domain";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Calculator } from "lucide-react";
@@ -98,7 +98,7 @@ function PublicProduct({ p }: { p: ProductWithPrivate }) {
             <div key={t.id} className={s.tier}>
               <div className={s.between}>
                 <span className="h6">{t.name}</span>
-                <span className="body3">{units(t.includedUnits)} {pluralUnit(p.unitLabel)}</span>
+                <span className="body3">{units(t.includedUnits)} {unitFor(t.includedUnits, p.unitLabel)}</span>
               </div>
               <div>
                 <span className={s.tierPrice}>{unitPrice(t.unitPrice, 2)}</span>

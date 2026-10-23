@@ -16,7 +16,7 @@ import { ErrorState, fmtDate, fmtUnits, prettyIntegration } from "../buyer/commo
 import { PayPerCallCard } from "./PayPerCallCard";
 import { decimalsFor } from "./Market";
 import d from "./product.module.css";
-import { ARC_NETWORK_NAMES, defaultNetwork, pluralUnit } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, defaultNetwork, pluralUnit, unitFor } from "@proteus/domain";
 
 export default function ProductPage() {
   const { sellerSlug = "", productSlug = "" } = useParams();
@@ -150,7 +150,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
                       <span className={d.tierName}>{t.name}</span>
                       {best && <span className={d.tierTag}>Best unit price</span>}
                     </td>
-                    <td className={d.num}>{fmtUnits(t.includedUnits)} <span className={d.dim}>{pluralUnit(product.unitLabel)}</span></td>
+                    <td className={d.num}>{fmtUnits(t.includedUnits)} <span className={d.dim}>{unitFor(t.includedUnits, product.unitLabel)}</span></td>
                     <td className={d.num}><Money usd={t.unitPriceUsd} digits={decimalsFor(t.unitPriceUsd)} /></td>
                     <td className={`${d.num} ${d.strong}`}><Money usd={t.prepaidTotalUsd} digits={0} /></td>
                     <td className={d.includes}>{t.includes.join(", ") || "—"}</td>

@@ -62,7 +62,7 @@
         "minMarginBps": 1000,
         "maxDiscountBps": 0,
         "approvalThresholdUsd": "1000",
-        "prepaidMinimumUsd": "15",
+        "prepaidMinimumUsd": "10",
         "availableCapacityUnits": "500",
         "quoteTtlSeconds": 86400
       },
@@ -148,7 +148,7 @@
         "minMarginBps": 1000,
         "maxDiscountBps": 500,
         "approvalThresholdUsd": "500",
-        "prepaidMinimumUsd": "50",
+        "prepaidMinimumUsd": "10",
         "availableCapacityUnits": "2000",
         "quoteTtlSeconds": 86400
       },
@@ -233,7 +233,7 @@
         "minMarginBps": 1000,
         "maxDiscountBps": 500,
         "approvalThresholdUsd": "500",
-        "prepaidMinimumUsd": "50",
+        "prepaidMinimumUsd": "10",
         "availableCapacityUnits": "3000",
         "quoteTtlSeconds": 86400
       },
@@ -319,7 +319,7 @@
         "minMarginBps": 1000,
         "maxDiscountBps": 500,
         "approvalThresholdUsd": "500",
-        "prepaidMinimumUsd": "50",
+        "prepaidMinimumUsd": "10",
         "availableCapacityUnits": "10000",
         "quoteTtlSeconds": 86400
       },

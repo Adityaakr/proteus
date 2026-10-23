@@ -85,3 +85,8 @@ export function pluralUnit(label: string): string {
   if (/[^aeiou]y$/i.test(label)) return `${label.slice(0, -1)}ies`;
   return `${label}s`;
 }
+
+/** The unit label for a count: "1 box", "20 boxes". */
+export function unitFor(count: bigint | number | string, label: string): string {
+  return String(count).replace(/,/g, "") === "1" ? label : pluralUnit(label);
+}

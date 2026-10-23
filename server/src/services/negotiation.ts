@@ -1,10 +1,10 @@
-import { asc, desc, eq } from "drizzle-orm";
-import { evaluateCounteroffer, formatUsd, getQuoteCandidates, toPublicCandidate, type Candidate, type PublicCandidate, type Requirements, pluralUnit } from "@proteus/domain";
+import { and, asc, desc, eq, ne } from "drizzle-orm";
+import { evaluateCounteroffer, formatUsd, getQuoteCandidates, toPublicCandidate, type Candidate, type PublicCandidate, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
 import { detectInjection, getAgentAdapter, type AgentStep, type ConversationTurn } from "../agent";
 import { db, schema } from "../db";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, publicId } from "../lib/ids";
-import { evaluationContext, loadProductById, loadProductBySlugs, unitPriceUsd, type LoadedProduct } from "./catalog";
+import { evaluationContext, loadProductById, loadProductBySlugs, publicProduct, unitPriceUsd, type LoadedProduct } from "./catalog";
 import { features } from "../env";
 
 /* ------------------------------------------------------------------ */
@@ -164,7 +164,8 @@ export async function addBuyerMessage(negId: string, content: string) {
     publicExplanation: offers.length ? "Options priced within the seller's policy." : rejected[0]?.rules.length ? (toPublicCandidate(rejected[0]).publicReasons[0] ?? "No option cleared policy.") : "Waiting for more detail.",
   });
 
-  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: ext.requirements, offers: offers.map(toPublicCandidate), rejected: rejected.map(toPublicCandidate), injectionDetected: injection, turns: convo, facts: { termDays: lp.product.termDays, refundPolicy: lp.product.refundPolicy, billableUnit: lp.product.billableUnit, supportedIntegrations: lp.product.supportedIntegrations, capabilities: lp.product.capabilities } });
+  const catalog = await sellerCatalog(lp);
+  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: ext.requirements, offers: offers.map(toPublicCandidate), rejected: rejected.map(toPublicCandidate), injectionDetected: injection, turns: convo, facts: { termDays: lp.product.termDays, refundPolicy: lp.product.refundPolicy, billableUnit: lp.product.billableUnit, supportedIntegrations: lp.product.supportedIntegrations, capabilities: lp.product.capabilities }, catalog });
   steps.push(...composed.steps);
   activity.push({ at: iso(), label: offers.length ? "Prepared offers" : "Prepared a reply", state: "done" });
 
@@ -193,7 +194,7 @@ export async function counter(negId: string, candidateId: string, ask: { targetT
   const d = evaluateCounteroffer(ctx, base, ask, req);
   const seq = (turnRows.at(-1)?.seq ?? 0) + 1;
 
-  const askText = ask.targetTotal !== undefined ? `${base.units.toLocaleString()} ${pluralUnit(lp.product.unitLabel)} for ${formatUsd(ask.targetTotal)}` : `${ask.targetUnits?.toLocaleString()} ${pluralUnit(lp.product.unitLabel)} for ${formatUsd(base.prepaidTotal)}`;
+  const askText = ask.targetTotal !== undefined ? `${base.units.toLocaleString()} ${unitFor(base.units, lp.product.unitLabel)} for ${formatUsd(ask.targetTotal)}` : `${ask.targetUnits?.toLocaleString()} ${pluralUnit(lp.product.unitLabel)} for ${formatUsd(base.prepaidTotal)}`;
   await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", kind: "message", content: `Counteroffer: ${askText}.` });
 
   let reply: string;
@@ -206,7 +207,7 @@ export async function counter(negId: string, candidateId: string, ask: { targetT
   const pub = toPublicCandidate(d.candidate);
   if (d.decision === "approved") {
     upsert(d.candidate);
-    reply = `Yes, I can do ${d.candidate.units.toLocaleString()} ${pluralUnit(lp.product.unitLabel)} for ${formatUsd(d.candidate.prepaidTotal)}. That is within what the seller allows, so you can accept it now.`;
+    reply = `Yes, I can do ${d.candidate.units.toLocaleString()} ${unitFor(d.candidate.units, lp.product.unitLabel)} for ${formatUsd(d.candidate.prepaidTotal)}. That is within what the seller allows, so you can accept it now.`;
   } else if (d.decision === "approval_required") {
     upsert(d.candidate);
     reply = `${askText} is above what I can agree on my own. I have sent it to the seller for approval. You can still accept one of the standing options meanwhile.`;
@@ -267,4 +268,18 @@ export type { LoadedProduct, PublicCandidate };
 
 function iso() {
   return new Date().toISOString();
+}
+
+/** The seller's other listed products as public lines, so the agent can point a buyer to the right one. */
+async function sellerCatalog(lp: LoadedProduct): Promise<{ sellerName: string; products: { name: string; unitLabel: string; detail: string; smallestPack: string }[] } | undefined> {
+  const rows = await db.select({ id: schema.products.id }).from(schema.products).where(and(eq(schema.products.orgId, lp.org.id), eq(schema.products.active, true), ne(schema.products.id, lp.row.id)));
+  if (!rows.length) return undefined;
+  const products: { name: string; unitLabel: string; detail: string; smallestPack: string }[] = [];
+  for (const r of rows.slice(0, 8)) {
+    const p = publicProduct(await loadProductById(r.id));
+    const tiers = p.tiers.map((t) => `${t.name}: ${Number(t.includedUnits).toLocaleString()} ${unitFor(t.includedUnits, p.unitLabel)} at ${t.unitPriceUsd} each, ${t.prepaidTotalUsd}`).join("; ");
+    const small = [...p.tiers].sort((a, b) => Number(a.includedUnits) - Number(b.includedUnits))[0];
+    products.push({ name: p.name, unitLabel: p.unitLabel, detail: `${p.name} (${p.summary ?? p.unitLabel}). List tiers: ${tiers}.`, smallestPack: small ? `${Number(small.includedUnits).toLocaleString()} ${unitFor(small.includedUnits, p.unitLabel)} for ${small.prepaidTotalUsd}` : "" });
+  }
+  return { sellerName: lp.org.name, products };
 }
