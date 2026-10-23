@@ -85,3 +85,6 @@
 .agentAvatar { background: var(--c-white); box-shadow: inset 0 0 0 1px var(--c-dark-10); padding: 0; }
 .agentAvatar > * { width: 100% !important; height: 100% !important; border-radius: 8px !important; }
 .systemText { color: var(--c-dark-60); font-size: 13px; text-align: center; }
+
+/* Store conversations: a quiet divider where the deal desk moved to another product. */
+.topic { margin: 14px 0 6px; text-align: center; font-family: var(--font-body); font-size: 12px; color: var(--c-dark-60); }

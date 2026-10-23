@@ -1,20 +1,23 @@
 /**
- * A seller's store: every listed product on one page and one deal desk for all of them. Each message goes to the
- * product it is about (POST /public/sellers/:slug/route), and that product's agent negotiates within that product's
- * rules; it also knows the rest of the catalog, so it can point the buyer elsewhere. Offers open the full negotiation.
+ * A seller's store: every listed product on one page and one way in to its deal desk. The desk opens the full
+ * negotiation page in store mode (lib/storeChat): each message is routed to the product it is about and that product's
+ * agent negotiates within its rules, so one conversation covers everything the seller makes.
  */
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight } from "lucide-react";
+import { ArrowUpRight, ChevronRight } from "lucide-react";
 import { ARC_NETWORK_NAMES, defaultNetwork, unitFor } from "@proteus/domain";
 import { AppShell } from "../layouts/AppShell";
 import { LoadingCard } from "../ui/Skeleton";
+import { ActionButton } from "../ui/ActionButton";
+import { Notice } from "../ui/misc";
 import { Money } from "../ui/Money";
 import { SellerMark, categoryLabel, possessive, useLogoShape } from "../ui/SellerMark";
 import { SocialLinks } from "../ui/SocialLinks";
 import { useAuth } from "../auth/useAuth";
-import { api, errorMessage, qk, type Offer, type PublicProduct, type PublicSeller } from "../lib/api";
+import { api, errorMessage, qk, type PublicProduct, type PublicSeller } from "../lib/api";
+import { startStoreChat } from "../lib/storeChat";
 import { ErrorState, fmtDate, fmtUnits } from "../buyer/common";
 import { AgentBadge } from "./OnArc";
 import { decimalsFor } from "./Market";
@@ -44,7 +47,19 @@ const usdValue = (v: string) => Number(v.replace(/[^0-9.]/g, ""));
 const lowestUnit = (p: PublicProduct) => p.tiers.map((t) => t.unitPriceUsd).sort((a, b) => usdValue(a) - usdValue(b))[0];
 
 function StoreView({ seller }: { seller: PublicSeller }) {
-  const [ask, setAsk] = useState<{ text: string; n: number } | null>(null);
+  const navigate = useNavigate();
+  const { wallet } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  // Opens the full negotiation page in store mode, on the product asked about; it follows the buyer to others.
+  const open = async (productSlug: string, starter: string | null) => {
+    setError(null);
+    try {
+      const n = await startStoreChat(seller.slug, productSlug, wallet?.address);
+      navigate(`/app/negotiations/${n.id}`, { state: starter ? { starter } : undefined });
+    } catch (e) {
+      setError(errorMessage(e));
+    }
+  };
   const wide = useLogoShape(seller.brand?.logoUrl) === "wide";
   const st = seller.stats;
   const products = seller.products;
@@ -129,7 +144,7 @@ function StoreView({ seller }: { seller: PublicSeller }) {
                     </tbody>
                   </table>
                   <div className={s.itemActions}>
-                    <button type="button" className={s.ask} onClick={() => setAsk({ text: `I'm interested in ${p.name.toLowerCase()}. What can you offer?`, n: Date.now() })}>Ask the deal desk</button>
+                    <button type="button" className={s.ask} onClick={() => open(p.slug, `I'm interested in ${p.name.toLowerCase()}. What can you offer?`)}>Ask the deal desk</button>
                     <Link to={`/app/market/${seller.slug}/${p.slug}`} className={s.details}>Full details</Link>
                   </div>
                 </div>
@@ -141,121 +156,52 @@ function StoreView({ seller }: { seller: PublicSeller }) {
       </article>
 
       <aside className={d.rail} aria-label="Deal desk">
-        <StoreDesk seller={seller} ask={ask} />
+        <StoreRail seller={seller} open={open} />
+        {error && <Notice tone="danger">{error}</Notice>}
       </aside>
     </div>
   );
 }
 
-type Entry = { role: "buyer" | "agent" | "topic"; text: string };
-
-function StoreDesk({ seller, ask }: { seller: PublicSeller; ask: { text: string; n: number } | null }) {
-  const navigate = useNavigate();
-  const { wallet } = useAuth();
-  const [log, setLog] = useState<Entry[]>([]);
-  const [neg, setNeg] = useState<{ id: string; productSlug: string; productName: string } | null>(null);
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [draft, setDraft] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const scroller = useRef<HTMLDivElement>(null);
+/** Same rail as a product page: one way in to the whole store's deal desk. */
+function StoreRail({ seller, open }: { seller: PublicSeller; open: (productSlug: string, starter: string | null) => void; }) {
   const products = seller.products;
-  const unitOf = (slug?: string) => products.find((p) => p.slug === slug)?.unitLabel ?? "unit";
-
-  useEffect(() => {
-    scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
-  }, [log.length, busy]);
-
-  useEffect(() => {
-    if (ask) void send(ask.text);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ask?.n]);
-
-  const overview = () =>
-    `${seller.name} makes ${products.map((p) => {
-      const from = lowestUnit(p);
-      return `${p.name.toLowerCase()}${from ? ` (from ${from} per ${p.unitLabel})` : ""}`;
-    }).join(", ")}. Tell me what you need, how many and by when, and I will put together an offer.`;
-
-  async function send(text: string) {
-    const t = text.trim();
-    if (!t || busy) return;
-    setError(null);
-    setBusy(true);
-    setLog((l) => [...l, { role: "buyer", text: t }]);
-    setDraft("");
-    try {
-      const r = await api.routeSeller(seller.slug, t, neg?.productSlug);
-      if (!r.matched && !neg) {
-        setLog((l) => [...l, { role: "agent", text: overview() }]);
-        return;
-      }
-      let n = neg;
-      if (!n || n.productSlug !== r.productSlug) {
-        const started = await api.startNegotiation({ sellerSlug: seller.slug, productSlug: r.productSlug, buyerAddress: wallet?.address });
-        n = { id: started.id, productSlug: r.productSlug, productName: r.productName };
-        setNeg(n);
-        setOffers([]);
-        setLog((l) => [...l, { role: "topic", text: `${neg ? "Now on" : "On"} ${r.productName}` }]);
-      }
-      const v = await api.sendMessage(n.id, t);
-      const reply = [...v.turns].reverse().find((x) => x.role === "agent")?.content;
-      if (reply) setLog((l) => [...l, { role: "agent", text: reply }]);
-      setOffers(v.offers.filter((o) => o.status !== "rejected"));
-    } catch (e) {
-      setError(errorMessage(e));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const starters = products.slice(0, 3).map((p) => `How much for ${p.name.toLowerCase()}?`);
-
+  const first = products[0];
+  const starters = products.slice(0, 3).map((p) => ({ slug: p.slug, text: p.starters?.[0] ?? `What can you offer for ${p.name.toLowerCase()}?` }));
   return (
-    <div className={d.railBlock}>
-      <span className={d.railLabel}>Deal desk</span>
-      <h2 className={d.railTitle}>Talk to {possessive(seller.name)} agent</h2>
-      <p className={d.railText}>One conversation for everything {seller.name} makes. Ask about any product, quantity or date; offers come from the seller's own pricing rules.</p>
-      <div className={s.desk}>
-        {log.length > 0 && (
-          <div className={s.log} ref={scroller} aria-live="polite">
-            {log.map((m, i) =>
-              m.role === "topic" ? (
-                <span key={i} className={s.topic}>{m.text}</span>
-              ) : (
-                <p key={i} className={`${s.msg} ${m.role === "buyer" ? s.buyer : s.agent}`}>{m.text}</p>
-              ),
-            )}
-            {busy && <p className={`${s.msg} ${s.agent}`}>…</p>}
-          </div>
+    <>
+      <div className={d.railBlock}>
+        <span className={d.railLabel}>Negotiate</span>
+        <h2 className={d.railTitle}>A prepaid deal on your terms</h2>
+        <p className={d.railText}>One agent for everything {seller.name} makes. Ask about any product, quantity or date; funds are held in escrow until you confirm delivery.</p>
+        {first && (
+          <ActionButton size="lg" fullWidth icon onClick={() => open(first.slug, null)}>
+            Talk to {possessive(seller.name)} agent
+          </ActionButton>
         )}
-        {log.length === 0 && (
-          <ul className={d.starters} aria-label="Open with">
-            {starters.map((q) => (
-              <li key={q}>
-                <button type="button" className={d.starter} disabled={busy} onClick={() => send(q)}>{q}</button>
-              </li>
-            ))}
-          </ul>
-        )}
-        {offers.length > 0 && neg && (
-          <div className={s.offers} aria-label="Offers">
-            {offers.slice(0, 3).map((o) => (
-              <div key={o.candidateId} className={s.offer}>
-                <span>
-                  <strong>{fmtUnits(o.units)} {unitFor(o.units, unitOf(neg.productSlug))}</strong> <span className={s.offerMeta}>· {o.prepaidTotalUsd}{o.status === "approval_required" ? " · needs seller approval" : ""}</span>
-                </span>
-                <button type="button" className={s.ask} onClick={() => navigate(`/app/negotiations/${neg.id}`)}>Review</button>
-              </div>
-            ))}
-          </div>
-        )}
-        {error && <p className={s.error}>{error}</p>}
-        <form className={s.form} onSubmit={(e) => { e.preventDefault(); void send(draft); }}>
-          <input className={s.input} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="What do you need, how many, by when?" aria-label={`Message ${possessive(seller.name)} agent`} maxLength={4000} />
-          <button type="submit" className={s.send} disabled={!draft.trim() || busy}>Send</button>
-        </form>
+        <ul className={d.starters} aria-label="Open with">
+          {starters.map((st) => (
+            <li key={st.slug}>
+              <button type="button" className={d.starter} onClick={() => open(st.slug, st.text)}>
+                <span>{st.text}</span>
+                <ArrowUpRight size={14} strokeWidth={2} aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
-    </div>
+      <div className={d.railBlock}>
+        <span className={d.railLabel}>For agents</span>
+        <p className={d.railText}>
+          A skill file per product, generated from its fields and rules.{" "}
+          {products.map((p, i) => (
+            <span key={p.slug}>
+              {i > 0 && " · "}
+              <a href={`/api/public/sellers/${seller.slug}/products/${p.slug}/skill.md`} target="_blank" rel="noreferrer" className={d.railLink}>{p.name}</a>
+            </span>
+          ))}
+        </p>
+      </div>
+    </>
   );
 }

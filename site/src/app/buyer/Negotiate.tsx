@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { BadgeCheck, Check, ChevronRight, Loader2, SendHorizontal, User } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -20,6 +20,8 @@ import { ErrorState, FLOW_STAGES, fmtUnits, prettyIntegration } from "./common";
 import n from "./negotiate.module.css";
 import { Message, MessageAvatar, MessageBubble, MessageBubbleCollapsible, MessageBubbleContent, MessageContent, MessageFooter, MessageGroup, MessageHeader } from "../agentic/MessageBubble";
 import { relTime } from "../seller/format";
+import { useAuth } from "../auth/useAuth";
+import { startStoreChat, storeChain } from "../lib/storeChat";
 
 const WORKING_STEPS = ["Reading your message", "Extracting requirements", "Checking the seller's pricing rules", "Preparing offers"];
 const COUNTER_STEPS = ["Reading your counteroffer", "Checking margin and discount rules", "Looking for an alternative", "Writing a decision"];
@@ -30,6 +32,10 @@ export default function Negotiate() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const negQ = useQuery({ queryKey: qk.negotiation(id), queryFn: () => api.negotiation(id) });
+  const { wallet } = useAuth();
+  // Started from a store page: the conversation covers every product the seller lists.
+  const chain = storeChain(id);
+  const priorQs = useQueries({ queries: (chain?.prior ?? []).map((pid) => ({ queryKey: qk.negotiation(pid), queryFn: () => api.negotiation(pid), staleTime: 60_000 })) });
   const [draft, setDraft] = useState("");
   const [pendingText, setPendingText] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
@@ -58,15 +64,29 @@ export default function Negotiate() {
   };
 
   const send = useMutation({
-    mutationFn: (content: string) => api.sendMessage(id, content),
+    mutationFn: async (content: string): Promise<{ n: Negotiation; movedTo?: string }> => {
+      const cur = negQ.data;
+      if (chain && cur) {
+        // A store conversation follows the buyer to whichever product the message is about.
+        const r = await api.routeSeller(chain.seller, content, cur.productSlug);
+        if (r.matched && r.productSlug !== cur.productSlug) {
+          const next = await startStoreChat(chain.seller, r.productSlug, wallet?.address, [...chain.prior, id]);
+          return { n: await api.sendMessage(next.id, content), movedTo: next.id };
+        }
+      }
+      return { n: await api.sendMessage(id, content) };
+    },
     onMutate: (content) => {
       // The message leaves the composer the moment it is sent; it comes back only if the send fails.
       setPendingText(content);
       setDraft("");
       runSteps(WORKING_STEPS);
     },
-    onSuccess: (n) => {
-      setNeg(n);
+    onSuccess: ({ n: next, movedTo }) => {
+      if (movedTo) {
+        qc.setQueryData(qk.negotiation(movedTo), next);
+        navigate(`/app/negotiations/${movedTo}`);
+      } else setNeg(next);
     },
     onError: (_e, content) => {
       setDraft((d) => (d.trim() ? d : content));
@@ -109,7 +129,9 @@ export default function Negotiate() {
     send.mutate(starter);
   }, [location.state, location.pathname, negQ.data, navigate, send]);
 
-  const turns = negQ.data?.turns ?? [];
+  // In a store conversation that moved here from another product, this product's greeting would interrupt the thread.
+  const firstBuyer = (negQ.data?.turns ?? []).findIndex((t) => t.role === "buyer");
+  const turns = (negQ.data?.turns ?? []).filter((t, i) => !(chain && chain.prior.length > 0 && t.role !== "buyer" && (firstBuyer === -1 || i < firstBuyer)));
   const seenIds = useRef<Set<string> | null>(null);
   if (seenIds.current === null && negQ.data) seenIds.current = new Set(turns.map((t) => t.id));
   useEffect(() => {
@@ -214,7 +236,11 @@ export default function Negotiate() {
             ))}
           </span>
         </div>
-        <p className={n.lede}>Describe your volume, tools and budget. Offers come from the seller's pricing rules, so the agent cannot be talked past them. Negotiation {neg.publicId}.</p>
+        <p className={n.lede}>
+          {chain
+            ? `One conversation for everything ${sellerName} makes. You are on ${productName}; ask about anything else they make and the agent moves there. Offers come from the seller's pricing rules, so the agent cannot be talked past them.`
+            : `Describe your volume, tools and budget. Offers come from the seller's pricing rules, so the agent cannot be talked past them. Negotiation ${neg.publicId}.`}
+        </p>
       </header>
 
       <div className={n.grid}>
@@ -222,6 +248,17 @@ export default function Negotiate() {
           <div ref={threadRef} className={n.thread} role="log" aria-live="polite" aria-relevant="additions" aria-label="Messages" tabIndex={0}>
             <MessageGroup spacing="default">
               <AnimatePresence initial={false}>
+                {priorQs.map((q, k) =>
+                  q.data ? (
+                    <div key={`prior-${chain!.prior[k]}`}>
+                      <p className={n.topic}>{q.data.productName ?? prettyName(q.data.productSlug)}</p>
+                      {q.data.turns.map((t, i) => (
+                        <TurnView key={t.id} turn={t} grouped={i > 0 && q.data!.turns[i - 1]!.role === t.role && t.role !== "system"} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
+                      ))}
+                    </div>
+                  ) : null,
+                )}
+                {chain && chain.prior.length > 0 && <p key="topic-now" className={n.topic}>Now on {productName}</p>}
                 {turns.map((t, i) => (
                   <TurnView key={t.id} turn={t} grouped={i > 0 && turns[i - 1]!.role === t.role && t.role !== "system"} isNew={!(seenIds.current?.has(t.id) ?? true)} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
                 ))}

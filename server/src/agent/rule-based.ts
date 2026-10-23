@@ -78,8 +78,8 @@ export function composeRuleBased(input: ComposeInput): string {
 
   const understood: string[] = [];
   if (requirements.useCase) understood.push(requirements.useCase);
-  if (requirements.desiredUnits) understood.push(`about ${requirements.desiredUnits.toLocaleString()} ${unitFor(requirements.desiredUnits, unitLabel)} a month`);
-  if (requirements.budget) understood.push(`a budget around ${formatUsd(requirements.budget, 0)} a month`);
+  if (requirements.desiredUnits) understood.push(`about ${requirements.desiredUnits.toLocaleString()} ${unitFor(requirements.desiredUnits, unitLabel)}`);
+  if (requirements.budget) understood.push(`a budget around ${formatUsd(requirements.budget, 0)}`);
   if (requirements.integrations.length) understood.push(`integration with ${requirements.integrations.join(", ")}`);
   if (understood.length) lines.push(`Here is what I understood: ${understood.join("; ")}.`);
 

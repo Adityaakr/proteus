@@ -117,7 +117,7 @@ export async function startNegotiation(sellerSlug: string, productSlug: string, 
     seq: 1,
     role: "agent",
     kind: "message",
-    content: `Hi, I am the deal desk for ${lp.org.name}. Tell me what you are trying to automate, roughly how much volume you expect, and the budget you are working with. I will put together options that the seller can actually deliver.`,
+    content: `Hi, I am the deal desk for ${lp.org.name}, here for ${lp.product.name.toLowerCase()}. Tell me what you need, how many ${pluralUnit(lp.product.unitLabel)} and by when, and the budget you are working with. I will put together options the seller can actually deliver.`,
   });
   return negotiationView(negId);
 }
