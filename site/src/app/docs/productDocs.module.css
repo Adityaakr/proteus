@@ -170,3 +170,11 @@ tbody tr:last-child .cmpUs { border-radius: 0 0 12px 12px; }
 .gridWide { grid-template-columns: 210px minmax(0, 1054px); }
 .gridWide .cmp { min-width: 960px; }
 @media (max-width: 1240px) { .gridWide { grid-template-columns: 200px minmax(0, 1fr); } }
+
+/* Role entry cards on the first page */
+.entry { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.entryCard { display: flex; flex-direction: column; gap: 6px; height: 100%; padding: 18px; border-radius: 12px; background: var(--c-card, #fff); box-shadow: inset 0 0 0 1px var(--c-dark-10); text-decoration: none; transition: box-shadow 0.15s ease, transform 0.15s ease; }
+.entryCard:hover { box-shadow: inset 0 0 0 1px var(--c-dark-20, rgba(0,0,0,0.2)); transform: translateY(-1px); }
+.entryCard .pointText { flex: 1; }
+.entryCta { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 14px; font-weight: 500; color: var(--c-primary); }
+@media (max-width: 900px) { .entry { grid-template-columns: minmax(0, 1fr); } }

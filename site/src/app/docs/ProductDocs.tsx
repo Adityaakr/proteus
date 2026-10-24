@@ -94,7 +94,7 @@ function DocsPage({ sec }: { sec: DocSection }) {
             <div className={s.pageHead}>
               <span className={s.eyebrow}>{sec.group}</span>
               {index === 0 ? <h2 id="page-title" className={s.h1Small}>{sec.title}</h2> : <h1 id="page-title" className={s.h1}>{sec.title}</h1>}
-              {sec.summary && <p className={s.summary}>{sec.summary}</p>}
+              {sec.summary && index !== 0 && <p className={s.summary}>{sec.summary}</p>}
               <div className={s.actions}>
                 <button type="button" className={s.btn} onClick={copy}>{copied ? <Check size={14} aria-hidden /> : <Copy size={14} aria-hidden />}{copied ? "Copied" : "Copy page"}</button>
                 <a href={md} className={s.btn}><FileText size={14} aria-hidden /> .md</a>
@@ -204,6 +204,20 @@ function BlockView({ b }: { b: Block }) {
           </table>
           {b.note && <p className={s.note}><Rich text={b.note} /></p>}
         </div>
+      );
+    case "entry":
+      return (
+        <ul className={s.entry}>
+          {b.items.map((e) => (
+            <li key={e.title}>
+              <Link to={e.href} className={s.entryCard}>
+                <span className={s.pointTitle}>{e.title}</span>
+                <span className={s.pointText}>{e.text}</span>
+                <span className={s.entryCta}>{e.cta} <ArrowRight size={14} aria-hidden /></span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       );
     case "links":
       return (

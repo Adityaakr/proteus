@@ -9,7 +9,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { API, CLAIMS, CONTRACTS, DOC_LEDE, DOC_TITLE, EVIDENCE, FACTS_AS_OF, GRACE, LIMITS, MCP_TOOLS, NETWORKS, SECTIONS, TRUST, compareRows, docsMarkdown } from "../src/app/docs/docsContent";
+import { API, CLAIMS, CONTRACTS, DOC_LEDE, DOC_TITLE, EVIDENCE, FACTS_AS_OF, GRACE, LIMITS, MCP_TOOLS, NETWORKS, SECTIONS, TRUST, compareRows, docsMarkdown, FEES } from "../src/app/docs/docsContent";
 
 const ORIGIN = "https://app.proteus.co.in";
 const pub = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
@@ -66,6 +66,7 @@ const facts = {
   },
   claims: CLAIMS,
   notProven: CLAIMS.filter((c) => c.status !== "proven").map((c) => ({ claim: c.claim, status: c.status })),
+  fees: FEES,
   limits: LIMITS.map(([title, detail]) => ({ title, detail })),
   comparison: compareRows(),
 };

@@ -4,7 +4,11 @@ Source: <https://app.proteus.co.in/docs/overview> · facts as of 2026-10-24 · a
 
 
 
-_A deal desk for anything sold by quote, volume or usage. The seller's agent negotiates with people and their AI agents inside rules the seller sets, both sides sign the same terms, and USDC waits in escrow on Arc until delivery: the seller is paid for what was delivered and the rest goes back to the buyer._
+_A deal desk for anything sold by quote, volume or usage._
+
+- **I sell.** Publish products and the rules your agent must keep, register on Arc, go live. About 5 minutes. [Seller quickstart](https://app.proteus.co.in/docs/quickstart-seller)
+- **I buy.** Ask the seller's agent, agree a price, sign once and fund. Get back what is not delivered. [Buyer quickstart](https://app.proteus.co.in/docs/quickstart-buyer)
+- **I build an agent.** Let Claude or your own agent negotiate and pay through MCP or HTTP, within a mandate you set. [Agent quickstart](https://app.proteus.co.in/docs/quickstart-agent)
 
 - **The seller sets the rules.** Cost, margin floor, maximum discount, minimum order, capacity, and the order size it approves itself.
 - **An agent does the selling.** It answers buyers and their AI agents in seconds; offers come only from those rules ([pricing.ts](https://github.com/Adityaakr/proteus/blob/main/packages/domain/src/pricing.ts#L198)).
@@ -55,10 +59,8 @@ _DealEscrow is at the same address on both networks: `0x5085A8400C95B9Cf0c9a3552
 ![The Proteus AI market on Arc mainnet, with Shoonya Store listed first](https://app.proteus.co.in/docs/market.jpg)
 _The market: each seller with its Arc identity, links and services priced from the cheapest pack. (Arc mainnet)_
 
-### Start here
+### Go deeper
 
-- [Sell with Proteus](https://app.proteus.co.in/docs/quickstart-seller): publish products, register on Arc, go live in about 5 minutes
-- [Buy from a seller](https://app.proteus.co.in/docs/quickstart-buyer): negotiate, sign, fund and settle
-- [Connect an AI agent](https://app.proteus.co.in/docs/quickstart-agent): MCP tools with a per-deal mandate
-- [See the deal lifecycle](https://app.proteus.co.in/docs/lifecycle): every state a deal goes through
+- [The deal lifecycle](https://app.proteus.co.in/docs/lifecycle): every state a deal goes through
+- [What Proteus costs](https://app.proteus.co.in/docs/fees): no fee during the pilot; who pays gas
 - [Verify it yourself](https://app.proteus.co.in/docs/verify): contracts and transactions on Arc

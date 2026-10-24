@@ -19,6 +19,8 @@ export type Block =
   | { kind: "stats"; items: { value: string; label: string; source?: { name: string; url: string } }[] }
   | { kind: "table"; head: string[]; rows: string[][]; note?: string }
   | { kind: "links"; items: { label: string; href: string; note?: string }[] }
+  /** Role entry cards: where a seller, a buyer or an agent should start. */
+  | { kind: "entry"; items: { title: string; text: string; href: string; cta: string }[] }
   | { kind: "h3"; id: string; text: string }
   /** A real screenshot of the product; network says where it was taken. */
   | { kind: "figure"; src: string; alt: string; caption: string; network: "Arc mainnet" | "Arc testnet" | "Diagram" }
@@ -41,7 +43,7 @@ export interface DocSection {
 
 export const DOC_TITLE = "The deal desk for internet businesses.";
 export const DOC_LEDE =
-  "Proteus AI gives a business a deal agent that negotiates inside the seller's own rules, agrees terms with people or their AI agents, holds payment in USDC escrow on Arc, pays the seller for what is delivered and makes the rest refundable to the buyer.";
+  "A deal agent for anything sold by quote, volume or usage. It negotiates with buyers and their AI agents inside the seller's rules, both sides sign the same terms, and USDC waits on Arc until delivery: the seller is paid for what was delivered, the rest is refundable.";
 export const FACTS_AS_OF = "2026-10-24";
 
 /* Links and evidence, shared with the generator for /docs/facts.json. */
@@ -156,6 +158,22 @@ export const TRUST = [
   { role: "MCP mandate", holder: "the buyer's local MCP process", power: "caps the prepaid amount per deal only; the unit price and which service are for the agent to check" },
 ] as const;
 
+/** What using Proteus costs. Checked against DealEscrow.sol (payout = accepted amount, no fee) and x402.ts (payTo is the seller's). */
+export const FEES = {
+  pilot: "No Proteus fee during the pilot: no subscription, no listing fee, no cut of deals or per-call payments.",
+  onChain: "DealEscrow has no fee logic: settle pays the seller's payee the full accepted amount, and refunds return the full unspent balance. The contract is not upgradeable, so a fee cannot be added to it later.",
+  afterPilot: "Not set yet. Pilot sellers will be told before any fee applies; a fee could not touch deals on the current DealEscrow.",
+  gas: [
+    ["Register the seller's agent on Arc (ERC-8004)", "The seller's wallet, once"],
+    ["Commit pricing policies", "Proteus (relayer)"],
+    ["Fund a deal with a permit (gasless)", "Proteus (relayer)"],
+    ["Fund a deal with approve", "The buyer"],
+    ["Settle delivered units", "Proteus (relayer)"],
+    ["Refund the unspent balance", "Whoever calls refundUnused"],
+  ] as [string, string][],
+  other: "Model calls for negotiation, hosting and the relayer's gas are paid by Proteus. Circle Gateway, wallets and exchanges may charge their own fees; those are theirs, not Proteus's.",
+} as const;
+
 export const GRACE = { defaultSeconds: 259200, note: "Each deal's terms carry `grace` (3 days by default). Refunds open at end + grace, or right after sellerCloseTerm; read refundableAt from GET /api/deals/{id}. Calling refundUnused earlier reverts." };
 
 export const MCP_TOOLS = [
@@ -187,8 +205,13 @@ export const SECTIONS: DocSection[] = [
     id: "overview",
     group: "Start",
     title: "What Proteus AI is",
-    summary: "A deal desk for anything sold by quote, volume or usage. The seller's agent negotiates with people and their AI agents inside rules the seller sets, both sides sign the same terms, and USDC waits in escrow on Arc until delivery: the seller is paid for what was delivered and the rest goes back to the buyer.",
+    summary: "A deal desk for anything sold by quote, volume or usage.",
     blocks: [
+      { kind: "entry", items: [
+        { title: "I sell", text: "Publish products and the rules your agent must keep, register on Arc, go live. About 5 minutes.", href: "/docs/quickstart-seller", cta: "Seller quickstart" },
+        { title: "I buy", text: "Ask the seller's agent, agree a price, sign once and fund. Get back what is not delivered.", href: "/docs/quickstart-buyer", cta: "Buyer quickstart" },
+        { title: "I build an agent", text: "Let Claude or your own agent negotiate and pay through MCP or HTTP, within a mandate you set.", href: "/docs/quickstart-agent", cta: "Agent quickstart" },
+      ] },
       { kind: "points", items: [
         { title: "The seller sets the rules", text: "Cost, margin floor, maximum discount, minimum order, capacity, and the order size it approves itself." },
         { title: "An agent does the selling", text: "It answers buyers and their AI agents in seconds; offers come only from those rules ([pricing.ts](" + code("packages/domain/src/pricing.ts", 198) + "))." },
@@ -230,12 +253,10 @@ export const SECTIONS: DocSection[] = [
         ["Arc testnet", "[ai.proteus.co.in](https://ai.proteus.co.in)", "`5042002`", "Testnet USDC with no value. Example sellers and a demo merch seller."],
       ], note: "DealEscrow is at the same address on both networks: `" + ESCROW + "`." },
       { kind: "figure", src: "/docs/market.jpg", alt: "The Proteus AI market on Arc mainnet, with Shoonya Store listed first", caption: "The market: each seller with its Arc identity, links and services priced from the cheapest pack.", network: "Arc mainnet" },
-      { kind: "h3", id: "start-here", text: "Start here" },
+      { kind: "h3", id: "go-deeper", text: "Go deeper" },
       { kind: "links", items: [
-        { label: "Sell with Proteus", href: "/docs/quickstart-seller", note: "publish products, register on Arc, go live in about 5 minutes" },
-        { label: "Buy from a seller", href: "/docs/quickstart-buyer", note: "negotiate, sign, fund and settle" },
-        { label: "Connect an AI agent", href: "/docs/quickstart-agent", note: "MCP tools with a per-deal mandate" },
-        { label: "See the deal lifecycle", href: "/docs/lifecycle", note: "every state a deal goes through" },
+        { label: "The deal lifecycle", href: "/docs/lifecycle", note: "every state a deal goes through" },
+        { label: "What Proteus costs", href: "/docs/fees", note: "no fee during the pilot; who pays gas" },
         { label: "Verify it yourself", href: "/docs/verify", note: "contracts and transactions on Arc" },
       ] },
     ],
@@ -454,6 +475,25 @@ export const SECTIONS: DocSection[] = [
   },
 
   /* ----------------------------------------------------------------- Product */
+  {
+    id: "fees",
+    group: "Product",
+    title: "What Proteus costs",
+    summary: "Nothing during the pilot. The seller keeps 100% of every deal.",
+    blocks: [
+      { kind: "points", items: [
+        { title: "No Proteus fee in the pilot", text: FEES.pilot },
+        { title: "The seller keeps 100%", text: "Settle pays the full accepted amount to the seller's payee ([DealEscrow.sol](" + code("contracts/src/DealEscrow.sol", 247) + "))." },
+        { title: "No fee hidden in the contract", text: "DealEscrow has no fee logic and no proxy; a fee could not be added to it later." },
+        { title: "Proteus pays the running costs", text: "Model calls, hosting and the relayer's gas for funding, settling and policy commits." },
+        { title: "After the pilot", text: FEES.afterPilot },
+        { title: "Not to be confused with offer pricing", text: "How the seller's agent prices its offers is [a separate page](#pricing)." },
+      ] },
+      { kind: "h3", id: "fees-gas", text: "Who pays gas" },
+      { kind: "table", head: ["Action", "Paid by"], rows: FEES.gas.map(([a, b]) => [a, b]), note: "Gasless funding is proven on Arc testnet; the mainnet loop so far was funded with approve." },
+      { kind: "callout", text: FEES.other },
+    ],
+  },
   {
     id: "features",
     group: "Product",
@@ -698,6 +738,7 @@ export function docsMarkdown(origin: string, only?: string): string {
       else if (b.kind === "points") out.push(...b.items.map((i) => `- **${i.title}.** ${absText(i.text)}`), "");
       else if (b.kind === "steps") out.push(...b.items.map((i, n) => `${n + 1}. **${i.title}.** ${absText(i.text)}`), "");
       else if (b.kind === "stats") out.push(...b.items.map((i) => `- **${i.value}**: ${absText(i.label)}${i.source ? ` ([${i.source.name}](${i.source.url}))` : ""}`), "");
+      else if (b.kind === "entry") out.push(...b.items.map((i) => `- **${i.title}.** ${absText(i.text)} [${i.cta}](${abs(i.href)})`), "");
       else if (b.kind === "links") out.push(...b.items.map((i) => `- [${i.label}](${abs(i.href)})${i.note ? `: ${i.note}` : ""}`), "");
       else if (b.kind === "figure") out.push(`![${b.alt}](${abs(b.src)})`, `_${absText(b.caption)} (${b.network})_`, "");
       else if (b.kind === "code") out.push("```" + b.lang, b.text, "```", "");

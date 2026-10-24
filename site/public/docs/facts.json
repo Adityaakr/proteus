@@ -1,6 +1,6 @@
 {
   "product": "Proteus AI",
-  "summary": "Proteus AI gives a business a deal agent that negotiates inside the seller's own rules, agrees terms with people or their AI agents, holds payment in USDC escrow on Arc, pays the seller for what is delivered and makes the rest refundable to the buyer.",
+  "summary": "A deal agent for anything sold by quote, volume or usage. It negotiates with buyers and their AI agents inside the seller's rules, both sides sign the same terms, and USDC waits on Arc until delivery: the seller is paid for what was delivered, the rest is refundable.",
   "asOf": "2026-10-24",
   "docs": {
     "html": "https://app.proteus.co.in/docs",
@@ -10,7 +10,7 @@
         "id": "overview",
         "group": "Start",
         "title": "What Proteus AI is",
-        "summary": "A deal desk for anything sold by quote, volume or usage. The seller's agent negotiates with people and their AI agents inside rules the seller sets, both sides sign the same terms, and USDC waits in escrow on Arc until delivery: the seller is paid for what was delivered and the rest goes back to the buyer.",
+        "summary": "A deal desk for anything sold by quote, volume or usage.",
         "html": "https://app.proteus.co.in/docs/overview",
         "markdown": "https://app.proteus.co.in/docs/overview.md"
       },
@@ -93,6 +93,14 @@
         "summary": "Code decides the price; the model only writes the words.",
         "html": "https://app.proteus.co.in/docs/pricing",
         "markdown": "https://app.proteus.co.in/docs/pricing.md"
+      },
+      {
+        "id": "fees",
+        "group": "Product",
+        "title": "What Proteus costs",
+        "summary": "Nothing during the pilot. The seller keeps 100% of every deal.",
+        "html": "https://app.proteus.co.in/docs/fees",
+        "markdown": "https://app.proteus.co.in/docs/fees.md"
       },
       {
         "id": "features",
@@ -581,6 +589,38 @@
       "status": "tested-offchain"
     }
   ],
+  "fees": {
+    "pilot": "No Proteus fee during the pilot: no subscription, no listing fee, no cut of deals or per-call payments.",
+    "onChain": "DealEscrow has no fee logic: settle pays the seller's payee the full accepted amount, and refunds return the full unspent balance. The contract is not upgradeable, so a fee cannot be added to it later.",
+    "afterPilot": "Not set yet. Pilot sellers will be told before any fee applies; a fee could not touch deals on the current DealEscrow.",
+    "gas": [
+      [
+        "Register the seller's agent on Arc (ERC-8004)",
+        "The seller's wallet, once"
+      ],
+      [
+        "Commit pricing policies",
+        "Proteus (relayer)"
+      ],
+      [
+        "Fund a deal with a permit (gasless)",
+        "Proteus (relayer)"
+      ],
+      [
+        "Fund a deal with approve",
+        "The buyer"
+      ],
+      [
+        "Settle delivered units",
+        "Proteus (relayer)"
+      ],
+      [
+        "Refund the unspent balance",
+        "Whoever calls refundUnused"
+      ]
+    ],
+    "other": "Model calls for negotiation, hosting and the relayer's gas are paid by Proteus. Circle Gateway, wallets and exchanges may charge their own fees; those are theirs, not Proteus's."
+  },
   "limits": [
     {
       "title": "No audit yet",

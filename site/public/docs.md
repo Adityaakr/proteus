@@ -1,12 +1,16 @@
 # Proteus AI: The deal desk for internet businesses.
 
-Proteus AI gives a business a deal agent that negotiates inside the seller's own rules, agrees terms with people or their AI agents, holds payment in USDC escrow on Arc, pays the seller for what is delivered and makes the rest refundable to the buyer.
+A deal agent for anything sold by quote, volume or usage. It negotiates with buyers and their AI agents inside the seller's rules, both sides sign the same terms, and USDC waits on Arc until delivery: the seller is paid for what was delivered, the rest is refundable.
 
 Facts as of 2026-10-24. Machine-readable facts: <https://app.proteus.co.in/docs/facts.json>
 
 ## What Proteus AI is
 
-_A deal desk for anything sold by quote, volume or usage. The seller's agent negotiates with people and their AI agents inside rules the seller sets, both sides sign the same terms, and USDC waits in escrow on Arc until delivery: the seller is paid for what was delivered and the rest goes back to the buyer._
+_A deal desk for anything sold by quote, volume or usage._
+
+- **I sell.** Publish products and the rules your agent must keep, register on Arc, go live. About 5 minutes. [Seller quickstart](https://app.proteus.co.in/docs/quickstart-seller)
+- **I buy.** Ask the seller's agent, agree a price, sign once and fund. Get back what is not delivered. [Buyer quickstart](https://app.proteus.co.in/docs/quickstart-buyer)
+- **I build an agent.** Let Claude or your own agent negotiate and pay through MCP or HTTP, within a mandate you set. [Agent quickstart](https://app.proteus.co.in/docs/quickstart-agent)
 
 - **The seller sets the rules.** Cost, margin floor, maximum discount, minimum order, capacity, and the order size it approves itself.
 - **An agent does the selling.** It answers buyers and their AI agents in seconds; offers come only from those rules ([pricing.ts](https://github.com/Adityaakr/proteus/blob/main/packages/domain/src/pricing.ts#L198)).
@@ -57,12 +61,10 @@ _DealEscrow is at the same address on both networks: `0x5085A8400C95B9Cf0c9a3552
 ![The Proteus AI market on Arc mainnet, with Shoonya Store listed first](https://app.proteus.co.in/docs/market.jpg)
 _The market: each seller with its Arc identity, links and services priced from the cheapest pack. (Arc mainnet)_
 
-### Start here
+### Go deeper
 
-- [Sell with Proteus](https://app.proteus.co.in/docs/quickstart-seller): publish products, register on Arc, go live in about 5 minutes
-- [Buy from a seller](https://app.proteus.co.in/docs/quickstart-buyer): negotiate, sign, fund and settle
-- [Connect an AI agent](https://app.proteus.co.in/docs/quickstart-agent): MCP tools with a per-deal mandate
-- [See the deal lifecycle](https://app.proteus.co.in/docs/lifecycle): every state a deal goes through
+- [The deal lifecycle](https://app.proteus.co.in/docs/lifecycle): every state a deal goes through
+- [What Proteus costs](https://app.proteus.co.in/docs/fees): no fee during the pilot; who pays gas
 - [Verify it yourself](https://app.proteus.co.in/docs/verify): contracts and transactions on Arc
 
 ## For AI agents
@@ -352,6 +354,32 @@ _Code decides the price; the model only writes the words._
 - **Reply guard.** Replies with unlisted figures are discarded ([openrouter.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/agent/openrouter.ts)); numbers in words slip through, but the price never comes from the reply.
 - **Whole-catalog context.** The agent can point the buyer to the product that fits.
 - **Commitments on Arc.** Each policy version is committed for registered sellers; it proves what was published, not how the engine ran.
+
+## What Proteus costs
+
+_Nothing during the pilot. The seller keeps 100% of every deal._
+
+- **No Proteus fee in the pilot.** No Proteus fee during the pilot: no subscription, no listing fee, no cut of deals or per-call payments.
+- **The seller keeps 100%.** Settle pays the full accepted amount to the seller's payee ([DealEscrow.sol](https://github.com/Adityaakr/proteus/blob/main/contracts/src/DealEscrow.sol#L247)).
+- **No fee hidden in the contract.** DealEscrow has no fee logic and no proxy; a fee could not be added to it later.
+- **Proteus pays the running costs.** Model calls, hosting and the relayer's gas for funding, settling and policy commits.
+- **After the pilot.** Not set yet. Pilot sellers will be told before any fee applies; a fee could not touch deals on the current DealEscrow.
+- **Not to be confused with offer pricing.** How the seller's agent prices its offers is [a separate page](https://app.proteus.co.in/docs/pricing).
+
+### Who pays gas
+
+| Action | Paid by |
+|---|---|
+| Register the seller's agent on Arc (ERC-8004) | The seller's wallet, once |
+| Commit pricing policies | Proteus (relayer) |
+| Fund a deal with a permit (gasless) | Proteus (relayer) |
+| Fund a deal with approve | The buyer |
+| Settle delivered units | Proteus (relayer) |
+| Refund the unspent balance | Whoever calls refundUnused |
+
+_Gasless funding is proven on Arc testnet; the mainnet loop so far was funded with approve._
+
+> Model calls for negotiation, hosting and the relayer's gas are paid by Proteus. Circle Gateway, wallets and exchanges may charge their own fees; those are theirs, not Proteus's.
 
 ## Features
 

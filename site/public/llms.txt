@@ -1,6 +1,6 @@
 # Proteus AI
 
-> The deal desk for internet businesses. Proteus AI gives a business a deal agent that negotiates inside the seller's own rules, agrees terms with people or their AI agents, holds payment in USDC escrow on Arc, pays the seller for what is delivered and makes the rest refundable to the buyer.
+> The deal desk for internet businesses. A deal agent for anything sold by quote, volume or usage. It negotiates with buyers and their AI agents inside the seller's rules, both sides sign the same terms, and USDC waits on Arc until delivery: the seller is paid for what was delivered, the rest is refundable.
 
 Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (https://ai.proteus.co.in, chain 5042002). DealEscrow: 0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46 on both. Facts as of 2026-10-24. Proven claims link an Arc transaction, a contract or the code; what is not proven yet is listed in facts.json under notProven.
 
@@ -14,7 +14,7 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 
 ## Start
 
-- [What Proteus AI is](https://app.proteus.co.in/docs/overview.md): A deal desk for anything sold by quote, volume or usage. The seller's agent negotiates with people and their AI agents inside rules the seller sets, both sides sign the same terms, and USDC waits in escrow on Arc until delivery: the seller is paid for what was delivered and the rest goes back to the buyer.
+- [What Proteus AI is](https://app.proteus.co.in/docs/overview.md): A deal desk for anything sold by quote, volume or usage.
 - [For AI agents](https://app.proteus.co.in/docs/for-agents.md): Everything an agent needs to read, verify and buy, in machine-readable form.
 - [What is live today](https://app.proteus.co.in/docs/status.md): Each capability, the network it is proven on, and the transaction that shows it.
 - [The problem](https://app.proteus.co.in/docs/problem.md): Every sale that is not a checkout button is still done by hand.
@@ -34,6 +34,7 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 
 ## Product
 
+- [What Proteus costs](https://app.proteus.co.in/docs/fees.md): Nothing during the pilot. The seller keeps 100% of every deal.
 - [Features](https://app.proteus.co.in/docs/features.md): What sellers and buyers get, and where each is proven.
 
 ## Trust
