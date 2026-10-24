@@ -76,6 +76,14 @@ app.route("/api", rpcRoutes);
 const siteDist = resolve(process.cwd(), "../site/dist");
 if (existsSync(join(siteDist, "index.html"))) {
   const shell = readFileSync(join(siteDist, "index.html"), "utf8");
+  // Markdown for agents (/docs.md, /docs/<page>.md, skill files): Hono's static mime table has no .md entry.
+  app.get("/*", async (c, next) => {
+    const p = c.req.path;
+    if (!p.endsWith(".md") || p.startsWith("/api/")) return next();
+    const file = resolve(siteDist, "." + p);
+    if (!file.startsWith(siteDist + "/") || !existsSync(file)) return next();
+    return c.body(readFileSync(file, "utf8"), 200, { "content-type": "text/markdown; charset=utf-8", "cache-control": "public, max-age=300" });
+  });
   app.use("/*", serveStatic({ root: relative(process.cwd(), siteDist) }));
   app.get("/*", (c) => (c.req.path.startsWith("/api/") ? c.notFound() : c.html(shell)));
   console.log(`serving site from ${siteDist}`);

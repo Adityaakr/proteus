@@ -51,3 +51,15 @@
   - The listing PATCH does not check Arc registration (catalog sync does).
 - The Claude MCP run's evidence is in `docs/evidence/2026-10-23-claude-mcp-kitbox.md` (Kitbox fund 0x2802…3c73, settle 0x63ae…8b45, Arc testnet).
 - `docs/images/who-moves-money.png` is stale (it says testnet and Privy). Redraw it before reusing.
+- 2026-10-24 docs v3 (prism-ship):
+  - **Structure.** `/docs/:page` is multi-page, one page per section. Hand-drawn diagrams come from data in `site/src/app/docs/Sketch.tsx` (no dependency). The roughjs install re-resolved viem's zod peer from 3 to 4 and broke server types, so it was reverted.
+  - **Agent files.** `llms.txt`, `docs.md`, `docs/<page>.md` and `docs/facts.json` are generated at build by `site/scripts/gen-agent-docs.ts`, run through the server's tsx, because the site does not declare tsx.
+  - **Markdown serving.** `.md` files are served as text/markdown by `server/src/index.ts`, because Hono's static mime table has no .md entry.
+  - **Agent review.** An agent-perspective review scored the docs 7/10. Fixed after it:
+    - MCP testnet default stated;
+    - API endpoints, auth, errors and rate limits in facts.json;
+    - grace period stated (3 days);
+    - permit funding marked as testnet-only;
+    - trust addresses verified on chain (owner = arbiter = 0x8644…74D5);
+    - network values normalized;
+    - notProven list added.

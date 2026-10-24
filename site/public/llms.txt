@@ -1,0 +1,61 @@
+# Proteus AI
+
+> The deal desk for internet businesses. Proteus AI gives a business a deal agent that negotiates inside the seller's own rules, agrees terms with people or their AI agents, holds payment in USDC escrow on Arc, pays the seller for what is delivered and makes the rest refundable to the buyer.
+
+Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (https://ai.proteus.co.in, chain 5042002). DealEscrow: 0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46 on both. Facts as of 2026-10-24. Proven claims link an Arc transaction, a contract or the code; what is not proven yet is listed in facts.json under notProven.
+
+## Start here
+
+- [All docs as one Markdown file](https://app.proteus.co.in/docs.md)
+- [Facts as JSON](https://app.proteus.co.in/docs/facts.json): networks, contracts, MCP tools, limits, claims with evidence
+- [Agent skill: discover, negotiate, fund and settle over HTTP](https://app.proteus.co.in/api/public/agents/skill.md)
+- [API reference for people (HTML)](https://app.proteus.co.in/docs/api); endpoints for agents are in facts.json under api
+- [Example service skill](https://app.proteus.co.in/api/public/sellers/shoonya-store-t4e/products/event-merch-box/skill.md) and [OpenAPI](https://app.proteus.co.in/api/public/sellers/shoonya-store-t4e/products/event-merch-box/openapi.json)
+
+## Start
+
+- [What Proteus AI is](https://app.proteus.co.in/docs/overview.md): A deal desk for anything sold by quote, volume or usage.
+- [For AI agents](https://app.proteus.co.in/docs/for-agents.md): Everything an agent needs to read, verify and buy, in machine-readable form.
+- [What is live today](https://app.proteus.co.in/docs/status.md): Each capability, the network it is proven on, and the transaction that shows it.
+- [The problem](https://app.proteus.co.in/docs/problem.md): Every sale that is not a checkout button is still done by hand.
+
+## Quickstarts
+
+- [Sell: from wallet to a listed product](https://app.proteus.co.in/docs/quickstart-seller.md): Six steps, about five minutes, from your own wallet.
+- [Buy: from a question to a refund](https://app.proteus.co.in/docs/quickstart-buyer.md): Ask, review, sign once, pay only for what you countersign.
+- [Buy with an AI agent (MCP)](https://app.proteus.co.in/docs/quickstart-agent.md): Give any MCP client the full buying loop, within a limit you set.
+
+## Concepts
+
+- [Deal lifecycle](https://app.proteus.co.in/docs/lifecycle.md): Eight states, and who moves a deal between them.
+- [The money path](https://app.proteus.co.in/docs/money-path.md): Where the USDC is at every moment, and what releases it.
+- [What is signed, and by whom](https://app.proteus.co.in/docs/signatures.md): Eight messages; the contract checks each one.
+- [How offers are priced](https://app.proteus.co.in/docs/pricing.md): Code decides the price; the model only writes the words.
+
+## Product
+
+- [Features](https://app.proteus.co.in/docs/features.md): What sellers and buyers get, and where each is proven.
+
+## Trust
+
+- [Security and trust boundaries](https://app.proteus.co.in/docs/security.md): What each part can and cannot do, stated plainly.
+- [Limits and known gaps](https://app.proteus.co.in/docs/limits.md): What is not done yet. We would rather you read it here.
+- [Verify it yourself](https://app.proteus.co.in/docs/verify.md): Contracts, transactions and how to read a deal on chain.
+
+## Context
+
+- [Why now](https://app.proteus.co.in/docs/why-now.md): Agents can pay; businesses already use stablecoins; the rails are on Arc.
+- [Market](https://app.proteus.co.in/docs/market.md): Third-party figures, linked to their publishers.
+- [How Proteus AI compares](https://app.proteus.co.in/docs/competitors.md): Others help you quote, negotiate or bill. Proteus takes a deal from the first message to the final transaction.
+- [Traction](https://app.proteus.co.in/docs/traction.md): One real business live on mainnet; the first paid order is next.
+
+## Reference
+
+- [FAQ](https://app.proteus.co.in/docs/faq.md)
+- [Glossary](https://app.proteus.co.in/docs/glossary.md)
+- [Links](https://app.proteus.co.in/docs/links.md)
+
+## Optional
+
+- [Evidence: Claude buys through the MCP server on Arc testnet](https://github.com/Adityaakr/proteus/blob/main/docs/evidence/2026-10-23-claude-mcp-kitbox.md)
+- [Source code](https://github.com/Adityaakr/proteus)

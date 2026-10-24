@@ -66,6 +66,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/review" element={<ReviewList />} />
               <Route path="/docs" element={<ProductDocs />} />
               <Route path="/docs/api" element={<ApiDocs />} />
+              <Route path="/docs/:page" element={<ProductDocs />} />
               <Route path="/docs/:sellerSlug/:productSlug" element={<ServiceDocs />} />
               <Route path="/records/:publicId" element={<ReviewRecord />} />
               <Route path="/embed/:sellerSlug" element={<EmbedAgent />} />

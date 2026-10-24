@@ -234,7 +234,7 @@ export const compare = {
     logo: "/assets/proteus-ai-wordmark.png",
     logoHeight: 18,
     marks: ["yes", "yes", "yes", "yes", "yes", "yes", "yes"],
-    notes: [undefined, undefined, undefined, "Both sides sign, escrow funds", "Arc testnet today", undefined, undefined],
+    notes: [undefined, undefined, undefined, "Both sides sign, escrow funds", "Live on Arc mainnet", undefined, undefined],
   } as CompareVendor,
   vendors: [
     { name: "DealHub", logo: "/assets/vendors/dealhub.svg", logoHeight: 13, description: "CPQ, DealRoom and billing for midsize and enterprise sales teams.", href: "https://dealhub.io", marks: ["not-core", "partial", "yes", "partial", "not-core", "partial", "not-core"], notes: [undefined, "Discount thresholds, approvals", undefined, "E-signature in DealRoom", undefined, "Usage pricing in billing", undefined] },
@@ -244,7 +244,7 @@ export const compare = {
     { name: "Metronome", logo: "/assets/vendors/metronome-wordmark.svg", logoHeight: 20, description: "Usage-based billing infrastructure, now part of Stripe.", href: "https://metronome.com", marks: ["not-core", "not-core", "yes", "not-core", "not-core", "yes", "partial"], notes: [undefined, undefined, "Contracts and overrides", undefined, undefined, "Metering and invoicing", "Self-serve starter plan"] },
   ] as CompareVendor[],
   closing: "Others help you quote, negotiate, or bill. Proteus AI is built to take a deal from the first conversation to the final transaction.",
-  footnote: "Assessed from each vendor's public product pages in October 2026. Names and logos belong to their owners and are shown for identification only. Proteus AI marks reflect what is implemented today. USDC settlement runs on Arc testnet.",
+  footnote: "Assessed from each vendor's public product pages in October 2026. Names and logos belong to their owners and are shown for identification only. Proteus AI marks reflect what is implemented today. USDC settlement runs on Arc mainnet and testnet.",
 };
 
 export interface Plan {

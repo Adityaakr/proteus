@@ -112,3 +112,61 @@
 .pre { margin: 4px 0; padding: 16px 18px; border-radius: 12px; background: #0f1117; color: #d6d9e0; font-family: var(--font-mono); font-size: 13px; line-height: 1.65; overflow-x: auto; white-space: pre; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
 .pre code { font: inherit; color: inherit; background: none; padding: 0; }
 .netNone { flex: none; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 500; color: var(--c-dark-60); background: var(--c-dark-5); }
+
+/* ---------- multi-page layout ---------- */
+.eyebrow { font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c-primary); }
+.page { display: flex; flex-direction: column; gap: 28px; padding-top: 8px; }
+.hero + .page { padding-top: 40px; }
+.pageHead { display: flex; flex-direction: column; gap: 12px; padding-bottom: 28px; border-bottom: 1px solid var(--c-dark-10); }
+.h1 { margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: 38px; line-height: 1.12; letter-spacing: -0.8px; }
+.h1Small { margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: 28px; line-height: 1.2; letter-spacing: -0.4px; }
+.summary { margin: 0; max-width: 680px; font-size: 18px; line-height: 1.55; color: var(--c-dark-60); }
+.body { display: flex; flex-direction: column; gap: 18px; }
+.tocSub { padding-left: 10px; }
+
+/* Headline + one line: a quiet two-column grid of short cards. */
+.points { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.point { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: 12px; background: var(--c-card, #fff); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+.pointTitle { font-family: var(--font-heading); font-weight: 500; font-size: 15.5px; line-height: 1.35; color: var(--c-dark); }
+.pointText { font-size: 14.5px; line-height: 1.55; color: var(--c-dark-60); }
+
+.pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 56px; }
+.pagerCard { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: 12px; background: var(--c-card, #fff); box-shadow: inset 0 0 0 1px var(--c-dark-10); color: var(--c-dark); transition: box-shadow 140ms ease; }
+.pagerCard:hover { box-shadow: inset 0 0 0 1px var(--c-primary); }
+.pagerNext { text-align: right; align-items: flex-end; }
+.pagerDir { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--c-dark-60); }
+.pagerTitle { font-family: var(--font-heading); font-weight: 500; font-size: 16px; }
+
+/* ---------- hand-drawn diagrams ---------- */
+.sketchWrap { padding: 20px 18px; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px var(--c-dark-10), 0 12px 32px rgba(15, 23, 42, 0.05); background-image: radial-gradient(rgba(15, 23, 42, 0.06) 1px, transparent 1px); background-size: 18px 18px; }
+.sketch { display: block; width: 100%; height: auto; }
+.sketchTitle { font-family: var(--font-heading); font-size: 14.5px; font-weight: 500; fill: #101828; }
+.sketchSub { font-family: var(--font-body); font-size: 11.5px; fill: #667085; }
+.sketchEdge { font-family: var(--font-body); font-size: 11.5px; fill: #475467; }
+
+/* ---------- comparison (landing-page style) ---------- */
+.cmp { width: 100%; min-width: 860px; border-collapse: separate; border-spacing: 0; font-size: 13.5px; }
+.cmp th, .cmp td { padding: 14px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--c-dark-10); }
+.cmp thead th { border-bottom: 1px solid var(--c-dark-10); font-weight: 400; }
+.cmpCap { width: 190px; font-weight: 500; color: var(--c-dark); }
+thead .cmpCap { font-size: 12px; font-weight: 500; color: var(--c-dark-60); }
+.cmpUs { background: var(--c-primary-10, rgba(27, 77, 255, 0.05)); }
+thead .cmpUs { border-radius: 12px 12px 0 0; }
+tbody tr:last-child .cmpUs { border-radius: 0 0 12px 12px; }
+.cmpVendor { display: inline-flex; align-items: center; gap: 5px; height: 22px; color: var(--c-dark); font-weight: 600; }
+.cmpVendor img { display: block; width: auto; }
+.cmpDesc { display: block; margin-top: 8px; font-size: 12.5px; line-height: 1.45; color: var(--c-dark-60); }
+.mark { display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; }
+.markUs { color: var(--c-primary); font-weight: 500; }
+.markYes { color: var(--c-dark); }
+.markNo { color: var(--c-dark-60); }
+.markNote { display: block; margin-top: 4px; font-size: 12px; line-height: 1.4; color: var(--c-dark-60); }
+
+@media (max-width: 860px) {
+  .points { grid-template-columns: minmax(0, 1fr); }
+  .h1 { font-size: 30px; }
+  .pager { grid-template-columns: 1fr; }
+}
+.gridWide { grid-template-columns: 210px minmax(0, 1054px); }
+.gridWide .cmp { min-width: 960px; }
+@media (max-width: 1240px) { .gridWide { grid-template-columns: 200px minmax(0, 1fr); } }
