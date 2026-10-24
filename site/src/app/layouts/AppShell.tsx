@@ -9,7 +9,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
-import { Activity, BarChart3, Briefcase, ChevronDown, Handshake, Home, KeyRound, Landmark, LayoutDashboard, LogOut, MessagesSquare, Package, Settings, ShieldCheck, SlidersHorizontal, Store, Users, Wallet } from "lucide-react";
+import { Activity, BarChart3, BookOpen, Briefcase, ChevronDown, Handshake, Home, KeyRound, Landmark, LayoutDashboard, LogOut, MessagesSquare, Package, Settings, ShieldCheck, SlidersHorizontal, Store, Users, Wallet } from "lucide-react";
 import { T_DEFAULT } from "../../lib/motion";
 import { NetworkBadge, StatusTag } from "../ui/StatusTag";
 import { useQuery } from "@tanstack/react-query";
@@ -70,6 +70,7 @@ export const SELL_NAV_ORG: AppNavItem[] = [
 ];
 
 const SETTINGS: AppNavItem = { label: "Settings", to: "/app/settings", icon: ic(Settings) };
+const DOCS: AppNavItem = { label: "Docs", to: "/docs", icon: ic(BookOpen) };
 
 function matches(pathname: string, it: AppNavItem) {
   if (it.end) return pathname === it.to || pathname === it.to + "/";
@@ -119,6 +120,7 @@ export function AppShell({ children, title, actions }: AppShellProps) {
           </nav>
           <div className={s.sideFoot}>
             <nav aria-label="Account" className={s.sideNav}>
+              <SideItem it={DOCS} on={false} />
               <button type="button" className={s.sideItem} onClick={() => switchMode.mutate(mode === "sell" ? "buy" : "sell")} disabled={switchMode.isPending}>
                 <span className={s.sideIcon} aria-hidden>{mode === "sell" ? ic(Store) : ic(Briefcase)}</span>
                 <span className={s.sideLabel}>{mode === "sell" ? "Switch to buying" : "Switch to selling"}</span>
