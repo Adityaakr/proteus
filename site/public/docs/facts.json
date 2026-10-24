@@ -10,7 +10,7 @@
         "id": "overview",
         "group": "Start",
         "title": "What Proteus AI is",
-        "summary": "A deal desk for anything sold by quote, volume or usage.",
+        "summary": "A deal desk for anything sold by quote, volume or usage. The seller's agent negotiates with people and their AI agents inside rules the seller sets, both sides sign the same terms, and USDC waits in escrow on Arc until delivery: the seller is paid for what was delivered and the rest goes back to the buyer.",
         "html": "https://app.proteus.co.in/docs/overview",
         "markdown": "https://app.proteus.co.in/docs/overview.md"
       },

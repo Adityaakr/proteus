@@ -6,13 +6,14 @@ Facts as of 2026-10-24. Machine-readable facts: <https://app.proteus.co.in/docs/
 
 ## What Proteus AI is
 
-_A deal desk for anything sold by quote, volume or usage._
+_A deal desk for anything sold by quote, volume or usage. The seller's agent negotiates with people and their AI agents inside rules the seller sets, both sides sign the same terms, and USDC waits in escrow on Arc until delivery: the seller is paid for what was delivered and the rest goes back to the buyer._
 
 - **The seller sets the rules.** Cost, margin floor, maximum discount, minimum order, capacity, and the order size it approves itself.
 - **An agent does the selling.** It answers buyers and their AI agents in seconds; offers come only from those rules ([pricing.ts](https://github.com/Adityaakr/proteus/blob/main/packages/domain/src/pricing.ts#L198)).
 - **Both sides sign identical terms.** EIP-712 terms, checked on chain by [DealEscrow](https://github.com/Adityaakr/proteus/blob/main/contracts/src/DealEscrow.sol).
 - **Money waits in escrow on Arc.** USDC moves only against the signatures in the agreement.
 - **Paid per delivered unit.** The seller is paid for each unit the buyer countersigns; the rest becomes refundable.
+- **Verifiable by anyone.** The seller's identity is an ERC-8004 agent on Arc and its pricing policy is committed to [ProteusPolicyRegistry](https://github.com/Adityaakr/proteus/blob/main/contracts/src/ProteusPolicyRegistry.sol); every payment is an Arc transaction.
 
 > The model proposes. The seller's policy decides. The signed agreement controls the money.
 
@@ -22,6 +23,7 @@ _A deal desk for anything sold by quote, volume or usage._
 - **Inference and GPU hours.** Prepay a block of capacity; pay only for the hours or tokens actually served.
 - **Data and API access.** Volume tiers and per-call pricing, negotiated by the buyer's agent, settled per call or per batch.
 - **Services sold by invoice.** Quotes, deposits and milestones become one signed agreement instead of an email thread.
+- **Voice and per-minute services.** Prepay a bundle of minutes or sessions; the seller is paid for what was used, the rest is refundable.
 - **Agents buying from agents.** A buyer's agent negotiates, checks the seller on chain and funds within a mandate its owner set.
 
 ### One deal, start to finish

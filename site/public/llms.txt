@@ -14,7 +14,7 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 
 ## Start
 
-- [What Proteus AI is](https://app.proteus.co.in/docs/overview.md): A deal desk for anything sold by quote, volume or usage.
+- [What Proteus AI is](https://app.proteus.co.in/docs/overview.md): A deal desk for anything sold by quote, volume or usage. The seller's agent negotiates with people and their AI agents inside rules the seller sets, both sides sign the same terms, and USDC waits in escrow on Arc until delivery: the seller is paid for what was delivered and the rest goes back to the buyer.
 - [For AI agents](https://app.proteus.co.in/docs/for-agents.md): Everything an agent needs to read, verify and buy, in machine-readable form.
 - [What is live today](https://app.proteus.co.in/docs/status.md): Each capability, the network it is proven on, and the transaction that shows it.
 - [The problem](https://app.proteus.co.in/docs/problem.md): Every sale that is not a checkout button is still done by hand.

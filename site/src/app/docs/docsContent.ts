@@ -187,7 +187,7 @@ export const SECTIONS: DocSection[] = [
     id: "overview",
     group: "Start",
     title: "What Proteus AI is",
-    summary: "A deal desk for anything sold by quote, volume or usage.",
+    summary: "A deal desk for anything sold by quote, volume or usage. The seller's agent negotiates with people and their AI agents inside rules the seller sets, both sides sign the same terms, and USDC waits in escrow on Arc until delivery: the seller is paid for what was delivered and the rest goes back to the buyer.",
     blocks: [
       { kind: "points", items: [
         { title: "The seller sets the rules", text: "Cost, margin floor, maximum discount, minimum order, capacity, and the order size it approves itself." },
@@ -195,6 +195,7 @@ export const SECTIONS: DocSection[] = [
         { title: "Both sides sign identical terms", text: "EIP-712 terms, checked on chain by [DealEscrow](" + code("contracts/src/DealEscrow.sol") + ")." },
         { title: "Money waits in escrow on Arc", text: "USDC moves only against the signatures in the agreement." },
         { title: "Paid per delivered unit", text: "The seller is paid for each unit the buyer countersigns; the rest becomes refundable." },
+        { title: "Verifiable by anyone", text: "The seller's identity is an ERC-8004 agent on Arc and its pricing policy is committed to [ProteusPolicyRegistry](" + code("contracts/src/ProteusPolicyRegistry.sol") + "); every payment is an Arc transaction." },
       ] },
       { kind: "callout", text: "The model proposes. The seller's policy decides. The signed agreement controls the money." },
       { kind: "h3", id: "who-for", text: "Who it is for" },
@@ -203,6 +204,7 @@ export const SECTIONS: DocSection[] = [
         { title: "Inference and GPU hours", text: "Prepay a block of capacity; pay only for the hours or tokens actually served." },
         { title: "Data and API access", text: "Volume tiers and per-call pricing, negotiated by the buyer's agent, settled per call or per batch." },
         { title: "Services sold by invoice", text: "Quotes, deposits and milestones become one signed agreement instead of an email thread." },
+        { title: "Voice and per-minute services", text: "Prepay a bundle of minutes or sessions; the seller is paid for what was used, the rest is refundable." },
         { title: "Agents buying from agents", text: "A buyer's agent negotiates, checks the seller on chain and funds within a mandate its owner set." },
       ] },
       { kind: "h3", id: "deal-example", text: "One deal, start to finish" },
