@@ -40,6 +40,7 @@ export default function Market() {
       }))
       .filter((s) => s.products.length > 0);
   }, [q.data, sellerSlug, cat, deferred]);
+  const halves = useMemo(() => pairHalves(sellers), [sellers]);
 
   const categories = useMemo(() => {
     const present = new Set<string>();
@@ -83,7 +84,7 @@ export default function Market() {
         <EmptyState icon={<Store size={20} strokeWidth={1.75} />} title={deferred || cat ? "Nothing matches" : "No sellers listed yet"} description={deferred || cat ? "Try another word or clear the category." : "Sellers appear here once they publish a product."} />
       ) : (
         <div className={m.sellerList}>
-          {sellers.map((s, i) => <SellerCard key={s.slug} s={s} i={i} />)}
+          {sellers.map((s, i) => <SellerCard key={s.slug} s={s} i={i} half={halves[i]} />)}
         </div>
       )}
     </AppShell>
@@ -110,14 +111,26 @@ function MarketNote({ sellers }: { sellers: MarketSeller[] }) {
   );
 }
 
-function SellerCard({ s, i }: { s: MarketSeller; i: number }) {
+/** Single-product sellers sit side by side in pairs; an unpaired one takes the full row so it never leaves a gap. */
+function pairHalves(sellers: MarketSeller[]): boolean[] {
+  const half = sellers.map(() => false);
+  for (let i = 0; i < sellers.length - 1; i++) {
+    if (sellers[i].products.length === 1 && sellers[i + 1].products.length === 1) {
+      half[i] = half[i + 1] = true;
+      i++;
+    }
+  }
+  return half;
+}
+
+function SellerCard({ s, i, half }: { s: MarketSeller; i: number; half: boolean }) {
   const st = s.stats;
   const settled = st ? BigInt(st.settled) : 0n;
   const held = st ? BigInt(st.inEscrow) : 0n;
   const wide = useLogoShape(s.brand.logoUrl) === "wide";
   const hasTrack = Boolean(st && (st.dealsFunded > 0 || settled > 0n || held > 0n));
   return (
-    <motion.article className={`${m.seller} ${s.products.length === 1 ? m.sellerHalf : ""}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...T_DEFAULT, delay: Math.min(i, 8) * 0.04 }} aria-label={s.name}>
+    <motion.article className={`${m.seller} ${half ? m.sellerHalf : ""}`} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...T_DEFAULT, delay: Math.min(i, 8) * 0.04 }} aria-label={s.name}>
       <header className={m.sellerHead}>
         {!wide && <SellerMark name={s.name} brand={s.brand} size="sm" />}
         <div className={m.sellerId}>
