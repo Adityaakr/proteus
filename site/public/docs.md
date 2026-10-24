@@ -16,6 +16,35 @@ _A deal desk for anything sold by quote, volume or usage._
 
 > The model proposes. The seller's policy decides. The signed agreement controls the money.
 
+### Who it is for
+
+- **Merch and corporate gifting.** "20 boxes, our logo, Mumbai by Oct 31, price per box?" Answered in seconds instead of by hand. Live: [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e).
+- **Inference and GPU hours.** Prepay a block of capacity; pay only for the hours or tokens actually served.
+- **Data and API access.** Volume tiers and per-call pricing, negotiated by the buyer's agent, settled per call or per batch.
+- **Services sold by invoice.** Quotes, deposits and milestones become one signed agreement instead of an email thread.
+- **Agents buying from agents.** A buyer's agent negotiates, checks the seller on chain and funds within a mandate its owner set.
+
+### One deal, start to finish
+
+1. **A buyer asks.** "20 merch boxes with our logo, delivered by Oct 31. Best price per box?"
+2. **The agent offers.** Inside the seller's rules: a price per box, a delivery term and a refund window. It never quotes below the margin floor.
+3. **Both sign.** Buyer and seller sign the same EIP-712 terms: units, unit price, term, payee.
+4. **The buyer funds.** USDC goes into DealEscrow on Arc, not to the seller. A relayer pays the gas.
+5. **The seller delivers.** It records what was delivered; the buyer countersigns the units it received.
+6. **The money settles.** The seller is paid for countersigned units. The rest is refundable to the buyer after the term plus a 3-day grace.
+
+### What it does and does not do
+
+| Proteus AI does | Proteus AI does not |
+|---|---|
+| Negotiate inside rules the seller wrote | Let the model invent a price below the seller's floor |
+| Hold payment in a contract on Arc until delivery is signed | Hold buyer funds in a Proteus account |
+| Pay the seller's own wallet, published in its Arc identity | Let anyone change where a seller is paid |
+| Make unspent money refundable after the term | Refund automatically: the buyer (or anyone) calls the refund |
+| Resolve disputes through an arbiter key, today held by Proteus | Offer a dispute timeout yet ([limits](https://app.proteus.co.in/docs/limits)) |
+
+### Where it runs
+
 | Network | App | Chain id | What is real |
 |---|---|---|---|
 | Arc mainnet | [app.proteus.co.in](https://app.proteus.co.in) | `5042` | Real USDC. One real business listed: [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e). |
@@ -25,6 +54,14 @@ _DealEscrow is at the same address on both networks: `0x5085A8400C95B9Cf0c9a3552
 
 ![The Proteus AI market on Arc mainnet, with Shoonya Store listed first](https://app.proteus.co.in/docs/market.jpg)
 _The market: each seller with its Arc identity, links and services priced from the cheapest pack. (Arc mainnet)_
+
+### Start here
+
+- [Sell with Proteus](https://app.proteus.co.in/docs/quickstart-seller): publish products, register on Arc, go live in about 5 minutes
+- [Buy from a seller](https://app.proteus.co.in/docs/quickstart-buyer): negotiate, sign, fund and settle
+- [Connect an AI agent](https://app.proteus.co.in/docs/quickstart-agent): MCP tools with a per-deal mandate
+- [See the deal lifecycle](https://app.proteus.co.in/docs/lifecycle): every state a deal goes through
+- [Verify it yourself](https://app.proteus.co.in/docs/verify): contracts and transactions on Arc
 
 ## For AI agents
 
