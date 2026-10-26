@@ -85,7 +85,12 @@ if (existsSync(join(siteDist, "index.html"))) {
     return c.body(readFileSync(file, "utf8"), 200, { "content-type": "text/markdown; charset=utf-8", "cache-control": "public, max-age=300" });
   });
   app.use("/*", serveStatic({ root: relative(process.cwd(), siteDist) }));
-  app.get("/*", (c) => (c.req.path.startsWith("/api/") ? c.notFound() : c.html(shell)));
+  const docsShell = docsPreviewShell(shell, siteDist);
+  app.get("/*", (c) => {
+    const p = c.req.path;
+    if (p.startsWith("/api/")) return c.notFound();
+    return c.html((p === "/docs" || p.startsWith("/docs/")) ? docsShell(p, env.WEB_ORIGIN.replace(/\/$/, "")) : shell);
+  });
   console.log(`serving site from ${siteDist}`);
 }
 
@@ -104,3 +109,41 @@ serve({ fetch: app.fetch, port: env.PORT, hostname: "::" }, (info) => {
   startReconciler();
   setInterval(() => import("./services/x402").then((m) => m.checkPendingPayments()).catch(() => {}), 15_000);
 });
+
+/**
+ * Link previews for /docs pages. Crawlers (X, Telegram, Slack) do not run the SPA, so the shell itself carries
+ * the page's title, summary and the docs card image. Titles come from the generated docs/facts.json.
+ */
+function docsPreviewShell(shell: string, dist: string) {
+  const pages = new Map<string, { title: string; summary: string }>();
+  try {
+    const facts = JSON.parse(readFileSync(join(dist, "docs", "facts.json"), "utf8")) as { docs?: { pages?: { id: string; title: string; summary?: string }[] } };
+    for (const pg of facts.docs?.pages ?? []) pages.set(pg.id, { title: pg.title, summary: pg.summary ?? "" });
+  } catch { /* no generated docs: fall back to the default card text */ }
+  const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  return (path: string, origin: string) => {
+    const page = pages.get(path.replace(/^\/docs\/?/, "").split("/")[0] ?? "");
+    const title = page ? `${page.title} · Proteus AI docs` : "Proteus AI docs: the deal desk for internet businesses";
+    const desc = page?.summary || "How a seller's agent negotiates, both sides sign, and USDC settles on Arc for what is delivered. Built for people and AI agents.";
+    const image = `${origin}/og/docs.jpg`;
+    const meta = [
+      `<meta property="og:type" content="article" />`,
+      `<meta property="og:site_name" content="Proteus AI" />`,
+      `<meta property="og:url" content="${esc(origin + path)}" />`,
+      `<meta property="og:title" content="${esc(title)}" />`,
+      `<meta property="og:description" content="${esc(desc)}" />`,
+      `<meta property="og:image" content="${image}" />`,
+      `<meta property="og:image:width" content="2400" />`,
+      `<meta property="og:image:height" content="1260" />`,
+      `<meta property="og:image:alt" content="Proteus AI docs: the deal desk for internet businesses" />`,
+      `<meta name="twitter:card" content="summary_large_image" />`,
+      `<meta name="twitter:title" content="${esc(title)}" />`,
+      `<meta name="twitter:description" content="${esc(desc)}" />`,
+      `<meta name="twitter:image" content="${image}" />`,
+    ].join("\n    ");
+    return shell
+      .replace(/<meta property="og:(title|description)"[^>]*>\s*/g, "")
+      .replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
+      .replace("</head>", `    ${meta}\n  </head>`);
+  };
+}
