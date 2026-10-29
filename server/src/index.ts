@@ -84,11 +84,19 @@ if (existsSync(join(siteDist, "index.html"))) {
     if (!file.startsWith(siteDist + "/") || !existsSync(file)) return next();
     return c.body(readFileSync(file, "utf8"), 200, { "content-type": "text/markdown; charset=utf-8", "cache-control": "public, max-age=300" });
   });
-  app.use("/*", serveStatic({ root: relative(process.cwd(), siteDist) }));
+  // HTML must revalidate so a deploy shows on first load; hashed /assets/ files never change.
+  app.use("/*", serveStatic({
+    root: relative(process.cwd(), siteDist),
+    onFound: (path, c) => {
+      if (path.endsWith(".html")) c.header("cache-control", "no-cache");
+      else if (path.includes("/assets/")) c.header("cache-control", "public, max-age=31536000, immutable");
+    },
+  }));
   const docsShell = docsPreviewShell(shell, siteDist);
   app.get("/*", (c) => {
     const p = c.req.path;
     if (p.startsWith("/api/")) return c.notFound();
+    c.header("cache-control", "no-cache");
     return c.html((p === "/docs" || p.startsWith("/docs/")) ? docsShell(p, env.WEB_ORIGIN.replace(/\/$/, "")) : shell);
   });
   console.log(`serving site from ${siteDist}`);
