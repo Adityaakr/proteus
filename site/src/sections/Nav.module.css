@@ -99,7 +99,7 @@
   align-items: center;
   gap: 32px;
 }
-.link { color: var(--c-body); transition: color 0.2s ease; display: block; }
+.link { color: var(--c-body); transition: color 0.2s ease; display: block; white-space: nowrap; }
 .link:hover { color: var(--c-dark); }
 .phone .links {
   flex: none;
