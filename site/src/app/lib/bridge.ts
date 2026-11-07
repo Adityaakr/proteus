@@ -111,8 +111,9 @@ function standardProvider(wallet: Wallet, chain: IdentifierString): SolanaProvid
     signTransaction: async (tx) => {
       if (!account) throw new Error(`Connect ${wallet.name} first.`);
       const { Transaction, VersionedTransaction } = await import("@solana/web3.js");
-      const versioned = tx instanceof VersionedTransaction;
-      const transaction = versioned ? tx.serialize() : (tx as InstanceType<typeof Transaction>).serialize({ requireAllSignatures: false, verifySignatures: false });
+      // Not instanceof: the adapter can hold its own copy of web3.js.
+      const versioned = "version" in (tx as object);
+      const transaction = (tx as InstanceType<typeof Transaction>).serialize({ requireAllSignatures: false, verifySignatures: false });
       const [signed] = await features["solana:signTransaction"].signTransaction({ account, transaction, chain });
       return versioned ? VersionedTransaction.deserialize(signed.signedTransaction) : Transaction.from(signed.signedTransaction);
     },
@@ -153,6 +154,7 @@ export interface BridgeProgress {
   state: "pending" | "success" | "error" | "noop";
   txHash?: string;
   explorerUrl?: string;
+  errorMessage?: string;
 }
 
 export interface BridgeOutcome {
@@ -178,7 +180,10 @@ async function sourceAdapter(source: string, wallet: BridgeWallet) {
     const provider = wallet.provider as SolanaProvider;
     if (!provider.isConnected) await provider.connect();
     const [sol, web3] = await loadSolana();
-    return sol.createSolanaAdapterFromProvider({ provider: provider as never, connection: new web3.Connection(solanaRpcUrl(), "confirmed") });
+    const connection = new web3.Connection(solanaRpcUrl(), "confirmed");
+    const owner = provider.publicKey?.toString();
+    if (owner && (await connection.getBalance(new web3.PublicKey(owner))) === 0) throw new Error(`${wallet.name}'s Solana account ${owner.slice(0, 4)}…${owner.slice(-4)} has no SOL. Sending from Solana needs a little SOL for the network fee.`);
+    return sol.createSolanaAdapterFromProvider({ provider: provider as never, connection });
   }
   const provider = wallet.provider as Eip1193;
   await provider.request({ method: "eth_requestAccounts" });
@@ -214,8 +219,21 @@ export async function estimateBridgeFee(source: string, amount: string, recipien
   return known.reduce((sum, f) => sum + Number(f.amount), 0).toFixed(6).replace(/\.?0+$/, "") || "0";
 }
 
-const toProgress = (steps: { name: string; state: BridgeProgress["state"]; txHash?: string; explorerUrl?: string }[]): BridgeProgress[] =>
-  steps.map(({ name, state, txHash, explorerUrl }) => ({ name, state, txHash, explorerUrl }));
+const toProgress = (steps: { name: string; state: BridgeProgress["state"]; txHash?: string; explorerUrl?: string; errorMessage?: string }[]): BridgeProgress[] =>
+  steps.map(({ name, state, txHash, explorerUrl, errorMessage }) => ({ name, state, txHash, explorerUrl, errorMessage }));
+
+/** True once a burn was sent, even if its confirmation then failed: from there it can only be resumed, never started over. */
+export const burnSent = (steps: BridgeProgress[]) => steps.some((s) => s.name === "burn" && (s.state === "success" || Boolean(s.txHash)));
+
+/** Why a step failed, in plain words, with the wallet or network's own message when we have no better one. */
+export function bridgeStepError(steps: BridgeProgress[]): string {
+  const raw = steps.find((s) => s.state === "error")?.errorMessage ?? "";
+  if (/reject|denied|declin|cancel/i.test(raw)) return "You declined the request in your wallet.";
+  if (/prior credit|insufficient lamports|insufficient funds for (fee|rent)/i.test(raw)) return "This Solana account does not have enough SOL for the network fee.";
+  if (/upstream rpc|429|too many requests/i.test(raw)) return "The Solana network did not answer. Try again in a moment.";
+  if (/blockhash not found|block height exceeded/i.test(raw)) return "The transaction expired before it landed. Try again.";
+  return raw || "The wallet or network gave no reason.";
+}
 
 /**
  * Burn `amount` USDC on `source` from the browser wallet and mint it on Arc to `recipient` (the account wallet).
@@ -225,9 +243,9 @@ export async function bridgeToArc(source: string, wallet: BridgeWallet, amount: 
   const { kit } = await loadKit();
   const adapter = await sourceAdapter(source, wallet);
   const handler = (payload: unknown) => {
-    const p = payload as { method?: string; values?: { name?: string; state?: BridgeProgress["state"]; txHash?: string; explorerUrl?: string } };
+    const p = payload as { method?: string; values?: { name?: string; state?: BridgeProgress["state"]; txHash?: string; explorerUrl?: string; errorMessage?: string } };
     const v = p.values;
-    if (v?.name && v.state) onStep?.({ name: v.name, state: v.state, txHash: v.txHash, explorerUrl: v.explorerUrl });
+    if (v?.name && v.state) onStep?.({ name: v.name, state: v.state, txHash: v.txHash, explorerUrl: v.explorerUrl, errorMessage: v.errorMessage });
   };
   if (onStep) kit.on("*" as never, handler as never);
   try {

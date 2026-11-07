@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 import { useAuth } from "../auth/useAuth";
 import { qk } from "../lib/api";
-import { bridgeSources, bridgeToArc, estimateBridgeFee, retryBridge, stepLabel, watchBridgeWallets, type BridgeOutcome, type BridgeProgress, type BridgeWallet } from "../lib/bridge";
+import { bridgeSources, bridgeStepError, bridgeToArc, burnSent, estimateBridgeFee, retryBridge, stepLabel, watchBridgeWallets, type BridgeOutcome, type BridgeProgress, type BridgeWallet } from "../lib/bridge";
 import { walletErrorMessage } from "../lib/wallet";
 import { ActionButton } from "../ui/ActionButton";
 import { ArcMark } from "../ui/Marks";
@@ -94,13 +94,18 @@ export function BridgePanel({ onArrived }: { onArrived?: (info: BridgeArrival) =
     setSteps((prev) => prev.filter((p) => p.name !== s.name).concat(s).sort((a, b) => STEP_ORDER.indexOf(a.name) - STEP_ORDER.indexOf(b.name)));
 
   const finish = (r: BridgeOutcome) => {
-    setOutcome(r);
     setSteps(r.steps.filter((s) => s.state !== "noop"));
+    // Only a burned transfer can be resumed; before that nothing has left the wallet, so it simply starts again.
+    if (!r.ok && !burnSent(r.steps)) {
+      setOutcome(null);
+      return setError(`${bridgeStepError(r.steps)} No USDC left your wallet.`);
+    }
+    setOutcome(r);
     if (r.ok) {
       void qc.invalidateQueries({ queryKey: qk.balances(recipient || "none") });
       const url = (name: string) => r.steps.find((x) => x.name === name)?.explorerUrl;
       onArrived?.({ sourceLabel: src.label, sourceLogo: src.logo, burnUrl: url("burn"), mintUrl: url("mint") });
-    } else setError("The transfer stopped part way. Your USDC is safe; resume it below.");
+    } else setError(`Your transfer from ${src.label} was sent but has not reached Arc yet. ${bridgeStepError(r.steps)} Resume below; it will not be sent twice.`);
   };
 
   const submit = async (e: FormEvent) => {
