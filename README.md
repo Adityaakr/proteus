@@ -54,7 +54,9 @@ Built for the Tameion Agents Hackathon (Canteen x Circle x Arc), October 2026. L
 | Seller identity | ERC-8004 Agent #2695, owner and payee `0x995385cB1D15fcC4521442D488d2CB757cb641Da`, [registration tx](https://explorer.arc.io/tx/0x45921b0f981908b7d704b79119863781c21e71498c812965d90db1787bd24e55) |
 | Pricing policies | 4 products, each committed (v1) on [ProteusPolicyRegistry](https://explorer.arc.io/address/0x376dFc4f1D356E78cc46983478A0F2e12CA7C84B) |
 | Catalog | Event merch box at $15 per box with delivery and taxes (Shoonya's real quote), custom tees, tote bags, pins and badges |
-| Paid orders | none yet; the first is next and will be listed here with its transactions |
+| Funds on Arc | Shoonya's team bridged 16.98 USDC from Solana into its seller wallet with Circle CCTP: [mint](https://explorer.arc.io/tx/0x7357c72f92224eafbfed0c664e7b346966ca175bcd835d95ae09eb76165fe7a5) |
+| Pricing policy v2 | single-tee price, committed on Arc on 2026-11-07: [commit](https://explorer.arc.io/tx/0xf9f566e326231199de683c3b0082a0ba37c4ab36ba76e8bb6c22fe76e7430386) |
+| Customer orders | 1: a Shoonya customer bought 1 custom oversized tee for 6.60 USDC, priced under policy v2, funded gaslessly into escrow ([fund](https://explorer.arc.io/tx/0x9145fb235f7c00e625ccb91e3a8a817dcf3cd0b1ee4265fd5697cf79cb1b62a7), [record](https://app.proteus.co.in/api/review/d_4o970ot7ru90qg91)). In production; not settled yet |
 
 The other sellers on the market are examples, labelled as such.
 
@@ -70,15 +72,17 @@ The other sellers on the market are examples, labelled as such.
 6. [Seller identity, policy commitments and ratings on Arc](#seller-identity-policy-commitments-and-ratings-on-arc)
 7. [Deal desk features](#deal-desk-features)
 8. [Verify it yourself on Arc testnet](#verify-it-yourself-on-arc-testnet)
-9. [The negotiation engine and the agent](#the-negotiation-engine-and-the-agent)
-10. [Services, receipts and settlement](#services-receipts-and-settlement)
-11. [For agents: skills and per-service references](#for-agents-skills-and-per-service-references)
-12. [API](#api)
-13. [Run it locally](#run-it-locally)
-14. [Security model](#security-model)
-15. [Honesty labels](#honesty-labels)
-16. [Roadmap to production](#roadmap-to-production)
-17. [Repository layout](#repository-layout)
+9. [Verified on Arc mainnet, real USDC](#verified-on-arc-mainnet-real-usdc)
+10. [Every transaction on Arc mainnet](#every-transaction-on-arc-mainnet)
+11. [The negotiation engine and the agent](#the-negotiation-engine-and-the-agent)
+12. [Services, receipts and settlement](#services-receipts-and-settlement)
+13. [For agents: skills and per-service references](#for-agents-skills-and-per-service-references)
+14. [API](#api)
+15. [Run it locally](#run-it-locally)
+16. [Security model](#security-model)
+17. [Honesty labels](#honesty-labels)
+18. [Roadmap to production](#roadmap-to-production)
+19. [Repository layout](#repository-layout)
 
 ---
 
@@ -328,7 +332,7 @@ Each feature landed as its own commit, together with the script that proves it. 
 | Disputes | The buyer opens a dispute from their own wallet (`openDispute`, reason hash on chain, text kept by the server). The deal freezes, and the arbiter splits only the unspent balance. Journal entries balance | `server/src/services/disputes.ts`, `server/scripts/resolve-dispute.ts` | `DISPUTE=1 delivery-e2e.ts` |
 | Accounting export | CSVs for deals, receipts and double-entry journal lines in the column shape QuickBooks Online and Xero import. Every money row links its Arc transaction. Cells are protected against spreadsheet formula injection | `server/src/services/exports.ts`, `GET /api/app/export.csv?kind=` | |
 | Notifications | Email, Telegram or HMAC-signed webhook when a deal is funded, settled, refunded or disputed, or an offer needs approval. Each event is queued once per on-chain log. Webhooks are SSRF-guarded. Messages carry no API keys or buyer contact details | `server/src/services/notify.ts` | `server/scripts/notify-check.ts` |
-| Fund from any chain | CCTP via Circle Bridge Kit from 25 source chains, Solana included, straight to the buyer's Arc wallet | `site/src/app/lib/bridge.ts` | a real 0.98 USDC mainnet bridge |
+| Move USDC to and from Arc | CCTP via Circle Bridge Kit: into Arc from 25 chains, Solana included, straight to the account wallet; out of Arc to the 19 chains Circle's Forwarder mints on. Wallet picker (EIP-6963, Wallet Standard), a same-origin Solana RPC relay, and a SOL pre-check | `site/src/app/lib/bridge.ts` | two real Solana to Arc mainnet bridges: [Shoonya Store](https://explorer.arc.io/tx/0x7357c72f92224eafbfed0c664e7b346966ca175bcd835d95ae09eb76165fe7a5), [its customer](https://explorer.arc.io/tx/0x3e7f549108d377aa340c8a2d93b75322ac4a7454d4f54f2011d4b22357460862); Arc to Base and Solana on testnet |
 
 Not built, on purpose: treasury yield on idle seller USDC. Circle Earn is not generally available on Arc mainnet, and USYC is limited to allowlisted non-US institutions with a high minimum. A yield toggle would also turn a payments tool into custody of seller funds, which is a regulatory step and not a feature.
 
@@ -398,6 +402,23 @@ The product also runs on Arc mainnet at https://proteus-mainnet-production.up.ra
 | Refund of the unused balance to the buyer | [`0x70d68aa1…81c94d`](https://explorer.arc.io/tx/0x70d68aa16db7588b90f172ccb68d20bb4f95ca099650a2755ee1a3436481c94d) |
 
 Final balances read from the contract reconcile: deposit equals settled plus refunded, remaining zero. Gas for the whole loop was a few cents. This was run by us with our own funds; it proves the mechanism on mainnet, not traction.
+
+## Every transaction on Arc mainnet
+
+A complete scan of DealEscrow and ProteusPolicyRegistry logs from DealEscrow's deployment block (26,472,093) to block 29,995,795 (2026-11-07), plus Circle CCTP mints into Proteus wallets. Nothing on mainnet is missing from this table.
+
+| Date (UTC) | What | Transaction |
+|---|---|---|
+| 2026-10-17 | DealEscrow deployed | [`0xf31053ff…f37280`](https://explorer.arc.io/tx/0xf31053ff9ebdf450e739e2a5c5b93316febe7f0af1e0419cfb4f4a7415f37280) |
+| 2026-10-17 | Mechanism test with our own funds: approve, fund, settle, close, refund | listed under [Verified on Arc mainnet](#verified-on-arc-mainnet-real-usdc) |
+| 2026-10-18 | Mechanism test deal (our own funds, sandbox seller): fund 0.50, settle 0.25 | [fund](https://explorer.arc.io/tx/0x0734993e936c8d370c705ac554e5836bcaf56b3d3d816c08aff6df6ae312abfc) · [settle](https://explorer.arc.io/tx/0xaa5412ed77d78c70c5c1526af60cbaeaf53a88dc1c1521791bed2834ada217c2) |
+| 2026-10-21 | ProteusPolicyRegistry deployed | [`0xd0b7f81e…f35597`](https://explorer.arc.io/tx/0xd0b7f81eb77c468d9c1f461ede14e0bac0042ca0b3d5aa88274a48153df35597) |
+| 2026-10-23 | Shoonya Store registers ERC-8004 Agent #2695 from its own wallet | [`0x45921b0f…bd24e55`](https://explorer.arc.io/tx/0x45921b0f981908b7d704b79119863781c21e71498c812965d90db1787bd24e55) |
+| 2026-10-23 | Shoonya's 4 pricing policies committed (v1) | [tees](https://explorer.arc.io/tx/0x59065079ffdc03ddc1e7ab3d257210ff743076e6522d1013e67b0bf901cdd165) · [totes](https://explorer.arc.io/tx/0x525f8578c6f8c039aaf5ad32cd16b91f5d176d966e54e29050ff0c735ee0c977) · [merch box](https://explorer.arc.io/tx/0xe88e372b98cd6a8532b5c8294d9e6a03953821c4a543054cf1102960fe591947) · [pins](https://explorer.arc.io/tx/0xece7b7615eabe2605eba03127341da4749c06f2bc775bec22278aa2f26c4ff8f) |
+| 2026-11-07 | Shoonya's team bridges 16.98 USDC from Solana (Circle CCTP mint) | [`0x7357c72f…65fe7a5`](https://explorer.arc.io/tx/0x7357c72f92224eafbfed0c664e7b346966ca175bcd835d95ae09eb76165fe7a5) |
+| 2026-11-07 | A Shoonya customer bridges 17.98 USDC from Solana (Circle CCTP mint) | [`0x3e7f5491…7460862`](https://explorer.arc.io/tx/0x3e7f549108d377aa340c8a2d93b75322ac4a7454d4f54f2011d4b22357460862) |
+| 2026-11-07 | Shoonya's tee policy v2 committed (single-tee price) | [`0xf9f566e3…e7430386`](https://explorer.arc.io/tx/0xf9f566e326231199de683c3b0082a0ba37c4ab36ba76e8bb6c22fe76e7430386) |
+| 2026-11-07 | First customer order: 1 tee, 6.60 USDC, funded gaslessly into escrow | [`0x9145fb23…cb1b62a7`](https://explorer.arc.io/tx/0x9145fb235f7c00e625ccb91e3a8a817dcf3cd0b1ee4265fd5697cf79cb1b62a7) |
 
 ## The negotiation engine and the agent
 
