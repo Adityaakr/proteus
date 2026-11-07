@@ -11,7 +11,7 @@ import { toAccount } from "viem/accounts";
 import { defaultChain } from "@proteus/domain";
 import { ApiError, api, qk, setAccessTokenGetter } from "../lib/api";
 import { WalletError } from "../lib/wallet";
-import { browserWalletClient, hasBrowserWallet } from "../lib/browserWallets";
+import { browserWalletClient, hasBrowserWallet, preferredWallet } from "../lib/browserWallets";
 import { walletKind, walletLinkMessage, walletLoginMessage, type Address, type MeResponse } from "../lib/types";
 import { AuthContext, walletLabel, type AuthUser, type AuthValue, type AuthWallet } from "./context";
 import { circleSdk, emailLogin, executeChallenge, serializeTypedData } from "./circle";
@@ -44,8 +44,6 @@ function write(key: string, v: unknown) {
   }
 }
 
-type Eip1193 = { request: (args: { method: string; params?: unknown }) => Promise<unknown> };
-const injected = (): Eip1193 | undefined => (typeof window !== "undefined" ? (window as unknown as { ethereum?: Eip1193 }).ethereum : undefined);
 
 function meStatusOf(q: { isPending: boolean; error: unknown; data: unknown }, enabled: boolean): AuthValue["meStatus"] {
   if (!enabled) return "idle";
@@ -243,8 +241,8 @@ export function CircleAuthProvider({ appId, children }: { appId: string; childre
     [sdk, appId, saveCircle, finishSession],
   );
 
-  const loginWithWallet = useCallback(async () => {
-    const eth = injected();
+  const loginWithWallet = useCallback(async (walletId?: string) => {
+    const eth = preferredWallet(walletId)?.provider;
     if (!eth) throw new WalletError("No browser wallet was found. Install MetaMask, or sign in with your email.");
     const [first] = (await eth.request({ method: "eth_requestAccounts" })) as string[];
     if (!first) throw new WalletError("No account was selected in the wallet.");
@@ -258,7 +256,7 @@ export function CircleAuthProvider({ appId, children }: { appId: string; childre
 
   const connectExternalWallet = useCallback(() => {
     (async () => {
-      const eth = injected();
+      const eth = preferredWallet()?.provider;
       if (!eth) throw new WalletError("No browser wallet was found.");
       const [first] = (await eth.request({ method: "eth_requestAccounts" })) as string[];
       if (!first) return;

@@ -45,7 +45,8 @@ export interface AuthValue {
   /** Circle only: sends an email OTP, opens Circle's code entry, and finishes with a Proteus AI session. */
   emailLogin?: (email: string) => Promise<void>;
   /** Circle only: sign in with a browser wallet by signing a nonce. */
-  loginWithWallet?: () => Promise<void>;
+  /** Signs in with a browser wallet; `walletId` (EIP-6963 rdns) picks which one when several are installed. */
+  loginWithWallet?: (walletId?: string) => Promise<void>;
   /** False for MPC wallets (Circle) where there is no key to export. */
   canExportWallet: boolean;
   logout: () => Promise<void>;

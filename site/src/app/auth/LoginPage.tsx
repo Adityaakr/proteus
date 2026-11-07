@@ -10,6 +10,7 @@ import { Card } from "../ui/Card";
 import { Field } from "../ui/Field";
 import { ArcMark, CircleMark } from "../ui/Marks";
 import { Notice } from "../ui/misc";
+import { browserWallets, preferredWallet, type BrowserWallet } from "../lib/browserWallets";
 import { useAuth } from "./useAuth";
 import { api, qk } from "../lib/api";
 import { safeNext } from "./RequireAuth";
@@ -78,9 +79,13 @@ function CircleSignIn({ onDone }: { onDone: () => void }) {
   const health = useQuery({ queryKey: qk.health, queryFn: api.health, staleTime: 60_000, retry: false });
   const emailAvailable = health.data?.auth?.circleEmail !== false;
   const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState<"email" | "wallet" | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const hasWallet = typeof window !== "undefined" && Boolean((window as unknown as { ethereum?: unknown }).ethereum);
+  // One button per installed wallet, so the person picks: window.ethereum belongs to whichever extension injected last.
+  const ordered = () => { const all = browserWallets(); const first = preferredWallet()?.id; return [...all.filter((w) => w.id === first), ...all.filter((w) => w.id !== first)]; };
+  const [wallets, setWallets] = useState<BrowserWallet[]>(ordered);
+  useEffect(() => setWallets(ordered()), []);
+  const hasWallet = wallets.length > 0;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -96,11 +101,11 @@ function CircleSignIn({ onDone }: { onDone: () => void }) {
       setBusy(null);
     }
   };
-  const wallet = async () => {
-    setBusy("wallet");
+  const wallet = async (id?: string) => {
+    setBusy(id ?? "wallet");
     setError(null);
     try {
-      await loginWithWallet!();
+      await loginWithWallet!(id);
       onDone();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Wallet sign-in did not complete.");
@@ -119,8 +124,14 @@ function CircleSignIn({ onDone }: { onDone: () => void }) {
           </ActionButton>
         </form>
       )}
-      {(hasWallet || !emailAvailable) && (
-        <ActionButton variant={emailAvailable ? "secondary" : "primary"} size="lg" fullWidth onClick={wallet} loading={busy === "wallet"} loadingLabel="Check your wallet" iconLeft={<Wallet size={16} strokeWidth={2} />}>
+      {wallets.length > 1 ? (
+        wallets.map((x, i) => (
+          <ActionButton key={x.id} variant={emailAvailable || i > 0 ? "secondary" : "primary"} size="lg" fullWidth onClick={() => wallet(x.id)} loading={busy === x.id} loadingLabel={`Check ${x.name}`} disabled={busy != null && busy !== x.id} iconLeft={x.icon ? <img src={x.icon} alt="" width={18} height={18} style={{ borderRadius: 4 }} /> : <Wallet size={16} strokeWidth={2} />}>
+            Continue with {x.name}
+          </ActionButton>
+        ))
+      ) : (hasWallet || !emailAvailable) && (
+        <ActionButton variant={emailAvailable ? "secondary" : "primary"} size="lg" fullWidth onClick={() => wallet(wallets[0]?.id)} loading={busy != null && busy !== "email"} loadingLabel="Check your wallet" iconLeft={<Wallet size={16} strokeWidth={2} />}>
           Continue with a wallet
         </ActionButton>
       )}

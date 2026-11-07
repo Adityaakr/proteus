@@ -3,25 +3,36 @@ import { defaultChain } from "@proteus/domain";
 import { WalletError, walletClientFor } from "./wallet";
 
 type Eip1193 = { request: (args: { method: string; params?: unknown }) => Promise<unknown> };
-interface BrowserWallet { name: string; provider: Eip1193 }
+export interface BrowserWallet { id: string; name: string; icon?: string; provider: Eip1193 }
 
 /** Every EVM wallet in this browser (EIP-6963), plus whatever holds `window.ethereum` if it did not announce itself. */
-function browserWallets(): BrowserWallet[] {
+export function browserWallets(): BrowserWallet[] {
   if (typeof window === "undefined") return [];
   const found: BrowserWallet[] = [];
   const onAnnounce = (e: Event) => {
-    const { info, provider } = (e as CustomEvent<{ info: { name: string }; provider: Eip1193 }>).detail;
-    if (!found.some((w) => w.provider === provider)) found.push({ name: info.name, provider });
+    const { info, provider } = (e as CustomEvent<{ info: { rdns: string; name: string; icon?: string }; provider: Eip1193 }>).detail;
+    if (!found.some((w) => w.provider === provider)) found.push({ id: info.rdns, name: info.name, icon: info.icon, provider });
   };
   window.addEventListener("eip6963:announceProvider", onAnnounce);
   window.dispatchEvent(new Event("eip6963:requestProvider")); // Wallets answer synchronously.
   window.removeEventListener("eip6963:announceProvider", onAnnounce);
   const legacy = (window as unknown as { ethereum?: Eip1193 }).ethereum;
-  if (legacy && !found.some((w) => w.provider === legacy)) found.push({ name: "Browser wallet", provider: legacy });
+  if (legacy && !found.some((w) => w.provider === legacy)) found.push({ id: "injected", name: "Browser wallet", provider: legacy });
   return found;
 }
 
 export const hasBrowserWallet = () => browserWallets().length > 0;
+
+const CHOSEN = "proteus:signin-wallet";
+/** The wallet to use when the person has not said: the one they last signed in with, else any but Phantom, which also answers for EVM. */
+export function preferredWallet(id?: string): BrowserWallet | undefined {
+  const all = browserWallets();
+  let remembered: string | null = null;
+  try { remembered = localStorage.getItem(CHOSEN); } catch { /* not remembered */ }
+  const pick = all.find((w) => w.id === id) ?? all.find((w) => w.id === remembered) ?? all.find((w) => !/phantom/i.test(w.name)) ?? all[0];
+  if (pick && id) try { localStorage.setItem(CHOSEN, pick.id); } catch { /* not remembered */ }
+  return pick;
+}
 
 const holds = (accounts: unknown, address: Address) => Array.isArray(accounts) && accounts.some((a) => String(a).toLowerCase() === address.toLowerCase());
 
