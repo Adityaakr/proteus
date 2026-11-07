@@ -89,7 +89,8 @@ publicRoutes.post("/negotiations", async (c) => {
     const w = await userWallets(a.userId);
     buyer = (w.find((x) => x.primary) ?? w[0])?.address ?? buyer;
   }
-  return json(c, await startNegotiation(body.sellerSlug, body.productSlug, buyer), 201);
+  const store = body.store === "open" || body.store === "continue" ? body.store : undefined;
+  return json(c, await startNegotiation(body.sellerSlug, body.productSlug, buyer, store), 201);
 });
 
 publicRoutes.get("/negotiations/:id", async (c) => json(c, await negotiationView(c.req.param("id"))));

@@ -15,6 +15,8 @@ export const StartNegotiationBody = z.object({
   buyerAddress: AddressSchema.optional(),
   /** Optional buyer-agent mandate, micro-USDC cap. */
   mandateCap: MicroString.optional(),
+  /** Started from a seller's store page: "open" greets for the whole store, "continue" picks up a store conversation. */
+  store: z.enum(["open", "continue"]).optional(),
 });
 
 export const MessageBody = z.object({

@@ -1,10 +1,10 @@
-import { unitFor } from "@proteus/domain";
+import { pluralUnit, unitFor } from "@proteus/domain";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Calculator } from "lucide-react";
 import type { CostUpdateBody, PolicyUpdateBody } from "@proteus/domain";
 import { ActionButton, Card, Field, Money, Notice, StatusTag } from "../kit";
-import { useDeleteProduct, usePreview, useProduct, useSetListing, useUpdateCost, useUpdatePolicy } from "../api";
+import { useDeleteProduct, usePreview, useProduct, useSetListing, useUpdateCost, useUpdatePolicy, useUpdateTiers } from "../api";
 import { QueryView } from "../parts/QueryView";
 import { PageHeader } from "../parts/PageHeader";
 import { SellerOnly } from "../parts/SellerOnly";
@@ -60,6 +60,7 @@ function ProductBody({ p }: { p: ProductWithPrivate }) {
     <>
       <Listing p={p} />
       <PublicProduct p={p} />
+      <TiersForm p={p} />
       <PrivateSummary p={p} />
       <div className={s.grid2}>
         <PolicyForm p={p} />
@@ -256,6 +257,63 @@ function PolicyForm({ p }: { p: ProductWithPrivate }) {
     </SellerOnly>
   );
 }
+
+/**
+ * Edit the public price tiers. A tier's price applies from its quantity up, so a 1-unit tier is how a seller sells
+ * single items at a higher unit price. Small orders also need the prepaid minimum (policy) at or below that price.
+ */
+function TiersForm({ p }: { p: ProductWithPrivate }) {
+  const m = useUpdateTiers(p.id);
+  const init = () => p.tiers.map((t) => ({ name: t.name, includedUnits: t.includedUnits, unitPriceUsd: microToInput((BigInt(t.unitPrice.num) / BigInt(t.unitPrice.den)).toString()), includes: t.includes.join(", ") }));
+  const [rows, setRows] = useState(init);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const update = (i: number, k: "name" | "includedUnits" | "unitPriceUsd" | "includes") => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRows((r) => r.map((x, j) => (j === i ? { ...x, [k]: e.target.value } : x)));
+    setSaved(false);
+    setError(null);
+  };
+  const smallest = rows.reduce((min, r) => (/^\d+$/.test(r.includedUnits) && (min === null || Number(r.includedUnits) < min) ? Number(r.includedUnits) : min), null as number | null);
+  const minimum = Number(p.policy.prepaidMinimum) / 1e6;
+  const singleRow = rows.find((r) => r.includedUnits.trim() === String(smallest));
+  const smallestOrder = singleRow && smallest !== null ? smallest * Number(singleRow.unitPriceUsd) : null;
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!rows.length) return setError("Keep at least one tier.");
+    m.mutate(
+      rows.map((r) => ({ name: r.name.trim(), includedUnits: r.includedUnits.trim(), unitPriceUsd: r.unitPriceUsd.trim(), includes: r.includes.split(",").map((x) => x.trim()).filter(Boolean) })),
+      { onSuccess: () => setSaved(true), onError: (err) => setError(errorMessage(err)) },
+    );
+  };
+
+  return (
+    <SellerOnly title="Prices" description={`What buyers see. A tier's price applies from its quantity up; add a 1 ${p.unitLabel} tier to sell single items.`}>
+      <form className={s.formBox} onSubmit={submit} noValidate>
+        {rows.map((r, i) => (
+          <div key={i} className={s.formGrid2} style={{ gridTemplateColumns: "1.2fr 0.8fr 0.8fr 1.6fr auto", alignItems: "end" }}>
+            <Field label="Name" value={r.name} onChange={update(i, "name")} placeholder="Single" />
+            <Field label={`From (${pluralUnit(p.unitLabel)})`} inputMode="numeric" value={r.includedUnits} onChange={update(i, "includedUnits")} placeholder="1" />
+            <Field label="Price each ($)" inputMode="decimal" value={r.unitPriceUsd} onChange={update(i, "unitPriceUsd")} placeholder="8.00" />
+            <Field label="Includes (comma separated)" value={r.includes} onChange={update(i, "includes")} placeholder="Your design" />
+            <ActionButton variant="ghost" onClick={() => { setRows((x) => x.filter((_, j) => j !== i)); setSaved(false); }} disabled={rows.length === 1}>Remove</ActionButton>
+          </div>
+        ))}
+        {smallestOrder !== null && smallestOrder < minimum && (
+          <Notice>The smallest order ({smallest} {unitFor(String(smallest), p.unitLabel)}, ${smallestOrder.toFixed(2)}) is below your prepaid minimum of ${minimum.toFixed(2)}, so the agent will not offer it. Lower the prepaid minimum in the policy below to sell it.</Notice>
+        )}
+        {error && <Notice tone="danger">{error}</Notice>}
+        {saved && <Notice tone="success">Prices saved. Buyers and the agent see them now; open quotes keep the prices they were made with.</Notice>}
+        <div className={s.formActions}>
+          <ActionButton type="submit" variant="secondary" loading={m.isPending} loadingLabel="Saving prices">Save prices</ActionButton>
+          <ActionButton variant="ghost" onClick={() => { setRows((x) => [...x, { name: "", includedUnits: "", unitPriceUsd: "", includes: "" }]); setSaved(false); }} disabled={rows.length >= 6}>Add tier</ActionButton>
+          <ActionButton variant="ghost" onClick={() => { setRows(init()); setError(null); setSaved(false); }}>Reset</ActionButton>
+        </div>
+      </form>
+    </SellerOnly>
+  );
+}
+
 
 function CostForm({ p }: { p: ProductWithPrivate }) {
   const m = useUpdateCost(p.id);

@@ -33,7 +33,7 @@ export function setStoreChain(negotiationId: string, chain: StoreChain) {
 
 /** Opens a store conversation on one product; later messages may move it to another. */
 export async function startStoreChat(sellerSlug: string, productSlug: string, buyerAddress?: string, prior: string[] = []) {
-  const n = await api.startNegotiation({ sellerSlug, productSlug, buyerAddress });
+  const n = await api.startNegotiation({ sellerSlug, productSlug, buyerAddress, store: prior.length ? "continue" : "open" });
   setStoreChain(n.id, { seller: sellerSlug, prior });
   return n;
 }

@@ -175,6 +175,12 @@ function loadKit() {
   kitPromise ??= Promise.all([import("@circle-fin/bridge-kit"), import("@circle-fin/adapter-viem-v2")]).then(([bk, adapters]) => ({ kit: new bk.BridgeKit(), adapters }));
   return kitPromise;
 }
+/**
+ * SOL a Solana wallet needs before bridging: the transaction pays Circle's Forwarder about 0.0039 SOL (measured on
+ * mainnet), the network fee, and the account must stay rent-exempt (~0.0009 SOL) unless it is emptied completely.
+ */
+const MIN_SOLANA_LAMPORTS = 5_000_000;
+
 /** The Solana adapter and web3.js load only when a Solana route is used. */
 const loadSolana = () => Promise.all([import("@circle-fin/adapter-solana"), import("@solana/web3.js")]);
 
@@ -188,7 +194,8 @@ async function sourceAdapter(source: string, wallet: BridgeWallet) {
     const [sol, web3] = await loadSolana();
     const connection = new web3.Connection(solanaRpcUrl(), "confirmed");
     const owner = provider.publicKey?.toString();
-    if (owner && (await connection.getBalance(new web3.PublicKey(owner))) === 0) throw new Error(`${wallet.name}'s Solana account ${owner.slice(0, 4)}…${owner.slice(-4)} has no SOL. Sending from Solana needs a little SOL for the network fee.`);
+    const lamports = owner ? await connection.getBalance(new web3.PublicKey(owner)) : null;
+    if (owner && lamports != null && lamports < MIN_SOLANA_LAMPORTS) throw new Error(`${wallet.name}'s Solana account ${owner.slice(0, 4)}…${owner.slice(-4)} has ${(lamports / 1e9).toFixed(4)} SOL. Sending from Solana needs about ${MIN_SOLANA_LAMPORTS / 1e9} SOL: Circle's forwarding fee is paid in SOL, plus the network fee, and Solana keeps a small minimum in the account. Add a little SOL and try again.`);
     return sol.createSolanaAdapterFromProvider({ provider: provider as never, connection });
   }
   const provider = wallet.provider as Eip1193;
@@ -249,7 +256,8 @@ export const burnSent = (steps: BridgeProgress[]) => steps.some((s) => s.name ==
 export function bridgeStepError(steps: BridgeProgress[]): string {
   const raw = steps.find((s) => s.state === "error")?.errorMessage ?? "";
   if (/reject|denied|declin|cancel/i.test(raw)) return "You declined the request in your wallet.";
-  if (/prior credit|insufficient lamports|insufficient funds for (fee|rent)/i.test(raw)) return "This Solana account does not have enough SOL for the network fee.";
+  // System Program error 1 on the first instruction is the SOL payment to Circle's Forwarder running short.
+  if (/prior credit|insufficient lamports|insufficient funds for (fee|rent)|"InstructionError":\[0,\{"Custom":1\}\]/i.test(raw)) return "This Solana account does not have enough SOL. Bridging from Solana needs about 0.005 SOL for Circle's forwarding fee and the network fee.";
   if (/upstream rpc|429|too many requests/i.test(raw)) return "The Solana network did not answer. Try again in a moment.";
   if (/blockhash not found|block height exceeded/i.test(raw)) return "The transaction expired before it landed. Try again.";
   return raw || "The wallet or network gave no reason.";

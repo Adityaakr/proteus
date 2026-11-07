@@ -106,8 +106,36 @@ export async function negotiationView(negId: string) {
 /* start                                                                */
 /* ------------------------------------------------------------------ */
 
-export async function startNegotiation(sellerSlug: string, productSlug: string, buyerAddress?: string) {
+/**
+ * How a negotiation opens. "open": a buyer started from the store page, so the agent greets for the whole store.
+ * "continue": the store conversation moved here from another product, so it only says where it is now.
+ */
+export type StoreOpening = "open" | "continue";
+
+/** "custom oversized tees (from $6.50 a tee)", for every listed product of the seller, cheapest unit price first per product. */
+async function storeLines(lp: LoadedProduct): Promise<string[]> {
+  const rows = await db.select({ id: schema.products.id }).from(schema.products).where(and(eq(schema.products.orgId, lp.org.id), eq(schema.products.active, true)));
+  const lines: string[] = [];
+  for (const r of rows.slice(0, 8)) {
+    const p = publicProduct(await loadProductById(r.id));
+    const cheapest = Math.min(...p.tiers.map((t) => Number(t.unitPriceUsd.replace(/[^0-9.]/g, ""))));
+    lines.push(Number.isFinite(cheapest) ? `${p.name.toLowerCase()} (from $${cheapest.toFixed(2)} a ${p.unitLabel})` : p.name.toLowerCase());
+  }
+  return lines;
+}
+
+function greeting(lp: LoadedProduct, store: StoreOpening | undefined, lines: string[]): string {
+  if (store === "continue") return `Now on ${lp.product.name.toLowerCase()}.`;
+  if (store === "open" && lines.length > 1) {
+    const list = `${lines.slice(0, -1).join(", ")} and ${lines.at(-1)}`;
+    return `Hi, I am the deal desk for ${lp.org.name}. ${lp.org.name} makes ${list}. Tell me what you need, how many and by when, and your budget, and I will put together options the seller can actually deliver.`;
+  }
+  return `Hi, I am the deal desk for ${lp.org.name}, here for ${lp.product.name.toLowerCase()}. Tell me what you need, how many ${pluralUnit(lp.product.unitLabel)} and by when, and the budget you are working with. I will put together options the seller can actually deliver.`;
+}
+
+export async function startNegotiation(sellerSlug: string, productSlug: string, buyerAddress?: string, store?: StoreOpening) {
   const lp = await loadProductBySlugs(sellerSlug, productSlug);
+  const lines = store === "open" ? await storeLines(lp) : [];
   const negId = id("neg");
   const requirements: Requirements = { integrations: [], notes: [], openQuestions: [] };
   await db.insert(schema.negotiations).values({ id: negId, publicId: publicId("n"), orgId: lp.org.id, productId: lp.row.id, buyerAddress, requirements: bigintsToStrings(requirements), candidates: [], activity: [] });
@@ -117,7 +145,7 @@ export async function startNegotiation(sellerSlug: string, productSlug: string, 
     seq: 1,
     role: "agent",
     kind: "message",
-    content: `Hi, I am the deal desk for ${lp.org.name}, here for ${lp.product.name.toLowerCase()}. Tell me what you need, how many ${pluralUnit(lp.product.unitLabel)} and by when, and the budget you are working with. I will put together options the seller can actually deliver.`,
+    content: greeting(lp, store, lines),
   });
   return negotiationView(negId);
 }

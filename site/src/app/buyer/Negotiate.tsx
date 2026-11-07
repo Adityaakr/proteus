@@ -218,7 +218,7 @@ export default function Negotiate() {
           <ChevronRight size={13} aria-hidden />
           <Link to={`/app/market/${neg.sellerSlug}`}>{sellerName}</Link>
           <ChevronRight size={13} aria-hidden />
-          <Link to={`/app/market/${neg.sellerSlug}/${neg.productSlug}`}>{productName}</Link>
+          {chain ? <span>Deal desk</span> : <Link to={`/app/market/${neg.sellerSlug}/${neg.productSlug}`}>{productName}</Link>}
         </nav>
         <div className={n.sellerRow}>
           {wideLogo ? <SellerMark name={sellerName} brand={neg.sellerBrand} variant="wordmark" size="sm" /> : <><SellerMark name={sellerName} brand={neg.sellerBrand} size="sm" /><span className={n.sellerName}>{sellerName}</span></>}
@@ -226,7 +226,7 @@ export default function Negotiate() {
           <span className={neg.status === "closed" ? n.badgeMuted : n.badgeState}>{neg.status === "open" ? "Open" : neg.status === "quoted" ? "Offers ready" : neg.status === "accepted" ? "Accepted" : "Closed"}</span>
         </div>
         <div className={n.titleRow}>
-          <h1 className={n.title}>{productName}</h1>
+          <h1 className={n.title}>{chain ? `${possessive(sellerName)} deal desk` : productName}</h1>
           <span className={`hide-phone ${n.steps}`} aria-label="Deal progress">
             {FLOW_STAGES.map((st, i) => (
               <span key={st} className={n.steps}>
@@ -238,7 +238,7 @@ export default function Negotiate() {
         </div>
         <p className={n.lede}>
           {chain
-            ? `One conversation for everything ${sellerName} makes. You are on ${productName}; ask about anything else they make and the agent moves there. Offers come from the seller's pricing rules, so the agent cannot be talked past them.`
+            ? `One conversation for everything ${sellerName} makes. Right now: ${productName}. Ask about anything else they make and the agent moves there. Offers come from the seller's pricing rules, so the agent cannot be talked past them.`
             : `Describe your volume, tools and budget. Offers come from the seller's pricing rules, so the agent cannot be talked past them. Negotiation ${neg.publicId}.`}
         </p>
       </header>
@@ -327,7 +327,7 @@ export default function Negotiate() {
               <dt>Seller</dt>
               <dd><SellerMark name={sellerName} brand={neg.sellerBrand} variant="wordmark" size="sm" /></dd>
               <dt>Product</dt>
-              <dd>{productName}</dd>
+              <dd>{productName}{chain && <span style={{ color: "var(--c-dark-40)" }}> · follows what you ask about</span>}</dd>
               <dt>Term</dt>
               <dd>{neg.termDays ? `${neg.termDays} days, prepaid in escrow` : "Prepaid in escrow"}</dd>
               <dt>Billing</dt>

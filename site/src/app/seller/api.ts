@@ -16,6 +16,7 @@ export const sellerApi = {
   product: async (id: string) => N.product(await api.app.product(id)),
   updatePolicy: async (id: string, body: PolicyUpdateBody) => N.product(await api.app.updatePolicy(id, body)),
   updateCost: async (id: string, body: CostUpdateBody) => N.product(await api.app.updateCost(id, body)),
+  updateTiers: async (id: string, tiers: TierInput[]) => N.product(await api.app.updateTiers(id, tiers)),
   preview: async (id: string, body: { desiredUnits?: string; budget?: string }) => {
     const r = await api.app.preview(id, body);
     return { candidates: (r.candidates ?? []).map(N.candidate) };
@@ -81,6 +82,19 @@ export const useInsights = () => useQuery({ queryKey: K.insights, queryFn: selle
 export function useStartSandbox() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: sellerApi.startSandbox, onSuccess: () => qc.invalidateQueries({ queryKey: K.all }) });
+}
+
+export interface TierInput { name: string; includedUnits: string; unitPriceUsd: string; includes: string[] }
+
+export function useUpdateTiers(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (tiers: TierInput[]) => sellerApi.updateTiers(id, tiers),
+    onSuccess: (p) => {
+      qc.setQueryData(K.product(id), p);
+      qc.invalidateQueries({ queryKey: K.products });
+    },
+  });
 }
 
 export function useUpdatePolicy(id: string) {

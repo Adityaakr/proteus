@@ -165,7 +165,7 @@ export const api = {
 
   /* Negotiation (buyer) */
   /** `opts.embed`: the seller slug when started from that seller's embedded deal agent on its own website. */
-  startNegotiation: (body: { sellerSlug: string; productSlug: string; buyerAddress?: string; mandateCap?: T.MicroStr }, opts?: { embed?: string }) =>
+  startNegotiation: (body: { sellerSlug: string; productSlug: string; buyerAddress?: string; mandateCap?: T.MicroStr; store?: "open" | "continue" }, opts?: { embed?: string }) =>
     request<T.Negotiation>("POST", "/negotiations", { body, headers: opts?.embed ? { "X-Proteus-Embed": opts.embed } : undefined }),
   negotiation: (id: string) => request<T.Negotiation>("GET", `/negotiations/${enc(id)}`),
   sendMessage: (id: string, content: string) => request<T.Negotiation>("POST", `/negotiations/${enc(id)}/messages`, { body: { content } }),
@@ -244,6 +244,7 @@ export const api = {
     overview: () => request<T.SellerOverview>("GET", "/app/overview"),
     products: () => request<T.ProductWithPrivate[]>("GET", "/app/products"),
     product: (id: string) => request<T.ProductWithPrivate>("GET", `/app/products/${enc(id)}`),
+    updateTiers: (id: string, tiers: { name: string; includedUnits: string; unitPriceUsd: string; includes: string[] }[]) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/tiers`, { body: { tiers } }),
     updatePolicy: (id: string, body: T.PolicyUpdate) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/policy`, { body }),
     updateCost: (id: string, body: T.CostUpdate) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/cost`, { body }),
     preview: (id: string, body: { desiredUnits?: T.UnitsStr; budget?: T.MicroStr }) =>
