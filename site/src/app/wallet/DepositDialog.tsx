@@ -27,6 +27,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
   const watch = useDepositWatch();
   const [method, setMethod] = useState<"arc" | "bridge">("arc");
   const [bridged, setBridged] = useState<BridgeArrival | null>(null);
+  const [sendingOut, setSendingOut] = useState(false);
 
   // Esc closes; body scroll locks; focus moves in and back out.
   useEffect(() => {
@@ -53,6 +54,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
     else {
       watch.reset();
       setMethod("arc");
+      setSendingOut(false);
       setBridged(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -78,7 +80,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
       <header className={w.sheetHead}>
         <div className={w.sheetTitleRow}>
           <span className={w.sheetLabel}><ArcMark size={12} style={{ marginRight: 6, verticalAlign: "-1px" }} />{ARC_NETWORK_NAMES[defaultNetwork()]}</span>
-          <h2 id={titleId} className={w.sheetTitle}>Deposit USDC</h2>
+          <h2 id={titleId} className={w.sheetTitle}>{sendingOut && method === "bridge" ? "Send USDC to another chain" : "Deposit USDC"}</h2>
         </div>
         <button ref={closeRef} type="button" className={w.sheetClose} onClick={onClose} aria-label="Close">
           <X size={18} strokeWidth={2} />
@@ -139,11 +141,11 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
         ) : (
           <motion.div key="deposit" className={w.sheetSingle} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             <div className={w.methodTabs} role="tablist" aria-label="Deposit method">
-              <button type="button" role="tab" className={w.methodTab} aria-selected={method === "arc"} onClick={() => setMethod("arc")}>Send on Arc</button>
-              <button type="button" role="tab" className={w.methodTab} aria-selected={method === "bridge"} onClick={() => setMethod("bridge")}>From another chain</button>
+              <button type="button" role="tab" className={w.methodTab} aria-selected={method === "arc"} onClick={() => { setMethod("arc"); setSendingOut(false); }}>Send on Arc</button>
+              <button type="button" role="tab" className={w.methodTab} aria-selected={method === "bridge"} onClick={() => setMethod("bridge")}>Another chain</button>
             </div>
             {method === "bridge" ? (
-              <BridgePanel onArrived={(info) => { setBridged(info); watch.start(); }} />
+              <BridgePanel onArrived={(info) => { setBridged(info); watch.start(); }} onDirection={setSendingOut} />
             ) : (
             <div className={w.depositRow}>
               <div className={w.depositMain}>
@@ -153,7 +155,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
                   {address && <CopyButton value={address} label="Copy wallet address" />}
                 </div>
                 <p className={w.hint}>
-                  Send USDC on {ARC_NETWORK_NAMES[defaultNetwork()]} to this address. {defaultNetwork() === "testnet" ? "Testnet USDC is free from the Circle faucet." : "From an exchange or a wallet. USDC on another chain? Use From another chain."}
+                  Send USDC on {ARC_NETWORK_NAMES[defaultNetwork()]} to this address. {defaultNetwork() === "testnet" ? "Testnet USDC is free from the Circle faucet." : "From an exchange or a wallet. USDC on another chain? Use Another chain."}
                 </p>
                 <div className={w.sheetActions}>
                   {defaultNetwork() === "testnet" && <ActionButton variant="secondary" size="sm" href={ARC_TESTNET_FAUCET} newTab icon={<ExternalLink size={14} strokeWidth={2} />}>Circle faucet</ActionButton>}
@@ -163,7 +165,7 @@ export function DepositDialog({ open, onClose }: { open: boolean; onClose: () =>
               {address ? <Qr value={address} className={w.qrSmall} /> : <span className={w.qrSmallEmpty} />}
             </div>
             )}
-            <div className={w.sheetStatus} aria-live="polite">
+            <div className={w.sheetStatus} aria-live="polite" hidden={sendingOut && method === "bridge"}>
               {watch.watching ? (
                 <>
                   <span className={w.pulse} aria-hidden />

@@ -6,13 +6,15 @@
  */
 import { getWallets } from "@wallet-standard/app";
 import type { IdentifierString, Wallet } from "@wallet-standard/base";
+import type { WalletClient } from "viem";
 import { defaultNetwork } from "@proteus/domain";
+import { publicClient } from "./wallet";
 
 /**
  * Every EVM chain Bridge Kit (v1.16) supports for CCTP V2 into Arc, each with its testnet pair. Ids are Bridge Kit chain
  * identifiers; `popular` sorts first. Solana (`vm: "solana"`) is signed by a Solana wallet such as Phantom instead of an EVM one.
  */
-const CHAINS: { label: string; mainnet: string; testnet: string; logo?: string; popular?: boolean; vm?: "evm" | "solana" }[] = [
+const CHAINS: { label: string; mainnet: string; testnet: string; logo?: string; popular?: boolean; vm?: "evm" | "solana"; noForwarder?: boolean }[] = [
   { label: "Ethereum", mainnet: "Ethereum", testnet: "Ethereum_Sepolia", logo: "ethereum.png", popular: true },
   { label: "Base", mainnet: "Base", testnet: "Base_Sepolia", logo: "base.png", popular: true },
   { label: "Arbitrum", mainnet: "Arbitrum", testnet: "Arbitrum_Sepolia", logo: "arbitrum.png", popular: true },
@@ -28,15 +30,15 @@ const CHAINS: { label: string; mainnet: string; testnet: string; logo?: string; 
   { label: "HyperEVM", mainnet: "HyperEVM", testnet: "HyperEVM_Testnet", logo: "hyperevm.png" },
   { label: "Monad", mainnet: "Monad", testnet: "Monad_Testnet", logo: "monad.png" },
   { label: "Ink", mainnet: "Ink", testnet: "Ink_Testnet", logo: "ink.webp" },
-  { label: "Plasma", mainnet: "Plasma", testnet: "Plasma_Testnet", logo: "plasma.png" },
+  { label: "Plasma", mainnet: "Plasma", testnet: "Plasma_Testnet", logo: "plasma.png", noForwarder: true },
   { label: "Plume", mainnet: "Plume", testnet: "Plume_Testnet", logo: "plume.webp" },
   { label: "Codex", mainnet: "Codex", testnet: "Codex_Testnet", logo: "codex.webp" },
-  { label: "Injective", mainnet: "Injective", testnet: "Injective_Testnet", logo: "injective.png" },
-  { label: "Cronos", mainnet: "Cronos", testnet: "Cronos_Testnet", logo: "cronos.png" },
+  { label: "Injective", mainnet: "Injective", testnet: "Injective_Testnet", logo: "injective.png", noForwarder: true },
+  { label: "Cronos", mainnet: "Cronos", testnet: "Cronos_Testnet", logo: "cronos.png", noForwarder: true },
   { label: "XDC", mainnet: "XDC", testnet: "XDC_Apothem", logo: "xdc.png" },
-  { label: "X Layer", mainnet: "X_Layer", testnet: "X_Layer_Testnet", logo: "xlayer.png" },
-  { label: "Morph", mainnet: "Morph", testnet: "Morph_Testnet", logo: "morph.webp" },
-  { label: "Pharos", mainnet: "Pharos", testnet: "Pharos_Testnet", logo: "pharos.webp" },
+  { label: "X Layer", mainnet: "X_Layer", testnet: "X_Layer_Testnet", logo: "xlayer.png", noForwarder: true },
+  { label: "Morph", mainnet: "Morph", testnet: "Morph_Testnet", logo: "morph.webp", noForwarder: true },
+  { label: "Pharos", mainnet: "Pharos", testnet: "Pharos_Testnet", logo: "pharos.webp", noForwarder: true },
   { label: "Edge", mainnet: "Edge", testnet: "Edge_Testnet" },
 ];
 
@@ -48,13 +50,17 @@ export interface BridgeSource {
   popular: boolean;
   /** Which kind of wallet signs on this chain. */
   vm: "evm" | "solana";
+  /** Circle's Forwarder can mint here, so USDC can be sent to this chain with no gas on it. */
+  forwarder: boolean;
 }
 
 const sourcesFor = (net: "mainnet" | "testnet"): BridgeSource[] =>
-  CHAINS.map((c) => ({ id: c[net], label: c.label, logo: c.logo ? `/assets/chains/${c.logo}` : undefined, popular: Boolean(c.popular), vm: c.vm ?? "evm" }));
+  CHAINS.map((c) => ({ id: c[net], label: c.label, logo: c.logo ? `/assets/chains/${c.logo}` : undefined, popular: Boolean(c.popular), vm: c.vm ?? "evm", forwarder: !c.noForwarder }));
 export const BRIDGE_SOURCES = { mainnet: sourcesFor("mainnet"), testnet: sourcesFor("testnet") } as const;
 
 export const bridgeSources = (): readonly BridgeSource[] => BRIDGE_SOURCES[defaultNetwork()];
+/** Chains USDC can be sent to from Arc: only those where Circle's Forwarder mints, so nobody needs gas on arrival. */
+export const bridgeDestinations = (): readonly BridgeSource[] => bridgeSources().filter((s) => s.forwarder);
 const arcChain = () => (defaultNetwork() === "mainnet" ? "Arc" : "Arc_Testnet");
 
 type Eip1193 = { request: (args: { method: string; params?: unknown }) => Promise<unknown> };
@@ -201,19 +207,29 @@ async function quoteAdapter(source: string) {
   return adapters.createViemAdapterFromPrivateKey({ privateKey: generatePrivateKey() });
 }
 
-const params = (adapter: unknown, source: string, amount: string, recipient: string) => ({
-  from: { adapter, chain: source },
-  to: { chain: arcChain(), recipientAddress: recipient, useForwarder: true as const },
+const params = (adapter: unknown, from: string, to: string, amount: string, recipient: string) => ({
+  from: { adapter, chain: from },
+  to: { chain: to, recipientAddress: recipient, useForwarder: true as const },
   amount,
 });
+
+/**
+ * The Arc side of a send signs with the account wallet. Bridge Kit needs an EIP-1193 provider, which Circle's own
+ * wallets do not have (they send through Circle's challenge flow), so those are told plainly.
+ */
+async function arcAdapter(client: WalletClient) {
+  if (client.transport.type !== "custom") throw new Error("Sending to another chain needs a wallet you sign in with, such as MetaMask or the embedded Privy wallet.");
+  const { adapters } = await loadKit();
+  return adapters.createViemAdapterFromProvider({ provider: { request: (args: never) => client.request(args) } as never, getPublicClient: () => publicClient() as never });
+}
 
 /**
  * Circle's fees for this transfer, in USDC, summed across protocol and forwarder fees. Null when unknown.
  * Fees do not depend on the sender, so the quote uses a throwaway read-only signer and never opens the wallet.
  */
-export async function estimateBridgeFee(source: string, amount: string, recipient: string): Promise<string | null> {
-  const [{ kit }, adapter] = await Promise.all([loadKit(), quoteAdapter(source)]);
-  const est = await kit.estimate(params(adapter, source, amount, recipient) as never);
+export async function estimateBridgeFee(from: string, to: string, amount: string, recipient: string): Promise<string | null> {
+  const [{ kit }, adapter] = await Promise.all([loadKit(), quoteAdapter(from)]);
+  const est = await kit.estimate(params(adapter, from, to, amount, recipient) as never);
   const known = est.fees.filter((f) => f.amount != null);
   if (!known.length) return null;
   return known.reduce((sum, f) => sum + Number(f.amount), 0).toFixed(6).replace(/\.?0+$/, "") || "0";
@@ -235,13 +251,8 @@ export function bridgeStepError(steps: BridgeProgress[]): string {
   return raw || "The wallet or network gave no reason.";
 }
 
-/**
- * Burn `amount` USDC on `source` from the browser wallet and mint it on Arc to `recipient` (the account wallet).
- * `onStep` fires as each step settles, so the dialog can show live progress.
- */
-export async function bridgeToArc(source: string, wallet: BridgeWallet, amount: string, recipient: string, onStep?: (s: BridgeProgress) => void): Promise<BridgeOutcome> {
+async function runBridge(adapter: unknown, from: string, to: string, amount: string, recipient: string, onStep?: (s: BridgeProgress) => void): Promise<BridgeOutcome> {
   const { kit } = await loadKit();
-  const adapter = await sourceAdapter(source, wallet);
   const handler = (payload: unknown) => {
     const p = payload as { method?: string; values?: { name?: string; state?: BridgeProgress["state"]; txHash?: string; explorerUrl?: string; errorMessage?: string } };
     const v = p.values;
@@ -249,34 +260,52 @@ export async function bridgeToArc(source: string, wallet: BridgeWallet, amount: 
   };
   if (onStep) kit.on("*" as never, handler as never);
   try {
-    const result = (await kit.bridge(params(adapter, source, amount, recipient) as never)) as { state: string; steps: Parameters<typeof toProgress>[0] };
+    const result = (await kit.bridge(params(adapter, from, to, amount, recipient) as never)) as { state: string; steps: Parameters<typeof toProgress>[0] };
     return { ok: result.state === "success", steps: toProgress(result.steps), raw: result };
   } finally {
     if (onStep) kit.off("*" as never, handler as never);
   }
 }
 
-/** Resume a transfer that stopped part way (for example the attestation timed out); the burn is never repeated. */
-export async function retryBridge(previous: BridgeOutcome, source: string, wallet: BridgeWallet, recipient: string): Promise<BridgeOutcome> {
+async function resumeBridge(previous: BridgeOutcome, adapter: unknown, from: string, to: string, recipient: string): Promise<BridgeOutcome> {
   const { kit } = await loadKit();
-  const adapter = await sourceAdapter(source, wallet);
-  const p = params(adapter, source, "0", recipient);
+  const p = params(adapter, from, to, "0", recipient);
   const result = (await kit.retry(previous.raw as never, { from: p.from, to: p.to } as never)) as { state: string; steps: Parameters<typeof toProgress>[0] };
   return { ok: result.state === "success", steps: toProgress(result.steps), raw: result };
 }
 
+/**
+ * Burn `amount` USDC on `source` from the browser wallet and mint it on Arc to `recipient` (the account wallet).
+ * `onStep` fires as each step settles, so the dialog can show live progress.
+ */
+export const bridgeToArc = async (source: string, wallet: BridgeWallet, amount: string, recipient: string, onStep?: (s: BridgeProgress) => void) =>
+  runBridge(await sourceAdapter(source, wallet), source, arcChain(), amount, recipient, onStep);
+
+/** Burn `amount` USDC on Arc from the account wallet; Circle's Forwarder mints it to `recipient` on `destination`. */
+export const bridgeFromArc = async (client: WalletClient, destination: string, amount: string, recipient: string, onStep?: (s: BridgeProgress) => void) =>
+  runBridge(await arcAdapter(client), arcChain(), destination, amount, recipient, onStep);
+
+/** Resume a transfer that stopped part way (for example the attestation timed out); the burn is never repeated. */
+export const retryBridge = async (previous: BridgeOutcome, source: string, wallet: BridgeWallet, recipient: string) =>
+  resumeBridge(previous, await sourceAdapter(source, wallet), source, arcChain(), recipient);
+export const retryBridgeFromArc = async (previous: BridgeOutcome, client: WalletClient, destination: string, recipient: string) =>
+  resumeBridge(previous, await arcAdapter(client), arcChain(), destination, recipient);
+
+export { arcChain };
+
+const chainLabel = (id: string) => (id === arcChain() ? "Arc" : bridgeSources().find((s) => s.id === id)?.label ?? id);
+
 /** Plain-language label for a Bridge Kit step. */
-export function stepLabel(name: string, source: string): string {
-  const src = bridgeSources().find((s) => s.id === source)?.label ?? source;
+export function stepLabel(name: string, from: string, to: string): string {
   switch (name) {
     case "approve":
-      return `Approve USDC on ${src}`;
+      return `Approve USDC on ${chainLabel(from)}`;
     case "burn":
-      return `Send from ${src}`;
+      return `Send from ${chainLabel(from)}`;
     case "fetchAttestation":
       return "Circle confirms the transfer";
     case "mint":
-      return "USDC arrives on Arc";
+      return `USDC arrives on ${chainLabel(to)}`;
     default:
       return name;
   }
