@@ -220,7 +220,11 @@ const params = (adapter: unknown, from: string, to: string, amount: string, reci
 async function arcAdapter(client: WalletClient) {
   if (client.transport.type !== "custom") throw new Error("Sending to another chain needs a wallet you sign in with, such as MetaMask or the embedded Privy wallet.");
   const { adapters } = await loadKit();
-  return adapters.createViemAdapterFromProvider({ provider: { request: (args: never) => client.request(args) } as never, getPublicClient: () => publicClient() as never });
+  const from = client.account?.address;
+  if (!from) throw new Error("The wallet has no account.");
+  // Bridge Kit signs with the first account it is told about; a wallet may list others first, so only ever offer this one.
+  const request = async (args: { method: string; params?: unknown }) => (args.method === "eth_accounts" || args.method === "eth_requestAccounts" ? [from] : client.request(args as never));
+  return adapters.createViemAdapterFromProvider({ provider: { request } as never, getPublicClient: () => publicClient() as never });
 }
 
 /**

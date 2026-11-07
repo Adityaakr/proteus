@@ -6,11 +6,12 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createWalletClient, encodeFunctionData, getAddress, http, numberToHex, type Hex, type WalletClient } from "viem";
+import { createWalletClient, encodeFunctionData, getAddress, http, type Hex, type WalletClient } from "viem";
 import { toAccount } from "viem/accounts";
 import { defaultChain } from "@proteus/domain";
 import { ApiError, api, qk, setAccessTokenGetter } from "../lib/api";
-import { WalletError, walletClientFor } from "../lib/wallet";
+import { WalletError } from "../lib/wallet";
+import { browserWalletClient, hasBrowserWallet } from "../lib/browserWallets";
 import { walletKind, walletLinkMessage, walletLoginMessage, type Address, type MeResponse } from "../lib/types";
 import { AuthContext, walletLabel, type AuthUser, type AuthValue, type AuthWallet } from "./context";
 import { circleSdk, emailLogin, executeChallenge, serializeTypedData } from "./circle";
@@ -45,29 +46,6 @@ function write(key: string, v: unknown) {
 
 type Eip1193 = { request: (args: { method: string; params?: unknown }) => Promise<unknown> };
 const injected = (): Eip1193 | undefined => (typeof window !== "undefined" ? (window as unknown as { ethereum?: Eip1193 }).ethereum : undefined);
-
-/** A viem client over the browser's injected wallet, switched (or added) to Arc testnet. */
-async function injectedClient(address: Address): Promise<WalletClient> {
-  const eth = injected();
-  if (!eth) throw new WalletError("No browser wallet was found. Install MetaMask or switch to your Proteus AI wallet.");
-  const accounts = (await eth.request({ method: "eth_requestAccounts" })) as string[];
-  if (!accounts.some((a) => a.toLowerCase() === address.toLowerCase())) throw new WalletError(`Select ${address.slice(0, 6)}…${address.slice(-4)} in your wallet and try again.`);
-  return walletClientFor({
-    address,
-    switchChain: async (id) => {
-      try {
-        await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: numberToHex(id) }] });
-      } catch (e) {
-        if ((e as { code?: number }).code !== 4902) throw e;
-        await eth.request({
-          method: "wallet_addEthereumChain",
-          params: [{ chainId: numberToHex(id), chainName: defaultChain().name, nativeCurrency: defaultChain().nativeCurrency, rpcUrls: [...defaultChain().rpcUrls.default.http], blockExplorerUrls: defaultChain().blockExplorers ? [defaultChain().blockExplorers!.default.url] : undefined }],
-        });
-      }
-    },
-    getEthereumProvider: async () => eth,
-  });
-}
 
 function meStatusOf(q: { isPending: boolean; error: unknown; data: unknown }, enabled: boolean): AuthValue["meStatus"] {
   if (!enabled) return "idle";
@@ -126,7 +104,7 @@ export function CircleAuthProvider({ appId, children }: { appId: string; childre
   }, [authenticated, circle, meQ.data, sdk, saveCircle, meQ]);
 
   /* ---- Wallets on the account ---- */
-  const hasInjected = Boolean(injected());
+  const hasInjected = hasBrowserWallet();
   const options: AuthWallet[] = useMemo(() => {
     if (!authenticated) return [];
     const map = new Map<string, AuthWallet>();
@@ -241,7 +219,7 @@ export function CircleAuthProvider({ appId, children }: { appId: string; childre
       if (!circle?.walletId || !circle.walletAddress) throw new WalletError("Your Proteus AI wallet is still being created. Try again in a moment.");
       return circleClient(circle as CircleState & { walletId: string; walletAddress: Address });
     }
-    return injectedClient(wallet.address);
+    return browserWalletClient(wallet.address);
   }, [wallet, circle, circleClient]);
 
   /* ---- Sign in, link, sign out ---- */
