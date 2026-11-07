@@ -48,6 +48,8 @@ const Env = z.object({
 
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
+  /** Solana RPC behind /api/solana-rpc (bridging from Solana). Defaults to the public endpoint for this network. */
+  SOLANA_RPC_URL: z.string().url().optional(),
   OPENROUTER_API_KEY: z.string().optional(),
   OPENROUTER_MODEL: z.string().default("anthropic/claude-sonnet-4.5"),
 

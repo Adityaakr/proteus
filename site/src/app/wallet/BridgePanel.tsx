@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 import { useAuth } from "../auth/useAuth";
 import { qk } from "../lib/api";
-import { bridgeSources, bridgeToArc, estimateBridgeFee, hasBrowserWallet, retryBridge, stepLabel, type BridgeOutcome, type BridgeProgress } from "../lib/bridge";
+import { bridgeSources, bridgeToArc, estimateBridgeFee, retryBridge, stepLabel, watchBridgeWallets, type BridgeOutcome, type BridgeProgress, type BridgeWallet } from "../lib/bridge";
 import { walletErrorMessage } from "../lib/wallet";
 import { ActionButton } from "../ui/ActionButton";
 import { ArcMark } from "../ui/Marks";
@@ -13,6 +13,14 @@ import { ChainSelect } from "./ChainSelect";
 import w from "./wallet.module.css";
 
 const STEP_ORDER = ["approve", "burn", "fetchAttestation", "mint"];
+const WALLET_KEY = "proteus:bridge-wallet";
+
+function rememberedWallet(vm: string): string | null {
+  try { return localStorage.getItem(`${WALLET_KEY}:${vm}`); } catch { return null; }
+}
+function rememberWallet(vm: string, id: string) {
+  try { localStorage.setItem(`${WALLET_KEY}:${vm}`, id); } catch { /* the choice just is not remembered */ }
+}
 
 function cleanAmount(text: string): string | null {
   const t = text.trim().replace(/,/g, "");
@@ -51,10 +59,18 @@ export function BridgePanel({ onArrived }: { onArrived?: (info: BridgeArrival) =
   const network = ARC_NETWORK_NAMES[defaultNetwork()];
   const testnet = defaultNetwork() === "testnet";
   const src = sources.find((s) => s.id === source) ?? sources[0];
-  const browserWallet = hasBrowserWallet(source);
+  const [wallets, setWallets] = useState<BridgeWallet[]>([]);
+  const [chosenWallet, setChosenWallet] = useState<string | null>(null);
+  // Phantom also answers for EVM chains; it is only the default there when nothing else is installed.
+  const signer = wallets.find((w) => w.id === chosenWallet) ?? wallets.find((w) => w.id === rememberedWallet(src.vm)) ?? wallets.find((w) => src.vm === "solana" || !/phantom/i.test(w.name)) ?? wallets[0];
   const walletKind = src.vm === "solana" ? "Solana wallet" : "browser wallet";
   const amt = cleanAmount(amount);
   const receive = amt && fee != null ? Math.max(0, Number(amt) - Number(fee)) : null;
+
+  useEffect(() => {
+    setChosenWallet(null);
+    return watchBridgeWallets(src.vm, setWallets);
+  }, [src.vm]);
 
   // Live quote of Circle's fee as the amount or route changes (debounced; no wallet prompt).
   useEffect(() => {
@@ -92,12 +108,13 @@ export function BridgePanel({ onArrived }: { onArrived?: (info: BridgeArrival) =
     if (mock) return setError("Mock mode does not send transactions.");
     if (!amt) return setError("Enter an amount in USDC, up to 6 decimals.");
     if (!recipient) return setError("Your account wallet is still being set up.");
+    if (!signer) return setError(`No ${walletKind} found in this browser.`);
     setError(null);
     setSteps([]);
     setOutcome(null);
     setBusy(true);
     try {
-      finish(await bridgeToArc(source, amt, recipient, track));
+      finish(await bridgeToArc(source, signer, amt, recipient, track));
     } catch (err) {
       setError(walletErrorMessage(err));
     } finally {
@@ -106,11 +123,11 @@ export function BridgePanel({ onArrived }: { onArrived?: (info: BridgeArrival) =
   };
 
   const resume = async () => {
-    if (!outcome) return;
+    if (!outcome || !signer) return;
     setError(null);
     setBusy(true);
     try {
-      finish(await retryBridge(outcome, source, recipient));
+      finish(await retryBridge(outcome, source, signer, recipient));
     } catch (err) {
       setError(walletErrorMessage(err));
     } finally {
@@ -139,7 +156,21 @@ export function BridgePanel({ onArrived }: { onArrived?: (info: BridgeArrival) =
             />
             <span className={w.bridgeToken}><img src="/assets/usdc.svg" alt="" className={w.chainLogo} />USDC</span>
           </div>
-          <span className={w.bridgeSub}>on {src.label}{testnet ? (src.vm === "solana" ? " devnet" : " testnet") : ""} · from your {walletKind}</span>
+          <div className={w.bridgeFrom}>
+            <span className={w.bridgeSub}>on {src.label}{testnet ? (src.vm === "solana" ? " devnet" : " testnet") : ""} · from {wallets.length ? "" : `your ${walletKind}`}</span>
+            {wallets.map((x) => (
+              <button
+                key={x.id}
+                type="button"
+                className={w.walletPick}
+                aria-pressed={x.id === signer?.id}
+                disabled={busy || Boolean(outcome && !outcome.ok)}
+                onClick={() => { setChosenWallet(x.id); rememberWallet(src.vm, x.id); setError(null); }}
+              >
+                {x.icon && <img src={x.icon} alt="" />}{x.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         <span className={w.bridgeArrow} aria-hidden><ArrowDown size={14} strokeWidth={2.2} /></span>
@@ -179,14 +210,14 @@ export function BridgePanel({ onArrived }: { onArrived?: (info: BridgeArrival) =
         </ol>
       )}
 
-      {!browserWallet && <Notice tone="info">{src.vm === "solana" ? `Bridging from Solana needs a Solana wallet such as Phantom, Solflare or Backpack holding USDC.` : `Bridging needs a browser wallet such as MetaMask or Rabby holding USDC on ${src.label}.`}</Notice>}
+      {!signer && <Notice tone="info">{src.vm === "solana" ? `Bridging from Solana needs a Solana wallet such as Phantom, Solflare or Backpack holding USDC.` : `Bridging needs a browser wallet such as MetaMask or Rabby holding USDC on ${src.label}.`}</Notice>}
       {error && <Notice tone="danger">{error}</Notice>}
       {outcome?.ok && <Notice tone="success">USDC delivered to your account wallet on {network}.</Notice>}
 
       {outcome && !outcome.ok ? (
         <ActionButton onClick={resume} loading={busy} loadingLabel="Resuming" fullWidth>Resume transfer</ActionButton>
       ) : (
-        <ActionButton type="submit" loading={busy} loadingLabel="Confirm in your wallet" disabled={!browserWallet || !recipient || outcome?.ok} fullWidth>
+        <ActionButton type="submit" loading={busy} loadingLabel="Confirm in your wallet" disabled={!signer || !recipient || outcome?.ok} fullWidth>
           Bridge to {network}
         </ActionButton>
       )}

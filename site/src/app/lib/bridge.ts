@@ -4,6 +4,8 @@
  * account wallet, so the account needs no Arc gas and no second signature. Bridge Kit is loaded on demand:
  * it is large and only this flow uses it. Every hash shown comes back from Bridge Kit; nothing is fabricated.
  */
+import { getWallets } from "@wallet-standard/app";
+import type { IdentifierString, Wallet } from "@wallet-standard/base";
 import { defaultNetwork } from "@proteus/domain";
 
 /**
@@ -56,20 +58,94 @@ export const bridgeSources = (): readonly BridgeSource[] => BRIDGE_SOURCES[defau
 const arcChain = () => (defaultNetwork() === "mainnet" ? "Arc" : "Arc_Testnet");
 
 type Eip1193 = { request: (args: { method: string; params?: unknown }) => Promise<unknown> };
-const injected = (): Eip1193 | undefined => (typeof window !== "undefined" ? (window as unknown as { ethereum?: Eip1193 }).ethereum : undefined);
+type SolanaProvider = { isConnected: boolean; publicKey?: { toString(): string }; connect: () => Promise<unknown>; disconnect?: () => Promise<void>; signTransaction?: (tx: unknown) => Promise<unknown> };
 
-/** A Solana browser wallet (Phantom, Solflare, Backpack, or any that injects window.solana). */
-type SolanaProvider = { isConnected: boolean; connect: () => Promise<unknown> };
-const injectedSolana = (): SolanaProvider | undefined => {
-  if (typeof window === "undefined") return undefined;
-  const g = window as unknown as { phantom?: { solana?: SolanaProvider }; solflare?: SolanaProvider; backpack?: SolanaProvider; solana?: SolanaProvider };
-  return g.phantom?.solana ?? g.solflare ?? g.backpack ?? g.solana;
-};
+/**
+ * A wallet in this browser that can sign on a source chain. Several can be installed at once and `window.ethereum` or
+ * `window.solana` holds whichever injected last (Phantom often takes both), so the person picks and we never assume.
+ */
+export interface BridgeWallet {
+  id: string;
+  name: string;
+  icon?: string;
+  vm: "evm" | "solana";
+  provider: Eip1193 | SolanaProvider;
+}
+
+const browserGlobals = () => window as unknown as { ethereum?: Eip1193; phantom?: { solana?: SolanaProvider }; solflare?: SolanaProvider; backpack?: SolanaProvider; solana?: SolanaProvider };
+
+/** EVM wallets through EIP-6963 announcements, with `window.ethereum` only when none announce themselves. */
+function watchEvmWallets(onChange: (wallets: BridgeWallet[]) => void): () => void {
+  const found = new Map<string, BridgeWallet>();
+  const emit = () => {
+    const injected = browserGlobals().ethereum;
+    onChange(found.size || !injected ? [...found.values()] : [{ id: "injected", name: "Browser wallet", vm: "evm", provider: injected }]);
+  };
+  const onAnnounce = (e: Event) => {
+    const { info, provider } = (e as CustomEvent<{ info: { rdns: string; name: string; icon?: string }; provider: Eip1193 }>).detail;
+    found.set(info.rdns, { id: info.rdns, name: info.name, icon: info.icon, vm: "evm", provider });
+    emit();
+  };
+  window.addEventListener("eip6963:announceProvider", onAnnounce);
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+  emit();
+  return () => window.removeEventListener("eip6963:announceProvider", onAnnounce);
+}
+
+/** Wraps a Wallet Standard wallet (how MetaMask exposes Solana) in the provider shape the Solana adapter expects. */
+function standardProvider(wallet: Wallet, chain: IdentifierString): SolanaProvider {
+  type Account = Wallet["accounts"][number];
+  type Features = { "standard:connect": { connect: () => Promise<{ accounts: readonly Account[] }> }; "solana:signTransaction": { signTransaction: (input: { account: Account; transaction: Uint8Array; chain: IdentifierString }) => Promise<readonly { signedTransaction: Uint8Array }[]> } };
+  const features = wallet.features as unknown as Features;
+  let account: Account | undefined = wallet.accounts[0];
+  return {
+    get isConnected() { return Boolean(account); },
+    get publicKey() { const address = account?.address; return address ? { toString: () => address } : undefined; },
+    connect: async () => {
+      account = (await features["standard:connect"].connect()).accounts[0];
+      if (!account) throw new Error(`${wallet.name} did not share a Solana account.`);
+      const { address } = account;
+      return { publicKey: { toString: () => address } };
+    },
+    disconnect: async () => {},
+    signTransaction: async (tx) => {
+      if (!account) throw new Error(`Connect ${wallet.name} first.`);
+      const { Transaction, VersionedTransaction } = await import("@solana/web3.js");
+      const versioned = tx instanceof VersionedTransaction;
+      const transaction = versioned ? tx.serialize() : (tx as InstanceType<typeof Transaction>).serialize({ requireAllSignatures: false, verifySignatures: false });
+      const [signed] = await features["solana:signTransaction"].signTransaction({ account, transaction, chain });
+      return versioned ? VersionedTransaction.deserialize(signed.signedTransaction) : Transaction.from(signed.signedTransaction);
+    },
+  };
+}
+
+/** Solana wallets through Wallet Standard, using a wallet's own injected provider when it has one. */
+function watchSolanaWallets(onChange: (wallets: BridgeWallet[]) => void): () => void {
+  const g = browserGlobals();
+  const injected: Record<string, SolanaProvider | undefined> = { Phantom: g.phantom?.solana, Solflare: g.solflare, Backpack: g.backpack };
+  const chain: IdentifierString = defaultNetwork() === "mainnet" ? "solana:mainnet" : "solana:devnet";
+  const { get, on } = getWallets();
+  const emit = () => {
+    const found = new Map<string, BridgeWallet>();
+    for (const w of get()) {
+      const provider = injected[w.name];
+      if (provider) found.set(w.name, { id: w.name, name: w.name, icon: w.icon, vm: "solana", provider });
+      else if (w.chains.includes(chain) && "standard:connect" in w.features && "solana:signTransaction" in w.features) found.set(w.name, { id: w.name, name: w.name, icon: w.icon, vm: "solana", provider: standardProvider(w, chain) });
+    }
+    for (const [name, provider] of Object.entries(injected)) if (provider && !found.has(name)) found.set(name, { id: name, name, vm: "solana", provider });
+    if (!found.size && g.solana) found.set("solana", { id: "solana", name: "Solana wallet", vm: "solana", provider: g.solana });
+    onChange([...found.values()]);
+  };
+  const off = on("register", emit);
+  emit();
+  return off;
+}
+
+/** Calls back with every wallet that can sign for this kind of chain, now and as extensions announce themselves. */
+export const watchBridgeWallets = (vm: "evm" | "solana", onChange: (wallets: BridgeWallet[]) => void): (() => void) =>
+  typeof window === "undefined" ? () => {} : vm === "solana" ? watchSolanaWallets(onChange) : watchEvmWallets(onChange);
 
 const vmOf = (source: string): "evm" | "solana" => bridgeSources().find((s) => s.id === source)?.vm ?? "evm";
-
-/** True when this browser has a wallet that can sign on the source chain (EVM wallet, or Solana wallet for Solana). */
-export const hasBrowserWallet = (source?: string) => Boolean(source && vmOf(source) === "solana" ? injectedSolana() : injected());
 
 /** One step of the transfer as Bridge Kit reports it: approve, burn, fetchAttestation, mint. */
 export interface BridgeProgress {
@@ -94,16 +170,17 @@ function loadKit() {
 /** The Solana adapter and web3.js load only when a Solana route is used. */
 const loadSolana = () => Promise.all([import("@circle-fin/adapter-solana"), import("@solana/web3.js")]);
 
-async function sourceAdapter(source: string) {
+/** Through our own relay: Solana's public endpoint, the adapter's default, answers 403 to browsers. */
+const solanaRpcUrl = () => `${window.location.origin}/api/solana-rpc`;
+
+async function sourceAdapter(source: string, wallet: BridgeWallet) {
   if (vmOf(source) === "solana") {
-    const provider = injectedSolana();
-    if (!provider) throw new Error("No Solana wallet found. Open this page in a browser with Phantom, Solflare or Backpack.");
+    const provider = wallet.provider as SolanaProvider;
     if (!provider.isConnected) await provider.connect();
-    const [sol] = await loadSolana();
-    return sol.createSolanaAdapterFromProvider({ provider: provider as never });
+    const [sol, web3] = await loadSolana();
+    return sol.createSolanaAdapterFromProvider({ provider: provider as never, connection: new web3.Connection(solanaRpcUrl(), "confirmed") });
   }
-  const provider = injected();
-  if (!provider) throw new Error("No browser wallet found. Open this page in a browser with MetaMask, Rabby or another wallet extension.");
+  const provider = wallet.provider as Eip1193;
   await provider.request({ method: "eth_requestAccounts" });
   const { adapters } = await loadKit();
   return adapters.createViemAdapterFromProvider({ provider: provider as never });
@@ -113,7 +190,7 @@ async function sourceAdapter(source: string) {
 async function quoteAdapter(source: string) {
   if (vmOf(source) === "solana") {
     const [sol, web3] = await loadSolana();
-    return sol.createSolanaAdapterFromPrivateKey({ privateKey: JSON.stringify(Array.from(web3.Keypair.generate().secretKey)) });
+    return sol.createSolanaAdapterFromPrivateKey({ privateKey: JSON.stringify(Array.from(web3.Keypair.generate().secretKey)), connection: new web3.Connection(solanaRpcUrl(), "confirmed") });
   }
   const [{ adapters }, { generatePrivateKey }] = await Promise.all([loadKit(), import("viem/accounts")]);
   return adapters.createViemAdapterFromPrivateKey({ privateKey: generatePrivateKey() });
@@ -144,9 +221,9 @@ const toProgress = (steps: { name: string; state: BridgeProgress["state"]; txHas
  * Burn `amount` USDC on `source` from the browser wallet and mint it on Arc to `recipient` (the account wallet).
  * `onStep` fires as each step settles, so the dialog can show live progress.
  */
-export async function bridgeToArc(source: string, amount: string, recipient: string, onStep?: (s: BridgeProgress) => void): Promise<BridgeOutcome> {
+export async function bridgeToArc(source: string, wallet: BridgeWallet, amount: string, recipient: string, onStep?: (s: BridgeProgress) => void): Promise<BridgeOutcome> {
   const { kit } = await loadKit();
-  const adapter = await sourceAdapter(source);
+  const adapter = await sourceAdapter(source, wallet);
   const handler = (payload: unknown) => {
     const p = payload as { method?: string; values?: { name?: string; state?: BridgeProgress["state"]; txHash?: string; explorerUrl?: string } };
     const v = p.values;
@@ -162,9 +239,9 @@ export async function bridgeToArc(source: string, amount: string, recipient: str
 }
 
 /** Resume a transfer that stopped part way (for example the attestation timed out); the burn is never repeated. */
-export async function retryBridge(previous: BridgeOutcome, source: string, recipient: string): Promise<BridgeOutcome> {
+export async function retryBridge(previous: BridgeOutcome, source: string, wallet: BridgeWallet, recipient: string): Promise<BridgeOutcome> {
   const { kit } = await loadKit();
-  const adapter = await sourceAdapter(source);
+  const adapter = await sourceAdapter(source, wallet);
   const p = params(adapter, source, "0", recipient);
   const result = (await kit.retry(previous.raw as never, { from: p.from, to: p.to } as never)) as { state: string; steps: Parameters<typeof toProgress>[0] };
   return { ok: result.state === "success", steps: toProgress(result.steps), raw: result };
