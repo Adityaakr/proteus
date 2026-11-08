@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import s from "./docs.module.css";
 
 /** Minimal tokenizer for the snippets on the docs page: comments, strings, numbers, JSON keys, HTTP methods, flags and URLs. */
@@ -41,9 +41,33 @@ export function Code({ children, lang = "json" }: { children: string; lang?: "js
     }
   }
   return (
-    <pre className={s.code} data-lang={lang}>
-      <span className={s.codeLang} aria-hidden>{lang}</span>
-      <code>{out}</code>
-    </pre>
+    <div className={s.codeBlock}>
+      <div className={s.codeHead}>
+        <span className={s.codeLang}>{lang}</span>
+        <CopyButton text={src} />
+      </div>
+      <pre className={s.code} data-lang={lang}>
+        <code>{out}</code>
+      </pre>
+    </div>
+  );
+}
+
+/** Copies the snippet's raw text; the label flips to "Copied" for a moment. */
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard blocked: leave the label as is */
+    }
+  };
+  return (
+    <button type="button" className={s.codeCopy} onClick={copy} aria-label="Copy code">
+      {copied ? "Copied" : "Copy"}
+    </button>
   );
 }

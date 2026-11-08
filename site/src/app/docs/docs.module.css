@@ -26,8 +26,13 @@
 .method { display: inline-block; padding: 1px 7px; border-radius: 5px; font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--c-white); background: var(--c-primary); vertical-align: 1px; }
 
 .code code { display: block; color: inherit; background: none; padding: 0; font: inherit; }
-.code { position: relative; margin: 0; padding: 16px 18px; border-radius: 12px; background: #0f1117; color: #d6d9e0; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.65; overflow-x: auto; white-space: pre; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
-.codeLang { position: absolute; top: 8px; right: 12px; font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255, 255, 255, 0.35); }
+.codeBlock { min-width: 0; border-radius: 12px; background: #0f1117; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06); overflow: hidden; }
+.codeHead { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px 7px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.codeCopy { font-family: var(--font-body); font-size: 11.5px; color: rgba(255, 255, 255, 0.6); background: rgba(255, 255, 255, 0.06); border: 0; border-radius: 6px; padding: 3px 9px; cursor: pointer; }
+.codeCopy:hover { color: #fff; background: rgba(255, 255, 255, 0.12); }
+.codeCopy:focus-visible { outline: 2px solid rgba(120, 140, 255, 0.8); outline-offset: 1px; }
+.code { position: relative; margin: 0; padding: 14px 18px 16px; background: transparent; color: #d6d9e0; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.65; overflow-x: auto; white-space: pre; }
+.codeLang { font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255, 255, 255, 0.35); }
 .t_cm { color: #6b7280; font-style: italic; }
 .t_key { color: #9cdcfe; }
 .t_str { color: #a5d6a7; }
