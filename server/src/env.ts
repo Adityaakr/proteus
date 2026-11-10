@@ -75,6 +75,9 @@ const Env = z.object({
   /** WhatsApp Cloud API (Meta app): the app secret signs webhooks; the verify token answers Meta's subscription check. */
   WHATSAPP_APP_SECRET: z.string().min(16).optional(),
   WHATSAPP_VERIFY_TOKEN: z.string().min(16).optional(),
+  /** Embedded Signup (Meta's "Connect WhatsApp" popup): the Meta app id and the Facebook Login for Business configuration id. Both are public. */
+  WHATSAPP_APP_ID: z.string().regex(/^\d{5,30}$/).optional(),
+  WHATSAPP_SIGNUP_CONFIG_ID: z.string().regex(/^\d{5,30}$/).optional(),
   /** Graph API base including version. Version-sensitive: see developers.facebook.com/docs/whatsapp/cloud-api. */
   WHATSAPP_GRAPH_URL: z.string().url().default("https://graph.facebook.com/v27.0"),
   /** Days to keep buyer chats and order details after a negotiation goes quiet or its deal closes. Unset: never delete. */

@@ -17,6 +17,7 @@ import { ARC_NETWORK_NAMES, defaultNetwork, explorerAddress, explorerTx } from "
 import { useQuery } from "@tanstack/react-query";
 import type { Hex } from "viem";
 import { registerAgent, waitForReceipt, walletErrorMessage } from "../../lib/wallet";
+import { randomPin, runEmbeddedSignup } from "../whatsapp/embeddedSignup";
 
 export default function Settings() {
   const { me } = useMe();
@@ -350,6 +351,15 @@ function WhatsAppCard() {
     onSuccess: (d) => { qc.setQueryData(["sell", "whatsapp"], d); setForm({ phoneNumberId: "", accessToken: "", displayPhone: "" }); },
   });
   const disconnect = useMutation({ mutationFn: () => v1.app.disconnectWhatsapp(), onSuccess: (d) => qc.setQueryData(["sell", "whatsapp"], d) });
+  const [pin, setPin] = useState(randomPin);
+  const [manual, setManual] = useState(false);
+  const signup = useMutation({
+    mutationFn: async () => {
+      const r = await runEmbeddedSignup(q.data!.signup!);
+      return v1.app.completeWhatsappSignup({ ...r, pin: r.event === "FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING" ? undefined : pin });
+    },
+    onSuccess: (d) => qc.setQueryData(["sell", "whatsapp"], d),
+  });
   if (!q.data) return null;
   const a = q.data;
   return (
@@ -374,6 +384,16 @@ function WhatsAppCard() {
             {disconnect.isError && <Notice tone="danger">{errorMessage(disconnect.error)}</Notice>}
             <div className={s.row}>
               <ActionButton variant="secondary" onClick={() => disconnect.mutate()} loading={disconnect.isPending} loadingLabel="Disconnecting">Disconnect</ActionButton>
+            </div>
+          </>
+        ) : a.signup && !manual ? (
+          <>
+            <p className={s.hint}>Meta opens a window where you log in with Facebook, pick your business and choose a number. Use the number you already have in the WhatsApp Business app (you keep using the app on your phone) or add a new one. Proteus never sees your Facebook password and does not copy your past chats.</p>
+            <Field label="PIN for a new number (6 digits)" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" hint="Only used if you add a new number: it becomes the number's WhatsApp two-step verification PIN. Save it somewhere safe." />
+            {signup.isError && <Notice tone="danger">{errorMessage(signup.error)}</Notice>}
+            <div className={s.row}>
+              <ActionButton onClick={() => signup.mutate()} loading={signup.isPending} loadingLabel="Connecting" disabled={pin.length !== 6}>Connect WhatsApp</ActionButton>
+              <ActionButton variant="secondary" onClick={() => setManual(true)}>Connect manually</ActionButton>
             </div>
           </>
         ) : (

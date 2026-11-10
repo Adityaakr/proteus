@@ -161,6 +161,8 @@ export interface WhatsAppAccount {
   phoneNumberId: string | null;
   displayPhone: string | null;
   connectedAt: string | null;
+  /** Meta's "Connect WhatsApp" popup, when configured on this deployment. */
+  signup: { appId: string; configId: string } | null;
 }
 export type NegotiationChannel = { channel: null } | { channel: "whatsapp"; humanActive: boolean; optedOut: boolean; replyWindowOpen: boolean; lastInboundAt: string };
 
@@ -320,6 +322,7 @@ export const api = {
     /** The seller's own WhatsApp Business number (Cloud API). The access token goes in once and is never returned. */
     whatsapp: () => request<WhatsAppAccount>("GET", "/app/whatsapp"),
     connectWhatsapp: (body: { phoneNumberId: string; accessToken: string; displayPhone?: string }) => request<WhatsAppAccount>("PUT", "/app/whatsapp", { body }),
+    completeWhatsappSignup: (body: { code: string; wabaId: string; phoneNumberId?: string; event: string; pin?: string }) => request<WhatsAppAccount>("POST", "/app/whatsapp/embedded-signup", { body }),
     disconnectWhatsapp: () => request<WhatsAppAccount>("DELETE", "/app/whatsapp"),
     negotiationChannel: (id: string) => request<NegotiationChannel>("GET", `/app/negotiations/${enc(id)}/whatsapp`),
     whatsappReply: (id: string, text: string) => request<NegotiationChannel>("POST", `/app/negotiations/${enc(id)}/whatsapp/reply`, { body: { text } }),

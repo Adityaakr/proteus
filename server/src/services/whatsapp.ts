@@ -314,6 +314,77 @@ export async function connectAccount(orgId: string, input: { phoneNumberId: stri
   return accountView(orgId);
 }
 
+/* ---------------------------------------------------------------- Embedded Signup */
+
+/** Whether this deployment can offer Meta's "Connect WhatsApp" popup. */
+export function signupConfig(): { appId: string; configId: string } | null {
+  return env.WHATSAPP_APP_ID && env.WHATSAPP_SIGNUP_CONFIG_ID && env.WHATSAPP_APP_SECRET ? { appId: env.WHATSAPP_APP_ID, configId: env.WHATSAPP_SIGNUP_CONFIG_ID } : null;
+}
+
+async function graph<T>(path: string, init: { method?: "GET" | "POST"; token?: string; body?: unknown; query?: Record<string, string> } = {}): Promise<T> {
+  const url = new URL(`${env.WHATSAPP_GRAPH_URL}/${path}`);
+  for (const [k, v] of Object.entries(init.query ?? {})) url.searchParams.set(k, v);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: init.method ?? "GET",
+      headers: { ...(init.token ? { authorization: `Bearer ${init.token}` } : {}), ...(init.body ? { "content-type": "application/json" } : {}) },
+      body: init.body ? JSON.stringify(init.body) : undefined,
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    throw new HttpError(502, "Could not reach WhatsApp. Try again in a moment.");
+  }
+  const out = (await res.json().catch(() => ({}))) as T & { error?: { message?: string; code?: number } };
+  if (!res.ok) {
+    // Meta's message is about the request (bad code, wrong pin), not about buyers, so it is safe to show the seller.
+    console.error(`[whatsapp] graph ${path.split("?")[0]!.replace(/\d{5,}/g, "#")} failed: HTTP ${res.status} code ${out.error?.code ?? "?"}`);
+    throw new HttpError(400, `WhatsApp: ${out.error?.message?.slice(0, 200) ?? `HTTP ${res.status}`}`);
+  }
+  return out;
+}
+
+/**
+ * Finishes Meta's Embedded Signup for a seller. The browser hands over the one-time code (valid about 30 seconds) and
+ * the ids from Meta's session message; the server, with the app secret:
+ *  1. exchanges the code for this seller's business token,
+ *  2. subscribes the Proteus app to the seller's WhatsApp account so buyer messages reach our webhook,
+ *  3. registers the number for Cloud API, except for a WhatsApp Business app number (coexistence), already registered,
+ *  4. stores the token sealed with the seller's key.
+ * Past chats are never requested: no history or contacts sync is started.
+ */
+export async function completeEmbeddedSignup(orgId: string, input: { code: string; wabaId: string; phoneNumberId?: string; businessApp: boolean; pin?: string }) {
+  if (!signupConfig()) throw new HttpError(409, "Connect WhatsApp is not switched on for this deployment yet.");
+  const [org] = await db.select({ label: schema.orgs.label }).from(schema.orgs).where(eq(schema.orgs.id, orgId));
+  if (!org || org.label === "sandbox") throw new HttpError(403, "WhatsApp can be connected from your own seller account, not the example seller.");
+  if (!/^[\w-]{10,2000}$/.test(input.code) || !/^\d{5,30}$/.test(input.wabaId) || (input.phoneNumberId && !/^\d{5,30}$/.test(input.phoneNumberId))) throw new HttpError(400, "The WhatsApp sign-up did not return what we expected. Please try again.");
+  if (!input.businessApp && !/^\d{6}$/.test(input.pin ?? "")) throw new HttpError(400, "Choose a 6-digit PIN for the number (WhatsApp two-step verification).");
+
+  const { access_token: token } = await graph<{ access_token?: string }>("oauth/access_token", { query: { client_id: env.WHATSAPP_APP_ID!, client_secret: env.WHATSAPP_APP_SECRET!, code: input.code } });
+  if (!token) throw new HttpError(400, "WhatsApp did not return an access token. Please try again.");
+
+  let phoneNumberId = input.phoneNumberId;
+  if (!phoneNumberId) {
+    // The WhatsApp Business app flow reports only the account; read its number with the new token.
+    const nums = await graph<{ data?: { id: string }[] }>(`${encodeURIComponent(input.wabaId)}/phone_numbers`, { token, query: { fields: "id,display_phone_number" } });
+    if (nums.data?.length !== 1) throw new HttpError(400, nums.data?.length ? "This WhatsApp account has several numbers. Connect it again and pick one number." : "No phone number was found on this WhatsApp account.");
+    phoneNumberId = nums.data[0]!.id;
+  }
+  const [taken] = await db.select().from(schema.whatsappAccounts).where(eq(schema.whatsappAccounts.phoneNumberId, phoneNumberId));
+  if (taken && taken.orgId !== orgId) throw new HttpError(409, "this WhatsApp number is connected to another seller");
+
+  await graph(`${encodeURIComponent(input.wabaId)}/subscribed_apps`, { method: "POST", token });
+  if (!input.businessApp) await graph(`${encodeURIComponent(phoneNumberId)}/register`, { method: "POST", token, body: { messaging_product: "whatsapp", pin: input.pin } });
+
+  const owned = await graphPhone(phoneNumberId, token);
+  const tokenEnc = await sealText(orgId, token);
+  await db
+    .insert(schema.whatsappAccounts)
+    .values({ orgId, phoneNumberId, tokenEnc, displayPhone: owned.displayPhone, active: true })
+    .onConflictDoUpdate({ target: schema.whatsappAccounts.orgId, set: { phoneNumberId, tokenEnc, displayPhone: owned.displayPhone, active: true, updatedAt: new Date() } });
+  return accountView(orgId);
+}
+
 async function graphPhone(phoneNumberId: string, token: string): Promise<{ displayPhone: string | null }> {
   let res: Response;
   try {
@@ -336,6 +407,8 @@ export async function accountView(orgId: string) {
   const [a] = await db.select().from(schema.whatsappAccounts).where(eq(schema.whatsappAccounts.orgId, orgId));
   return {
     platformReady: Boolean(env.WHATSAPP_APP_SECRET && env.WHATSAPP_VERIFY_TOKEN),
+    /** Present when Meta's "Connect WhatsApp" popup is configured; the manual form is the fallback. */
+    signup: signupConfig(),
     webhookUrl: `${env.WEB_ORIGIN}/api/channels/whatsapp/webhook`,
     connected: Boolean(a?.active),
     phoneNumberId: a?.phoneNumberId ?? null,

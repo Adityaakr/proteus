@@ -4,7 +4,8 @@
  *   1. Start the API with the fake Graph URL and test secrets:
  *      WHATSAPP_APP_SECRET=e2e-app-secret-0123456789 WHATSAPP_VERIFY_TOKEN=e2e-verify-token-0123 \
  *      WHATSAPP_GRAPH_URL=http://127.0.0.1:8898/v27.0 INVITE_GATE=0 PORT=8799 npx tsx src/index.ts
- *   2. WHATSAPP_GRAPH_URL=http://127.0.0.1:8898/v27.0 npx tsx scripts/whatsapp-e2e.ts [sellerSlug]
+ *   2. WHATSAPP_GRAPH_URL=http://127.0.0.1:8898/v27.0 WHATSAPP_APP_SECRET=e2e-app-secret-0123456789 WHATSAPP_VERIFY_TOKEN=e2e-verify-token-0123 \
+ *      WHATSAPP_APP_ID=100000000000001 WHATSAPP_SIGNUP_CONFIG_ID=200000000000001 npx tsx scripts/whatsapp-e2e.ts [sellerSlug]
  *
  * It connects the seller to the fake Graph server, plays a buyer, checks every reply and what is stored,
  * then removes everything it created.
@@ -13,7 +14,7 @@ import { createHmac } from "node:crypto";
 import { createServer } from "node:http";
 import { eq, inArray, like } from "drizzle-orm";
 import { db, schema } from "../src/db";
-import { connectAccount, sellerReply } from "../src/services/whatsapp";
+import { completeEmbeddedSignup, connectAccount, disconnectAccount, sellerReply } from "../src/services/whatsapp";
 
 const API = "http://127.0.0.1:8799/api";
 const SECRET = "e2e-app-secret-0123456789";
@@ -27,10 +28,21 @@ if (process.env.WHATSAPP_GRAPH_URL !== "http://127.0.0.1:8898/v27.0") throw new 
 
 /* fake Graph API: records every message the server sends */
 const sent: Record<string, any>[] = [];
+const graphCalls: string[] = [];
 const graph = createServer((req, res) => {
   let b = "";
   req.on("data", (d) => (b += d));
   req.on("end", () => {
+    const u = new URL(req.url ?? "/", "http://x");
+    const ok = (o: unknown) => res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(o));
+    // Embedded Signup endpoints: code exchange, the account's numbers, app subscription, number registration.
+    if (req.method === "GET" && u.pathname === "/v27.0/oauth/access_token") {
+      graphCalls.push(`exchange ${u.searchParams.get("code")}`);
+      return u.searchParams.get("client_secret") === SECRET && u.searchParams.get("code")?.startsWith("good-") ? ok({ access_token: "EAAG-e2e-fake-token-not-real-000000", token_type: "bearer" }) : res.writeHead(400).end(JSON.stringify({ error: { message: "Invalid verification code format.", code: 100 } }));
+    }
+    if (req.method === "GET" && u.pathname === "/v27.0/700000000000001/phone_numbers") return ok({ data: [{ id: PHONE_ID, display_phone_number: "+91 90000 00001" }] });
+    if (req.method === "POST" && u.pathname === "/v27.0/700000000000001/subscribed_apps") { graphCalls.push("subscribe"); return ok({ success: true }); }
+    if (req.method === "POST" && u.pathname === `/v27.0/${PHONE_ID}/register`) { graphCalls.push(`register ${JSON.parse(b).pin}`); return ok({ success: true }); }
     if (req.method === "GET" && req.url?.startsWith(`/v27.0/${PHONE_ID}?`)) {
       // Meta's phone number lookup: only the real token is accepted.
       const okToken = req.headers.authorization === "Bearer EAAG-e2e-fake-token-not-real-000000";
@@ -80,6 +92,24 @@ try {
   }
   check(refused, "connecting with a token Meta rejects is refused");
   await connectAccount(org.id, { phoneNumberId: PHONE_ID, accessToken: "EAAG-e2e-fake-token-not-real-000000" });
+
+  // Meta's "Connect WhatsApp" popup, finished on the server: a new number, then a WhatsApp Business app number.
+  await disconnectAccount(org.id);
+  await completeEmbeddedSignup(org.id, { code: "good-new-number", wabaId: "700000000000001", phoneNumberId: PHONE_ID, businessApp: false, pin: "246810" });
+  check(graphCalls.join("|") === "exchange good-new-number|subscribe|register 246810", "signup with a new number: exchange code, subscribe app, register with the PIN");
+  graphCalls.length = 0;
+  await disconnectAccount(org.id);
+  await completeEmbeddedSignup(org.id, { code: "good-business-app", wabaId: "700000000000001", businessApp: true });
+  check(graphCalls.join("|") === "exchange good-business-app|subscribe", "signup with a WhatsApp Business app number: no registration, number found from the account");
+  const [viaSignup] = await db.select().from(schema.whatsappAccounts).where(eq(schema.whatsappAccounts.orgId, org.id));
+  check(viaSignup?.phoneNumberId === PHONE_ID && viaSignup.tokenEnc.startsWith("pv2:"), "signup stores the number and the sealed token");
+  let badCode = false;
+  try {
+    await completeEmbeddedSignup(org.id, { code: "expired-code-123", wabaId: "700000000000001", businessApp: true });
+  } catch {
+    badCode = true;
+  }
+  check(badCode, "an expired or bad code is refused");
   check((await fetch(`${API}/channels/whatsapp/webhook`, { method: "POST", headers: { "content-type": "application/json" }, body: "x".repeat(2 * 1024 * 1024) })).status === 413, "an oversized webhook body is refused before reading");
 
   // Meta subscription handshake

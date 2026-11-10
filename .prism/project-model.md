@@ -81,3 +81,6 @@
   - Invariant: sealed values are opened with openTextOr/openJsonOr in views so one bad row never 500s a page.
   - Retention purges a negotiation only if every deal on it is closed (or never funded) past the cutoff (multiple deals per negotiation are possible).
   - Open: senderHash and data keys both derive from KEY_ENCRYPTION_SECRET ?? SESSION_SECRET; rotating either orphans WhatsApp sessions and sealed data. No rotation tooling yet.
+- 2026-11-11 Embedded Signup built: POST /app/whatsapp/embedded-signup → completeEmbeddedSignup (code exchange at {graph}/oauth/access_token with app secret, POST {waba}/subscribed_apps, POST {phone}/register with a 6-digit PIN unless event FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING, no history/contacts sync). Browser: site/src/app/sell/whatsapp/embeddedSignup.ts (FB SDK on click, extras {version:"v5"}, origin *.facebook.com). On only with WHATSAPP_APP_ID + WHATSAPP_SIGNUP_CONFIG_ID + WHATSAPP_APP_SECRET. Browser popup untested (needs a real Meta config).
+  - Open: Meta's coexistence page says history sync must happen within 24h "otherwise they must be offboarded"; we never sync. Verify on the first real coexistence onboarding.
+  - Lesson: zsh does not word-split "$VAR" lists; `env $E cmd` silently passes one bad var. Export explicitly.

@@ -5,7 +5,7 @@ import { db, schema } from "../db";
 import { HttpError, json, toBig } from "../lib/http";
 import { id } from "../lib/ids";
 import { openJson, openJsonOr } from "../lib/vault";
-import { accountView, connectAccount, disconnectAccount, negotiationChannel, resumeAgent, sellerReply } from "../services/whatsapp";
+import { accountView, completeEmbeddedSignup, connectAccount, disconnectAccount, negotiationChannel, resumeAgent, sellerReply } from "../services/whatsapp";
 import { evaluationContext, loadProductById, publicProduct } from "../services/catalog";
 import { dealView, listDeals, sellerCloseTerm } from "../services/deals";
 import { listNegotiations, reviveCandidate, sellerNegotiationView } from "../services/negotiation";
@@ -300,6 +300,11 @@ appRoutes.put("/app/whatsapp", async (c) => {
   const b = (await c.req.json().catch(() => ({}))) as { phoneNumberId?: string; accessToken?: string; displayPhone?: string };
   if (!b.phoneNumberId || !b.accessToken) throw new HttpError(400, "phoneNumberId and accessToken are required");
   return json(c, await connectAccount(session(c).orgId, { phoneNumberId: String(b.phoneNumberId).trim(), accessToken: String(b.accessToken).trim(), displayPhone: b.displayPhone ? String(b.displayPhone) : undefined }));
+});
+appRoutes.post("/app/whatsapp/embedded-signup", async (c) => {
+  const b = (await c.req.json().catch(() => ({}))) as { code?: string; wabaId?: string; phoneNumberId?: string; event?: string; pin?: string };
+  if (!b.code || !b.wabaId) throw new HttpError(400, "code and wabaId are required");
+  return json(c, await completeEmbeddedSignup(session(c).orgId, { code: String(b.code), wabaId: String(b.wabaId), phoneNumberId: b.phoneNumberId ? String(b.phoneNumberId) : undefined, businessApp: b.event === "FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING", pin: b.pin ? String(b.pin) : undefined }));
 });
 appRoutes.delete("/app/whatsapp", async (c) => json(c, await disconnectAccount(session(c).orgId)));
 appRoutes.get("/app/negotiations/:id/whatsapp", async (c) => json(c, await negotiationChannel(session(c).orgId, c.req.param("id"))));
