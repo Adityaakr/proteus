@@ -5,6 +5,7 @@ import { db, schema } from "../db";
 import { HttpError, json, toBig } from "../lib/http";
 import { id } from "../lib/ids";
 import { openJson } from "../lib/vault";
+import { accountView, connectAccount, disconnectAccount, negotiationChannel, resumeAgent, sellerReply } from "../services/whatsapp";
 import { evaluationContext, loadProductById, publicProduct } from "../services/catalog";
 import { dealView, listDeals, sellerCloseTerm } from "../services/deals";
 import { listNegotiations, reviveCandidate, sellerNegotiationView } from "../services/negotiation";
@@ -292,3 +293,18 @@ appRoutes.get("/app/finance", async (c) => {
   const discrepancies = deals.filter((d) => d.balancesSource === "chain" && d.deposit - d.settled - d.refunded < 0n).map((d) => ({ dealId: d.id, issue: "negative remaining" }));
   return json(c, { funded, settled, earnedUnsettled, liability: funded - settled - refunded, refunded, journal, reconciliation: { lastRunAt: deals.reduce<Date | null>((m, d) => (!m || d.updatedAt > m ? d.updatedAt : m), null), discrepancies }, labels: { network: features.network, note: "Deposits are customer liabilities until usage is accepted and settled. Unused balances are never seller revenue." } });
 });
+
+/* WhatsApp channel: the seller's own number, and replies from the team after a buyer asks for a person. */
+appRoutes.get("/app/whatsapp", async (c) => json(c, await accountView(session(c).orgId)));
+appRoutes.put("/app/whatsapp", async (c) => {
+  const b = (await c.req.json().catch(() => ({}))) as { phoneNumberId?: string; accessToken?: string; displayPhone?: string };
+  if (!b.phoneNumberId || !b.accessToken) throw new HttpError(400, "phoneNumberId and accessToken are required");
+  return json(c, await connectAccount(session(c).orgId, { phoneNumberId: String(b.phoneNumberId).trim(), accessToken: String(b.accessToken).trim(), displayPhone: b.displayPhone ? String(b.displayPhone) : undefined }));
+});
+appRoutes.delete("/app/whatsapp", async (c) => json(c, await disconnectAccount(session(c).orgId)));
+appRoutes.get("/app/negotiations/:id/whatsapp", async (c) => json(c, await negotiationChannel(session(c).orgId, c.req.param("id"))));
+appRoutes.post("/app/negotiations/:id/whatsapp/reply", async (c) => {
+  const b = (await c.req.json().catch(() => ({}))) as { text?: string };
+  return json(c, await sellerReply(session(c).orgId, c.req.param("id"), String(b.text ?? "")));
+});
+appRoutes.post("/app/negotiations/:id/whatsapp/resume", async (c) => json(c, await resumeAgent(session(c).orgId, c.req.param("id"))));

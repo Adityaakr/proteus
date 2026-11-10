@@ -4,7 +4,7 @@ import { BrandFields, EMPTY_BRAND, brandFromState, validateBrandState, type Bran
 import { Field } from "../../ui/Field";
 import { v1 } from "../v1";
 import type { MeOrg } from "../types";
-import { BadgeCheck, Bell, Code2, FlaskConical, KeyRound, Wallet } from "lucide-react";
+import { BadgeCheck, Bell, Code2, FlaskConical, KeyRound, MessageCircle, Wallet } from "lucide-react";
 import { ActionButton, Card, KeyValue, LoadingCard, MonoValue, Notice, StatusTag } from "../../seller/kit";
 import { PageHeader } from "../../seller/parts/PageHeader";
 import { errorMessage } from "../../seller/transport";
@@ -108,6 +108,7 @@ export default function Settings() {
       {me?.org && !sandbox && <EmbedCard />}
 
       {me?.org && !sandbox && <NotificationsCard />}
+      {me?.org && !sandbox && <WhatsAppCard />}
 
       {me?.org && !sandbox && <AgentIdentityCard />}
 
@@ -339,3 +340,56 @@ function NotificationsCard() {
     </Card>
   );
 }
+
+function WhatsAppCard() {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["sell", "whatsapp"], queryFn: () => v1.app.whatsapp(), retry: false });
+  const [form, setForm] = useState({ phoneNumberId: "", accessToken: "", displayPhone: "" });
+  const connect = useMutation({
+    mutationFn: () => v1.app.connectWhatsapp({ phoneNumberId: form.phoneNumberId.trim(), accessToken: form.accessToken.trim(), displayPhone: form.displayPhone.trim() || undefined }),
+    onSuccess: (d) => { qc.setQueryData(["sell", "whatsapp"], d); setForm({ phoneNumberId: "", accessToken: "", displayPhone: "" }); },
+  });
+  const disconnect = useMutation({ mutationFn: () => v1.app.disconnectWhatsapp(), onSuccess: (d) => qc.setQueryData(["sell", "whatsapp"], d) });
+  if (!q.data) return null;
+  const a = q.data;
+  return (
+    <Card
+      title="WhatsApp"
+      subtitle="Customers chat with your deal agent on your own WhatsApp Business number. Offers come from your rules; paying opens a secure page that works for 30 minutes. Your costs, buyers' phone numbers and wallet details never appear in the chat or reach the AI."
+      actions={<StatusTag tone={a.connected ? "success" : "neutral"} label={a.connected ? "Connected" : "Off"} icon={<MessageCircle size={12} />} />}
+    >
+      <div className={s.fields}>
+        {!a.platformReady && <Notice tone="info">WhatsApp is not switched on for this deployment yet. You can save your number now; messages start once it is.</Notice>}
+        {a.connected ? (
+          <>
+            <KeyValue
+              items={[
+                { k: "Number", v: a.displayPhone ?? <span className={s.mono}>{a.phoneNumberId}</span> },
+                { k: "Phone number ID", v: <MonoValue value={a.phoneNumberId ?? ""} copy label="phone number id" /> },
+                { k: "Webhook URL", v: <MonoValue value={a.webhookUrl} copy label="webhook url" /> },
+                ...(a.connectedAt ? [{ k: "Connected", v: dateTime(a.connectedAt) }] : []),
+              ]}
+            />
+            <p className={s.hint}>Every chat opens with a note that the buyer is talking to your AI agent. Buyers can reply HUMAN to reach your team (you get a notification and can answer from the negotiation page) or STOP to opt out.</p>
+            {disconnect.isError && <Notice tone="danger">{errorMessage(disconnect.error)}</Notice>}
+            <div className={s.row}>
+              <ActionButton variant="secondary" onClick={() => disconnect.mutate()} loading={disconnect.isPending} loadingLabel="Disconnecting">Disconnect</ActionButton>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className={s.hint}>In Meta's WhatsApp Manager, open your number and copy its <strong>Phone number ID</strong> and a <strong>permanent access token</strong> (a system user token with whatsapp_business_messaging). The token is encrypted with your own key and never shown again.</p>
+            <Field label="Phone number ID" value={form.phoneNumberId} onChange={(e) => setForm({ ...form, phoneNumberId: e.target.value })} placeholder="106540352242922" inputMode="numeric" />
+            <Field label="Access token" value={form.accessToken} onChange={(e) => setForm({ ...form, accessToken: e.target.value })} placeholder="EAAG…" type="password" autoComplete="off" />
+            <Field label="Number shown to you (optional)" value={form.displayPhone} onChange={(e) => setForm({ ...form, displayPhone: e.target.value })} placeholder="+91 98765 43210" />
+            {connect.isError && <Notice tone="danger">{errorMessage(connect.error)}</Notice>}
+            <div className={s.row}>
+              <ActionButton onClick={() => connect.mutate()} loading={connect.isPending} loadingLabel="Connecting" disabled={!form.phoneNumberId.trim() || !form.accessToken.trim()}>Connect WhatsApp</ActionButton>
+            </div>
+          </>
+        )}
+      </div>
+    </Card>
+  );
+}
+

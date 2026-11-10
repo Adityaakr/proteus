@@ -546,3 +546,64 @@ export const catalogSyncs = pgTable("catalog_syncs", {
   lastResult: jsonb("last_result"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/* ---------------------------------------------------------------- WhatsApp channel */
+
+/** A seller's own WhatsApp Business number (Cloud API). The access token is sealed with the seller's data key. */
+export const whatsappAccounts = pgTable("whatsapp_accounts", {
+  orgId: text("org_id").primaryKey(),
+  phoneNumberId: text("phone_number_id").notNull().unique(),
+  displayPhone: text("display_phone"),
+  tokenEnc: text("token_enc").notNull(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * One buyer's WhatsApp conversation with one seller. The buyer is known only by an HMAC of Meta's business-scoped
+ * user id; the ids needed to reply are sealed with the seller's key. No phone number or name is stored in clear.
+ */
+export const whatsappSessions = pgTable(
+  "whatsapp_sessions",
+  {
+    id: text("id").primaryKey(),
+    orgId: text("org_id").notNull(),
+    senderHash: text("sender_hash").notNull(),
+    contactEnc: text("contact_enc").notNull(),
+    negotiationId: text("negotiation_id"),
+    productSlug: text("product_slug"),
+    optedInAt: timestamp("opted_in_at", { withTimezone: true }),
+    optedOutAt: timestamp("opted_out_at", { withTimezone: true }),
+    /** While set and in the future, the agent stays quiet and the seller's team replies. */
+    humanUntil: timestamp("human_until", { withTimezone: true }),
+    lastInboundAt: timestamp("last_inbound_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("whatsapp_sessions_sender").on(t.orgId, t.senderHash), index("whatsapp_sessions_neg").on(t.negotiationId)],
+);
+
+/** Consent and handoff log: opt_in, opt_out, human, resume. Kept for audit; carries no message text. */
+export const whatsappEvents = pgTable("whatsapp_events", {
+  id: text("id").primaryKey(),
+  orgId: text("org_id").notNull(),
+  senderHash: text("sender_hash").notNull(),
+  event: text("event").notNull(),
+  at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Message ids already handled, so Meta's webhook retries are processed once. */
+export const whatsappInbound = pgTable("whatsapp_inbound", {
+  wamid: text("wamid").primaryKey(),
+  at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Opaque, short-lived links sent in chat. They open the offer page without putting any id in the chat text. */
+export const whatsappLinks = pgTable("whatsapp_links", {
+  token: text("token").primaryKey(),
+  orgId: text("org_id").notNull(),
+  quoteId: text("quote_id").notNull(),
+  senderHash: text("sender_hash").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

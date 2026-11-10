@@ -1,5 +1,9 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { AgentActivity, Card, KeyValue, Money, Notice, StatusTag, type ActivityLine } from "../kit";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "../../lib/api";
+import { Field } from "../../ui/Field";
+import { ActionButton, AgentActivity, Card, KeyValue, Money, Notice, StatusTag, type ActivityLine } from "../kit";
 import { useApprovals, useNegotiation, useProducts } from "../api";
 import { ApprovalCard } from "../parts/ApprovalCard";
 import { QueryView } from "../parts/QueryView";
@@ -53,6 +57,7 @@ function Body({ n, pending }: { n: Neg; pending?: Approval }) {
               ]}
             />
           </Card>
+          <WhatsAppPanel negotiationId={n.id} />
           <Card title="Transcript" subtitle={`${n.turns.length} turns`}>
             <ol className={s.transcript}>
               {n.turns.map((t) => (
@@ -147,3 +152,32 @@ function runItems(run: AgentRunT): ActivityLine[] {
     };
   });
 }
+
+/** Shown only for negotiations that came from WhatsApp: who has the chat, and a reply box for the seller's team. */
+function WhatsAppPanel({ negotiationId }: { negotiationId: string }) {
+  const qc = useQueryClient();
+  const key = ["seller", "negotiation-channel", negotiationId];
+  const q = useQuery({ queryKey: key, queryFn: () => api.app.negotiationChannel(negotiationId), retry: false });
+  const [text, setText] = useState("");
+  const done = (d: Awaited<ReturnType<typeof api.app.negotiationChannel>>) => { qc.setQueryData(key, d); qc.invalidateQueries({ queryKey: ["seller", "negotiation", negotiationId] }); };
+  const reply = useMutation({ mutationFn: () => api.app.whatsappReply(negotiationId, text), onSuccess: (d) => { setText(""); done(d); } });
+  const resume = useMutation({ mutationFn: () => api.app.whatsappResume(negotiationId), onSuccess: done });
+  const c = q.data;
+  if (!c || c.channel !== "whatsapp") return null;
+  return (
+    <Card title="WhatsApp" subtitle={c.humanActive ? "The buyer asked for a person. Your agent is paused while your team has this chat." : "This buyer is talking to your agent on WhatsApp."} actions={<StatusTag tone={c.humanActive ? "warn" : "success"} label={c.humanActive ? "Team replying" : "Agent replying"} />}>
+      <div className={s.stack}>
+        {c.optedOut && <Notice tone="info">The buyer sent STOP. You can message them again only after they write.</Notice>}
+        {!c.replyWindowOpen && !c.optedOut && <Notice tone="info">WhatsApp allows free-form replies only within 24 hours of the buyer's last message.</Notice>}
+        <Field label="Reply as your team" multiline rows={3} value={text} onChange={(e) => setText(e.target.value)} maxLength={4000} placeholder="Hi, this is the team. Happy to help." disabled={!c.replyWindowOpen || c.optedOut} />
+        {reply.isError && <Notice tone="danger">{(reply.error as Error).message}</Notice>}
+        {resume.isError && <Notice tone="danger">{(resume.error as Error).message}</Notice>}
+        <div className={s.row}>
+          <ActionButton onClick={() => reply.mutate()} loading={reply.isPending} loadingLabel="Sending" disabled={!text.trim() || !c.replyWindowOpen || c.optedOut}>Send on WhatsApp</ActionButton>
+          {c.humanActive && <ActionButton variant="secondary" onClick={() => resume.mutate()} loading={resume.isPending} loadingLabel="Handing back">Hand back to agent</ActionButton>}
+        </div>
+      </div>
+    </Card>
+  );
+}
+

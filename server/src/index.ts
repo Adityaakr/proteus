@@ -19,13 +19,15 @@ import { publicRoutes } from "./routes/public";
 import { meRoutes } from "./routes/me";
 import { payRoutes } from "./routes/pay";
 import { rpcRoutes } from "./routes/rpc";
+import { channelRoutes } from "./routes/channels";
 import { inviteRoutes } from "./routes/invites";
 import { circleAuthRoutes } from "./routes/circle-auth";
 import { consoleRoutes } from "./routes/console";
 import { embedAncestors } from "./services/embed";
 
 const app = new Hono();
-app.use("*", logger((s) => console.log(s)));
+// Chat links are short-lived capabilities: keep them out of the request log.
+app.use("*", logger((s) => console.log(s.replace(/\/api\/w\/[A-Za-z0-9_-]+/g, "/api/w/…"))));
 app.use("/api/*", cors({ origin: env.WEB_ORIGIN, credentials: true }));
 
 // Framing policy. /embed/<seller> is the deal agent sellers put on their own websites, so other sites may frame it
@@ -70,6 +72,7 @@ app.route("/api", payRoutes);
 app.route("/api", appRoutes);
 app.route("/api", consoleRoutes);
 app.route("/api", rpcRoutes);
+app.route("/api", channelRoutes);
 
 // Hosted mode: the built site lives next to the API, so one service serves both from one origin.
 // Anything that is not /api and not a file in site/dist answers the SPA shell (client-side routing).

@@ -95,6 +95,14 @@
         "markdown": "https://app.proteus.co.in/docs/pricing.md"
       },
       {
+        "id": "privacy",
+        "group": "Concepts",
+        "title": "Privacy",
+        "summary": "What each party can see when a buyer talks to a seller's agent, on the web or on WhatsApp.",
+        "html": "https://app.proteus.co.in/docs/privacy",
+        "markdown": "https://app.proteus.co.in/docs/privacy.md"
+      },
+      {
         "id": "fees",
         "group": "Product",
         "title": "What Proteus costs",

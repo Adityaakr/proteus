@@ -241,6 +241,11 @@ export async function decideApproval(orgId: string, approvalId: string, decision
       await tx.insert(schema.turns).values({ id: id("turn"), negotiationId: q.negotiationId, seq: turnsCount.length + 1, role: "agent", kind: "message", content: await sealText(orgId, decision === "approve" ? "The seller approved the larger package. You can accept it now." : "The seller declined the larger package. The standing options are still available.") });
     }
   });
+  // A buyer waiting in WhatsApp gets the link once the seller approves (best effort, after the commit).
+  if (decision === "approve") {
+    const [q] = await db.select({ negotiationId: schema.quotes.negotiationId }).from(schema.quotes).where(eq(schema.quotes.id, a.quoteId));
+    if (q) void import("./whatsapp").then((w) => w.notifyApproved(q.negotiationId, a.quoteId)).catch(() => {});
+  }
   const [updated] = await db.select().from(schema.approvals).where(eq(schema.approvals.id, approvalId));
   return updated!;
 }

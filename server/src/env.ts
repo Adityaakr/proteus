@@ -72,6 +72,11 @@ const Env = z.object({
 
   /** Invite gate: "1" requires a redeemed invite code for every signed-in account (default on in production). "0" opens the product. */
   INVITE_GATE: z.string().optional(),
+  /** WhatsApp Cloud API (Meta app): the app secret signs webhooks; the verify token answers Meta's subscription check. */
+  WHATSAPP_APP_SECRET: z.string().min(16).optional(),
+  WHATSAPP_VERIFY_TOKEN: z.string().min(16).optional(),
+  /** Graph API base including version. Version-sensitive: see developers.facebook.com/docs/whatsapp/cloud-api. */
+  WHATSAPP_GRAPH_URL: z.string().url().default("https://graph.facebook.com/v27.0"),
   /** Days to keep buyer chats and order details after a negotiation goes quiet or its deal closes. Unset: never delete. */
   RETENTION_DAYS: z.coerce.number().int().min(7).max(3650).optional(),
   /** Keys the HMAC of invite codes at rest; falls back to SESSION_SECRET. Changing it invalidates every code. */
@@ -113,6 +118,7 @@ export const features = {
   viemRelayer: Boolean(env.RELAYER_PRIVATE_KEY),
   escrow: Boolean(env.ESCROW_ADDRESS),
   sellerSigner: Boolean(env.SELLER_SIGNER_PRIVATE_KEY),
+  whatsapp: Boolean(env.WHATSAPP_APP_SECRET && env.WHATSAPP_VERIFY_TOKEN),
   inviteGate: env.INVITE_GATE ? env.INVITE_GATE === "1" : env.NODE_ENV === "production",
   admin: Boolean(env.ADMIN_TOKEN),
 };

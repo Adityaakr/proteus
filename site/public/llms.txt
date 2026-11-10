@@ -31,6 +31,7 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 - [The money path](https://app.proteus.co.in/docs/money-path.md): Where the USDC is at every moment, and what releases it.
 - [What is signed, and by whom](https://app.proteus.co.in/docs/signatures.md): Eight messages; the contract checks each one.
 - [How offers are priced](https://app.proteus.co.in/docs/pricing.md): Code decides the price; the model only writes the words.
+- [Privacy](https://app.proteus.co.in/docs/privacy.md): What each party can see when a buyer talks to a seller's agent, on the web or on WhatsApp.
 
 ## Product
 

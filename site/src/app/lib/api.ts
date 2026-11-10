@@ -149,6 +149,16 @@ const negotiationKeys = {
 };
 const memoryKeys = new Map<string, string>();
 
+export interface WhatsAppAccount {
+  platformReady: boolean;
+  webhookUrl: string;
+  connected: boolean;
+  phoneNumberId: string | null;
+  displayPhone: string | null;
+  connectedAt: string | null;
+}
+export type NegotiationChannel = { channel: null } | { channel: "whatsapp"; humanActive: boolean; optedOut: boolean; replyWindowOpen: boolean; lastInboundAt: string };
+
 async function request<R>(method: Method, path: string, opts: RequestOpts = {}): Promise<R> {
   if (isMock()) {
     const { mockRequest } = await import("./mock");
@@ -302,6 +312,13 @@ export const api = {
     notifications: () => request<T.NotifySettings>("GET", "/app/notifications"),
     setNotifications: (body: { email: string | null; telegramChatId: string | null; webhookUrl: string | null }) => request<T.NotifySettings & { webhookSecret: string | null }>("PUT", "/app/notifications", { body }),
     testNotification: () => request<{ ok: boolean; errors: string[] }>("POST", "/app/notifications/test"),
+    /** The seller's own WhatsApp Business number (Cloud API). The access token goes in once and is never returned. */
+    whatsapp: () => request<WhatsAppAccount>("GET", "/app/whatsapp"),
+    connectWhatsapp: (body: { phoneNumberId: string; accessToken: string; displayPhone?: string }) => request<WhatsAppAccount>("PUT", "/app/whatsapp", { body }),
+    disconnectWhatsapp: () => request<WhatsAppAccount>("DELETE", "/app/whatsapp"),
+    negotiationChannel: (id: string) => request<NegotiationChannel>("GET", `/app/negotiations/${enc(id)}/whatsapp`),
+    whatsappReply: (id: string, text: string) => request<NegotiationChannel>("POST", `/app/negotiations/${enc(id)}/whatsapp/reply`, { body: { text } }),
+    whatsappResume: (id: string) => request<NegotiationChannel>("POST", `/app/negotiations/${enc(id)}/whatsapp/resume`, { body: {} }),
     /** Embedded deal agent: the seller's slug and the sites allowed to embed it (empty: any site). */
     embed: () => request<{ slug: string; label: string; domains: string[] }>("GET", "/app/embed"),
     setEmbedDomains: (domains: string[]) => request<{ slug: string; label: string; domains: string[] }>("PUT", "/app/embed", { body: { domains } }),
