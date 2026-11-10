@@ -72,6 +72,8 @@ const Env = z.object({
 
   /** Invite gate: "1" requires a redeemed invite code for every signed-in account (default on in production). "0" opens the product. */
   INVITE_GATE: z.string().optional(),
+  /** Days to keep buyer chats and order details after a negotiation goes quiet or its deal closes. Unset: never delete. */
+  RETENTION_DAYS: z.coerce.number().int().min(7).max(3650).optional(),
   /** Keys the HMAC of invite codes at rest; falls back to SESSION_SECRET. Changing it invalidates every code. */
   INVITE_PEPPER: z.string().min(16).optional(),
   /** Bearer token for the admin routes that mint, list and revoke invites. Unset disables them. */
