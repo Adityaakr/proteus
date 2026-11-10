@@ -17,7 +17,7 @@ export function decryptSecret(blob: string): string {
   const [v, ivB, tagB, encB] = blob.split(".");
   if (v !== "v1" || !ivB || !tagB || !encB) throw new Error("bad secret blob");
   const open = (k: Buffer) => {
-    const d = createDecipheriv("aes-256-gcm", k, Buffer.from(ivB, "base64url"));
+    const d = createDecipheriv("aes-256-gcm", k, Buffer.from(ivB, "base64url"), { authTagLength: 16 });
     d.setAuthTag(Buffer.from(tagB, "base64url"));
     return Buffer.concat([d.update(Buffer.from(encB, "base64url")), d.final()]).toString("utf8");
   };

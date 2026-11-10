@@ -82,10 +82,11 @@ server.registerTool(
   {
     description:
       "Talk to the seller's deal agent. State volume and budget plainly. Returns the agent's reply and the current offers (each with candidateId, units, prepaidTotal, status). Offers come from the seller's rules in code; the agent cannot quote below the seller's floor. Omit negotiationId to start a new negotiation.",
-    inputSchema: z.object({ seller: z.string(), product: z.string(), message: z.string().min(1).max(4000), negotiationId: z.string().optional() }),
+    inputSchema: z.object({ seller: z.string(), product: z.string(), message: z.string().min(1).max(4000), negotiationId: z.string().optional(), negotiationKey: z.string().optional().describe("the negotiationKey returned when this negotiation started; needed to continue it after the MCP server restarts") }),
   },
-  async ({ seller, product, message, negotiationId }) => {
+  async ({ seller, product, message, negotiationId, negotiationKey }) => {
     let id = negotiationId;
+    if (id && negotiationKey) negotiationKeys.set(id, negotiationKey);
     if (!id) {
       const started = await post<{ id: string; buyerKey?: string }>("/api/negotiations", { sellerSlug: seller, productSlug: product, buyerAddress: buyer?.address });
       id = started.id;
@@ -95,6 +96,8 @@ server.registerTool(
     const reply = [...n.turns].reverse().find((t) => t.role === "agent")?.content ?? "";
     return text({
       negotiationId: id,
+      // Private to this buyer: keep it with the negotiationId to continue later. Never share it.
+      negotiationKey: negotiationKeys.get(id) ?? null,
       reply,
       offers: n.offers.map((o) => ({ candidateId: o.candidateId, tier: o.tierName, units: o.units, prepaid: o.prepaidTotalUsd, status: o.status, withinMandate: BigInt(o.prepaidTotal) <= MAX_PREPAID })),
       mandate: usd(MAX_PREPAID),
@@ -145,9 +148,10 @@ server.registerTool(
   {
     description:
       "Turn an offer into signed terms. Creates the quote, enforces the mandate, verifies the seller on Arc, then signs the EIP-712 Terms with the buyer key and returns the deal. Without a buyer key it returns the typed data and the Circle CLI command to sign it with a Circle Agent Wallet.",
-    inputSchema: z.object({ negotiationId: z.string(), candidateId: z.string(), buyerAddress: z.string().optional().describe("required when no buyer key is configured (e.g. a Circle Agent Wallet address)") }),
+    inputSchema: z.object({ negotiationId: z.string(), candidateId: z.string(), negotiationKey: z.string().optional().describe("the negotiationKey from proteus_negotiate, if this MCP server restarted since"), buyerAddress: z.string().optional().describe("required when no buyer key is configured (e.g. a Circle Agent Wallet address)") }),
   },
-  async ({ negotiationId, candidateId, buyerAddress }) => {
+  async ({ negotiationId, candidateId, negotiationKey, buyerAddress }) => {
+    if (negotiationKey) negotiationKeys.set(negotiationId, negotiationKey);
     const { chainId, escrowAddress } = await net();
     const who = (buyer?.address ?? buyerAddress) as Address | undefined;
     if (!who) throw new Error("Set PROTEUS_BUYER_PRIVATE_KEY or pass buyerAddress.");

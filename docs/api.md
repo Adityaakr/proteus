@@ -29,7 +29,8 @@ GET  /api/public/sellers/:sellerSlug/products/:productSlug
 
 ```
 POST /api/negotiations           { sellerSlug, productSlug, buyerAddress? }
-  -> Negotiation
+  -> Negotiation & { buyerKey }   (returned once; send it as X-Negotiation-Key on every /api/negotiations/:id call,
+                                   or be signed in as the owner of buyerAddress; otherwise 403 negotiation_key_required)
 
 GET  /api/negotiations/:id
   -> Negotiation

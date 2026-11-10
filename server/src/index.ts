@@ -112,7 +112,7 @@ app.onError((err, c) => {
   console.error("[error]", msg);
   // viem revert reasons are useful to surface in the demo UI.
   // Unexpected errors can carry SQL, ids or request data, so the client gets a generic message; the log keeps the detail.
-  if (!/revert|insufficient|allowance|not configured/i.test(msg)) return json(c, { error: "Something went wrong on our side. Try again in a moment." }, 500);
+  if (!/revert|insufficient|allowance|not configured|Circle transaction|did not return a hash|No relayer configured/i.test(msg)) return json(c, { error: "Something went wrong on our side. Try again in a moment." }, 500);
   return json(c, { error: msg.slice(0, 400) }, 409);
 });
 

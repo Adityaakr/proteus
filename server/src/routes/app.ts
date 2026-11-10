@@ -4,7 +4,7 @@ import { ApprovalDecisionBody, CostUpdateBody, PolicyUpdateBody, getQuoteCandida
 import { db, schema } from "../db";
 import { HttpError, json, toBig } from "../lib/http";
 import { id } from "../lib/ids";
-import { openJson } from "../lib/vault";
+import { openJson, openJsonOr } from "../lib/vault";
 import { accountView, connectAccount, disconnectAccount, negotiationChannel, resumeAgent, sellerReply } from "../services/whatsapp";
 import { evaluationContext, loadProductById, publicProduct } from "../services/catalog";
 import { dealView, listDeals, sellerCloseTerm } from "../services/deals";
@@ -230,7 +230,7 @@ async function buyerOrderDetails(dealId: string, productId: string) {
   const humanize = (k: string) => k.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ").replace(/^./, (c) => c.toUpperCase());
   const rows = await db.select().from(schema.serviceRequests).where(eq(schema.serviceRequests.dealId, dealId)).orderBy(desc(schema.serviceRequests.createdAt));
   const buyerRows = rows.filter((r) => (r.output as { source?: { store?: string } }).source?.store !== "seller-confirmed");
-  const inputs = await Promise.all(buyerRows.map((r) => openJson<Record<string, unknown> | null>(r.orgId, r.input)));
+  const inputs = await Promise.all(buyerRows.map((r) => openJsonOr<Record<string, unknown> | null>(r.orgId, r.input, null)));
   return buyerRows
     .map((r, i) => ({
       id: r.id,

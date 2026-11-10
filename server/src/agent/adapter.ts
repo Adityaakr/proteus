@@ -74,10 +74,15 @@ export function stripEconomics(c: Candidate): PublicCandidate {
 export function redactPersonalData(text: string): string {
   return text
     .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email removed]")
-    .replace(/(?<![\w$₹€£.,/])\+?\(?\d[\d\s().-]{8,24}\d(?![\w.,]?\d)/g, (m) => {
+    // "tel.9876543210", "Mob no.98765…", "wa.me/91…": let the number stand on its own so the rule below sees it.
+    .replace(/\b(wa\.me\/|tel[.:]|ph[.:]|mob[.:]|no[.:])(?=\+?\d)/gi, "$1 ")
+    .replace(/(?<![\w$₹€£.,/])\+?\(?\d[\d\s().–-]{8,24}\d(?![\w.,]?\d)/g, (m) => {
       const digits = m.replace(/\D/g, "").length;
       if (digits < 10 || digits > 19) return m;
       if (/\s[-–]\s/.test(m)) return m; // a range, not one number
+      // A list like "2000 3000 4000" or "2025 2026 2027": three or more short groups of the same length (not a 16-digit card).
+      const groups = m.replace(/^\+/, "").split(/\D+/).filter(Boolean);
+      if (!m.startsWith("+") && digits <= 12 && groups.length >= 3 && groups.every((g) => g.length <= 4 && g.length === groups[0]!.length)) return m;
       return "[number removed]";
     });
 }

@@ -9,7 +9,7 @@ import { LoadingCard } from "../ui/Skeleton";
 import { Money } from "../ui/Money";
 import { MonoValue } from "../ui/misc";
 import { useAuth } from "../auth/useAuth";
-import { api, qk, type Quote } from "../lib/api";
+import { api, hasNegotiationKey, qk, type Quote } from "../lib/api";
 import { ErrorState, FLOW_STAGES, fmtDateTime, fmtUnits, prettyIntegration } from "./common";
 import { FundFlow, rememberedDealFor } from "./FundFlow";
 import f from "./fund.module.css";
@@ -47,7 +47,12 @@ function OfferView({ quote }: { quote: Quote }) {
   const acceptable = quote.status === "draft" || quote.status === "approved";
   const knownDealId = quote.dealId ?? rememberedDealFor(quote.id);
   const dealQ = useQuery({ queryKey: qk.deal(knownDealId ?? "none"), queryFn: () => api.deal(knownDealId!), enabled: Boolean(knownDealId) && quote.status === "accepted" });
-  const backToChat = `/app/negotiations/${quote.negotiationId}`;
+  const { authenticated } = useAuth();
+  // The negotiation opens only with its key (kept by the browser that started it) or for a signed-in buyer. An offer
+  // reached from an embedded agent or from WhatsApp has neither, so "back" goes to the market instead of a 403.
+  const canReturn = hasNegotiationKey(quote.negotiationId) || authenticated;
+  const backToChat = canReturn ? `/app/negotiations/${quote.negotiationId}` : "/app/market";
+  const backLabel = canReturn ? "Back to the negotiation" : "Browse the market";
   const unitDigits = (o.unitPriceUsd.split(".")[1]?.replace(/0+$/, "").length ?? 0) > 2 ? 4 : 2;
   const badge = quote.status === "accepted" || quote.status === "approved" ? f.badgeOk : quote.status === "approval_required" ? f.badgeWarn : "";
 
@@ -134,7 +139,7 @@ function OfferView({ quote }: { quote: Quote }) {
               <ReasoningText phrases={["Waiting for the seller's approval", "Checking again every few seconds"]} variant="swap" srLabel="Waiting for the seller's approval" />
             </div>
             <p className={f.fine}>You can leave this page open. It updates as soon as the seller decides.</p>
-            <div className={f.actions}><ActionButton variant="secondary" to={backToChat}>Back to the negotiation</ActionButton></div>
+            <div className={f.actions}><ActionButton variant="secondary" to={backToChat}>{backLabel}</ActionButton></div>
           </>
         ) : acceptable ? (
           <FundFlow quote={quote} onFunded={(d) => navigate(`/app/deals/${d.id}`)} onCancel={() => navigate(backToChat)} />
@@ -149,7 +154,7 @@ function OfferView({ quote }: { quote: Quote }) {
             <p className={f.railText}>
               {quote.status === "accepted" ? "These terms were already signed. Your deal is listed under Deals." : quote.status === "declined" ? `The seller declined this agreement${quote.approval?.reason ? `: ${quote.approval.reason}` : "."}` : "Ask the agent for a fresh offer."}
             </p>
-            <div className={f.actions}><ActionButton to={quote.status === "accepted" ? "/app/deals" : backToChat}>{quote.status === "accepted" ? "Go to deals" : "Back to the negotiation"}</ActionButton></div>
+            <div className={f.actions}><ActionButton to={quote.status === "accepted" ? "/app/deals" : backToChat}>{quote.status === "accepted" ? "Go to deals" : backLabel}</ActionButton></div>
           </>
         )}
       </aside>

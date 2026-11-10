@@ -4,7 +4,7 @@ import { detectInjection, getAgentAdapter, redactPersonalData, type AgentStep, t
 import { db, schema } from "../db";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, negotiationKey, publicId, sha256 } from "../lib/ids";
-import { openJson, openText, sealJson, sealText } from "../lib/vault";
+import { openJsonOr, openTextOr, sealJson, sealText } from "../lib/vault";
 import { timingSafeEqual } from "node:crypto";
 import { evaluationContext, loadProductById, loadProductBySlugs, publicProduct, unitPriceUsd, type LoadedProduct } from "./catalog";
 import { features } from "../env";
@@ -75,7 +75,7 @@ export async function loadNegotiation(negId: string) {
   const [neg] = await db.select().from(schema.negotiations).where(eq(schema.negotiations.id, negId));
   if (!neg) throw new HttpError(404, "negotiation not found");
   const sealed = await db.select().from(schema.turns).where(eq(schema.turns.negotiationId, negId)).orderBy(asc(schema.turns.seq));
-  const turnRows = await Promise.all(sealed.map(async (t) => ({ ...t, content: await openText(neg.orgId, t.content) })));
+  const turnRows = await Promise.all(sealed.map(async (t) => ({ ...t, content: await openTextOr(neg.orgId, t.content) })));
   const lp = await loadProductById(neg.productId);
   return { neg, turnRows, lp };
 }
@@ -302,8 +302,8 @@ export async function sellerNegotiationView(orgId: string, negId: string) {
   const candidates = (neg.candidates as Record<string, unknown>[]).map(reviveCandidate);
   const decisionRows = await db.select().from(schema.decisions).where(eq(schema.decisions.negotiationId, negId)).orderBy(asc(schema.decisions.createdAt));
   const runRows = await db.select().from(schema.agentRuns).where(eq(schema.agentRuns.negotiationId, negId)).orderBy(asc(schema.agentRuns.createdAt));
-  const decisions = await Promise.all(decisionRows.map(async (d) => ({ ...d, privateBasis: await openJson(orgId, d.privateBasis) })));
-  const agentRuns = await Promise.all(runRows.map(async (r) => ({ ...r, steps: await openJson(orgId, r.steps) })));
+  const decisions = await Promise.all(decisionRows.map(async (d) => ({ ...d, privateBasis: await openJsonOr(orgId, d.privateBasis, {}) })));
+  const agentRuns = await Promise.all(runRows.map(async (r) => ({ ...r, steps: await openJsonOr(orgId, r.steps, []) })));
   const quoteRows = await db.select().from(schema.quotes).where(eq(schema.quotes.negotiationId, negId)).orderBy(desc(schema.quotes.createdAt));
   return { ...view, candidates, decisions, agentRuns, quotes: quoteRows.map((q) => ({ id: q.id, status: q.status, candidateId: q.candidateId, expiresAt: q.expiresAt, createdAt: q.createdAt })) };
 }

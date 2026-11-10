@@ -1,6 +1,6 @@
 # 03 · WhatsApp channel with privacy by default
 
-Status: plan, not built. 2026-11-10. Prism PLAN run (6 lenses: data-flow, WhatsApp platform, security, regulatory, adversary, practitioner).
+Status (2026-11-11): Phases 0, 1a and 2 built on branch feat/whatsapp-channel and tested locally against a fake Graph API (server/scripts/whatsapp-e2e.ts, 30 checks). Not deployed; no real Meta app yet. Seller cost/policy encryption (1b) deferred. Planned 2026-11-10. Prism PLAN run (6 lenses: data-flow, WhatsApp platform, security, regulatory, adversary, practitioner).
 
 ## 1. Recommendation
 

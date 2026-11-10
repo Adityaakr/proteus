@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { timingSafeEqual } from "node:crypto";
 import { env } from "../env";
 import { handleWebhook, resolveLink, verifySignature } from "../services/whatsapp";
@@ -18,10 +19,10 @@ channelRoutes.get("/channels/whatsapp/webhook", (c) => {
  * Message webhook. The signature is checked over the raw body before anything is parsed. Meta expects a fast 200 and
  * retries otherwise, so verified bodies are acknowledged at once and handled after the response.
  */
-channelRoutes.post("/channels/whatsapp/webhook", async (c) => {
+channelRoutes.post("/channels/whatsapp/webhook", bodyLimit({ maxSize: 1024 * 1024, onError: (c) => c.text("too large", 413) }), async (c) => {
   if (!env.WHATSAPP_APP_SECRET) return c.text("not configured", 404);
   const raw = await c.req.text();
-  if (raw.length > 3_000_000 || !verifySignature(raw, c.req.header("x-hub-signature-256"), env.WHATSAPP_APP_SECRET)) return c.text("bad signature", 401);
+  if (!verifySignature(raw, c.req.header("x-hub-signature-256"), env.WHATSAPP_APP_SECRET)) return c.text("bad signature", 401);
   let body: unknown;
   try {
     body = JSON.parse(raw);

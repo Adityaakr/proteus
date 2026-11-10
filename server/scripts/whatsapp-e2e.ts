@@ -31,7 +31,11 @@ const graph = createServer((req, res) => {
   let b = "";
   req.on("data", (d) => (b += d));
   req.on("end", () => {
-    if (req.method === "POST" && req.url === `/v27.0/${PHONE_ID}/messages`) {
+    if (req.method === "GET" && req.url?.startsWith(`/v27.0/${PHONE_ID}?`)) {
+      // Meta's phone number lookup: only the real token is accepted.
+      const okToken = req.headers.authorization === "Bearer EAAG-e2e-fake-token-not-real-000000";
+      res.writeHead(okToken ? 200 : 401, { "content-type": "application/json" }).end(JSON.stringify(okToken ? { id: PHONE_ID, display_phone_number: "+91 90000 00001" } : { error: { code: 190 } }));
+    } else if (req.method === "POST" && req.url === `/v27.0/${PHONE_ID}/messages`) {
       sent.push({ auth: req.headers.authorization, ...JSON.parse(b) });
       res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ messaging_product: "whatsapp", messages: [{ id: "wamid.out" }] }));
     } else res.writeHead(404).end();
@@ -68,7 +72,15 @@ if (!org) throw new Error(`no seller ${seller}`);
 const created = { negs: [] as string[] };
 
 try {
+  let refused = false;
+  try {
+    await connectAccount(org.id, { phoneNumberId: PHONE_ID, accessToken: "EAAG-someone-elses-guess-0000000000" });
+  } catch {
+    refused = true;
+  }
+  check(refused, "connecting with a token Meta rejects is refused");
   await connectAccount(org.id, { phoneNumberId: PHONE_ID, accessToken: "EAAG-e2e-fake-token-not-real-000000" });
+  check((await fetch(`${API}/channels/whatsapp/webhook`, { method: "POST", headers: { "content-type": "application/json" }, body: "x".repeat(2 * 1024 * 1024) })).status === 413, "an oversized webhook body is refused before reading");
 
   // Meta subscription handshake
   const ok = await fetch(`${API}/channels/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=${VERIFY}&hub.challenge=4242`);
@@ -129,6 +141,8 @@ try {
   await say("hello, anyone there?");
   await sleep(2000);
   check(sent.length === n, "the agent stays quiet while the team has the chat");
+  const kept = await db.select().from(schema.turns).where(eq(schema.turns.negotiationId, sess!.negotiationId!));
+  check(kept.length > turns.length, "the buyer's message is kept for the team while the agent is paused");
   await sellerReply(org.id, sess!.negotiationId!, "Hi, this is the team. We can do this.");
   check(sent.at(-1)?.text?.body === "Hi, this is the team. We can do this.", "the team's reply is delivered");
   n = sent.length;

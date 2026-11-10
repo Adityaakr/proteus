@@ -144,7 +144,8 @@ export async function handleWebhook(body: unknown): Promise<void> {
       if (!fresh) continue;
       await handleMessage(m);
     } catch (e) {
-      console.error("[whatsapp] message failed:", (e as Error).message.slice(0, 200));
+      // Name and status only: messages from routing or the model can echo buyer text.
+      console.error(`[whatsapp] message failed: ${(e as Error).name}${e instanceof HttpError ? ` ${e.status}` : ""}`);
     }
   }
 }
@@ -155,10 +156,14 @@ async function handleMessage(m: InboundMessage) {
   const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.id, account.orgId));
   if (!org) return;
   const sender = senderHash(m.userKey);
-  try {
-    limit(`wa:${account.orgId}:${sender}`, 30);
-  } catch {
-    return; // over the per-buyer limit: stay silent rather than spend the seller's messages
+  const text = (m.text ?? "").trim();
+  // STOP and START always go through, even for a buyer over the limit: an opt-out must never be lost.
+  if (!STOP.test(text) && !START.test(text)) {
+    try {
+      limit(`wa:${account.orgId}:${sender}`, 30);
+    } catch {
+      return; // over the per-buyer limit: stay silent rather than spend the seller's messages
+    }
   }
   const contactEnc = await sealText(org.id, JSON.stringify(m.contact));
   let [s] = await db.select().from(schema.whatsappSessions).where(and(eq(schema.whatsappSessions.orgId, org.id), eq(schema.whatsappSessions.senderHash, sender)));
@@ -170,7 +175,6 @@ async function handleMessage(m: InboundMessage) {
   }
   if (!s) return;
   const reply = (o: Outbound) => send(account, m.contact, o);
-  const text = (m.text ?? "").trim();
 
   if (STOP.test(text)) {
     await db.update(schema.whatsappSessions).set({ optedOutAt: new Date() }).where(eq(schema.whatsappSessions.id, s.id));
@@ -201,16 +205,34 @@ async function handleMessage(m: InboundMessage) {
     await logEvent(org.id, sender, "resume");
     return reply({ kind: "text", body: "I am back. Tell me what you need, how many and by when." });
   }
-  if (s.humanUntil && s.humanUntil.getTime() > Date.now()) return; // the seller's team has this conversation
+  if (s.humanUntil && s.humanUntil.getTime() > Date.now()) {
+    // The seller's team has this conversation: keep the buyer's message on the negotiation so the team sees it.
+    if (s.negotiationId && text) {
+      const [last] = await db.select({ seq: schema.turns.seq }).from(schema.turns).where(eq(schema.turns.negotiationId, s.negotiationId)).orderBy(desc(schema.turns.seq)).limit(1);
+      await db.insert(schema.turns).values({ id: id("turn"), negotiationId: s.negotiationId, seq: (last?.seq ?? 0) + 1, role: "buyer", kind: "message", content: await sealText(org.id, text) });
+      await db.update(schema.negotiations).set({ updatedAt: new Date() }).where(eq(schema.negotiations.id, s.negotiationId));
+    }
+    return;
+  }
 
   if (m.kind === "button" && m.buttonId?.startsWith("q:") && s.negotiationId) return acceptOffer(org, s, sender, m.buttonId.slice(2), reply);
   if (m.kind !== "text" || !text) return reply({ kind: "text", body: "I can read text messages here. Tell me what you need, how many and by when, and your budget." });
 
-  // Pick the product from what the buyer says; continue the current negotiation unless they clearly switch.
+  // Every agent turn is a model call: cap them per seller as well as per buyer, so many numbers cannot run up the bill.
+  try {
+    limit(`wa-org:${org.id}`, 600, 60 * 60 * 1000);
+  } catch {
+    return reply({ kind: "text", body: `${org.name}'s agent is very busy right now. Please try again in a little while, or reply HUMAN to reach the team.` });
+  }
+
+  // Pick the product from what the buyer says; continue the current negotiation unless they clearly switch,
+  // or it has already ended (accepted or closed), in which case a new one starts.
   const route = await routeToProduct(org.slug, text, s.productSlug ?? undefined);
   let negId = s.negotiationId;
-  if (!negId || route.switched) {
-    const started = await startNegotiation(org.slug, route.productSlug, undefined, negId ? "continue" : "open");
+  const [current] = negId ? await db.select({ status: schema.negotiations.status }).from(schema.negotiations).where(eq(schema.negotiations.id, negId)) : [];
+  const ended = !current || current.status === "accepted" || current.status === "closed";
+  if (!negId || route.switched || ended) {
+    const started = await startNegotiation(org.slug, route.productSlug, undefined, negId && !ended ? "continue" : "open");
     negId = started.id;
     await db.update(schema.whatsappSessions).set({ negotiationId: negId, productSlug: route.productSlug }).where(eq(schema.whatsappSessions.id, s.id));
   }
@@ -265,7 +287,7 @@ export async function resolveLink(token: string): Promise<string | null> {
 /** After the seller approves a quote that started in WhatsApp, send that buyer the link. Best effort. */
 export async function notifyApproved(negotiationId: string, quoteId: string) {
   const [s] = await db.select().from(schema.whatsappSessions).where(eq(schema.whatsappSessions.negotiationId, negotiationId));
-  if (!s || s.optedOutAt) return;
+  if (!s || s.optedOutAt || Date.now() - s.lastInboundAt.getTime() >= 24 * 3600 * 1000) return; // outside WhatsApp's reply window
   const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.id, s.orgId));
   if (org) await sendOfferLink(org, s.contactEnc, s.senderHash, quoteId);
 }
@@ -280,13 +302,28 @@ export async function connectAccount(orgId: string, input: { phoneNumberId: stri
   if (input.accessToken.length < 20 || input.accessToken.length > 1000) throw new HttpError(400, "accessToken looks wrong");
   const [taken] = await db.select().from(schema.whatsappAccounts).where(eq(schema.whatsappAccounts.phoneNumberId, input.phoneNumberId));
   if (taken && taken.orgId !== orgId) throw new HttpError(409, "this WhatsApp number is connected to another seller");
+  // Prove the seller controls this number: Meta must accept the token for this phone number id.
+  // Without this, anyone who knows a number's id (it is not secret) could route that seller's buyers to themselves.
+  const owned = await graphPhone(input.phoneNumberId, input.accessToken);
   const tokenEnc = await sealText(orgId, input.accessToken);
-  const displayPhone = input.displayPhone?.replace(/[^\d+ ]/g, "").slice(0, 24) || null;
+  const displayPhone = owned.displayPhone ?? (input.displayPhone?.replace(/[^\d+ ]/g, "").slice(0, 24) || null);
   await db
     .insert(schema.whatsappAccounts)
     .values({ orgId, phoneNumberId: input.phoneNumberId, tokenEnc, displayPhone, active: true })
     .onConflictDoUpdate({ target: schema.whatsappAccounts.orgId, set: { phoneNumberId: input.phoneNumberId, tokenEnc, displayPhone, active: true, updatedAt: new Date() } });
   return accountView(orgId);
+}
+
+async function graphPhone(phoneNumberId: string, token: string): Promise<{ displayPhone: string | null }> {
+  let res: Response;
+  try {
+    res = await fetch(`${env.WHATSAPP_GRAPH_URL}/${encodeURIComponent(phoneNumberId)}?fields=id,display_phone_number`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(10_000) });
+  } catch {
+    throw new HttpError(502, "Could not reach WhatsApp to check this number. Try again in a moment.");
+  }
+  const body = (await res.json().catch(() => ({}))) as { id?: string; display_phone_number?: string };
+  if (!res.ok || body.id !== phoneNumberId) throw new HttpError(400, "WhatsApp did not accept this access token for this phone number ID. Check both in Meta's WhatsApp Manager.");
+  return { displayPhone: body.display_phone_number?.replace(/[^\d+ ]/g, "").slice(0, 24) || null };
 }
 
 export async function disconnectAccount(orgId: string) {

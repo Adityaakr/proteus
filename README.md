@@ -481,7 +481,8 @@ All routes are under `/api`. Amounts are micro-USDC strings. Full detail in [`do
 | Area | Routes |
 |---|---|
 | Discover | `GET /market`, `GET /market/sellers`, `GET /public/sellers/:s` (listed products only), `POST /public/sellers/:s/route { message, current? }` (store deal desk), `GET /public/sellers/:s/products/:p`, plus `skill.md` and `openapi.json` beneath each product, `GET /public/agents/skill.md` |
-| Negotiate | `POST /negotiations`, `GET /negotiations/:id`, `POST /negotiations/:id/messages`, `POST /negotiations/:id/counter`, `POST /negotiations/:id/quotes` |
+| Negotiate | `POST /negotiations` (returns `buyerKey` once), then with `X-Negotiation-Key: <buyerKey>`: `GET /negotiations/:id`, `POST /negotiations/:id/messages`, `POST /negotiations/:id/counter` (12 per negotiation and 40 per IP per 10 minutes), `POST /negotiations/:id/quotes` |
+| WhatsApp | `GET/POST /channels/whatsapp/webhook` (Meta-signed), `GET /w/:token` (30-minute offer link); seller: `GET/PUT/DELETE /app/whatsapp`, `POST /app/negotiations/:id/whatsapp/reply` |
 | Sign | `GET /quotes/:id?buyer=0x…` (typed data), `POST /quotes/:id/accept { buyerAddress, buyerSignature }` |
 | Fund and use | `GET /deals/:id` (the deal id is an unguessable capability; the API key is returned once, when provisioned), `POST /deals/:id/funding-intent { txHash? }`, gasless: `GET /deals/:id/permit` then `POST /deals/:id/fund-gasless { deadline, signature }`, `POST /services/:product/execute` (Bearer key), `POST /deals/:id/service/rotate-key` |
 | Settle | `GET /deals/:id/usage`, `POST /deals/:id/usage-acknowledgments`, `POST /deals/:id/refund-request` |

@@ -41,7 +41,8 @@ export async function sealText(orgId: string, plain: string): Promise<string> {
 export async function openText(orgId: string, stored: string): Promise<string> {
   if (!stored.startsWith(PREFIX)) return stored;
   const raw = Buffer.from(stored.slice(PREFIX.length), "base64url");
-  const d = createDecipheriv("aes-256-gcm", await dataKey(orgId), raw.subarray(0, 12));
+  if (raw.length < 28) throw new Error("sealed value too short");
+  const d = createDecipheriv("aes-256-gcm", await dataKey(orgId), raw.subarray(0, 12), { authTagLength: 16 });
   d.setAAD(Buffer.from(orgId));
   d.setAuthTag(raw.subarray(12, 28));
   return Buffer.concat([d.update(raw.subarray(28)), d.final()]).toString("utf8");
@@ -56,3 +57,25 @@ export async function openJson<T = unknown>(orgId: string, stored: unknown): Pro
   if (stored && typeof stored === "object" && typeof (stored as { $sealed?: unknown }).$sealed === "string") return JSON.parse(await openText(orgId, (stored as { $sealed: string }).$sealed)) as T;
   return stored as T;
 }
+
+/** What a value that cannot be opened shows as, so one damaged row never takes a whole page down. */
+export const UNREADABLE = "[This message could not be decrypted]";
+
+export async function openTextOr(orgId: string, stored: string, fallback = UNREADABLE): Promise<string> {
+  try {
+    return await openText(orgId, stored);
+  } catch (e) {
+    console.error(`[vault] could not open a sealed value for org ${orgId}: ${(e as Error).name}`);
+    return fallback;
+  }
+}
+
+export async function openJsonOr<T>(orgId: string, stored: unknown, fallback: T): Promise<T> {
+  try {
+    return await openJson<T>(orgId, stored);
+  } catch (e) {
+    console.error(`[vault] could not open a sealed value for org ${orgId}: ${(e as Error).name}`);
+    return fallback;
+  }
+}
+

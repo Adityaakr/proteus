@@ -149,6 +149,11 @@ const negotiationKeys = {
 };
 const memoryKeys = new Map<string, string>();
 
+/** Whether this browser holds the key for a negotiation (it started here). Chats started in an embed or on WhatsApp do not. */
+export function hasNegotiationKey(id: string): boolean {
+  return Boolean(negotiationKeys.header(id));
+}
+
 export interface WhatsAppAccount {
   platformReady: boolean;
   webhookUrl: string;

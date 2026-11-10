@@ -115,9 +115,10 @@ publicRoutes.post("/negotiations/:id/messages", async (c) => {
 publicRoutes.post("/negotiations/:id/counter", async (c) => {
   // Counters are evaluated by deterministic rules, so unlimited tries would let a buyer search for the seller's floor.
   // Cap per negotiation (holds whatever the client IP is) and per visitor.
-  limit(`neg-counter:${c.req.param("id")}`, 12);
   limit(`neg-counter-ip:${clientIp((n) => c.req.header(n))}`, 40);
   await negotiationAccess(c);
+  // After the access check, so someone without the key cannot use up the buyer's counters.
+  limit(`neg-counter:${c.req.param("id")}`, 12);
   const body = CounterBody.parse(await c.req.json());
   if (!body.targetTotal && !body.targetUnits) throw new HttpError(400, "targetTotal or targetUnits required");
   return json(c, await counter(c.req.param("id"), body.candidateId, { targetTotal: body.targetTotal ? toBig(body.targetTotal) : undefined, targetUnits: body.targetUnits ? toBig(body.targetUnits) : undefined }));

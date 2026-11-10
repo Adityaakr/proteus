@@ -39,7 +39,7 @@ const tools = await strict.listTools();
 step("tools", tools.tools.map((t) => t.name));
 const market = await call<unknown[]>(strict, "proteus_list_services", {});
 step("market listings", Array.isArray(market) ? market.length : market);
-const neg = await call<{ negotiationId: string; reply: string; offers: { candidateId: string; tier: string; units: string; prepaid: string; status: string; withinMandate: boolean }[] }>(strict, "proteus_negotiate", {
+const neg = await call<{ negotiationId: string; negotiationKey: string | null; reply: string; offers: { candidateId: string; tier: string; units: string; prepaid: string; status: string; withinMandate: boolean }[] }>(strict, "proteus_negotiate", {
   seller: SELLER,
   product: PRODUCT,
   message: "We are a small clinic. We want a trial of the smallest possible package, about 20 bookings, budget $5. What can you do?",
@@ -58,7 +58,7 @@ await strict.close();
 
 // Now a mandate that covers the trial.
 const agent = await connect(String(Number(pick.prepaid.replace(/[$,]/g, "")) + 0.01));
-const accepted = await call<{ dealId: string; prepaid: string; verification: unknown }>(agent, "proteus_accept_offer", { negotiationId: neg.negotiationId, candidateId: pick.candidateId });
+const accepted = await call<{ dealId: string; prepaid: string; verification: unknown }>(agent, "proteus_accept_offer", { negotiationId: neg.negotiationId, negotiationKey: neg.negotiationKey ?? undefined, candidateId: pick.candidateId });
 step("accepted within mandate", accepted);
 const funded = await call<{ dealId: string; status: string; approveTx: string; fundTx: string; serviceKey: string }>(agent, "proteus_fund_deal", { dealId: accepted.dealId });
 step("funded (gasless: the agent wallet sent no transaction)", funded);

@@ -76,3 +76,8 @@
   - Vault (server/src/lib/vault.ts): per-org random AES-256 key wrapped by crypto.ts master in orgs.data_key_enc; AAD = orgId; text "pv2:" prefix, jsonb { $sealed }. Sealed: turns.content, service_requests.input (gateway), decisions.privateBasis, agent_runs.steps. Plaintext legacy values pass through.
   - Invariant: rotating SESSION_SECRET/KEY_ENCRYPTION_SECRET without re-wrapping orgs.data_key_enc makes every sealed chat unreadable (same as signer keys).
   - LLM input passes through redactPersonalData (agent/adapter.ts): emails, 10–19 digit numbers; not names or street addresses.
+- 2026-11-11 WhatsApp channel built (feat/whatsapp-channel): services/whatsapp.ts, routes/channels.ts (webhook under /api, bodyLimit 1 MB, HMAC over raw body), tables whatsapp_accounts/sessions/events/inbound/links. Buyers keyed by HMAC(BSUID ?? wa_id); reply ids sealed. Connect verifies token via GET {graph}/{phoneNumberId}. Sandbox org may not connect. Limits: 30/buyer/10min (STOP/START exempt), 600 agent turns/seller/hour. Feature on only when WHATSAPP_APP_SECRET + WHATSAPP_VERIFY_TOKEN set.
+  - Lesson: a script that imports services runs them with ITS OWN env; the e2e once sent a fake-token request to real graph.facebook.com. Scripts that can reach external APIs must assert their base URL first.
+  - Invariant: sealed values are opened with openTextOr/openJsonOr in views so one bad row never 500s a page.
+  - Retention purges a negotiation only if every deal on it is closed (or never funded) past the cutoff (multiple deals per negotiation are possible).
+  - Open: senderHash and data keys both derive from KEY_ENCRYPTION_SECRET ?? SESSION_SECRET; rotating either orphans WhatsApp sessions and sealed data. No rotation tooling yet.

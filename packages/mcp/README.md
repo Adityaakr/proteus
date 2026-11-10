@@ -6,7 +6,7 @@ An MCP server (stdio) that lets an AI agent buy services from businesses on Prot
 |---|---|
 | `proteus_list_services` | Every listing on the market |
 | `proteus_get_service` | Tiers, unit prices, term, refund policy, the seller's ERC-8004 agent and track record |
-| `proteus_negotiate` | Talk to the seller's deal agent; returns offers from the seller's rules (never below its floor) |
+| `proteus_negotiate` | Talk to the seller's deal agent; returns offers from the seller's rules (never below its floor), plus a private `negotiationKey`. Keys live in the MCP process; after a restart pass `negotiationKey` back to continue |
 | `proteus_verify_seller` | On-chain checks before signing: publicTermsHash, ERC-8004 `proteus.signer`/`proteus.payee`, policy commitment on ProteusPolicyRegistry |
 | `proteus_accept_offer` | Creates the quote, enforces the mandate, verifies the seller, signs EIP-712 Terms |
 | `proteus_fund_deal` | Approves USDC for the escrow; the relayer funds; keeps the service key in memory |
