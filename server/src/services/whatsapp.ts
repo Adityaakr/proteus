@@ -119,7 +119,10 @@ async function send(account: typeof schema.whatsappAccounts.$inferSelect, to: { 
     signal: AbortSignal.timeout(10_000),
   });
   // Only the status goes to the log: Graph error bodies can echo the recipient.
-  if (!res.ok) console.error(`[whatsapp] send failed for org ${account.orgId}: HTTP ${res.status}`);
+  if (!res.ok) {
+    console.error(`[whatsapp] send failed for org ${account.orgId}: HTTP ${res.status}`);
+    throw new HttpError(502, res.status === 401 || res.status === 403 ? "WhatsApp refused the access token. Reconnect your number in Settings with a valid token." : `WhatsApp did not accept the message (HTTP ${res.status}).`);
+  }
 }
 
 /* ---------------------------------------------------------------- conversation */
