@@ -1,9 +1,11 @@
 import { and, asc, desc, eq, ne } from "drizzle-orm";
 import { evaluateCounteroffer, formatUsd, getQuoteCandidates, toPublicCandidate, type Candidate, type PublicCandidate, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
-import { detectInjection, getAgentAdapter, type AgentStep, type ConversationTurn } from "../agent";
+import { detectInjection, getAgentAdapter, redactPersonalData, type AgentStep, type ConversationTurn } from "../agent";
 import { db, schema } from "../db";
 import { HttpError, bigintsToStrings } from "../lib/http";
-import { id, publicId } from "../lib/ids";
+import { id, negotiationKey, publicId, sha256 } from "../lib/ids";
+import { openJson, openText, sealJson, sealText } from "../lib/vault";
+import { timingSafeEqual } from "node:crypto";
 import { evaluationContext, loadProductById, loadProductBySlugs, publicProduct, unitPriceUsd, type LoadedProduct } from "./catalog";
 import { features } from "../env";
 
@@ -72,7 +74,8 @@ export function toOffer(c: Candidate) {
 export async function loadNegotiation(negId: string) {
   const [neg] = await db.select().from(schema.negotiations).where(eq(schema.negotiations.id, negId));
   if (!neg) throw new HttpError(404, "negotiation not found");
-  const turnRows = await db.select().from(schema.turns).where(eq(schema.turns.negotiationId, negId)).orderBy(asc(schema.turns.seq));
+  const sealed = await db.select().from(schema.turns).where(eq(schema.turns.negotiationId, negId)).orderBy(asc(schema.turns.seq));
+  const turnRows = await Promise.all(sealed.map(async (t) => ({ ...t, content: await openText(neg.orgId, t.content) })));
   const lp = await loadProductById(neg.productId);
   return { neg, turnRows, lp };
 }
@@ -137,17 +140,36 @@ export async function startNegotiation(sellerSlug: string, productSlug: string, 
   const lp = await loadProductBySlugs(sellerSlug, productSlug);
   const lines = store === "open" ? await storeLines(lp) : [];
   const negId = id("neg");
+  const access = negotiationKey();
   const requirements: Requirements = { integrations: [], notes: [], openQuestions: [] };
-  await db.insert(schema.negotiations).values({ id: negId, publicId: publicId("n"), orgId: lp.org.id, productId: lp.row.id, buyerAddress, requirements: bigintsToStrings(requirements), candidates: [], activity: [] });
+  await db.insert(schema.negotiations).values({ id: negId, publicId: publicId("n"), orgId: lp.org.id, productId: lp.row.id, buyerAddress, buyerKeyHash: access.hash, requirements: bigintsToStrings(requirements), candidates: [], activity: [] });
   await db.insert(schema.turns).values({
     id: id("turn"),
     negotiationId: negId,
     seq: 1,
     role: "agent",
     kind: "message",
-    content: greeting(lp, store, lines),
+    content: await sealText(lp.org.id, greeting(lp, store, lines)),
   });
-  return negotiationView(negId);
+  // The key is returned only here. Every later read or write of this negotiation presents it (X-Negotiation-Key),
+  // so a forwarded or leaked negotiation id alone does not expose the buyer's conversation.
+  return { ...(await negotiationView(negId)), buyerKey: access.key };
+}
+
+/**
+ * A negotiation is readable and writable by whoever holds its key, or by a signed-in user who owns the buyer wallet.
+ * Negotiations started before keys existed (null hash) stay open by id, as they were.
+ */
+export async function assertNegotiationAccess(negId: string, key: string | undefined, ownsBuyer: (address: string) => Promise<boolean>) {
+  const [n] = await db.select({ hash: schema.negotiations.buyerKeyHash, buyer: schema.negotiations.buyerAddress }).from(schema.negotiations).where(eq(schema.negotiations.id, negId));
+  if (!n) throw new HttpError(404, "negotiation not found");
+  if (!n.hash) return;
+  if (key) {
+    const a = Buffer.from(sha256(key)), b = Buffer.from(n.hash);
+    if (a.length === b.length && timingSafeEqual(a, b)) return;
+  }
+  if (n.buyer && (await ownsBuyer(n.buyer))) return;
+  throw new HttpError(403, "This negotiation needs its key: send the buyerKey returned when it started in the X-Negotiation-Key header.", { code: "negotiation_key_required" });
 }
 
 /* ------------------------------------------------------------------ */
@@ -159,10 +181,11 @@ export async function addBuyerMessage(negId: string, content: string) {
   if (neg.status === "accepted" || neg.status === "closed") throw new HttpError(409, "negotiation is closed");
   const started = Date.now();
   const seq = (turnRows.at(-1)?.seq ?? 0) + 1;
-  await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", content });
+  await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", content: await sealText(lp.org.id, content) });
 
   const adapter = getAgentAdapter();
-  const convo: ConversationTurn[] = [...turnRows.map((t) => ({ role: t.role as ConversationTurn["role"], content: t.content })), { role: "buyer", content }];
+  // The model provider gets the conversation without contact details (emails, phone and card numbers).
+  const convo: ConversationTurn[] = [...turnRows.map((t) => ({ role: t.role as ConversationTurn["role"], content: redactPersonalData(t.content) })), { role: "buyer", content: redactPersonalData(content) }];
   const injection = detectInjection(content);
   const steps: AgentStep[] = [];
   const activity: { at: string; label: string; state: "done" | "working" }[] = [];
@@ -188,7 +211,7 @@ export async function addBuyerMessage(negId: string, content: string) {
     kind: injection ? "injection_blocked" : "candidates",
     ruleIds: Array.from(new Set(candidates.flatMap((c) => c.rules))),
     summary: injection ? "Buyer text attempted to override policy; evaluated normally against server-side policy." : `Generated ${offers.length} offer(s), rejected ${rejected.length}.`,
-    privateBasis: bigintsToStrings({ requirements: ext.requirements, candidates, policyVersion: lp.policy.version, costVersion: lp.cost.version }),
+    privateBasis: await sealJson(lp.org.id, bigintsToStrings({ requirements: ext.requirements, candidates, policyVersion: lp.policy.version, costVersion: lp.cost.version })),
     publicExplanation: offers.length ? "Options priced within the seller's policy." : rejected[0]?.rules.length ? (toPublicCandidate(rejected[0]).publicReasons[0] ?? "No option cleared policy.") : "Waiting for more detail.",
   });
 
@@ -197,8 +220,8 @@ export async function addBuyerMessage(negId: string, content: string) {
   steps.push(...composed.steps);
   activity.push({ at: iso(), label: offers.length ? "Prepared offers" : "Prepared a reply", state: "done" });
 
-  await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq: seq + 1, role: "agent", kind: offers.length ? "offers" : "message", content: composed.reply, payload: offers.length ? bigintsToStrings({ offers: offers.map(toOffer) }) : null });
-  await db.insert(schema.agentRuns).values({ id: id("run"), orgId: lp.org.id, negotiationId: negId, adapter: adapter.name, steps, durationMs: Date.now() - started });
+  await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq: seq + 1, role: "agent", kind: offers.length ? "offers" : "message", content: await sealText(lp.org.id, composed.reply), payload: offers.length ? bigintsToStrings({ offers: offers.map(toOffer) }) : null });
+  await db.insert(schema.agentRuns).values({ id: id("run"), orgId: lp.org.id, negotiationId: negId, adapter: adapter.name, steps: await sealJson(lp.org.id, steps), durationMs: Date.now() - started });
   await db
     .update(schema.negotiations)
     .set({ requirements: bigintsToStrings(ext.requirements), candidates: bigintsToStrings(candidates), activity, status: offers.length ? "quoted" : "open", updatedAt: new Date() })
@@ -223,7 +246,7 @@ export async function counter(negId: string, candidateId: string, ask: { targetT
   const seq = (turnRows.at(-1)?.seq ?? 0) + 1;
 
   const askText = ask.targetTotal !== undefined ? `${base.units.toLocaleString()} ${unitFor(base.units, lp.product.unitLabel)} for ${formatUsd(ask.targetTotal)}` : `${ask.targetUnits?.toLocaleString()} ${pluralUnit(lp.product.unitLabel)} for ${formatUsd(base.prepaidTotal)}`;
-  await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", kind: "message", content: `Counteroffer: ${askText}.` });
+  await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", kind: "message", content: await sealText(lp.org.id, `Counteroffer: ${askText}.`) });
 
   let reply: string;
   const next = [...candidates];
@@ -252,7 +275,7 @@ export async function counter(negId: string, candidateId: string, ask: { targetT
     ruleIds: d.candidate.rules,
     candidateId: d.candidate.candidateId,
     summary: `Counter ${askText}: ${d.decision}`,
-    privateBasis: bigintsToStrings({ ask, evaluated: d.candidate, alternative: d.decision === "rejected" ? d.alternative : undefined, policyVersion: lp.policy.version, costVersion: lp.cost.version }),
+    privateBasis: await sealJson(lp.org.id, bigintsToStrings({ ask, evaluated: d.candidate, alternative: d.decision === "rejected" ? d.alternative : undefined, policyVersion: lp.policy.version, costVersion: lp.cost.version })),
     publicExplanation: pub.publicReasons[0] ?? "Within policy.",
   });
   await db.insert(schema.turns).values({
@@ -261,7 +284,7 @@ export async function counter(negId: string, candidateId: string, ask: { targetT
     seq: seq + 1,
     role: "agent",
     kind: "decision",
-    content: reply,
+    content: await sealText(lp.org.id, reply),
     payload: bigintsToStrings({ decision: { decision: d.decision, reasons: pub.publicReasons, candidate: toOffer(d.candidate), alternative: d.decision === "rejected" && d.alternative ? toOffer(d.alternative) : undefined } }),
   });
   await db.update(schema.negotiations).set({ candidates: bigintsToStrings(next), updatedAt: new Date() }).where(eq(schema.negotiations.id, negId));
@@ -277,8 +300,10 @@ export async function sellerNegotiationView(orgId: string, negId: string) {
   const [neg] = await db.select().from(schema.negotiations).where(eq(schema.negotiations.id, negId));
   if (!neg || neg.orgId !== orgId) throw new HttpError(404, "negotiation not found");
   const candidates = (neg.candidates as Record<string, unknown>[]).map(reviveCandidate);
-  const decisions = await db.select().from(schema.decisions).where(eq(schema.decisions.negotiationId, negId)).orderBy(asc(schema.decisions.createdAt));
-  const agentRuns = await db.select().from(schema.agentRuns).where(eq(schema.agentRuns.negotiationId, negId)).orderBy(asc(schema.agentRuns.createdAt));
+  const decisionRows = await db.select().from(schema.decisions).where(eq(schema.decisions.negotiationId, negId)).orderBy(asc(schema.decisions.createdAt));
+  const runRows = await db.select().from(schema.agentRuns).where(eq(schema.agentRuns.negotiationId, negId)).orderBy(asc(schema.agentRuns.createdAt));
+  const decisions = await Promise.all(decisionRows.map(async (d) => ({ ...d, privateBasis: await openJson(orgId, d.privateBasis) })));
+  const agentRuns = await Promise.all(runRows.map(async (r) => ({ ...r, steps: await openJson(orgId, r.steps) })));
   const quoteRows = await db.select().from(schema.quotes).where(eq(schema.quotes.negotiationId, negId)).orderBy(desc(schema.quotes.createdAt));
   return { ...view, candidates, decisions, agentRuns, quotes: quoteRows.map((q) => ({ id: q.id, status: q.status, candidateId: q.candidateId, expiresAt: q.expiresAt, createdAt: q.createdAt })) };
 }

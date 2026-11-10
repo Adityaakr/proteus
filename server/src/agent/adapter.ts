@@ -64,3 +64,20 @@ export function stripEconomics(c: Candidate): PublicCandidate {
   const { economics: _e, rules, ...rest } = c;
   return { ...rest, publicReasons: [] } as PublicCandidate & { rules?: never };
 }
+
+/**
+ * Removes contact details before buyer text is sent to a model provider: email addresses and phone or card numbers
+ * (10 to 19 digits, optionally grouped with spaces, dashes, dots or brackets, optionally starting with +).
+ * Quantities, prices, dates and ranges like "2000 - 3000" are left alone. The stored transcript keeps the original
+ * for the seller; only the copy sent to the model is redacted. Street addresses and names are not detected.
+ */
+export function redactPersonalData(text: string): string {
+  return text
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email removed]")
+    .replace(/(?<![\w$₹€£.,/])\+?\(?\d[\d\s().-]{8,24}\d(?![\w.,]?\d)/g, (m) => {
+      const digits = m.replace(/\D/g, "").length;
+      if (digits < 10 || digits > 19) return m;
+      if (/\s[-–]\s/.test(m)) return m; // a range, not one number
+      return "[number removed]";
+    });
+}

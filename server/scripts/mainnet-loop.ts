@@ -28,13 +28,19 @@ const erc20 = parseAbi(["function approve(address,uint256) returns (bool)", "fun
 async function api<T>(path: string, init: RequestInit & { seller?: boolean } = {}): Promise<T> {
   const headers: Record<string, string> = { "content-type": "application/json", ...((init.headers as Record<string, string>) ?? {}) };
   if (init.seller && SELLER_COOKIE.jar) headers.cookie = SELLER_COOKIE.jar;
+  const negId = /^\/api\/negotiations\/([^/]+)/.exec(path)?.[1];
+  if (negId && NEG_KEYS.has(negId)) headers["x-negotiation-key"] = NEG_KEYS.get(negId)!;
   const res = await fetch(API + path, { ...init, headers });
   const sc = res.headers.get("set-cookie");
   if (sc && init.seller) SELLER_COOKIE.jar = sc.split(";")[0]!;
   const text = await res.text();
   if (!res.ok) throw new Error(`${init.method ?? "GET"} ${path} -> ${res.status}: ${text.slice(0, 400)}`);
-  return JSON.parse(text) as T;
+  const out = JSON.parse(text) as T & { id?: string; buyerKey?: string };
+  if (path === "/api/negotiations" && out.id && out.buyerKey) NEG_KEYS.set(out.id, out.buyerKey);
+  return out;
 }
+/** Negotiation keys returned at start, sent back as X-Negotiation-Key. */
+const NEG_KEYS = new Map<string, string>();
 const log = (...a: unknown[]) => console.log(new Date().toISOString().slice(11, 19), ...a);
 const assert = (cond: unknown, msg: string) => {
   if (!cond) throw new Error("ASSERT: " + msg);

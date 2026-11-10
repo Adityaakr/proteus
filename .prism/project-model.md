@@ -63,3 +63,16 @@
     - trust addresses verified on chain (owner = arbiter = 0x8644…74D5);
     - network values normalized;
     - notProven list added.
+
+## Decision log: WhatsApp private channel (2026-11-10, plan only)
+- Plan: docs/03-whatsapp-private-channel.md. Meta Cloud API direct as Tech Provider (seller-owned WABA, Embedded Signup v4+), no BSP; pricing stays in code; chat carries only public offers; money/identity steps on web via buyer-bound link tokens.
+- Phase 0 leaks to fix first (verified): unauth GET /negotiations/:id (public.ts:96) and /deals/:id (deals.ts:16-20); no counter rate limit + rule-specific reasons enable floor binary search (public.ts:105, pricing.ts:314-355); clientIp trusts x-forwarded-for (ratelimit.ts:16); /review exposes publicTerms + dealIdOnchain (review.ts:50-51); quotes.ts:62 returns raw rule ids; onError echoes raw messages (index.ts:105-111).
+- Invariant: buyer PII (phone, name) never to LLM, chain, notify payloads or logs; key WA buyers by HMAC of business-scoped user id.
+- Assumptions to check: Meta §4.7 AI rule permits seller sales agents; USDC via external link not "selling currency"; Meta service-message delivery after free tier needs card.
+- 2026-11-11 built (uncommitted at time of writing): Phase 0 + Phase 1a of docs/03.
+  - Negotiation key: start returns buyerKey once; sha256 stored in negotiations.buyer_key_hash; GET/messages/counter/quotes need X-Negotiation-Key or a signed-in owner of buyerAddress; null hash = legacy, open by id (services/negotiation.ts assertNegotiationAccess).
+  - Counter limits: 12/negotiation + 40/IP per 10 min. Price rule reasons merged into one PRICE_REASON (packages/domain/src/pricing.ts).
+  - /review list excludes label "live" orgs; /review/:publicId still public by link.
+  - Vault (server/src/lib/vault.ts): per-org random AES-256 key wrapped by crypto.ts master in orgs.data_key_enc; AAD = orgId; text "pv2:" prefix, jsonb { $sealed }. Sealed: turns.content, service_requests.input (gateway), decisions.privateBasis, agent_runs.steps. Plaintext legacy values pass through.
+  - Invariant: rotating SESSION_SECRET/KEY_ENCRYPTION_SECRET without re-wrapping orgs.data_key_enc makes every sealed chat unreadable (same as signer keys).
+  - LLM input passes through redactPersonalData (agent/adapter.ts): emails, 10–19 digit numbers; not names or street addresses.

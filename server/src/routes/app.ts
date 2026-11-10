@@ -4,6 +4,7 @@ import { ApprovalDecisionBody, CostUpdateBody, PolicyUpdateBody, getQuoteCandida
 import { db, schema } from "../db";
 import { HttpError, json, toBig } from "../lib/http";
 import { id } from "../lib/ids";
+import { openJson } from "../lib/vault";
 import { evaluationContext, loadProductById, publicProduct } from "../services/catalog";
 import { dealView, listDeals, sellerCloseTerm } from "../services/deals";
 import { listNegotiations, reviveCandidate, sellerNegotiationView } from "../services/negotiation";
@@ -227,13 +228,14 @@ async function buyerOrderDetails(dealId: string, productId: string) {
   const order = (k: string) => { const i = specFields.findIndex((f) => f.key === k); return i === -1 ? specFields.length : i; };
   const humanize = (k: string) => k.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ").replace(/^./, (c) => c.toUpperCase());
   const rows = await db.select().from(schema.serviceRequests).where(eq(schema.serviceRequests.dealId, dealId)).orderBy(desc(schema.serviceRequests.createdAt));
-  return rows
-    .filter((r) => (r.output as { source?: { store?: string } }).source?.store !== "seller-confirmed")
-    .map((r) => ({
+  const buyerRows = rows.filter((r) => (r.output as { source?: { store?: string } }).source?.store !== "seller-confirmed");
+  const inputs = await Promise.all(buyerRows.map((r) => openJson<Record<string, unknown> | null>(r.orgId, r.input)));
+  return buyerRows
+    .map((r, i) => ({
       id: r.id,
       at: r.createdAt,
       status: r.status,
-      fields: Object.entries((r.input ?? {}) as Record<string, unknown>)
+      fields: Object.entries((inputs[i] ?? {}) as Record<string, unknown>)
         .sort(([a], [b]) => order(a) - order(b))
         .map(([key, v]) => {
           const label = labels.get(key) ?? humanize(key);
@@ -248,7 +250,7 @@ appRoutes.get("/app/deals/:id/requests/:reqId/files/:key", async (c) => {
   const { orgId } = session(c);
   const [r] = await db.select().from(schema.serviceRequests).where(and(eq(schema.serviceRequests.id, c.req.param("reqId")), eq(schema.serviceRequests.dealId, c.req.param("id"))));
   if (!r || r.orgId !== orgId) throw new HttpError(404, "request not found");
-  const f = ((r.input ?? {}) as Record<string, unknown>)[c.req.param("key")];
+  const f = ((await openJson<Record<string, unknown> | null>(r.orgId, r.input)) ?? {})[c.req.param("key")];
   if (!isFile(f)) throw new HttpError(404, "file not found");
   const safeName = f.name.replace(/[^A-Za-z0-9._ -]/g, "_").slice(0, 120) || "attachment";
   c.header("content-type", "application/octet-stream");

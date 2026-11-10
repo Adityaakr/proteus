@@ -17,7 +17,7 @@ export default function ReviewList() {
     <ReviewShell>
       <PageHeader
         title="Public records"
-        lede="Every agreement leaves a redacted public record: what was agreed, funded, used, settled and refunded, with links to the chain where a transaction exists."
+        lede="Example sellers' agreements, as redacted public records: what was agreed, funded, used, settled and refunded, with links to the chain. A live seller's records are not listed; each one opens only from the link the seller or buyer shares."
       />
       {q.isLoading ? (
         <LoadingCard label="Loading records" lines={5} />

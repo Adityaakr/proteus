@@ -121,6 +121,8 @@ export const orgs = pgTable("orgs", {
   /** Seller signer (delegated, server-held for the sandbox seller). */
   sellerSignerAddress: text("seller_signer_address").notNull(),
   payeeAddress: text("payee_address").notNull(),
+  /** This seller's data key (AES-256), wrapped with the platform key. Encrypts its buyers' chats, order details and private pricing basis. Removing it makes that data unreadable. */
+  dataKeyEnc: text("data_key_enc"),
   /** ERC-8004 identity of this seller's agent on Arc, owned by the seller's own wallet (null until registered). */
   agentId: text("agent_id"),
   /** The identity's owner when it was confirmed; quotes are refused if ownerOf(agentId) has moved since. */
@@ -208,6 +210,8 @@ export const negotiations = pgTable(
     orgId: text("org_id").notNull(),
     productId: text("product_id").notNull(),
     buyerAddress: text("buyer_address"),
+    /** sha256 of the buyer's negotiation key (returned once at start). Null for negotiations started before keys existed. */
+    buyerKeyHash: text("buyer_key_hash"),
     status: text("status").notNull().default("open"),
     /** domain Requirements, bigints as strings. */
     requirements: jsonb("requirements").notNull(),

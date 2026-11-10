@@ -6,6 +6,7 @@ import { db, schema } from "../db";
 import { decryptSecret } from "../lib/crypto";
 import { HttpError } from "../lib/http";
 import { id, sha256 } from "../lib/ids";
+import { sealJson } from "../lib/vault";
 import { loadProductById } from "./catalog";
 import { loadDeal, reviveTerms } from "./deals";
 import { runServiceAgent } from "./workers";
@@ -237,7 +238,7 @@ export async function execute(dealId: string, requestId: string, input: ServiceI
     }
     const [inserted] = await tx
       .insert(schema.serviceRequests)
-      .values({ id: id("sr"), orgId: deal.orgId, dealId, requestId, status: output.status, billable, units, cumulativeUnits, cumulativeCharged, input: input as unknown as Record<string, unknown>, output: output as unknown as Record<string, unknown>, evidenceDigest, sellerSignature, latencyMs: Date.now() - started })
+      .values({ id: id("sr"), orgId: deal.orgId, dealId, requestId, status: output.status, billable, units, cumulativeUnits, cumulativeCharged, input: await sealJson(deal.orgId, input), output: output as unknown as Record<string, unknown>, evidenceDigest, sellerSignature, latencyMs: Date.now() - started })
       .onConflictDoNothing({ target: [schema.serviceRequests.dealId, schema.serviceRequests.requestId] })
       .returning();
     return inserted ?? null;

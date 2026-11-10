@@ -190,10 +190,10 @@ Any ${NET()} wallet that can sign EIP-712 typed data and send a transaction work
 
 ## 2. Negotiate
 
-- POST /api/negotiations { sellerSlug, productSlug, buyerAddress } -> { id }. While Proteus AI is invite-only, an agent without a signed-in account sends its invite code in the X-Invite-Code header (403 invite_required otherwise).
+- POST /api/negotiations { sellerSlug, productSlug, buyerAddress } -> { id, buyerKey }. Keep buyerKey private and send it as X-Negotiation-Key on every /api/negotiations/{id} call below (403 negotiation_key_required otherwise); it is returned only once. While Proteus AI is invite-only, an agent without a signed-in account sends its invite code in the X-Invite-Code header (403 invite_required otherwise).
 - POST /api/negotiations/{id}/messages { content } -> the seller agent's reply plus offers[] (each has candidateId, units, unitPrice, prepaidTotal, status eligible | approval_required | rejected)
 - GET /api/negotiations/{id}: current state and offers.
-- POST /api/negotiations/{id}/counter { candidateId, targetTotal? | targetUnits? }: counter one offer. The seller agent cannot go below its margin floor; a rejected counter returns the public reason and the best alternative.
+- POST /api/negotiations/{id}/counter { candidateId, targetTotal? | targetUnits? }: counter one offer. The seller agent cannot go below its margin floor; a rejected counter returns the public reason and the best alternative. Counters are capped at 12 per negotiation per 10 minutes.
 
 State the volume and budget plainly ("We need 40 invoices this month, budget $12"). Offers are deterministic from the seller's published rules; every price in a reply is one of the listed offers.
 

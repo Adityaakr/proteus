@@ -123,13 +123,13 @@ const evidenceCell = (c: (typeof CLAIMS)[number]) => (c.evidence.length ? c.evid
 export const API = {
   auth: "Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller routes (/api/app/*): wallet sign-in session.",
   errors: "JSON { error: string, details: unknown | null } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert), 429 (rate limit), 500.",
-  rateLimits: "Per client IP, 10-minute window: 30 new negotiations, 60 negotiation messages, 120 store-routing calls. Other public routes are not rate limited.",
+  rateLimits: "10-minute window: per client IP, 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; per negotiation, 12 counters. Other public routes are not rate limited.",
   endpoints: [
     ["GET", "/market", "every listed service"],
     ["GET", "/public/sellers/{seller}", "seller card, Arc identity and listed products"],
     ["GET", "/public/sellers/{seller}/products/{product}", "tiers, terms, request fields"],
     ["POST", "/public/sellers/{seller}/route", "{ message, current? } → which product a message is about"],
-    ["POST", "/negotiations", "{ sellerSlug, productSlug, buyerAddress? } → negotiation"],
+    ["POST", "/negotiations", "{ sellerSlug, productSlug, buyerAddress? } → negotiation with buyerKey (send it as X-Negotiation-Key on every /negotiations/{id} call)"],
     ["POST", "/negotiations/{id}/messages", "{ content } → agent reply and offers"],
     ["POST", "/negotiations/{id}/counter", "{ candidateId, targetTotal? | targetUnits? } → decision"],
     ["POST", "/negotiations/{id}/quotes", "{ candidateId } → quote (or approval_required)"],

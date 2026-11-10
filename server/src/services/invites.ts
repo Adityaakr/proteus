@@ -62,9 +62,8 @@ function hit(key: string, max: number) {
   if (cur.n > max) throw new HttpError(429, "Too many attempts. Try again in a few minutes.", { retryAfterSeconds: Math.ceil((cur.resetAt - now) / 1000) });
   if (attempts.size > 10_000) for (const [k, v] of attempts) if (v.resetAt < now) attempts.delete(k);
 }
-export function clientIp(h: (name: string) => string | undefined): string {
-  return h("x-forwarded-for")?.split(",")[0]?.trim() || h("x-real-ip") || h("cf-connecting-ip") || "local";
-}
+import { clientIp } from "../lib/ratelimit";
+export { clientIp };
 
 /* ---------- grant cookie: HMAC-signed, 7 days, carries only the invite id ---------- */
 const GRANT_TTL_MS = 7 * 24 * 3600 * 1000;

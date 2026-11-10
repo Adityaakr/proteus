@@ -24,6 +24,12 @@ export function apiKey(): { key: string; hash: string } {
   return { key, hash: sha256(key) };
 }
 
+/** Bearer key a buyer (or buyer agent) presents to read or continue its own negotiation. */
+export function negotiationKey(): { key: string; hash: string } {
+  const key = "nk_" + randomBytes(24).toString("base64url");
+  return { key, hash: sha256(key) };
+}
+
 export function sha256(s: string): string {
   return createHash("sha256").update(s).digest("hex");
 }

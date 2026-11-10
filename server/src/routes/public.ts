@@ -1,12 +1,12 @@
 import { and, eq } from "drizzle-orm";
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { AcceptBody, CounterBody, MessageBody, StartNegotiationBody } from "@proteus/domain";
 import type { Address, Hex } from "viem";
 import { db, schema } from "../db";
 import { HttpError, json, toBig } from "../lib/http";
 import { loadProductById, loadProductBySlugs, publicProduct } from "../services/catalog";
 import { routeToProduct } from "../services/storefront";
-import { addBuyerMessage, counter, negotiationView, startNegotiation } from "../services/negotiation";
+import { addBuyerMessage, assertNegotiationAccess, counter, negotiationView, startNegotiation } from "../services/negotiation";
 import { env, features } from "../env";
 import { acceptQuote, createQuote, quoteView } from "../services/quotes";
 import { platformSkill, serviceOpenApi, serviceSkill } from "../services/agentdocs";
@@ -93,22 +93,38 @@ publicRoutes.post("/negotiations", async (c) => {
   return json(c, await startNegotiation(body.sellerSlug, body.productSlug, buyer, store), 201);
 });
 
-publicRoutes.get("/negotiations/:id", async (c) => json(c, await negotiationView(c.req.param("id"))));
+/** Key holder or the signed-in owner of the buyer wallet; see assertNegotiationAccess. */
+async function negotiationAccess(c: Context) {
+  const a = await resolveAuth(c);
+  await assertNegotiationAccess(c.req.param("id")!, c.req.header("x-negotiation-key"), async (addr) => Boolean(a && (await userOwnsAddress(a.userId, addr))));
+}
+
+publicRoutes.get("/negotiations/:id", async (c) => {
+  await negotiationAccess(c);
+  return json(c, await negotiationView(c.req.param("id")));
+});
 
 publicRoutes.post("/negotiations/:id/messages", async (c) => {
   // Each message runs the seller's agent (a model call): cap per visitor so an embed cannot be used to burn credits.
   limit(`neg-msg:${clientIp((n) => c.req.header(n))}`, 60);
+  await negotiationAccess(c);
   const body = MessageBody.parse(await c.req.json());
   return json(c, await addBuyerMessage(c.req.param("id"), body.content));
 });
 
 publicRoutes.post("/negotiations/:id/counter", async (c) => {
+  // Counters are evaluated by deterministic rules, so unlimited tries would let a buyer search for the seller's floor.
+  // Cap per negotiation (holds whatever the client IP is) and per visitor.
+  limit(`neg-counter:${c.req.param("id")}`, 12);
+  limit(`neg-counter-ip:${clientIp((n) => c.req.header(n))}`, 40);
+  await negotiationAccess(c);
   const body = CounterBody.parse(await c.req.json());
   if (!body.targetTotal && !body.targetUnits) throw new HttpError(400, "targetTotal or targetUnits required");
   return json(c, await counter(c.req.param("id"), body.candidateId, { targetTotal: body.targetTotal ? toBig(body.targetTotal) : undefined, targetUnits: body.targetUnits ? toBig(body.targetUnits) : undefined }));
 });
 
 publicRoutes.post("/negotiations/:id/quotes", async (c) => {
+  await negotiationAccess(c);
   const { candidateId } = (await c.req.json()) as { candidateId?: string };
   if (!candidateId) throw new HttpError(400, "candidateId required");
   return json(c, await createQuote(c.req.param("id"), candidateId), 201);

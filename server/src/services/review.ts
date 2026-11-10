@@ -5,12 +5,18 @@ import { env, features } from "../env";
 import { HttpError } from "../lib/http";
 import { loadProductById } from "./catalog";
 
-/** Public, redacted records: no buyer address, no seller economics, no transcripts. */
+/**
+ * Public, redacted records: no buyer address, no seller economics, no transcripts.
+ * Only example (sandbox) sellers are listed. A live seller's agreed prices are its business, so its records are
+ * not enumerable: each one stays reachable by its unguessable link, which the seller or buyer chooses to share.
+ */
 export async function listRecords() {
-  const rows = await db.select().from(schema.deals).orderBy(desc(schema.deals.createdAt)).limit(100);
+  const rows = await db.select().from(schema.deals).orderBy(desc(schema.deals.createdAt)).limit(200);
   const out = [];
   for (const d of rows) {
     const lp = await loadProductById(d.productId);
+    if (lp.org.label === "live") continue;
+    if (out.length >= 100) break;
     out.push({ publicId: d.publicId, sellerLabel: lp.org.label, productName: lp.product.name, status: d.status, fundedUsd: formatUsd(d.deposit), settledUsd: formatUsd(d.settled), refundedUsd: formatUsd(d.refunded), network: features.network, createdAt: d.createdAt });
   }
   return out;

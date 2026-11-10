@@ -342,13 +342,17 @@ export type PublicCandidate = Omit<Candidate, "economics" | "rules"> & {
   publicReasons: string[];
 };
 
+const PRICE_REASON = "That price is outside what the seller can offer for this package.";
+
 const PUBLIC_REASON: Partial<Record<RuleId, string>> = {
-  MARGIN_FLOOR_BPS: "That price is outside what the seller can offer for this volume.",
-  NON_POSITIVE_CONTRIBUTION: "That price is outside what the seller can offer for this volume.",
-  MAX_DISCOUNT_BPS: "That discount is more than the seller allows on this package.",
+  // Price rules share one reason on purpose: distinct texts would tell a buyer which private limit it hit
+  // (margin floor vs discount cap vs prepaid minimum), which helps search for the seller's floor.
+  MARGIN_FLOOR_BPS: PRICE_REASON,
+  NON_POSITIVE_CONTRIBUTION: PRICE_REASON,
+  MAX_DISCOUNT_BPS: PRICE_REASON,
   CAPACITY: "The seller cannot commit that much volume this period.",
   MAX_UNITS_PER_DEAL: "That volume is above the maximum for a single agreement.",
-  PREPAID_MINIMUM: "That total is below the seller's minimum for a prepaid agreement.",
+  PREPAID_MINIMUM: PRICE_REASON,
   UNSUPPORTED_INTEGRATION: "One or more requested integrations are not available and are excluded from the terms.",
   APPROVAL_THRESHOLD: "An agreement of this size needs the seller's approval before it can be offered.",
   COST_MODEL_STALE: "The seller's pricing inputs need a refresh before this can be offered.",

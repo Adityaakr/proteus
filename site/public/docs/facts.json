@@ -225,7 +225,7 @@
     },
     "auth": "Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller routes (/api/app/*): wallet sign-in session.",
     "errors": "JSON { error: string, details: unknown | null } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert), 429 (rate limit), 500.",
-    "rateLimits": "Per client IP, 10-minute window: 30 new negotiations, 60 negotiation messages, 120 store-routing calls. Other public routes are not rate limited.",
+    "rateLimits": "10-minute window: per client IP, 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; per negotiation, 12 counters. Other public routes are not rate limited.",
     "endpoints": [
       {
         "method": "GET",
@@ -250,7 +250,7 @@
       {
         "method": "POST",
         "path": "/negotiations",
-        "does": "{ sellerSlug, productSlug, buyerAddress? } → negotiation"
+        "does": "{ sellerSlug, productSlug, buyerAddress? } → negotiation with buyerKey (send it as X-Negotiation-Key on every /negotiations/{id} call)"
       },
       {
         "method": "POST",

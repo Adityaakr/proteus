@@ -1,10 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import { verifyTypedData, type Address, type Hex } from "viem";
-import { ARC_NETWORK_NAMES, TERMS_TYPES, agentRegistryId, domain, hashTerms, policyRegistryFor, productIdHash, publicTermsHash, stableId, type Terms } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, TERMS_TYPES, agentRegistryId, domain, hashTerms, policyRegistryFor, productIdHash, publicTermsHash, stableId, toPublicCandidate, type Terms } from "@proteus/domain";
 import { escrowAddress, usdcAddress } from "../chain/client";
 import { orgSignerAccount } from "../chain/signer";
 import { db, schema } from "../db";
 import { env, features } from "../env";
+import { sealJson, sealText } from "../lib/vault";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, publicId, randomDealId } from "../lib/ids";
 import { loadProductById } from "./catalog";
@@ -59,7 +60,7 @@ export async function createQuote(negId: string, candidateId: string) {
   const candidates = (neg.candidates as Record<string, unknown>[]).map(reviveCandidate);
   const c = candidates.find((x) => x.candidateId === candidateId);
   if (!c) throw new HttpError(404, "candidate not found");
-  if (c.status === "rejected") throw new HttpError(409, "candidate was rejected by policy", { reasons: c.rules });
+  if (c.status === "rejected") throw new HttpError(409, "candidate was rejected by policy", { reasons: toPublicCandidate(c).publicReasons });
   // Reuse an open quote for the same candidate if present.
   const [existing] = await db.select().from(schema.quotes).where(and(eq(schema.quotes.negotiationId, negId), eq(schema.quotes.candidateId, candidateId)));
   if (existing && ["draft", "approval_required", "approved"].includes(existing.status) && existing.expiresAt.getTime() > Date.now()) return quoteView(existing.id);
@@ -110,10 +111,10 @@ export async function createQuote(negId: string, candidateId: string) {
       ruleIds: c.rules,
       expiresAt,
     });
-    await db.insert(schema.decisions).values({ id: id("dec"), orgId: lp.org.id, negotiationId: negId, kind: "approval", ruleIds: c.rules, candidateId, summary: "Quote requires owner approval", privateBasis: bigintsToStrings({ candidate: c }), publicExplanation: "An agreement of this size needs the seller's approval before it can be offered." });
+    await db.insert(schema.decisions).values({ id: id("dec"), orgId: lp.org.id, negotiationId: negId, kind: "approval", ruleIds: c.rules, candidateId, summary: "Quote requires owner approval", privateBasis: await sealJson(lp.org.id, bigintsToStrings({ candidate: c })), publicExplanation: "An agreement of this size needs the seller's approval before it can be offered." });
     await enqueue(lp.org.id, "approval_required", `approval:${quoteId}`, { product: lp.product.name, tier: c.tierName, units: c.units.toString(), amountUsdc: `${c.prepaidTotal / 1_000_000n}.${(c.prepaidTotal % 1_000_000n).toString().padStart(6, "0")}`, link: `${env.WEB_ORIGIN}/app/sell/approvals` }).catch(() => {});
   } else {
-    await db.insert(schema.decisions).values({ id: id("dec"), orgId: lp.org.id, negotiationId: negId, kind: "quote", ruleIds: [], candidateId, summary: `Quote issued for ${c.tierName} ${c.units} units`, privateBasis: bigintsToStrings({ candidate: c, expiresAt }), publicExplanation: "Offer issued within policy." });
+    await db.insert(schema.decisions).values({ id: id("dec"), orgId: lp.org.id, negotiationId: negId, kind: "quote", ruleIds: [], candidateId, summary: `Quote issued for ${c.tierName} ${c.units} units`, privateBasis: await sealJson(lp.org.id, bigintsToStrings({ candidate: c, expiresAt })), publicExplanation: "Offer issued within policy." });
   }
   return quoteView(quoteId);
 }
@@ -235,9 +236,9 @@ export async function decideApproval(orgId: string, approvalId: string, decision
     await tx.update(schema.quotes).set({ status: decision === "approve" ? "approved" : "declined" }).where(eq(schema.quotes.id, a.quoteId));
     const [q] = await tx.select().from(schema.quotes).where(eq(schema.quotes.id, a.quoteId));
     if (q) {
-      await tx.insert(schema.decisions).values({ id: id("dec"), orgId, negotiationId: q.negotiationId, kind: "approval", ruleIds: a.ruleIds as string[], candidateId: q.candidateId, summary: `Owner ${status} the quote${reason ? `: ${reason}` : ""}`, privateBasis: { approvalId, decidedBy }, publicExplanation: decision === "approve" ? "The seller approved this agreement." : "The seller declined this agreement." });
+      await tx.insert(schema.decisions).values({ id: id("dec"), orgId, negotiationId: q.negotiationId, kind: "approval", ruleIds: a.ruleIds as string[], candidateId: q.candidateId, summary: `Owner ${status} the quote${reason ? `: ${reason}` : ""}`, privateBasis: await sealJson(orgId, { approvalId, decidedBy }), publicExplanation: decision === "approve" ? "The seller approved this agreement." : "The seller declined this agreement." });
       const turnsCount = await tx.select().from(schema.turns).where(eq(schema.turns.negotiationId, q.negotiationId));
-      await tx.insert(schema.turns).values({ id: id("turn"), negotiationId: q.negotiationId, seq: turnsCount.length + 1, role: "agent", kind: "message", content: decision === "approve" ? "The seller approved the larger package. You can accept it now." : "The seller declined the larger package. The standing options are still available." });
+      await tx.insert(schema.turns).values({ id: id("turn"), negotiationId: q.negotiationId, seq: turnsCount.length + 1, role: "agent", kind: "message", content: await sealText(orgId, decision === "approve" ? "The seller approved the larger package. You can accept it now." : "The seller declined the larger package. The standing options are still available.") });
     }
   });
   const [updated] = await db.select().from(schema.approvals).where(eq(schema.approvals.id, approvalId));

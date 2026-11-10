@@ -50,6 +50,12 @@ const big = (o: Record<string, unknown>) => Object.fromEntries(Object.entries(o)
 
 /** Service API keys returned at provisioning, kept in this process only (never written to disk or logs). */
 const keys = new Map<string, { key: string; product: string }>();
+/** Negotiation keys (X-Negotiation-Key), returned once at start; same rule: this process only. */
+const negotiationKeys = new Map<string, string>();
+const negKey = (id: string): Record<string, string> => {
+  const k = negotiationKeys.get(id);
+  return k ? { "x-negotiation-key": k } : {};
+};
 
 const server = new McpServer({ name: "proteus-ai", version: "0.1.0" });
 
@@ -79,8 +85,13 @@ server.registerTool(
     inputSchema: z.object({ seller: z.string(), product: z.string(), message: z.string().min(1).max(4000), negotiationId: z.string().optional() }),
   },
   async ({ seller, product, message, negotiationId }) => {
-    const id = negotiationId ?? (await post<{ id: string }>("/api/negotiations", { sellerSlug: seller, productSlug: product, buyerAddress: buyer?.address })).id;
-    const n = await post<{ turns: { role: string; content: string }[]; offers: { candidateId: string; tierName: string; units: string; prepaidTotal: string; prepaidTotalUsd: string; status: string }[] }>(`/api/negotiations/${id}/messages`, { content: message });
+    let id = negotiationId;
+    if (!id) {
+      const started = await post<{ id: string; buyerKey?: string }>("/api/negotiations", { sellerSlug: seller, productSlug: product, buyerAddress: buyer?.address });
+      id = started.id;
+      if (started.buyerKey) negotiationKeys.set(id, started.buyerKey);
+    }
+    const n = await post<{ turns: { role: string; content: string }[]; offers: { candidateId: string; tierName: string; units: string; prepaidTotal: string; prepaidTotalUsd: string; status: string }[] }>(`/api/negotiations/${id}/messages`, { content: message }, negKey(id));
     const reply = [...n.turns].reverse().find((t) => t.role === "agent")?.content ?? "";
     return text({
       negotiationId: id,
@@ -140,7 +151,7 @@ server.registerTool(
     const { chainId, escrowAddress } = await net();
     const who = (buyer?.address ?? buyerAddress) as Address | undefined;
     if (!who) throw new Error("Set PROTEUS_BUYER_PRIVATE_KEY or pass buyerAddress.");
-    const created = await post<{ id: string; status: string }>(`/api/negotiations/${negotiationId}/quotes`, { candidateId });
+    const created = await post<{ id: string; status: string }>(`/api/negotiations/${negotiationId}/quotes`, { candidateId }, negKey(negotiationId));
     if (created.status === "approval_required") return text({ quoteId: created.id, status: "approval_required", next: "The seller must approve this offer; call proteus_verify_seller later or pick a smaller offer." });
     const q = await get<QuoteView>(`/api/quotes/${created.id}?buyer=${who}`);
     if (!q.terms || !q.typedData || !escrowAddress) throw new Error("quote has no signable terms yet");

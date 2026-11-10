@@ -117,6 +117,38 @@ export interface RequestOpts {
   signal?: AbortSignal;
 }
 
+/**
+ * Each negotiation's key, returned once when it starts and kept in this browser only. The server requires it to read or
+ * continue the negotiation, so a negotiation link alone does not open someone's conversation. A signed-in buyer who
+ * owns the buyer wallet does not need it (other devices).
+ */
+const negotiationKeys = {
+  store(): Record<string, string> {
+    try {
+      return JSON.parse(localStorage.getItem("proteus.negotiationKeys") ?? "{}") as Record<string, string>;
+    } catch {
+      return {};
+    }
+  },
+  set(id: string, key: string) {
+    try {
+      const all = this.store();
+      all[id] = key;
+      const ids = Object.keys(all);
+      for (const old of ids.slice(0, Math.max(0, ids.length - 200))) delete all[old];
+      localStorage.setItem("proteus.negotiationKeys", JSON.stringify(all));
+    } catch {
+      /* storage blocked: the key still works for this page through memoryKeys */
+    }
+    memoryKeys.set(id, key);
+  },
+  header(id: string): Record<string, string> | undefined {
+    const key = memoryKeys.get(id) ?? this.store()[id];
+    return key ? { "X-Negotiation-Key": key } : undefined;
+  },
+};
+const memoryKeys = new Map<string, string>();
+
 async function request<R>(method: Method, path: string, opts: RequestOpts = {}): Promise<R> {
   if (isMock()) {
     const { mockRequest } = await import("./mock");
@@ -165,13 +197,16 @@ export const api = {
 
   /* Negotiation (buyer) */
   /** `opts.embed`: the seller slug when started from that seller's embedded deal agent on its own website. */
-  startNegotiation: (body: { sellerSlug: string; productSlug: string; buyerAddress?: string; mandateCap?: T.MicroStr; store?: "open" | "continue" }, opts?: { embed?: string }) =>
-    request<T.Negotiation>("POST", "/negotiations", { body, headers: opts?.embed ? { "X-Proteus-Embed": opts.embed } : undefined }),
-  negotiation: (id: string) => request<T.Negotiation>("GET", `/negotiations/${enc(id)}`),
-  sendMessage: (id: string, content: string) => request<T.Negotiation>("POST", `/negotiations/${enc(id)}/messages`, { body: { content } }),
+  startNegotiation: async (body: { sellerSlug: string; productSlug: string; buyerAddress?: string; mandateCap?: T.MicroStr; store?: "open" | "continue" }, opts?: { embed?: string }) => {
+    const n = await request<T.Negotiation & { buyerKey?: string }>("POST", "/negotiations", { body, headers: opts?.embed ? { "X-Proteus-Embed": opts.embed } : undefined });
+    if (n.buyerKey) negotiationKeys.set(n.id, n.buyerKey);
+    return n;
+  },
+  negotiation: (id: string) => request<T.Negotiation>("GET", `/negotiations/${enc(id)}`, { headers: negotiationKeys.header(id) }),
+  sendMessage: (id: string, content: string) => request<T.Negotiation>("POST", `/negotiations/${enc(id)}/messages`, { body: { content }, headers: negotiationKeys.header(id) }),
   counter: (id: string, body: { candidateId: string; targetTotal?: T.MicroStr; targetUnits?: T.UnitsStr }) =>
-    request<T.Negotiation>("POST", `/negotiations/${enc(id)}/counter`, { body }),
-  createQuote: (id: string, candidateId: string) => request<T.Quote>("POST", `/negotiations/${enc(id)}/quotes`, { body: { candidateId } }),
+    request<T.Negotiation>("POST", `/negotiations/${enc(id)}/counter`, { body, headers: negotiationKeys.header(id) }),
+  createQuote: (id: string, candidateId: string) => request<T.Quote>("POST", `/negotiations/${enc(id)}/quotes`, { body: { candidateId }, headers: negotiationKeys.header(id) }),
 
   /* Quotes */
   quote: (id: string, buyer?: string) => request<T.Quote>("GET", `/quotes/${enc(id)}${buyer ? `?buyer=${enc(buyer)}` : ""}`),

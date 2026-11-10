@@ -108,8 +108,9 @@ app.onError((err, c) => {
   const msg = (err as Error).message ?? String(err);
   console.error("[error]", msg);
   // viem revert reasons are useful to surface in the demo UI.
-  const status = /revert|insufficient|allowance|not configured/i.test(msg) ? 409 : 500;
-  return json(c, { error: msg.slice(0, 400) }, status);
+  // Unexpected errors can carry SQL, ids or request data, so the client gets a generic message; the log keeps the detail.
+  if (!/revert|insufficient|allowance|not configured/i.test(msg)) return json(c, { error: "Something went wrong on our side. Try again in a moment." }, 500);
+  return json(c, { error: msg.slice(0, 400) }, 409);
 });
 
 serve({ fetch: app.fetch, port: env.PORT, hostname: "::" }, (info) => {
