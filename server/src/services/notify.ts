@@ -16,7 +16,7 @@ import { decryptSecret, encryptSecret } from "../lib/crypto";
 import { HttpError } from "../lib/http";
 import { id } from "../lib/ids";
 
-export type NotifyEvent = "deal_funded" | "usage_settled" | "refund_issued" | "dispute_opened" | "dispute_resolved" | "approval_required" | "test";
+export type NotifyEvent = "deal_funded" | "usage_settled" | "refund_issued" | "dispute_opened" | "dispute_resolved" | "approval_required" | "order_details" | "test";
 
 const TITLES: Record<NotifyEvent, string> = {
   deal_funded: "A buyer funded a deal",
@@ -25,6 +25,7 @@ const TITLES: Record<NotifyEvent, string> = {
   dispute_opened: "A buyer opened a dispute",
   dispute_resolved: "A dispute was resolved",
   approval_required: "An offer needs your approval",
+  order_details: "A buyer sent order details",
   test: "Test notification",
 };
 

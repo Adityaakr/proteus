@@ -275,6 +275,12 @@ export function deal(raw: W.SellerDeal | Loose): DealDetail {
     journal: journal(d.journal),
     chainTxs: ((d.chainTxs as Loose[] | undefined) ?? []).map((t) => ({ kind: String(t.kind), txHash: String(t.txHash), at: String(t.at ?? ""), amount: str(t.amount), explorerUrl: str(t.explorerUrl), status: str(t.status) })),
     network: str((d as Loose).network),
+    orderDetails: (((d as Loose).orderDetails as Loose[] | undefined) ?? []).map((o) => ({
+      id: String(o.id),
+      at: String(o.at ?? ""),
+      status: String(o.status ?? ""),
+      fields: ((o.fields as Loose[] | undefined) ?? []).map((f) => ({ key: String(f.key), label: String(f.label ?? f.key), value: str(f.value), file: f.file as { name: string; type: string; size: number } | undefined })),
+    })),
   };
 }
 

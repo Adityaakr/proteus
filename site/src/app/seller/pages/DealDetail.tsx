@@ -6,14 +6,14 @@ import { ActionButton, Card, DataTable, ExplorerLink, KeyValue, Money, MonoValue
 import { useCloseTerm, useDeal, useRecordDelivery } from "../api";
 import { Field } from "../../ui/Field";
 import { useQuery } from "@tanstack/react-query";
-import { api as appApi } from "../../lib/api";
+import { api as appApi, downloadFile } from "../../lib/api";
 import { QueryView } from "../parts/QueryView";
 import { PageHeader } from "../parts/PageHeader";
 import { SellerOnly } from "../parts/SellerOnly";
 import { JournalTable } from "../parts/JournalTable";
 import { big, dateTime, pct, unixToDate, units } from "../format";
 import { errorMessage } from "../transport";
-import type { DealDetail as Deal } from "../types";
+import type { BuyerOrderDetails, DealDetail as Deal } from "../types";
 import s from "../seller.module.css";
 
 const shortId = (v: string) => (v.length > 14 ? `${v.slice(0, 6)}…${v.slice(-4)}` : v);
@@ -60,6 +60,8 @@ function Body({ d }: { d: Deal }) {
   const unitDen = big(t.unitDen) || 1n;
   return (
     <>
+      <OrderDetails dealId={d.id} items={d.orderDetails ?? []} />
+
       <Card
         title="Balances"
         subtitle={b.source === "chain" ? "Read from the escrow contract." : "Pending: waiting for the funding transaction to confirm."}
@@ -284,6 +286,45 @@ function CloseTerm({ d }: { d: Deal }) {
           </ActionButton>
         </div>
       )}
+    </Card>
+  );
+}
+
+/** Everything the buyer typed or attached on this order, newest first, so the seller can fulfil it from one place. */
+function OrderDetails({ dealId, items }: { dealId: string; items: BuyerOrderDetails[] }) {
+  const [err, setErr] = useState<string | null>(null);
+  const download = (reqId: string, key: string, name: string) => {
+    setErr(null);
+    downloadFile(`/app/deals/${dealId}/requests/${reqId}/files/${encodeURIComponent(key)}`, name).catch((e) => setErr(errorMessage(e)));
+  };
+  return (
+    <Card
+      title="Order details from the buyer"
+      subtitle={items.length ? "What the buyer sent for this order, newest first. Use it to produce and ship, then record the delivery below." : "Nothing yet. When the buyer sends quantity, address, artwork or notes from their order page, it appears here and you get an alert."}
+      actions={items.length ? <StatusTag tone="success" label={`${items.length} ${items.length === 1 ? "submission" : "submissions"}`} /> : undefined}
+    >
+      {items.map((it, i) => (
+        <div key={it.id} className={s.orderDetails}>
+          <span className="body3">{i === 0 ? "Latest, " : ""}sent {dateTime(it.at)}</span>
+          <dl>
+            {it.fields.map((f) => (
+              <div key={f.key}>
+                <dt>{f.label}</dt>
+                <dd>
+                  {f.file ? (
+                    <button type="button" className={s.fileLink} onClick={() => download(it.id, f.key, f.file!.name)}>
+                      {f.file.name} <span className={s.muted}>({Math.max(1, Math.round(f.file.size / 1024))} KB, download)</span>
+                    </button>
+                  ) : (
+                    f.value
+                  )}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ))}
+      {err && <Notice tone="danger">{err}</Notice>}
     </Card>
   );
 }

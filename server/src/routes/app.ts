@@ -207,7 +207,55 @@ appRoutes.get("/app/deals/:id", async (c) => {
   const [q] = await db.select().from(schema.quotes).where(eq(schema.quotes.id, deal.quoteId));
   const journal = await db.select().from(schema.journalEntries).where(eq(schema.journalEntries.dealId, deal.id)).orderBy(desc(schema.journalEntries.createdAt));
   const chainTxs = await db.select().from(schema.chainTxs).where(eq(schema.chainTxs.dealId, deal.id)).orderBy(desc(schema.chainTxs.createdAt));
-  return json(c, { ...view, economics: q ? reviveCandidate(q.candidate as Record<string, unknown>).economics : null, candidate: q ? reviveCandidate(q.candidate as Record<string, unknown>) : null, journal, chainTxs, negotiationId: deal.negotiationId });
+  const orderDetails = await buyerOrderDetails(deal.id, deal.productId);
+  return json(c, { ...view, orderDetails, economics: q ? reviveCandidate(q.candidate as Record<string, unknown>).economics : null, candidate: q ? reviveCandidate(q.candidate as Record<string, unknown>) : null, journal, chainTxs, negotiationId: deal.negotiationId });
+});
+
+type FileEnvelope = { name: string; type: string; size: number; dataBase64: string };
+const isFile = (v: unknown): v is FileEnvelope => Boolean(v) && typeof v === "object" && typeof (v as FileEnvelope).dataBase64 === "string";
+
+/**
+ * Everything the buyer sent on this deal through the request form (order details for seller-delivered products),
+ * newest first, labelled with the product's form. Seller-recorded deliveries are excluded. Files are listed by name;
+ * their bytes come from the download route below.
+ */
+async function buyerOrderDetails(dealId: string, productId: string) {
+  const lp = await loadProductById(productId);
+  const specFields = lp.product.request?.fields ?? [];
+  const labels = new Map(specFields.map((f) => [f.key, f.label]));
+  // jsonb does not keep key order, so show fields in the order of the product's form; anything else after.
+  const order = (k: string) => { const i = specFields.findIndex((f) => f.key === k); return i === -1 ? specFields.length : i; };
+  const humanize = (k: string) => k.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]+/g, " ").replace(/^./, (c) => c.toUpperCase());
+  const rows = await db.select().from(schema.serviceRequests).where(eq(schema.serviceRequests.dealId, dealId)).orderBy(desc(schema.serviceRequests.createdAt));
+  return rows
+    .filter((r) => (r.output as { source?: { store?: string } }).source?.store !== "seller-confirmed")
+    .map((r) => ({
+      id: r.id,
+      at: r.createdAt,
+      status: r.status,
+      fields: Object.entries((r.input ?? {}) as Record<string, unknown>)
+        .sort(([a], [b]) => order(a) - order(b))
+        .map(([key, v]) => {
+          const label = labels.get(key) ?? humanize(key);
+          return isFile(v) ? { key, label, file: { name: v.name, type: v.type, size: v.size } } : { key, label, value: typeof v === "string" ? v : JSON.stringify(v) };
+        }),
+    }))
+    .filter((r) => r.fields.length > 0);
+}
+
+/** Downloads a file the buyer attached. Always an attachment with nosniff, so an SVG or HTML upload never renders in the app's origin. */
+appRoutes.get("/app/deals/:id/requests/:reqId/files/:key", async (c) => {
+  const { orgId } = session(c);
+  const [r] = await db.select().from(schema.serviceRequests).where(and(eq(schema.serviceRequests.id, c.req.param("reqId")), eq(schema.serviceRequests.dealId, c.req.param("id"))));
+  if (!r || r.orgId !== orgId) throw new HttpError(404, "request not found");
+  const f = ((r.input ?? {}) as Record<string, unknown>)[c.req.param("key")];
+  if (!isFile(f)) throw new HttpError(404, "file not found");
+  const safeName = f.name.replace(/[^A-Za-z0-9._ -]/g, "_").slice(0, 120) || "attachment";
+  c.header("content-type", "application/octet-stream");
+  c.header("content-disposition", `attachment; filename="${safeName}"`);
+  c.header("x-content-type-options", "nosniff");
+  c.header("cache-control", "private, no-store");
+  return c.body(Buffer.from(f.dataBase64, "base64"));
 });
 
 appRoutes.post("/app/deals/:id/close-term", async (c) => json(c, await sellerCloseTerm(session(c).orgId, c.req.param("id"))));

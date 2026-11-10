@@ -275,7 +275,7 @@ export interface Deal {
   sellerPayee: Address;
   funding: { txHash?: Hex; confirmedAt?: IsoTime; explorerUrl?: string };
   balances: { deposit: MicroStr; settled: MicroStr; refunded: MicroStr; remaining: MicroStr; source: "chain" | "pending" };
-  service: { status: "pending" | "provisioned" | "suspended"; endpoint: string; apiKey?: string; docsUrl: string; request?: RequestSpec | null; sampleStore?: { label: string; orderIds: string[] } };
+  service: { status: "pending" | "provisioned" | "suspended"; endpoint: string; apiKey?: string; docsUrl: string; request?: RequestSpec | null; sellerDelivered?: boolean; sampleStore?: { label: string; orderIds: string[] } };
   usage: { units: UnitsStr; charged: MicroStr; settled: MicroStr };
   refundableAt: IsoTime;
   explorer: { escrow: string; funding?: string; settlements: string[]; refund?: string };

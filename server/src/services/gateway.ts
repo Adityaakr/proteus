@@ -9,6 +9,8 @@ import { id, sha256 } from "../lib/ids";
 import { loadProductById } from "./catalog";
 import { loadDeal, reviveTerms } from "./deals";
 import { runServiceAgent } from "./workers";
+import { enqueue } from "./notify";
+import { env } from "../env";
 
 /**
  * Service gateway: authenticates a deal's bearer key, executes the product's adapter, meters billable
@@ -159,7 +161,28 @@ export async function runAdapter(lp: Awaited<ReturnType<typeof loadProductById>>
   if (lp.row.adapter === "order-support") return orderSupport(lp.org.id, input);
   // Products Proteus AI runs itself: a service agent does the work from what the buyer sent (see workers.ts).
   if (lp.row.adapter === "demo") return runServiceAgent(lp, ctx, input);
+  if (sellerDelivered(lp)) return orderDetailsHandoff(lp.org.name, input);
   return { status: "failed", billable: false, answer: "No service endpoint is configured for this product. This request was not charged.", source: { store: "none", fields: [] } };
+}
+
+/** Products with no service endpoint are delivered by the seller (physical goods, offline work). */
+export function sellerDelivered(lp: { row: { adapter: string; upstream: unknown } }) {
+  return lp.row.adapter === "http" && !lp.row.upstream;
+}
+
+/**
+ * For seller-delivered products the request form carries order details (quantity, address, artwork, notes). They are
+ * stored with the request and shown to the seller on the deal; sending them is never billed. The seller is paid only
+ * for deliveries it records and the buyer countersigns.
+ */
+function orderDetailsHandoff(sellerName: string, input: ServiceInput): ServiceOutput {
+  const fields = input && typeof input === "object" ? Object.keys(input as Record<string, unknown>) : [];
+  return {
+    status: "handoff",
+    billable: false,
+    answer: `Sent to ${sellerName}. They see these details on your order and record the delivery with proof; you pay only for what you countersign. Sending details is never charged.`,
+    source: { store: "order-details", fields },
+  };
 }
 
 export async function authenticateDeal(bearer: string | undefined, productSlug: string) {
@@ -219,7 +242,12 @@ export async function execute(dealId: string, requestId: string, input: ServiceI
       .returning();
     return inserted ?? null;
   });
-  if (row) return receiptView(row, terms.prepaid);
+  if (row) {
+    if (output.source.store === "order-details") {
+      await enqueue(deal.orgId, "order_details", `order-details:${row.id}`, { deal: deal.publicId, product: lp.product.name, link: `${env.WEB_ORIGIN}/app/sell/deals/${deal.id}` }, deal.id).catch(() => {});
+    }
+    return receiptView(row, terms.prepaid);
+  }
   // Two identical requests raced; the other one won the unique index. Return its receipt, charge nothing more.
   const [stored] = await db.select().from(schema.serviceRequests).where(and(eq(schema.serviceRequests.dealId, dealId), eq(schema.serviceRequests.requestId, requestId)));
   if (!stored) throw new HttpError(500, "request was not recorded");

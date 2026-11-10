@@ -75,6 +75,8 @@ export async function dealView(dealId: string, opts: { apiKeyOnce?: string } = {
       docsUrl: `/docs/${lp.org.slug}/${lp.product.slug}`,
       adapter: lp.row.adapter,
       request: lp.product.request ?? null,
+      /** No service endpoint: the seller delivers (physical goods). The request form sends order details to the seller. */
+      sellerDelivered: lp.row.adapter === "http" && !lp.row.upstream,
       sampleStore: lp.row.adapter === "order-support" ? { label: "sample store (demo data)", orderIds: ["A1001", "A1002", "A1003"] } : undefined,
     },
     usage: { units: cumulativeUnits, charged: cumulativeCharged, accepted: deal.acceptedAmount, acceptedUnits: deal.acceptedUnits, settled: deal.settled, requests: reqs.length, billableRequests: billable.length },

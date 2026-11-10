@@ -169,15 +169,20 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
   });
 
   const receipts = usage?.receipts ?? [];
+  const sellerDelivered = Boolean(deal.service.sellerDelivered);
   const provisioned = deal.service.status === "provisioned";
   const fundedish = !["awaiting_funding", "funding_pending"].includes(deal.status);
   const todos: TodoItem[] = [
     { id: "sign", label: "Terms signed by both sides", status: "completed" },
     { id: "fund", label: "Escrow funded", status: fundedish ? "completed" : "in-progress", detail: deal.funding.txHash ? <ExplorerLink href={explorerTx(deal.funding.txHash)} hash={deal.funding.txHash} /> : fundedish ? (mock ? "Mock mode, no transaction" : undefined) : "Waiting for confirmation" },
-    { id: "prov", label: "Service provisioned", status: provisioned ? "completed" : fundedish ? "in-progress" : "pending" },
-    { id: "key", label: "API key issued", status: provisioned ? "completed" : "pending", detail: provisioned ? "Shown once below" : undefined },
-    { id: "test", label: "Send a first test request", status: receipts.length > 0 ? "completed" : provisioned ? "in-progress" : "pending" },
-    { id: "ack", label: "Acknowledge usage to settle", status: BigInt(deal.usage.settled) > 0n && !usage?.pendingAcceptance ? "completed" : receipts.some((r) => r.status === "delivered") ? "in-progress" : "pending" },
+    ...(sellerDelivered
+      ? [{ id: "details", label: "Order details sent to the seller", status: receipts.length > 0 ? "completed" : provisioned ? "in-progress" : "pending" } satisfies TodoItem]
+      : ([
+          { id: "prov", label: "Service provisioned", status: provisioned ? "completed" : fundedish ? "in-progress" : "pending" },
+          { id: "key", label: "API key issued", status: provisioned ? "completed" : "pending", detail: provisioned ? "Shown once below" : undefined },
+          { id: "test", label: "Send a first test request", status: receipts.length > 0 ? "completed" : provisioned ? "in-progress" : "pending" },
+        ] satisfies TodoItem[])),
+    { id: "ack", label: sellerDelivered ? "Sign deliveries to settle" : "Acknowledge usage to settle", status: BigInt(deal.usage.settled) > 0n && !usage?.pendingAcceptance ? "completed" : receipts.some((r) => r.status === "delivered") ? "in-progress" : "pending" },
   ];
 
   const pa = usage?.pendingAcceptance;
@@ -207,7 +212,11 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
               ))}
             </span>
           </div>
-          <p className={f.lede}>Use the service, review every metered request, and sign usage so the seller is paid from escrow. Unused funds stay yours.</p>
+          <p className={f.lede}>
+            {sellerDelivered
+              ? "Send the seller your order details, then sign each delivery they record so they are paid from escrow. Anything not delivered stays yours."
+              : "Use the service, review every metered request, and sign usage so the seller is paid from escrow. Unused funds stay yours."}
+          </p>
         </header>
 
         {!fundedish && (
@@ -228,15 +237,23 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
 
         <section className={f.section} aria-labelledby="h-try">
           <div className={f.sectionHead}>
-            <h2 id="h-try" className={f.h2}>Try the service</h2>
-            <span className={f.h2Sub}>Only delivered answers are billable. Retries with the same request id never charge twice.</span>
+            <h2 id="h-try" className={f.h2}>{sellerDelivered ? "Order details for the seller" : "Try the service"}</h2>
+            <span className={f.h2Sub}>
+              {sellerDelivered
+                ? "The seller sees everything you send here on your order. Sending details is never charged; you can send updates any time."
+                : "Only delivered answers are billable. Retries with the same request id never charge twice."}
+            </span>
           </div>
           {!provisioned ? (
             <p className={f.fine}>The service is being provisioned. This page updates automatically.</p>
           ) : !apiKey ? (
             <>
-              <p className={f.fine}>The API key was shown once when the service was provisioned. Use the copy you saved, or issue a new one with a wallet signature; the old key stops working.</p>
-              <div><ActionButton variant="secondary" size="sm" loading={rotate.isPending} loadingLabel="Signing" onClick={() => rotate.mutate()}>Issue a new key</ActionButton></div>
+              <p className={f.fine}>
+                {sellerDelivered
+                  ? "To send order details from this browser, confirm it is you with one wallet signature. No funds move."
+                  : "The API key was shown once when the service was provisioned. Use the copy you saved, or issue a new one with a wallet signature; the old key stops working."}
+              </p>
+              <div><ActionButton variant="secondary" size="sm" loading={rotate.isPending} loadingLabel="Signing" onClick={() => rotate.mutate()}>{sellerDelivered ? "Confirm with wallet" : "Issue a new key"}</ActionButton></div>
               {rotate.error && <Notice tone="danger">{errorMessage(rotate.error)}</Notice>}
             </>
           ) : (
@@ -245,7 +262,7 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
               {qErr && <Notice tone="danger">{qErr}</Notice>}
               <div className={f.actions}>
                 <ActionButton type="submit" size="sm" loading={exec.isPending && exec.variables?.requestId !== lastReq?.requestId} loadingLabel="Sending" icon={<Send size={14} strokeWidth={2} />}>
-                  Send request
+                  {sellerDelivered ? "Send to seller" : "Send request"}
                 </ActionButton>
                 {lastReq && (
                   <button type="button" className={f.textBtn} onClick={() => exec.mutate(lastReq)} disabled={exec.isPending}>Retry with the same request id</button>
@@ -258,7 +275,7 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }} aria-live="polite">
               <div className={d.answer}>{result.answer}</div>
               <div className={d.tags}>
-                <span className={`${f.badge} ${result.status === "delivered" ? f.badgeOk : ""}`}>{stateLabel(result.status)}</span>
+                {sellerDelivered && result.status === "handoff" ? <span className={`${f.badge} ${f.badgeOk}`}>Sent to seller</span> : <span className={`${f.badge} ${result.status === "delivered" ? f.badgeOk : ""}`}>{stateLabel(result.status)}</span>}
                 <span className={f.badge}>{result.billable ? `Billable, ${result.units} unit` : "Not billable"}</span>
                 {replayed && <span className={`${f.badge} ${f.badgeOk}`}>Same request id, not charged again</span>}
               </div>

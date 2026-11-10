@@ -78,3 +78,14 @@
   .turn { max-width: 100%; }
   .statMoney { font-size: 21px; }
 }
+
+/* Buyer order details on the deal page */
+.orderDetails { display: flex; flex-direction: column; gap: 8px; padding: 14px 0; border-top: 1px solid var(--c-dark-5); }
+.orderDetails:first-of-type { border-top: 0; padding-top: 0; }
+.orderDetails dl { display: grid; grid-template-columns: minmax(120px, 200px) 1fr; gap: 8px 16px; margin: 0; }
+.orderDetails dl > div { display: contents; }
+.orderDetails dt { color: var(--c-dark-60, rgba(0, 0, 0, 0.6)); font-size: 14px; }
+.orderDetails dd { margin: 0; font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--c-dark); }
+.fileLink { padding: 0; border: 0; background: none; font: inherit; color: var(--c-primary); cursor: pointer; text-align: left; }
+.fileLink:hover { text-decoration: underline; }
+@media (max-width: 640px) { .orderDetails dl { grid-template-columns: 1fr; gap: 2px; } .orderDetails dd { margin-bottom: 8px; } }

@@ -259,6 +259,15 @@ export interface DealDetail {
   chainTxs: { kind: string; txHash: string; at: string; amount?: MicroStr; explorerUrl?: string; status?: string }[];
   /** "illustrative" when the data did not come from a chain (mock mode). */
   network?: string;
+  /** What the buyer sent through the request form (order details for seller-delivered products), newest first. */
+  orderDetails?: BuyerOrderDetails[];
+}
+
+export interface BuyerOrderDetails {
+  id: string;
+  at: string;
+  status: string;
+  fields: { key: string; label: string; value?: string; file?: { name: string; type: string; size: number } }[];
 }
 
 export interface Finance {
