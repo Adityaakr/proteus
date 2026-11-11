@@ -118,10 +118,15 @@ async function send(account: typeof schema.whatsappAccounts.$inferSelect, to: { 
     body: JSON.stringify(messagePayload(to, m)),
     signal: AbortSignal.timeout(10_000),
   });
-  // Only the status goes to the log: Graph error bodies can echo the recipient.
+  // Only Meta's numeric error codes go to the log: Graph error messages can echo the recipient.
   if (!res.ok) {
-    console.error(`[whatsapp] send failed for org ${account.orgId}: HTTP ${res.status}`);
-    throw new HttpError(502, res.status === 401 || res.status === 403 ? "WhatsApp refused the access token. Reconnect your number in Settings with a valid token." : `WhatsApp did not accept the message (HTTP ${res.status}).`);
+    const err = ((await res.json().catch(() => null)) as { error?: { code?: unknown; error_subcode?: unknown; fbtrace_id?: unknown } } | null)?.error;
+    const num = (v: unknown) => (typeof v === "number" ? v : "-");
+    const code = num(err?.code);
+    const trace = typeof err?.fbtrace_id === "string" ? err.fbtrace_id.replace(/[^\w-]/g, "").slice(0, 40) : "-";
+    console.error(`[whatsapp] send failed for org ${account.orgId}: HTTP ${res.status} code ${code} subcode ${num(err?.error_subcode)} trace ${trace}`);
+    const hint = code === 131030 ? " This test number can only message numbers added under 'Send to' in Meta's WhatsApp dashboard." : "";
+    throw new HttpError(502, res.status === 401 || res.status === 403 ? "WhatsApp refused the access token. Reconnect your number in Settings with a valid token." : `WhatsApp did not accept the message (HTTP ${res.status}, code ${code}).${hint}`);
   }
 }
 
