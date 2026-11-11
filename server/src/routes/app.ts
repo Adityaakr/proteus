@@ -299,7 +299,9 @@ appRoutes.get("/app/whatsapp", async (c) => json(c, await accountView(session(c)
 appRoutes.put("/app/whatsapp", async (c) => {
   const b = (await c.req.json().catch(() => ({}))) as { phoneNumberId?: string; accessToken?: string; displayPhone?: string };
   if (!b.phoneNumberId || !b.accessToken) throw new HttpError(400, "phoneNumberId and accessToken are required");
-  return json(c, await connectAccount(session(c).orgId, { phoneNumberId: String(b.phoneNumberId).trim(), accessToken: String(b.accessToken).trim(), displayPhone: b.displayPhone ? String(b.displayPhone) : undefined }));
+  // Copying from Meta's pages can carry invisible direction marks; an id is digits only and a token has no spaces.
+  return json(c, await connectAccount(session(c).orgId, {
+    phoneNumberId: String(b.phoneNumberId).replace(/\D/g, ""), accessToken: String(b.accessToken).replace(/[\s\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, ""), displayPhone: b.displayPhone ? String(b.displayPhone) : undefined }));
 });
 appRoutes.post("/app/whatsapp/embedded-signup", async (c) => {
   const b = (await c.req.json().catch(() => ({}))) as { code?: string; wabaId?: string; phoneNumberId?: string; event?: string; pin?: string };

@@ -347,7 +347,7 @@ function WhatsAppCard() {
   const q = useQuery({ queryKey: ["sell", "whatsapp"], queryFn: () => v1.app.whatsapp(), retry: false });
   const [form, setForm] = useState({ phoneNumberId: "", accessToken: "", displayPhone: "" });
   const connect = useMutation({
-    mutationFn: () => v1.app.connectWhatsapp({ phoneNumberId: form.phoneNumberId.trim(), accessToken: form.accessToken.trim(), displayPhone: form.displayPhone.trim() || undefined }),
+    mutationFn: () => v1.app.connectWhatsapp({ phoneNumberId: form.phoneNumberId.replace(/\D/g, ""), accessToken: form.accessToken.replace(/[\s\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, ""), displayPhone: form.displayPhone.trim() || undefined }),
     onSuccess: (d) => { qc.setQueryData(["sell", "whatsapp"], d); setForm({ phoneNumberId: "", accessToken: "", displayPhone: "" }); },
   });
   const disconnect = useMutation({ mutationFn: () => v1.app.disconnectWhatsapp(), onSuccess: (d) => qc.setQueryData(["sell", "whatsapp"], d) });
