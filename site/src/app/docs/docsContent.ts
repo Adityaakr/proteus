@@ -568,6 +568,20 @@ export const SECTIONS: DocSection[] = [
       { kind: "p", text: "`GET /api/public/sellers/{seller}/ratings` returns every rating with its status and transaction, the method, and `trustedReviewers`: the buyers whose ratings count. Pass them to ERC-8004 `getSummary` on Arc to read the same feedback straight from the chain. An empty list reverts, as the standard requires." },
       { kind: "code", lang: "bash", text: "curl -s https://app.proteus.co.in/api/public/sellers/shoonya-store-t4e/ratings\n\n# Then, on Arc mainnet (chain 5042), ReputationRegistry " + CONTRACTS.reputationRegistryMainnet + ":\n# getSummary(uint256 agentId, address[] clientAddresses, string tag1, string tag2)\n#   returns (uint64 count, int128 summaryValue, uint8 summaryValueDecimals)\ncast call " + CONTRACTS.reputationRegistryMainnet + " \\\n  'getSummary(uint256,address[],string,string)(uint64,int128,uint8)' \\\n  2695 '[0xF8b8eF05B9F820Addf7D85D165433e6C60221AF5]' proteus-deal '' \\\n  --rpc-url https://rpc.mainnet.arc.io\n# → 1, 5, 0   (one rating, 5 stars)" },
       { kind: "p", text: "The chain returns the plain count and average for those buyers. Proteus's score adds one vote per buyer, the verified-buyer weight and the neutral prior on top." },
+      { kind: "h3", id: "ratings-statuses", text: "Rating statuses" },
+      { kind: "table", head: ["Status", "Counts", "Meaning"], rows: [
+        ["`counted`", "Yes", "Passed the link check."],
+        ["`counted_before_checks`", "Yes, disclosed", "Given before the checks went live (Nov 12, 2026, 20:00 UTC) and later found linked; the reason is shown and the buyer is not a trusted reviewer."],
+        ["`linked_to_seller`", "No", "The buyer is tied to the seller; the reason is shown."],
+        ["`checking`", "Not yet", "The link check is still scanning Arc (it can take minutes)."],
+      ] },
+      { kind: "h3", id: "ratings-agents", text: "For AI agents" },
+      { kind: "list", items: [
+        "Read `summary.count` before `summary.average`: one buyer is a weak signal. Compare sellers by `summary.score`, which starts at a neutral 3.5.",
+        "Prefer the escrow track record (`stats.dealsFunded`, `stats.settled`, `stats.inEscrow` on `GET /api/public/sellers/{seller}`) over stars.",
+        "Recheck on chain with `getSummary` and `trustedReviewers`; do not trust our number alone.",
+      ] },
+      { kind: "code", lang: "json", text: JSON.stringify({ seller: "shoonya-store-t4e", agentId: "2695", summary: { count: 1, verifiedBuyers: 0, average: 5, score: 3.71, excluded: 0, beforeChecks: 1, pending: 0, settledBehind: "6600000" }, ratings: [{ stars: 5, buyer: "0xF8b8eF05B9F820Addf7D85D165433e6C60221AF5", buyerTier: "wallet", status: "counted_before_checks", reason: "The buyer wallet is one of the seller's own wallets.", txHash: TX.shoonyaRating, settled: "6600000" }], trustedReviewers: [], verifyOnChain: { chainId: 5042, reputationRegistry: CONTRACTS.reputationRegistryMainnet, call: "getSummary(uint256 agentId, address[] clientAddresses, string tag1, string tag2)" } }, null, 2) },
       { kind: "h3", id: "ratings-example", text: "The first rating on mainnet" },
       { kind: "table", head: ["Step", "Transaction (Arc mainnet)"], rows: [
         ["Shoonya Store customer funds 1 tee ($6.60) into DealEscrow, gasless", tm(TX.shoonyaFund)],

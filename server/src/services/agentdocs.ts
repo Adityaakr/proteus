@@ -227,6 +227,15 @@ POST /api/services/{productSlug}/execute with Authorization: Bearer PROTEUS_KEY 
 ## 7. Rate the seller (optional)
 
 After usage has settled, GET /api/deals/{id}/rating -> { eligible, reputationRegistry, args }. From the buyer wallet that funded the deal, call giveFeedback(agentId, stars 1-5, 0, args.tag1, args.tag2, args.endpoint, args.feedbackURI, args.feedbackHash) on reputationRegistry (Arc's ERC-8004 ReputationRegistry), then POST /api/deals/{id}/rating { txHash }. Proteus counts it only after reading the transaction from the chain: posted by this deal's buyer, for this seller's agent, tagged ("proteus-deal", <on-chain dealId>).
+It then checks for links between buyer and seller (the buyer wallet belongs to the seller or its team in Proteus, the seller's wallets sent the buyer USDC on Arc, or both sides bridged USDC in from the same source wallet). A linked rating is listed and does not count; while the check runs (minutes) the rating shows as "checking".
+
+## Reading a seller's reputation
+
+GET /api/public/sellers/{seller}/ratings -> { summary { count, verifiedBuyers, average, score, excluded, beforeChecks, pending }, ratings[] { stars, buyer, buyerTier, status, reason, txHash }, trustedReviewers, verifyOnChain }.
+- count is distinct buyers (one vote each). Weigh the rating by count: "5.0 from 1 buyer" is a weak signal. score starts at a neutral 3.5 and is the safer number to compare sellers.
+- status is counted, counted_before_checks (given before the checks went live on 2026-11-12T20:00Z and later found linked; counts, disclosed), linked_to_seller (does not count) or checking.
+- To check on chain: call getSummary(agentId, trustedReviewers, "proteus-deal", "") on verifyOnChain.reputationRegistry. An empty list reverts.
+- The escrow track record on GET /api/public/sellers/{seller} (stats: dealsFunded, settled, inEscrow) is stronger evidence than stars.
 
 ## Errors
 

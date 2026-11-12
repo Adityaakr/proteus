@@ -459,6 +459,55 @@ cast call 0x8004BAa17C55a88189AE136b182e5fdA19dE9b63 \
 
 The chain returns the plain count and average for those buyers. Proteus's score adds one vote per buyer, the verified-buyer weight and the neutral prior on top.
 
+### Rating statuses
+
+| Status | Counts | Meaning |
+|---|---|---|
+| `counted` | Yes | Passed the link check. |
+| `counted_before_checks` | Yes, disclosed | Given before the checks went live (Nov 12, 2026, 20:00 UTC) and later found linked; the reason is shown and the buyer is not a trusted reviewer. |
+| `linked_to_seller` | No | The buyer is tied to the seller; the reason is shown. |
+| `checking` | Not yet | The link check is still scanning Arc (it can take minutes). |
+
+### For AI agents
+
+- Read `summary.count` before `summary.average`: one buyer is a weak signal. Compare sellers by `summary.score`, which starts at a neutral 3.5.
+- Prefer the escrow track record (`stats.dealsFunded`, `stats.settled`, `stats.inEscrow` on `GET /api/public/sellers/{seller}`) over stars.
+- Recheck on chain with `getSummary` and `trustedReviewers`; do not trust our number alone.
+
+```json
+{
+  "seller": "shoonya-store-t4e",
+  "agentId": "2695",
+  "summary": {
+    "count": 1,
+    "verifiedBuyers": 0,
+    "average": 5,
+    "score": 3.71,
+    "excluded": 0,
+    "beforeChecks": 1,
+    "pending": 0,
+    "settledBehind": "6600000"
+  },
+  "ratings": [
+    {
+      "stars": 5,
+      "buyer": "0xF8b8eF05B9F820Addf7D85D165433e6C60221AF5",
+      "buyerTier": "wallet",
+      "status": "counted_before_checks",
+      "reason": "The buyer wallet is one of the seller's own wallets.",
+      "txHash": "0x4689593d2dfa8accd71ba0c3d9867ca6cd2bfa382b44fa49014f4b53d3767605",
+      "settled": "6600000"
+    }
+  ],
+  "trustedReviewers": [],
+  "verifyOnChain": {
+    "chainId": 5042,
+    "reputationRegistry": "0x8004BAa17C55a88189AE136b182e5fdA19dE9b63",
+    "call": "getSummary(uint256 agentId, address[] clientAddresses, string tag1, string tag2)"
+  }
+}
+```
+
 ### The first rating on mainnet
 
 | Step | Transaction (Arc mainnet) |
