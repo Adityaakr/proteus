@@ -17,6 +17,7 @@ import { checkCode, clientIp } from "../services/invites";
 import { limit } from "../lib/ratelimit";
 import { insertWalletLink, userOwnsAddress, userWallets } from "../services/accounts";
 import { sellerCard, sellerStats } from "../services/brand";
+import { publicRatings } from "../services/ratings";
 
 export const publicRoutes = new Hono();
 
@@ -29,6 +30,16 @@ publicRoutes.get("/public/sellers/:sellerSlug", async (c) => {
   for (const r of rows) products.push(publicProduct(await loadProductById(r.id)));
   const stats = await sellerStats([org.id]);
   return json(c, { ...sellerCard(org, stats.get(org.id)), products });
+});
+
+/**
+ * Every rating for a seller, counted or not, with why, and the trusted-reviewer list behind its score. Anyone can
+ * recompute the on-chain part with ERC-8004 getSummary(agentId, trustedReviewers, "proteus-deal", "").
+ */
+publicRoutes.get("/public/sellers/:sellerSlug/ratings", async (c) => {
+  const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.slug, c.req.param("sellerSlug")));
+  if (!org) throw new HttpError(404, "seller not found");
+  return json(c, await publicRatings(org));
 });
 
 /** Store-wide deal desk: which of this seller's products a buyer message is about. */

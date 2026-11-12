@@ -3,7 +3,7 @@ import { db, schema } from "../db";
 import { HttpError } from "../lib/http";
 import { agentRegistryId } from "@proteus/domain";
 import { env } from "../env";
-import { ratingSummaries } from "./ratings";
+import { ratingSummaries, type RatingSummary } from "./ratings";
 
 export interface Brand {
   logoUrl?: string;
@@ -107,8 +107,8 @@ export interface SellerStats {
   settled: bigint;
   /** micro-USDC currently held in escrow for this seller's deals. */
   inEscrow: bigint;
-  /** Verified ERC-8004 ratings from buyers of settled deals (services/ratings.ts), or null if none yet. */
-  ratings: { count: number; average: number; settledBehind: bigint } | null;
+  /** Verified ERC-8004 ratings (services/rating-score.ts): buyers counted, average, score, excluded, pending; null if none. */
+  ratings: RatingSummary | null;
   since: Date;
 }
 
@@ -138,7 +138,7 @@ export async function sellerStats(orgIds: string[]): Promise<Map<string, SellerS
   }
   for (const [orgId, r] of await ratingSummaries(orgIds)) {
     const s = out.get(orgId);
-    if (s) s.ratings = { count: r.count, average: r.average, settledBehind: r.settledBehind };
+    if (s) s.ratings = r;
   }
   return out;
 }

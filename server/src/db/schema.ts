@@ -480,6 +480,13 @@ export const sellerRatings = pgTable("seller_ratings", {
   weight: bigint("weight", { mode: "bigint" }).notNull(),
   txHash: text("tx_hash").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  /** "verified" (WhatsApp or a Proteus account with an email) counts fully; "wallet" counts half. Null until checked. */
+  buyerTier: text("buyer_tier"),
+  /** Link check between buyer and seller: "pending", "clear" or "linked". Only "clear" ratings count. */
+  linkStatus: text("link_status").notNull().default("pending"),
+  /** Why a rating is linked to the seller (public, no private data). */
+  linkReason: text("link_reason"),
+  linkCheckedAt: timestamp("link_checked_at", { withTimezone: true }),
 });
 
 /**

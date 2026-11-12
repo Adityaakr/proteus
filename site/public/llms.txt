@@ -2,7 +2,7 @@
 
 > The deal desk for internet businesses. A deal agent for anything sold by quote, volume or usage. It negotiates with buyers and their AI agents inside the seller's rules, both sides sign the same terms, and USDC waits on Arc until delivery: the seller is paid for what was delivered, the rest is refundable.
 
-Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (https://ai.proteus.co.in, chain 5042002). DealEscrow: 0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46 on both. Facts as of 2026-10-24. Proven claims link an Arc transaction, a contract or the code; what is not proven yet is listed in facts.json under notProven.
+Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (https://ai.proteus.co.in, chain 5042002). DealEscrow: 0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46 on both. Facts as of 2026-11-13. Proven claims link an Arc transaction, a contract or the code; what is not proven yet is listed in facts.json under notProven.
 
 ## Start here
 
@@ -32,6 +32,7 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 - [What is signed, and by whom](https://app.proteus.co.in/docs/signatures.md): Eight messages; the contract checks each one.
 - [How offers are priced](https://app.proteus.co.in/docs/pricing.md): Code decides the price; the model only writes the words.
 - [Privacy](https://app.proteus.co.in/docs/privacy.md): What each party can see when a buyer talks to a seller's agent, on the web or on WhatsApp.
+- [Ratings and reputation](https://app.proteus.co.in/docs/ratings.md): Who can rate a seller, how a rating is checked, how the score is computed, and how to verify it on Arc.
 
 ## Product
 
@@ -49,7 +50,7 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 - [Why now](https://app.proteus.co.in/docs/why-now.md): Agents can pay; businesses already use stablecoins; the rails are on Arc.
 - [Market](https://app.proteus.co.in/docs/market.md): Third-party figures, linked to their publishers.
 - [How Proteus AI compares](https://app.proteus.co.in/docs/competitors.md): Others help you quote, negotiate or bill. Proteus takes a deal from the first message to the final transaction.
-- [Traction](https://app.proteus.co.in/docs/traction.md): One real business live on mainnet; the first paid order is next.
+- [Traction](https://app.proteus.co.in/docs/traction.md): One real business live on mainnet, with its first customer order paid out and rated on Arc.
 
 ## Reference
 

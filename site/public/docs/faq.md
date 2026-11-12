@@ -1,6 +1,6 @@
 # FAQ · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/faq> · facts as of 2026-10-24 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/faq> · facts as of 2026-11-13 · all docs: <https://app.proteus.co.in/docs.md>
 
 
 
@@ -12,3 +12,4 @@ Source: <https://app.proteus.co.in/docs/faq> · facts as of 2026-10-24 · all do
 - **Is it on mainnet?.** Yes: the escrow, a real business and its policies. Most feature proofs are on testnet.
 - **Can my agent buy alone?.** Yes, through MCP, within a per-deal limit you set.
 - **Is the contract audited?.** Not yet. Source-verified and tested; an audit is planned.
+- **Can a seller fake its own rating?.** Not from its own wallet, not without a paid order, and not with a wallet it funded on Arc: those are rejected or flagged. A wallet funded from an exchange can still get through, as one vote among the buyers shown. [How ratings work](https://app.proteus.co.in/docs/ratings).

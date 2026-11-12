@@ -1,6 +1,6 @@
 # What is live today · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/status> · facts as of 2026-10-24 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/status> · facts as of 2026-11-13 · all docs: <https://app.proteus.co.in/docs.md>
 
 
 
@@ -11,7 +11,8 @@ _Each capability, the network it is proven on, and the transaction that shows it
 | Full escrow loop: approve, fund, settle, close, refund (team funds, 0.60 USDC) | ✓ Arc mainnet | [fund](https://explorer.arc.io/tx/0xe527f3c4d6d5d2bebeb25dbd67dcc429b99827deac6349a81f7a88c3f75efe9d) · [settle](https://explorer.arc.io/tx/0xce2caa88fa3a2b136a85771573f2b5ce269be2ea2182da91f78cd9a2243153b0) · [refund](https://explorer.arc.io/tx/0x70d68aa16db7588b90f172ccb68d20bb4f95ca099650a2755ee1a3436481c94d) |
 | A real business registers its agent from its own wallet (Shoonya Store, ERC-8004 Agent #2695) | ✓ Arc mainnet | [register](https://explorer.arc.io/tx/0x45921b0f981908b7d704b79119863781c21e71498c812965d90db1787bd24e55) |
 | Pricing policies committed on chain (4 Shoonya products, version 1) | ✓ Arc mainnet | [commit 1](https://explorer.arc.io/tx/0x59065079ffdc03ddc1e7ab3d257210ff743076e6522d1013e67b0bf901cdd165) · [commit 2](https://explorer.arc.io/tx/0x525f8578c6f8c039aaf5ad32cd16b91f5d176d966e54e29050ff0c735ee0c977) · [commit 3](https://explorer.arc.io/tx/0xe88e372b98cd6a8532b5c8294d9e6a03953821c4a543054cf1102960fe591947) · [commit 4](https://explorer.arc.io/tx/0xece7b7615eabe2605eba03127341da4749c06f2bc775bec22278aa2f26c4ff8f) |
-| Paid order from an outside buyer | Not yet | The first Shoonya order is next. |
+| A real customer's order, end to end: Shoonya Store customer negotiates 1 tee ($6.60), funds gaslessly, Shoonya delivers, the customer countersigns and DealEscrow pays Shoonya 6.60 USDC | ✓ Arc mainnet | [fund](https://explorer.arc.io/tx/0x9145fb235f7c00e625ccb91e3a8a817dcf3cd0b1ee4265fd5697cf79cb1b62a7) · [settle](https://explorer.arc.io/tx/0x852725276799255fa7425be9aafcd2296828a0a9553e3e2b9394104fcbad5542) |
+| The customer rates the seller 5 stars on the ERC-8004 ReputationRegistry from its own wallet, bound to the deal's terms hash | ✓ Arc mainnet | [rating](https://explorer.arc.io/tx/0x4689593d2dfa8accd71ba0c3d9867ca6cd2bfa382b44fa49014f4b53d3767605) |
 | Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction) | ✓ Arc testnet | [fund](https://explorer.testnet.arc.io/tx/0xcfc87ca9ab00adcafbd9468a17eb203d2e89e870b874f47d1e4e7610a7065d7d) · [settle](https://explorer.testnet.arc.io/tx/0x0601dc6e0ccf3bfbabe1dabbb2a57fef109c5b16ddf782f44a66fcbe126afac3) |
 | Seller-confirmed delivery, then settlement | ✓ Arc testnet | [fund](https://explorer.testnet.arc.io/tx/0x280207802e1d34e8e8731abaab31fd31333ff3d8559867f6776eae04af1f3c73) · [settle](https://explorer.testnet.arc.io/tx/0x63aeb139848a1067eedb1961ed0721ef00024e44b4e9ec1e46cc2cdbb7eb8b45) |
 | An AI agent (Claude) negotiates, funds and settles through MCP within a mandate | ✓ Arc testnet | [transcript and transactions](https://github.com/Adityaakr/proteus/blob/main/docs/evidence/2026-10-23-claude-mcp-kitbox.md) |

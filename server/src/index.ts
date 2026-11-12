@@ -120,6 +120,10 @@ serve({ fetch: app.fetch, port: env.PORT, hostname: "::" }, (info) => {
   console.log(`Proteus AI api on http://localhost:${info.port} | agent=${agentAdapterName()} relayer=${relayerKind()} escrow=${env.ESCROW_ADDRESS ?? "unset"}`);
   startReconciler();
   setInterval(() => import("./services/x402").then((m) => m.checkPendingPayments()).catch(() => {}), 15_000);
+  // Rating integrity: check new ratings and any stored before the checks existed (each scan can take minutes on the public RPC).
+  const ratingSweep = () => import("./services/ratings").then((m) => m.sweepPendingRatings()).catch((e) => console.error("[ratings]", (e as Error).message));
+  setTimeout(ratingSweep, 20_000);
+  setInterval(ratingSweep, 30 * 60_000);
   if (env.RETENTION_DAYS) {
     const sweep = () => import("./services/retention").then((m) => m.purgeExpired(env.RETENTION_DAYS!)).then((r) => (r.turns || r.orderDetails) && console.log(`[retention] removed ${r.turns} chat turn(s) and ${r.orderDetails} order detail(s) older than ${env.RETENTION_DAYS} days`)).catch((e) => console.error("[retention]", (e as Error).message));
     setTimeout(sweep, 60_000);

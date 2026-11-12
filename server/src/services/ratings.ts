@@ -4,8 +4,9 @@
  * transaction from the chain and checking every field, so a seller cannot rate itself through Proteus (the registry
  * already rejects feedback from the agent's owner) and a rating cannot be attached to someone else's deal.
  *
- * Shown as a weighted average, weighted by USDC settled, next to the count and the total settled behind it. This is a
- * cost-to-fake, not a proof: a seller can still fund a deal from a second wallet. Every rating links to its transaction.
+ * A rating counts only after the integrity checks in rating-integrity.ts (buyer not linked to the seller), with one
+ * vote per buyer and a neutral prior (rating-score.ts). This raises the cost of faking; it is not a proof: a seller can
+ * still fund a second wallet from an exchange. Every rating, counted or not, links to its transaction.
  */
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { getAddress, isAddressEqual, parseEventLogs, type Hex } from "viem";
@@ -14,6 +15,8 @@ import { db, schema } from "../db";
 import { env } from "../env";
 import { HttpError } from "../lib/http";
 import { publicClient } from "../chain/client";
+import { blockOf, buyerTier, checkBuyerLinks } from "./rating-integrity";
+import { RATING_PRIOR, RATING_PRIOR_WEIGHT, summarizeRatings, type RatingSummary } from "./rating-score";
 
 export const RATING_TAG = "proteus-deal";
 
@@ -64,44 +67,123 @@ export async function confirmRating(dealId: string, txHash: Hex) {
   if (!isAddressEqual(ev.args.clientAddress, getAddress(deal.buyerAddress))) throw new HttpError(409, "The feedback was not posted by this deal's buyer.");
   if (ev.args.valueDecimals !== 0 || ev.args.value < 1n || ev.args.value > 5n) throw new HttpError(409, "A rating must be a whole number of stars from 1 to 5.");
   const row = { dealId, orgId: org.id, agentId: org.agentId, buyerAddress: deal.buyerAddress, value: Number(ev.args.value), weight: deal.settled, txHash, createdAt: new Date() };
-  await db.insert(schema.sellerRatings).values(row).onConflictDoUpdate({ target: schema.sellerRatings.dealId, set: { value: row.value, weight: row.weight, txHash, createdAt: row.createdAt } });
-  return { value: row.value, txHash, weight: row.weight.toString() };
+  await db.insert(schema.sellerRatings).values(row).onConflictDoUpdate({ target: schema.sellerRatings.dealId, set: { value: row.value, weight: row.weight, txHash, createdAt: row.createdAt, linkStatus: "pending", linkReason: null, linkCheckedAt: null } });
+  // The link check scans Arc (minutes on the public RPC), so it runs after the response; until it finishes the rating is "pending".
+  void checkRating(dealId).catch((e) => console.error(`[ratings] check failed for ${dealId}: ${String((e as Error).message ?? e).slice(0, 160)}`));
+  return { value: row.value, txHash, weight: row.weight.toString(), linkStatus: "pending" as const };
 }
 
-export interface RatingSummary {
-  count: number;
-  /** Average stars weighted by USDC settled, two decimals. */
-  average: number;
-  /** Micro-USDC settled across the rated deals. */
-  settledBehind: bigint;
-}
+export type { RatingSummary } from "./rating-score";
 
+/** Summaries per seller, computed by summarizeRatings (one vote per buyer, linked ratings excluded, neutral prior). */
 export async function ratingSummaries(orgIds: string[]): Promise<Map<string, RatingSummary>> {
   const out = new Map<string, RatingSummary>();
   if (!orgIds.length) return out;
-  const rows = await db
-    .select({
-      orgId: schema.sellerRatings.orgId,
-      n: sql<number>`count(*)`,
-      weighted: sql<string>`coalesce(sum(${schema.sellerRatings.value} * ${schema.sellerRatings.weight}), 0)`,
-      weight: sql<string>`coalesce(sum(${schema.sellerRatings.weight}), 0)`,
-    })
-    .from(schema.sellerRatings)
-    .where(inArray(schema.sellerRatings.orgId, orgIds))
-    .groupBy(schema.sellerRatings.orgId);
-  for (const r of rows) {
-    const w = BigInt(r.weight);
-    if (w === 0n) continue;
-    out.set(r.orgId, { count: Number(r.n), average: Math.round(Number((BigInt(r.weighted) * 100n) / w)) / 100, settledBehind: w });
+  const rows = await db.select().from(schema.sellerRatings).where(inArray(schema.sellerRatings.orgId, orgIds));
+  const byOrg = new Map<string, typeof rows>();
+  for (const r of rows) byOrg.set(r.orgId, [...(byOrg.get(r.orgId) ?? []), r]);
+  for (const [orgId, list] of byOrg) {
+    const s = summarizeRatings(list);
+    if (s) out.set(orgId, s);
   }
   return out;
 }
 
-/** Every verified rating for a seller, newest first, each with its Arc transaction. */
+/**
+ * Runs the buyer tier and link checks for one rating and stores the result. Safe to call again: a failed scan leaves
+ * the rating "pending" so the next sweep retries it.
+ */
+export async function checkRating(dealId: string) {
+  const [rating] = await db.select().from(schema.sellerRatings).where(eq(schema.sellerRatings.dealId, dealId));
+  if (!rating) return null;
+  const [deal] = await db.select().from(schema.deals).where(eq(schema.deals.id, dealId));
+  if (!deal) return null;
+  const tier = await buyerTier(deal);
+  const toBlock = await blockOf(rating.txHash as Hex);
+  const fundedBlock = deal.fundingTxHash ? await blockOf(deal.fundingTxHash as Hex) : toBlock;
+  const link = await checkBuyerLinks({ orgId: rating.orgId, buyerAddress: rating.buyerAddress, fundedBlock, toBlock });
+  const set = { buyerTier: tier, linkStatus: link.linked ? "linked" : "clear", linkReason: link.linked ? link.reason : null, linkCheckedAt: new Date() };
+  await db.update(schema.sellerRatings).set(set).where(eq(schema.sellerRatings.dealId, dealId));
+  return set;
+}
+
+let sweeping = false;
+/** Checks every rating still pending (new ratings, and ratings stored before the checks existed). */
+export async function sweepPendingRatings() {
+  if (sweeping) return;
+  sweeping = true;
+  try {
+    const pending = await db.select({ dealId: schema.sellerRatings.dealId }).from(schema.sellerRatings).where(eq(schema.sellerRatings.linkStatus, "pending"));
+    for (const p of pending) {
+      try {
+        const r = await checkRating(p.dealId);
+        if (r) console.log(`[ratings] ${p.dealId}: ${r.linkStatus} (${r.buyerTier})`);
+      } catch (e) {
+        console.error(`[ratings] check failed for ${p.dealId}: ${String((e as Error).message ?? e).slice(0, 160)}`);
+      }
+    }
+  } finally {
+    sweeping = false;
+  }
+}
+
+/** Every verified rating for a seller, newest first, with whether it counts and why, and its Arc transaction. */
 export async function sellerRatingList(orgId: string) {
   return db
-    .select({ value: schema.sellerRatings.value, buyer: schema.sellerRatings.buyerAddress, txHash: schema.sellerRatings.txHash, weight: schema.sellerRatings.weight, createdAt: schema.sellerRatings.createdAt })
+    .select({
+      value: schema.sellerRatings.value,
+      buyer: schema.sellerRatings.buyerAddress,
+      buyerTier: schema.sellerRatings.buyerTier,
+      linkStatus: schema.sellerRatings.linkStatus,
+      linkReason: schema.sellerRatings.linkReason,
+      txHash: schema.sellerRatings.txHash,
+      weight: schema.sellerRatings.weight,
+      createdAt: schema.sellerRatings.createdAt,
+    })
     .from(schema.sellerRatings)
-    .where(and(eq(schema.sellerRatings.orgId, orgId)))
+    .where(eq(schema.sellerRatings.orgId, orgId))
     .orderBy(sql`${schema.sellerRatings.createdAt} desc`);
+}
+
+const RATING_METHOD = [
+  "Only the deal's own buyer can rate, from their own wallet, after USDC has settled on chain; the ERC-8004 registry rejects feedback from the seller's agent wallet.",
+  "Each rating is checked for links between buyer and seller: the buyer wallet is a seller wallet, the seller's wallets sent USDC to the buyer on Arc, or both sides' USDC was bridged in from the same source wallet. Linked ratings stay listed but do not count.",
+  "One vote per buyer per seller (the latest). Verified buyers (WhatsApp, or a Proteus account with an email) weigh 1; wallet-only buyers weigh 0.5.",
+  `The score starts every seller at a neutral ${RATING_PRIOR} worth ${RATING_PRIOR_WEIGHT} buyers, so a few ratings cannot make a perfect score.`,
+  "Limits: a seller can still fund a second wallet from an exchange; the checks raise the cost of faking, they do not prove independence.",
+];
+
+/** Public view: summary, method, each rating with its status, and the trusted reviewers to pass to getSummary. */
+export async function publicRatings(org: typeof schema.orgs.$inferSelect) {
+  const list = await sellerRatingList(org.id);
+  const summary = summarizeRatings(list.map((r) => ({ buyerAddress: r.buyer, value: r.value, buyerTier: r.buyerTier, linkStatus: r.linkStatus, weight: r.weight, createdAt: r.createdAt })));
+  const trustedReviewers = [...new Set(list.filter((r) => r.linkStatus === "clear").map((r) => getAddress(r.buyer)))];
+  return {
+    seller: org.slug,
+    agentId: org.agentId,
+    summary,
+    method: RATING_METHOD,
+    ratings: list.map((r) => ({
+      stars: r.value,
+      buyer: r.buyer,
+      buyerTier: r.buyerTier,
+      status: r.linkStatus === "clear" ? "counted" : r.linkStatus === "linked" ? "linked_to_seller" : "checking",
+      reason: r.linkReason,
+      txHash: r.txHash,
+      settled: r.weight,
+      createdAt: r.createdAt,
+    })),
+    trustedReviewers,
+    verifyOnChain: org.agentId
+      ? {
+          chainId: env.CHAIN_ID,
+          reputationRegistry: erc8004For(env.CHAIN_ID).reputation,
+          call: "getSummary(uint256 agentId, address[] clientAddresses, string tag1, string tag2)",
+          args: { agentId: org.agentId, clientAddresses: trustedReviewers, tag1: RATING_TAG, tag2: "" },
+          note: trustedReviewers.length
+            ? "Returns the count and plain average of these buyers' feedback tagged proteus-deal. Our score additionally keeps one vote per buyer, weights verified buyers and applies the neutral prior."
+            : "No trusted reviewers yet. ERC-8004 getSummary requires at least one client address (an empty list reverts).",
+        }
+      : null,
+  };
 }

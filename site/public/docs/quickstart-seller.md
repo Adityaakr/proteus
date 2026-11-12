@@ -1,6 +1,6 @@
 # Sell: from wallet to a listed product · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/quickstart-seller> · facts as of 2026-10-24 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/quickstart-seller> · facts as of 2026-11-13 · all docs: <https://app.proteus.co.in/docs.md>
 
 
 

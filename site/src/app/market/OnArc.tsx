@@ -21,13 +21,23 @@ export function AgentBadge({ agent }: { agent: SellerAgent }) {
   );
 }
 
-/** Weighted average stars with the count behind it, or nothing when there are no verified ratings. */
+/** Average stars with the number of distinct buyers behind it. Linked and pending ratings never count. */
 export function RatingValue({ ratings }: { ratings: SellerStats["ratings"] }) {
-  if (!ratings || ratings.count === 0) return <span className={m.ratingNone}>No ratings yet</span>;
+  if (!ratings || ratings.count === 0) {
+    if (ratings?.pending) return <span className={m.ratingNone} title="A new rating is being checked for links between buyer and seller.">Rating being checked</span>;
+    return <span className={m.ratingNone}>No ratings yet</span>;
+  }
+  const buyers = `${ratings.count} buyer${ratings.count === 1 ? "" : "s"}`;
+  const title = [
+    `Average of ${buyers}: one vote per buyer, from buyers of settled deals, each an ERC-8004 transaction on Arc.`,
+    ratings.verifiedBuyers ? `${ratings.verifiedBuyers} verified (WhatsApp or an account with an email).` : "",
+    ratings.excluded ? `${ratings.excluded} rating${ratings.excluded === 1 ? "" : "s"} linked to the seller not counted.` : "",
+    `Ranking score ${ratings.score.toFixed(2)} (starts at a neutral 3.5 until more buyers rate).`,
+  ].filter(Boolean).join(" ");
   return (
-    <span className={m.rating} title="Average stars from buyers of settled deals, weighted by USDC settled. Each rating is an ERC-8004 transaction on Arc.">
+    <span className={m.rating} title={title}>
       <Star size={13} className={m.ratingStar} aria-hidden /> {ratings.average.toFixed(1)}
-      <span className={m.ratingCount}> ({ratings.count})</span>
+      <span className={m.ratingCount}> · {buyers}</span>
     </span>
   );
 }

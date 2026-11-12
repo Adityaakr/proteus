@@ -60,8 +60,9 @@ export interface SellerStats {
   settled: MicroStr;
   inEscrow: MicroStr;
   since: IsoTime;
-  /** Verified ERC-8004 ratings from buyers of settled deals: weighted average, count, USDC settled behind them. */
-  ratings?: { count: number; average: number; settledBehind: MicroStr } | null;
+  /** Verified ERC-8004 ratings: distinct buyers counted, their average, a ranking score with a neutral prior,
+   *  ratings excluded as linked to the seller, ratings still being checked, and USDC settled behind the counted votes. */
+  ratings?: { count: number; verifiedBuyers: number; average: number; score: number; excluded: number; pending: number; settledBehind: MicroStr } | null;
 }
 
 /** The seller's ERC-8004 agent on Arc (owned by the seller's wallet), or null until it registers. */

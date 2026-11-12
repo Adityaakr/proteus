@@ -20,7 +20,7 @@ import { db, schema } from "../src/db";
 import { chain, feeParams, publicClient } from "../src/chain/client";
 import { assertAgentBinding, confirmRegistration, policyLog, registrationInputs } from "../src/services/agent-registry";
 import { publishAllLatest } from "../src/services/policy-commit";
-import { confirmRating, ratingInputs } from "../src/services/ratings";
+import { checkRating, confirmRating, ratingInputs } from "../src/services/ratings";
 import { sellerStats } from "../src/services/brand";
 import { REPUTATION_REGISTRY_ABI } from "@proteus/domain";
 import { createProduct } from "../src/services/accounts";
@@ -154,10 +154,17 @@ const a = ri.args!;
 const fbTx = await buyerWallet.writeContract({ address: ri.reputationRegistry as Hex, abi: REPUTATION_REGISTRY_ABI, functionName: "giveFeedback", args: [BigInt(a.agentId), 5n, 0, a.tag1, a.tag2, a.endpoint, a.feedbackURI, a.feedbackHash as Hex], ...(await feeParams()) });
 log("giveFeedback tx (buyer)", fbTx);
 const rated = await confirmRating(dealId, fbTx);
-assert(rated.value === 5, "server verified the on-chain rating (5 stars) from the deal's buyer");
+assert(rated.value === 5 && rated.linkStatus === "pending", "server verified the on-chain rating (5 stars) from the deal's buyer; it counts only after the link check");
+const pendingStats = (await sellerStats([orgId])).get(orgId)!;
+assert(pendingStats.ratings?.count === 0 && pendingStats.ratings.pending === 1, "a rating does not count while its link check is pending");
+const check = await checkRating(dealId);
+log("link check", check);
 const stats = (await sellerStats([orgId])).get(orgId)!;
 log("seller stats", { dealsFunded: stats.dealsFunded, settled: stats.settled.toString(), ratings: stats.ratings && { ...stats.ratings, settledBehind: stats.ratings.settledBehind.toString() } });
-assert(stats.ratings?.count === 1 && stats.ratings.average === 5, "seller card shows the verified rating");
+// The fixture deal has no funding tx, so the scan covers the 14 days before the rating. The test buyer (relayer) may
+// have been topped up by the test seller's deployer key, which the check rightly reports as a link.
+if (check?.linkStatus === "clear") assert(stats.ratings?.count === 1 && stats.ratings.average === 5 && stats.ratings.score < 5, "a clear rating counts as one buyer, and one buyer cannot make a perfect score");
+else assert(check?.linkStatus === "linked" && stats.ratings?.count === 0 && stats.ratings.excluded === 1, "a rating linked to the seller is listed but not counted");
 // A feedback tx for another deal tag must not count for this deal.
 const wrongTx = await buyerWallet.writeContract({ address: ri.reputationRegistry as Hex, abi: REPUTATION_REGISTRY_ABI, functionName: "giveFeedback", args: [BigInt(a.agentId), 1n, 0, a.tag1, "999", a.endpoint, a.feedbackURI, a.feedbackHash as Hex], ...(await feeParams()) });
 try {

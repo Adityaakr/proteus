@@ -1,7 +1,7 @@
 {
   "product": "Proteus AI",
   "summary": "A deal agent for anything sold by quote, volume or usage. It negotiates with buyers and their AI agents inside the seller's rules, both sides sign the same terms, and USDC waits on Arc until delivery: the seller is paid for what was delivered, the rest is refundable.",
-  "asOf": "2026-10-24",
+  "asOf": "2026-11-13",
   "docs": {
     "html": "https://app.proteus.co.in/docs",
     "markdown": "https://app.proteus.co.in/docs.md",
@@ -103,6 +103,14 @@
         "markdown": "https://app.proteus.co.in/docs/privacy.md"
       },
       {
+        "id": "ratings",
+        "group": "Concepts",
+        "title": "Ratings and reputation",
+        "summary": "Who can rate a seller, how a rating is checked, how the score is computed, and how to verify it on Arc.",
+        "html": "https://app.proteus.co.in/docs/ratings",
+        "markdown": "https://app.proteus.co.in/docs/ratings.md"
+      },
+      {
         "id": "fees",
         "group": "Product",
         "title": "What Proteus costs",
@@ -170,7 +178,7 @@
         "id": "traction",
         "group": "Context",
         "title": "Traction",
-        "summary": "One real business live on mainnet; the first paid order is next.",
+        "summary": "One real business live on mainnet, with its first customer order paid out and rated on Arc.",
         "html": "https://app.proteus.co.in/docs/traction",
         "markdown": "https://app.proteus.co.in/docs/traction.md"
       },
@@ -224,6 +232,8 @@
     "policyRegistryTestnet": "0xa3f759525b5657182A8D7deCB0B40d4C66aC4A5A",
     "identityRegistryMainnet": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
     "identityRegistryTestnet": "0x8004A818BFB912233c491871b3d84c89A494BD9e",
+    "reputationRegistryMainnet": "0x8004BAa17C55a88189AE136b182e5fdA19dE9b63",
+    "reputationRegistryTestnet": "0x8004B663056A597Dffe9eCcC1965A193B7388713",
     "usdc": "0x3600000000000000000000000000000000000000"
   },
   "api": {
@@ -249,6 +259,11 @@
         "method": "GET",
         "path": "/public/sellers/{seller}/products/{product}",
         "does": "tiers, terms, request fields"
+      },
+      {
+        "method": "GET",
+        "path": "/public/sellers/{seller}/ratings",
+        "does": "every rating (counted, linked to the seller, or being checked) with its tx, the score method, and the trusted reviewers to pass to ERC-8004 getSummary"
       },
       {
         "method": "POST",
@@ -329,6 +344,16 @@
         "method": "POST",
         "path": "/deals/{id}/dispute",
         "does": "{ txHash, reason } after openDispute from the wallet"
+      },
+      {
+        "method": "GET",
+        "path": "/deals/{id}/rating",
+        "does": "the giveFeedback arguments for this deal (buyer only, after USDC settles) and any rating already verified"
+      },
+      {
+        "method": "POST",
+        "path": "/deals/{id}/rating",
+        "does": "{ txHash } after giveFeedback from the buyer wallet → verified rating, counted after the link check"
       },
       {
         "method": "POST",
@@ -492,10 +517,30 @@
       ]
     },
     {
-      "claim": "Paid order from an outside buyer",
+      "claim": "A real customer's order, end to end: Shoonya Store customer negotiates 1 tee ($6.60), funds gaslessly, Shoonya delivers, the customer countersigns and DealEscrow pays Shoonya 6.60 USDC",
       "network": "mainnet",
-      "status": "not-yet",
-      "evidence": []
+      "status": "proven",
+      "evidence": [
+        {
+          "label": "fund",
+          "url": "https://explorer.arc.io/tx/0x9145fb235f7c00e625ccb91e3a8a817dcf3cd0b1ee4265fd5697cf79cb1b62a7"
+        },
+        {
+          "label": "settle",
+          "url": "https://explorer.arc.io/tx/0x852725276799255fa7425be9aafcd2296828a0a9553e3e2b9394104fcbad5542"
+        }
+      ]
+    },
+    {
+      "claim": "The customer rates the seller 5 stars on the ERC-8004 ReputationRegistry from its own wallet, bound to the deal's terms hash",
+      "network": "mainnet",
+      "status": "proven",
+      "evidence": [
+        {
+          "label": "rating",
+          "url": "https://explorer.arc.io/tx/0x4689593d2dfa8accd71ba0c3d9867ca6cd2bfa382b44fa49014f4b53d3767605"
+        }
+      ]
     },
     {
       "claim": "Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction)",
@@ -585,10 +630,6 @@
   ],
   "notProven": [
     {
-      "claim": "Paid order from an outside buyer",
-      "status": "not-yet"
-    },
-    {
       "claim": "Disputes (open from the wallet, arbiter splits the unspent balance)",
       "status": "tested-offchain"
     },
@@ -661,6 +702,10 @@
     {
       "title": "Figure check",
       "detail": "Replies with unlisted digits are discarded; numbers written in words are not caught."
+    },
+    {
+      "title": "Ratings are cost-to-fake, not proof",
+      "detail": "A seller that funds a second wallet from an exchange leaves no link on Arc and can still rate itself; one vote per buyer and the neutral prior limit the effect. Flags are not yet written on chain."
     }
   ],
   "comparison": {
