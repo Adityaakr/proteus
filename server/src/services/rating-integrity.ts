@@ -39,18 +39,25 @@ const ZERO: Address = "0x0000000000000000000000000000000000000000";
 
 const lower = (a: string) => a.toLowerCase();
 
-/** Every wallet Proteus knows belongs to the seller: owner, payee, quote signers, and wallets of the seller's team. */
-export async function sellerWallets(orgId: string): Promise<Address[]> {
+/** The seller's own wallets (owner, payee, quote signers) and wallets linked to Proteus accounts on its team. */
+export async function sellerWalletSets(orgId: string): Promise<{ own: Address[]; team: Address[] }> {
   const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.id, orgId));
-  if (!org) return [];
-  const out = new Set<string>([org.payeeAddress, org.sellerSignerAddress, org.ownerAddress ?? ""].filter(Boolean).map(lower));
-  for (const s of await db.select({ address: schema.orgSigners.address }).from(schema.orgSigners).where(eq(schema.orgSigners.orgId, orgId))) out.add(lower(s.address));
+  if (!org) return { own: [], team: [] };
+  const own = new Set<string>([org.payeeAddress, org.sellerSignerAddress, org.ownerAddress ?? ""].filter(Boolean).map(lower));
+  for (const s of await db.select({ address: schema.orgSigners.address }).from(schema.orgSigners).where(eq(schema.orgSigners.orgId, orgId))) own.add(lower(s.address));
+  const team = new Set<string>();
   const members = await db.select({ userId: schema.memberships.userId }).from(schema.memberships).where(eq(schema.memberships.orgId, orgId));
   if (members.length) {
     const links = await db.select({ address: schema.walletLinks.address }).from(schema.walletLinks).where(inArray(schema.walletLinks.userId, members.map((m) => m.userId)));
-    for (const l of links) out.add(lower(l.address));
+    for (const l of links) if (!own.has(lower(l.address))) team.add(lower(l.address));
   }
-  return [...out].map((a) => getAddress(a));
+  return { own: [...own].map((a) => getAddress(a)), team: [...team].map((a) => getAddress(a)) };
+}
+
+/** Every wallet Proteus knows belongs to the seller or its team. */
+export async function sellerWallets(orgId: string): Promise<Address[]> {
+  const { own, team } = await sellerWalletSets(orgId);
+  return [...own, ...team];
 }
 
 /** "verified" when the deal came through WhatsApp or the buyer wallet belongs to a Proteus account with an email. */
@@ -125,13 +132,20 @@ async function sourcesOf(mintTxs: Hex[]) {
  * the scan covers 14 days before it up to `toBlock` (the rating's block).
  */
 export async function checkBuyerLinks(input: { orgId: string; buyerAddress: string; fundedBlock: bigint; toBlock: bigint }): Promise<LinkCheck> {
-  return linksOnChain({ buyer: getAddress(input.buyerAddress), seller: await sellerWallets(input.orgId), fundedBlock: input.fundedBlock, toBlock: input.toBlock });
+  const buyer = getAddress(input.buyerAddress);
+  const { own, team } = await sellerWalletSets(input.orgId);
+  if (team.some((w) => isAddressEqual(w, buyer))) return { linked: true, reason: TEAM_ACCOUNT_REASON };
+  return linksOnChain({ buyer, seller: [...own, ...team], fundedBlock: input.fundedBlock, toBlock: input.toBlock });
 }
+
+export const TEAM_ACCOUNT_REASON = "The buyer wallet is connected to a Proteus account on the seller's team.";
+/** Reason text used before team-account links were reported separately; such ratings are re-checked once. */
+export const LEGACY_OWN_WALLET_REASON = "The buyer wallet is one of the seller's own wallets.";
 
 /** The chain part of the link check, given the seller's wallets (exported for tests against real Arc data). */
 export async function linksOnChain(input: { buyer: Address; seller: Address[]; fundedBlock: bigint; toBlock: bigint }): Promise<LinkCheck> {
   const { buyer, seller } = input;
-  if (seller.some((w) => isAddressEqual(w, buyer))) return { linked: true, reason: "The buyer wallet is one of the seller's own wallets." };
+  if (seller.some((w) => isAddressEqual(w, buyer))) return { linked: true, reason: "The buyer wallet is the seller's owner, payee or signer wallet." };
 
   const start = input.fundedBlock > LOOKBACK_DAYS * BLOCKS_PER_DAY ? input.fundedBlock - LOOKBACK_DAYS * BLOCKS_PER_DAY : 0n;
   // One scan for the buyer: USDC from any seller wallet (funding) or from the zero address (CCTP mints).

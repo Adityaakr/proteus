@@ -8,14 +8,14 @@
  * vote per buyer and a neutral prior (rating-score.ts). This raises the cost of faking; it is not a proof: a seller can
  * still fund a second wallet from an exchange. Every rating, counted or not, links to its transaction.
  */
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { getAddress, isAddressEqual, parseEventLogs, type Hex } from "viem";
 import { REPUTATION_REGISTRY_ABI, erc8004For } from "@proteus/domain";
 import { db, schema } from "../db";
 import { env } from "../env";
 import { HttpError } from "../lib/http";
 import { publicClient } from "../chain/client";
-import { blockOf, buyerTier, checkBuyerLinks } from "./rating-integrity";
+import { LEGACY_OWN_WALLET_REASON, blockOf, buyerTier, checkBuyerLinks } from "./rating-integrity";
 import { RATING_CHECKS_START, RATING_PRIOR, RATING_PRIOR_WEIGHT, ratedBeforeChecks, summarizeRatings, type RatingSummary } from "./rating-score";
 
 export const RATING_TAG = "proteus-deal";
@@ -113,7 +113,8 @@ export async function sweepPendingRatings() {
   if (sweeping) return;
   sweeping = true;
   try {
-    const pending = await db.select({ dealId: schema.sellerRatings.dealId }).from(schema.sellerRatings).where(eq(schema.sellerRatings.linkStatus, "pending"));
+    // Pending ratings, plus ratings stored with the old catch-all reason (re-checked once so team-account links say so).
+    const pending = await db.select({ dealId: schema.sellerRatings.dealId }).from(schema.sellerRatings).where(or(eq(schema.sellerRatings.linkStatus, "pending"), eq(schema.sellerRatings.linkReason, LEGACY_OWN_WALLET_REASON)));
     for (const p of pending) {
       try {
         const r = await checkRating(p.dealId);

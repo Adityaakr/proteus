@@ -494,7 +494,7 @@ The chain returns the plain count and average for those buyers. Proteus's score 
       "buyer": "0xF8b8eF05B9F820Addf7D85D165433e6C60221AF5",
       "buyerTier": "wallet",
       "status": "counted_before_checks",
-      "reason": "The buyer wallet is one of the seller's own wallets.",
+      "reason": "The buyer wallet is connected to a Proteus account on the seller's team.",
       "txHash": "0x4689593d2dfa8accd71ba0c3d9867ca6cd2bfa382b44fa49014f4b53d3767605",
       "settled": "6600000"
     }
