@@ -5,6 +5,8 @@
  * complete from the material provided comes back as a handoff, which is never billable.
  */
 import OpenAI from "openai";
+import type { BetaContentBlockParam } from "@anthropic-ai/sdk/resources/beta/messages/messages";
+import { askClaude, claudeConfigured, CLAUDE_FOR, DEFAULT_SERVICE_JOB } from "../lib/claude";
 import { env } from "../env";
 import type { loadProductById } from "./catalog";
 import type { ServiceInput, ServiceOutput } from "./gateway";
@@ -35,8 +37,8 @@ const ROLES: Record<string, { system: string; deliverable: string }> = {
     deliverable: "Complete the task end to end from the material provided (reconcile, compute, draft, list, schedule) and return a written record: Task, What was done (steps, with the figures and results), Result, Anything that needs the buyer's action before it is final (payments to release, logins the agent does not have), Record for the audit trail. If the task cannot even be started from the material, use needs_human.",
   },
   "ai-receptionist": {
-    system: "You are Lumen Voice's receptionist agent for a service business. You answer the caller as the business would on the phone, warmly and briefly.",
-    deliverable: "From the caller's question and any phone number: answer what can be answered from the material provided, offer or record a booking when the caller wants one (date, time, service, name as given), and write a short call note for the business: Caller, Request, Answer given, Booking (or none), Follow-up needed. Anything that needs a decision only the business can make (pricing not given, cancellations, complaints) is a NEEDS_HUMAN handoff with the message captured.",
+    system: "You are Lumen Voice's receptionist agent for a service business. You answer the caller as the business would on the phone, warmly and briefly. You do not have the business's live calendar, price list or opening hours unless the caller's message includes them.",
+    deliverable: "From the caller's question and any phone number: write the reply the caller hears, then a call note for the business. When the caller wants an appointment, record it as a booking request (service, preferred day and time, name and phone as given) and tell the caller the business will confirm the slot; never claim a slot is free. Answer questions only from facts in the message; for anything you cannot know (hours, prices, availability), say the team will confirm when they call back and note the question. Call note lines: Caller, Phone, Request, Reply given, Booking request (or none), Follow-up for the business. Use NEEDS_HUMAN only for an emergency, a complaint, a cancellation, or a message with no request at all.",
   },
   "after-hours-answering": {
     system: "You are Lumen Voice's after-hours answering agent. The office is closed; you take the message, book when you can, and escalate emergencies.",
@@ -100,6 +102,7 @@ export async function runServiceAgent(lp: LP, ctx: { requestId: string }, input:
   if (slug === "gpu-hours") {
     return { status: "handoff", billable: false, answer: "GPU reservations are scheduled by Orbit Labs by hand: your container image, hours and command were recorded and an operator confirms the slot before anything is metered. This request was not charged.", source: { store: "orbit-scheduler", fields: Object.keys(input) } };
   }
+  if (slug !== "embeddings" && claudeConfigured()) return runWithClaude(lp, input);
   if (!env.OPENROUTER_API_KEY) return { status: "failed", billable: false, answer: "This service's agent is not configured on the server (no model key). This request was not charged.", source: { store: "none", fields: [] } };
   const { parts, fields, unsupported, pdf } = partsFor(input);
   if (!parts.length) return { status: "failed", billable: false, answer: "Send the request fields listed on the product page. This request was not charged.", source: { store, fields: [] } };
@@ -152,5 +155,47 @@ async function embed(lp: LP, input: ServiceInput, store: string): Promise<Servic
     return { status: "delivered", billable: true, answer: JSON.stringify(out), source: { store: `agent:${model}`, fields } };
   } catch (e) {
     return { status: "failed", billable: false, answer: `The embedding request failed (${String((e as Error).message).slice(0, 160)}). This request was not charged.`, source: { store, fields } };
+  }
+}
+
+/** The buyer's request as Claude content blocks: fields as text, text files inline, PDFs as documents, images as images. */
+function claudeContent(parts: Part[]): BetaContentBlockParam[] {
+  return parts.map((p): BetaContentBlockParam => {
+    if (p.type === "text") return { type: "text", text: p.text };
+    if (p.type === "image_url") {
+      const m = p.image_url.url.match(/^data:([^;]+);base64,(.*)$/s);
+      const mediaType = (m?.[1] ?? "image/png") as "image/png" | "image/jpeg" | "image/gif" | "image/webp";
+      return { type: "image", source: { type: "base64", media_type: mediaType, data: m?.[2] ?? "" } };
+    }
+    const data = p.file.file_data.replace(/^data:application\/pdf;base64,/, "");
+    return { type: "document", source: { type: "base64", media_type: "application/pdf", data } };
+  });
+}
+
+/** Runs a service on Claude with the model chosen for it (lib/claude.ts). Billable only when Claude delivers. */
+async function runWithClaude(lp: LP, input: ServiceInput): Promise<ServiceOutput> {
+  const slug = lp.product.slug;
+  const job = CLAUDE_FOR[slug] ?? DEFAULT_SERVICE_JOB;
+  const { parts, fields, unsupported } = partsFor(input);
+  if (!parts.length) return { status: "failed", billable: false, answer: "Send the request fields listed on the product page. This request was not charged.", source: { store: `agent:${job.model}`, fields: [] } };
+  if (unsupported.length) parts.push({ type: "text", text: `These attachments are in a type the agent cannot read and were ignored: ${unsupported.join(", ")}. Readable types: text, markdown, CSV, JSON, PDF and images.` });
+  const role = ROLES[slug] ?? {
+    system: `You are the service agent for ${lp.org.name}, ${lp.product.name}.`,
+    deliverable: `Deliver one ${lp.product.unitLabel}: ${lp.product.billableUnit}. Capabilities: ${lp.product.capabilities.join(", ")}.`,
+  };
+  const maxTokens = slug === "inference-capacity" && typeof input.maxTokens === "number" && input.maxTokens > 0 ? Math.min(16_000, Math.floor(input.maxTokens) + 2_000) : 16_000;
+  try {
+    const res = await askClaude(job, { system: `${role.system} ${role.deliverable} ${RULES}`, content: claudeContent(parts), maxTokens });
+    const store = `agent:${res.model}`;
+    if (res.stopReason === "refusal") return { status: "failed", billable: false, answer: "The agent declined this request. This request was not charged.", source: { store, fields } };
+    if (res.stopReason === "max_tokens") return { status: "failed", billable: false, answer: "The result was cut off before it was complete. This request was not charged; send a shorter request or split it.", source: { store, fields } };
+    if (!res.text) return { status: "failed", billable: false, answer: "The agent returned an empty result. This request was not charged.", source: { store, fields } };
+    const m = res.text.match(/^STATUS:\s*(delivered|needs_human)\s*\n+/i);
+    const body = (m ? res.text.slice(m[0].length) : res.text).trim();
+    if (m && m[1]!.toLowerCase() === "needs_human") return { status: "handoff", billable: false, answer: `${body}\n\nThis request was not charged.`, source: { store, fields } };
+    return { status: "delivered", billable: true, answer: body, source: { store, fields } };
+  } catch (e) {
+    const msg = String((e as Error).message ?? e).slice(0, 200);
+    return { status: "failed", billable: false, answer: `The agent could not run this request (${msg}). This request was not charged.`, source: { store: `agent:${job.model}`, fields } };
   }
 }
