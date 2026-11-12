@@ -7,7 +7,7 @@ const row = (o: Partial<RatingRow>): RatingRow => ({
   buyerTier: "wallet",
   linkStatus: "clear",
   weight: 1_000_000n,
-  createdAt: new Date("2026-11-01T00:00:00Z"),
+  createdAt: new Date("2026-11-20T00:00:00Z"),
   ...o,
 });
 
@@ -25,7 +25,7 @@ describe("summarizeRatings", () => {
   });
 
   it("counts one vote per buyer: fifty deals from one wallet are one vote, the latest", () => {
-    const many = Array.from({ length: 50 }, (_, i) => row({ value: 5, createdAt: new Date(2026, 9, 1 + (i % 28)) }));
+    const many = Array.from({ length: 50 }, (_, i) => row({ value: 5, createdAt: new Date(Date.UTC(2026, 10, 13, 0, i)) }));
     const latest = row({ value: 2, createdAt: new Date("2026-12-01T00:00:00Z") });
     const s = summarizeRatings([...many, latest])!;
     expect(s.count).toBe(1);
@@ -65,5 +65,15 @@ describe("summarizeRatings", () => {
     expect(s.count).toBe(30);
     expect(s.average).toBe(5);
     expect(s.score).toBeGreaterThan(4.8);
+  });
+
+  it("a linked rating given before the checks existed still counts, and is reported as such", () => {
+    const s = summarizeRatings([row({ linkStatus: "linked", createdAt: new Date("2026-11-11T17:34:45Z") })])!;
+    expect(s).toMatchObject({ count: 1, average: 5, excluded: 0, beforeChecks: 1 });
+  });
+
+  it("a linked rating given after the checks went live never counts", () => {
+    const s = summarizeRatings([row({ linkStatus: "linked", createdAt: new Date("2026-11-12T20:00:01Z") })])!;
+    expect(s).toMatchObject({ count: 0, excluded: 1, beforeChecks: 0 });
   });
 });

@@ -43,6 +43,10 @@ _Code: [rating-integrity.ts](https://github.com/Adityaakr/proteus/blob/main/serv
 - **Still possible: a second wallet funded from an exchange.** That leaves no link on Arc. It still costs a real order per buyer, counts as one wallet-only vote, and the score shows how few buyers stand behind it. Ratings raise the cost of faking; they do not prove independence.
 - **Next.** Writing link flags on chain with ERC-8004 `appendResponse` so every indexer sees them, and a fee after the pilot so each fake order costs money.
 
+### Ratings given before the checks
+
+The checks went live on Nov 12, 2026 (20:00 UTC) and apply to every rating from then on. Ratings given earlier were checked too; if one turns out linked to the seller it still counts, and it is listed publicly as `counted_before_checks` with the reason, never as clear. One rating is in this group: Shoonya Store's first, given Nov 11, whose buyer wallet the check found linked to a Shoonya team account in Proteus.
+
 ### Verify a seller's rating yourself
 
 `GET /api/public/sellers/{seller}/ratings` returns every rating with its status and transaction, the method, and `trustedReviewers`: the buyers whose ratings count. Pass them to ERC-8004 `getSummary` on Arc to read the same feedback straight from the chain. An empty list reverts, as the standard requires.
@@ -62,10 +66,12 @@ cast call 0x8004BAa17C55a88189AE136b182e5fdA19dE9b63 \
 
 The chain returns the plain count and average for those buyers. Proteus's score adds one vote per buyer, the verified-buyer weight and the neutral prior on top.
 
-### The first real rating
+### The first rating on mainnet
 
 | Step | Transaction (Arc mainnet) |
 |---|---|
 | Shoonya Store customer funds 1 tee ($6.60) into DealEscrow, gasless | [0x9145fb23…62a7](https://explorer.arc.io/tx/0x9145fb235f7c00e625ccb91e3a8a817dcf3cd0b1ee4265fd5697cf79cb1b62a7) |
 | The customer countersigns delivery; DealEscrow pays Shoonya 6.60 USDC | [0x85272527…5542](https://explorer.arc.io/tx/0x852725276799255fa7425be9aafcd2296828a0a9553e3e2b9394104fcbad5542) |
 | The customer rates Shoonya 5 stars (agent 2695, tag `proteus-deal`, feedbackHash = terms hash) | [0x4689593d…7605](https://explorer.arc.io/tx/0x4689593d2dfa8accd71ba0c3d9867ca6cd2bfa382b44fa49014f4b53d3767605) |
+
+_Given before the checks existed. The check later found the buyer wallet linked to a Shoonya team account in Proteus, so the rating counts but is listed as `counted_before_checks`, and the buyer is not a trusted reviewer._

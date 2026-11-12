@@ -16,7 +16,7 @@ import { env } from "../env";
 import { HttpError } from "../lib/http";
 import { publicClient } from "../chain/client";
 import { blockOf, buyerTier, checkBuyerLinks } from "./rating-integrity";
-import { RATING_PRIOR, RATING_PRIOR_WEIGHT, summarizeRatings, type RatingSummary } from "./rating-score";
+import { RATING_CHECKS_START, RATING_PRIOR, RATING_PRIOR_WEIGHT, ratedBeforeChecks, summarizeRatings, type RatingSummary } from "./rating-score";
 
 export const RATING_TAG = "proteus-deal";
 
@@ -150,6 +150,7 @@ const RATING_METHOD = [
   "Each rating is checked for links between buyer and seller: the buyer wallet is a seller wallet, the seller's wallets sent USDC to the buyer on Arc, or both sides' USDC was bridged in from the same source wallet. Linked ratings stay listed but do not count.",
   "One vote per buyer per seller (the latest). Verified buyers (WhatsApp, or a Proteus account with an email) weigh 1; wallet-only buyers weigh 0.5.",
   `The score starts every seller at a neutral ${RATING_PRIOR} worth ${RATING_PRIOR_WEIGHT} buyers, so a few ratings cannot make a perfect score.`,
+  `The checks apply to ratings given from ${RATING_CHECKS_START.toISOString()} on. Earlier ratings found linked still count and are marked "counted_before_checks" with the reason, so the exception stays visible.`,
   "Limits: a seller can still fund a second wallet from an exchange; the checks raise the cost of faking, they do not prove independence.",
 ];
 
@@ -157,6 +158,7 @@ const RATING_METHOD = [
 export async function publicRatings(org: typeof schema.orgs.$inferSelect) {
   const list = await sellerRatingList(org.id);
   const summary = summarizeRatings(list.map((r) => ({ buyerAddress: r.buyer, value: r.value, buyerTier: r.buyerTier, linkStatus: r.linkStatus, weight: r.weight, createdAt: r.createdAt })));
+  // Only buyers that passed the check are trusted reviewers; a rating counted before the checks is not one.
   const trustedReviewers = [...new Set(list.filter((r) => r.linkStatus === "clear").map((r) => getAddress(r.buyer)))];
   return {
     seller: org.slug,
@@ -167,7 +169,7 @@ export async function publicRatings(org: typeof schema.orgs.$inferSelect) {
       stars: r.value,
       buyer: r.buyer,
       buyerTier: r.buyerTier,
-      status: r.linkStatus === "clear" ? "counted" : r.linkStatus === "linked" ? "linked_to_seller" : "checking",
+      status: r.linkStatus === "clear" ? "counted" : ratedBeforeChecks(r) ? "counted_before_checks" : r.linkStatus === "linked" ? "linked_to_seller" : "checking",
       reason: r.linkReason,
       txHash: r.txHash,
       settled: r.weight,

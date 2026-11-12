@@ -209,6 +209,7 @@ export const LIMITS = [
   ["Pay per call has no escrow", "x402 calls are paid when made, with no refund path."],
   ["Listing check", "The import flow lists after Arc registration by step order; the listing endpoint itself does not check it (catalog sync does)."],
   ["Figure check", "Replies with unlisted digits are discarded; numbers written in words are not caught."],
+  ["One rating predates the checks", "Shoonya's first rating (Nov 11) counts although its buyer wallet is linked to a Shoonya team account in Proteus; it is listed as counted_before_checks. Every rating since Nov 12 must pass the checks."],
   ["Ratings are cost-to-fake, not proof", "A seller that funds a second wallet from an exchange leaves no link on Arc and can still rate itself; one vote per buyer and the neutral prior limit the effect. Flags are not yet written on chain."],
 ] as const;
 
@@ -561,16 +562,18 @@ export const SECTIONS: DocSection[] = [
         { title: "Still possible: a second wallet funded from an exchange", text: "That leaves no link on Arc. It still costs a real order per buyer, counts as one wallet-only vote, and the score shows how few buyers stand behind it. Ratings raise the cost of faking; they do not prove independence." },
         { title: "Next", text: "Writing link flags on chain with ERC-8004 `appendResponse` so every indexer sees them, and a fee after the pilot so each fake order costs money." },
       ] },
+      { kind: "h3", id: "ratings-before-checks", text: "Ratings given before the checks" },
+      { kind: "p", text: "The checks went live on Nov 12, 2026 (20:00 UTC) and apply to every rating from then on. Ratings given earlier were checked too; if one turns out linked to the seller it still counts, and it is listed publicly as `counted_before_checks` with the reason, never as clear. One rating is in this group: Shoonya Store's first, given Nov 11, whose buyer wallet the check found linked to a Shoonya team account in Proteus." },
       { kind: "h3", id: "ratings-verify", text: "Verify a seller's rating yourself" },
       { kind: "p", text: "`GET /api/public/sellers/{seller}/ratings` returns every rating with its status and transaction, the method, and `trustedReviewers`: the buyers whose ratings count. Pass them to ERC-8004 `getSummary` on Arc to read the same feedback straight from the chain. An empty list reverts, as the standard requires." },
       { kind: "code", lang: "bash", text: "curl -s https://app.proteus.co.in/api/public/sellers/shoonya-store-t4e/ratings\n\n# Then, on Arc mainnet (chain 5042), ReputationRegistry " + CONTRACTS.reputationRegistryMainnet + ":\n# getSummary(uint256 agentId, address[] clientAddresses, string tag1, string tag2)\n#   returns (uint64 count, int128 summaryValue, uint8 summaryValueDecimals)\ncast call " + CONTRACTS.reputationRegistryMainnet + " \\\n  'getSummary(uint256,address[],string,string)(uint64,int128,uint8)' \\\n  2695 '[0xF8b8eF05B9F820Addf7D85D165433e6C60221AF5]' proteus-deal '' \\\n  --rpc-url https://rpc.mainnet.arc.io\n# → 1, 5, 0   (one rating, 5 stars)" },
       { kind: "p", text: "The chain returns the plain count and average for those buyers. Proteus's score adds one vote per buyer, the verified-buyer weight and the neutral prior on top." },
-      { kind: "h3", id: "ratings-example", text: "The first real rating" },
+      { kind: "h3", id: "ratings-example", text: "The first rating on mainnet" },
       { kind: "table", head: ["Step", "Transaction (Arc mainnet)"], rows: [
         ["Shoonya Store customer funds 1 tee ($6.60) into DealEscrow, gasless", tm(TX.shoonyaFund)],
         ["The customer countersigns delivery; DealEscrow pays Shoonya 6.60 USDC", tm(TX.shoonyaSettle)],
         ["The customer rates Shoonya 5 stars (agent 2695, tag `proteus-deal`, feedbackHash = terms hash)", tm(TX.shoonyaRating)],
-      ] },
+      ], note: "Given before the checks existed. The check later found the buyer wallet linked to a Shoonya team account in Proteus, so the rating counts but is listed as `counted_before_checks`, and the buyer is not a trusted reviewer." },
     ],
   },
   {
@@ -737,7 +740,7 @@ export const SECTIONS: DocSection[] = [
         { value: "#2695", label: "Its ERC-8004 agent, [registered from its own wallet](" + txUrl("mainnet", TX.shoonyaRegister) + ")" },
         { value: "4", label: "Products with policies [committed on chain](" + txUrl("mainnet", TX.shoonyaPolicies[0]!) + ")" },
         { value: "1", label: "Customer order settled: 6.60 USDC [paid to Shoonya](" + txUrl("mainnet", TX.shoonyaSettle) + ") after delivery" },
-        { value: "5★", label: "From that customer, [on ERC-8004](" + txUrl("mainnet", TX.shoonyaRating) + "): 1 buyer" },
+        { value: "5★", label: "[Rated on ERC-8004](" + txUrl("mainnet", TX.shoonyaRating) + ") by that buyer, before link checks existed; the check found the wallet linked to a Shoonya team account ([why](/docs/ratings#ratings-before-checks))" },
       ] },
       { kind: "points", items: [
         { title: "Shoonya Store", text: "Custom merch studio ([shoonyastore.com](https://www.shoonyastore.com)); reports its clients already pay in USDC; live quote: $15 per event merch box with delivery and taxes." },

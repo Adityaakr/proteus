@@ -32,6 +32,7 @@ export function RatingValue({ ratings }: { ratings: SellerStats["ratings"] }) {
     `Average of ${buyers}: one vote per buyer, from buyers of settled deals, each an ERC-8004 transaction on Arc.`,
     ratings.verifiedBuyers ? `${ratings.verifiedBuyers} verified (WhatsApp or an account with an email).` : "",
     ratings.excluded ? `${ratings.excluded} rating${ratings.excluded === 1 ? "" : "s"} linked to the seller not counted.` : "",
+    ratings.beforeChecks ? `${ratings.beforeChecks} counted rating${ratings.beforeChecks === 1 ? " was" : "s were"} given before link checks existed and ${ratings.beforeChecks === 1 ? "is" : "are"} linked to the seller.` : "",
     `Ranking score ${ratings.score.toFixed(2)} (starts at a neutral 3.5 until more buyers rate).`,
   ].filter(Boolean).join(" ");
   return (
