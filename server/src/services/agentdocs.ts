@@ -12,6 +12,7 @@ const NET = () => ARC_NETWORK_NAMES[networkOf(env.CHAIN_ID)];
 const USDC = () => (networkOf(env.CHAIN_ID) === "mainnet" ? "USDC" : "testnet USDC");
 import type { loadProductById } from "./catalog";
 import { publicProduct } from "./catalog";
+import { howItWorksToday, isScheduling } from "./calendar";
 
 type LP = Awaited<ReturnType<typeof loadProductById>>;
 type Field = { key: string; label: string; type: "text" | "textarea" | "number" | "file"; required?: boolean; placeholder?: string; hint?: string };
@@ -49,7 +50,7 @@ export function serviceSkill(lp: LP, origin: string): string {
   const lines: string[] = [];
   lines.push("---");
   lines.push(`name: proteus-${seller}-${slug}`);
-  lines.push(`description: ${sentences(`Call ${lp.org.name}'s "${p.name}" service on Proteus AI`, `Use when the task needs one ${p.unitLabel}: ${p.summary ?? p.billableUnit}`, "Needs a deal API key (PROTEUS_KEY) or an ${NET()} USDC wallet for pay per call")}.`);
+  lines.push(`description: ${sentences(`Call ${lp.org.name}'s "${p.name}" service on Proteus AI`, `Use when the task needs one ${p.unitLabel}: ${p.summary ?? p.billableUnit}`, `Needs a deal API key (PROTEUS_KEY) or an ${NET()} USDC wallet for pay per call`)}.`);
   lines.push("---");
   lines.push("");
   lines.push(`# ${p.name} by ${lp.org.name}`);
@@ -59,6 +60,12 @@ export function serviceSkill(lp: LP, origin: string): string {
   lines.push(`One billable ${p.unitLabel} is ${p.billableUnit}. Capabilities: ${p.capabilities.join("; ")}.`);
   lines.push(`Price: from ${money(bestUnit) ?? "see product page"} per ${p.unitLabel} on a prepaid deal${p.payPerCallUsd ? `, or ${money(p.payPerCallUsd)} per call without a deal` : ""}. Term ${p.termDays} days. ${p.refundPolicy}`);
   lines.push("");
+  if (isScheduling(lp)) {
+    lines.push("## How it works today");
+    lines.push("");
+    for (const l of howItWorksToday()) lines.push(`- ${l}`);
+    lines.push("");
+  }
   lines.push("## When to use this skill");
   lines.push("");
   lines.push(`Use it when the user needs ${pluralUnit(p.unitLabel)} of exactly this kind and has a funded deal (an API key) or an ${NET()} USDC wallet. Do not use it for anything outside the capabilities above; the service hands those back unbilled.`);

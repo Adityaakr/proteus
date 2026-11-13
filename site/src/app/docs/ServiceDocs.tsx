@@ -69,6 +69,14 @@ function Reference({ product: p, sellerSlug, sellerName }: { product: PublicProd
             <li><Coins size={14} strokeWidth={1.9} /><span>From {money(bestUnit)} per {p.unitLabel} on a deal{p.payPerCallUsd ? `, ${money(p.payPerCallUsd)} per call without one` : ""}. {p.termDays}-day term.</span></li>
             <li><BadgeCheck size={14} strokeWidth={1.9} /><span>{p.capabilities.join(" · ")}</span></li>
           </ul>
+          {p.today && (
+            <div className={s.callout}>
+              <strong>How it works today</strong>
+              <ul style={{ margin: "8px 0 0", paddingLeft: 18, display: "flex", flexDirection: "column", gap: 6 }}>
+                {p.today.map((l) => <li key={l}>{l}</li>)}
+              </ul>
+            </div>
+          )}
           <div className={s.btnRow}>
             <a className={s.btn} href={skillUrl} target="_blank" rel="noreferrer"><Bot size={15} strokeWidth={1.9} /> SKILL.md for agents <ExternalLink size={12} aria-hidden /></a>
             <a className={s.btn} href={openapiUrl} target="_blank" rel="noreferrer"><FileJson size={15} strokeWidth={1.9} /> OpenAPI <ExternalLink size={12} aria-hidden /></a>

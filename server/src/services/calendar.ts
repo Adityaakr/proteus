@@ -217,3 +217,18 @@ export async function connectionsView(dealId: string) {
     profileSaved: Boolean(prof),
   };
 }
+
+/**
+ * What a scheduling service actually does on this deployment, stated plainly for its reference page and skill.md, so
+ * product copy written for a phone and calendar product never promises more than the code delivers.
+ */
+export function howItWorksToday(): string[] {
+  return [
+    "Your customers reach it by chat or by voice in the browser, on a customer link you share or embed on your website, or through this API from your own app. There is no phone number yet: it does not answer phone calls.",
+    "It asks for what it needs (name, phone, the time and the service) one question at a time, then books or takes the message. It answers from the business profile you set: hours, services, prices.",
+    features.googleCalendar
+      ? "With your Google Calendar connected it checks when you are free and puts the appointment on your calendar; without it, it records a booking request for you to confirm."
+      : "It records each booking as a request for you to confirm; booking straight into Google Calendar is built but not switched on for this deployment yet.",
+    "Every request lands in your inbox with the full note, and you can get each one by webhook, Telegram or email. One finished request is one billable unit; follow-up questions and requests it could not complete are never billed.",
+  ];
+}

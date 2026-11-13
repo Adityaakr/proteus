@@ -91,6 +91,8 @@ export interface RequestSpec {
 }
 
 export interface PublicProduct {
+  /** Scheduling services: what they do on this deployment, in plain words (server/src/services/calendar.ts). */
+  today?: string[];
   slug: string;
   name: string;
   summary?: string | null;

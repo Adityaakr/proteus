@@ -1,3 +1,4 @@
+import { howItWorksToday, isScheduling } from "./calendar";
 import { and, desc, eq } from "drizzle-orm";
 import { formatUsd, mulDivFloor, type CostModel, type EvaluationContext, type Policy, type Product, type Tier } from "@proteus/domain";
 import { db, schema } from "../db";
@@ -88,6 +89,8 @@ export function evaluationContext(lp: LoadedProduct, now = Date.now()): Evaluati
 export function publicProduct(lp: LoadedProduct) {
   const p = lp.product;
   return {
+    /** Scheduling services: what they do on this deployment, in plain words. */
+    ...(isScheduling(lp) ? { today: howItWorksToday() } : {}),
     slug: p.slug,
     name: p.name,
     billableUnit: p.billableUnit,
