@@ -25,9 +25,26 @@ async function read(dealId: string, orgId: string): Promise<Settings> {
   return r ? openJsonOr<Settings>(orgId, r.data, {}) : {};
 }
 
+let botName: string | null | undefined;
+/** The bot's @username (one getMe call, cached). The same bot as the seller alerts; we never set a webhook on it. */
+async function telegramBotName(): Promise<string | null> {
+  if (!env.TELEGRAM_BOT_TOKEN) return null;
+  if (botName !== undefined) return botName;
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/getMe`, { signal: AbortSignal.timeout(5000) });
+    const j = (await r.json()) as { result?: { username?: string } };
+    botName = j.result?.username ? `@${j.result.username}` : null;
+  } catch {
+    botName = null;
+  }
+  return botName;
+}
+
 export async function buyerNotifyView(dealId: string, orgId: string) {
   const s = await read(dealId, orgId);
-  return { email: s.email ?? null, telegramChatId: s.telegramChatId ?? null, webhookUrl: s.webhookUrl ?? null, channels: channelsAvailable(), telegramBot: env.TELEGRAM_BOT_TOKEN ? "Message the Proteus bot /start to get your chat id" : null };
+  const bot = await telegramBotName();
+  const hint = env.TELEGRAM_BOT_TOKEN ? `First send /start to ${bot ?? "our Telegram bot"} so it can message you, then get your chat id from @userinfobot and paste it here.` : null;
+  return { email: s.email ?? null, telegramChatId: s.telegramChatId ?? null, webhookUrl: s.webhookUrl ?? null, channels: channelsAvailable(), telegramBot: hint };
 }
 
 export async function saveBuyerNotify(dealId: string, orgId: string, body: { email?: string | null; telegramChatId?: string | null; webhookUrl?: string | null }) {
