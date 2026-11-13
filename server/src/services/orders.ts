@@ -132,7 +132,7 @@ export async function orderTimeline(dealId: string) {
     dealId,
     product: lp.product.name,
     seller: lp.org.name,
-    sellerDelivered: sellerDelivered(lp.row as never),
+    sellerDelivered: sellerDelivered(lp),
     steps: STEPS.map((s, i) => ({ id: s, done: i <= current })),
     current: current >= 0 ? STEPS[current] : null,
     tracking: latestTracking,
