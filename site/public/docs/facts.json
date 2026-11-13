@@ -347,6 +347,21 @@
       },
       {
         "method": "GET",
+        "path": "/deals/{id}/timeline",
+        "does": "the buyer's order history: progress, tracking, every update (buyer wallet or the deal's service key only)"
+      },
+      {
+        "method": "GET",
+        "path": "/public/talk/{token}",
+        "does": "a business's customer page (scheduling services): what to fill in"
+      },
+      {
+        "method": "POST",
+        "path": "/public/talk/{token}/messages",
+        "does": "a customer's request to the business's AI assistant; returns only the reply meant for the customer"
+      },
+      {
+        "method": "GET",
         "path": "/deals/{id}/rating",
         "does": "the giveFeedback arguments for this deal (buyer only, after USDC settles) and any rating already verified"
       },
