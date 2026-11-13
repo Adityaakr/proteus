@@ -241,6 +241,10 @@ export const api = {
   dealRating: (id: string) => request<T.DealRating>("GET", `/deals/${enc(id)}/rating`),
   /** Disputes: the party's wallet calls openDispute on the escrow; the server verifies the event and keeps the reason. */
   dealDispute: (id: string) => request<T.DealDispute>("GET", `/deals/${enc(id)}/dispute`),
+  /** The buyer's order history (signed-in owner of the buyer wallet, or the deal's service key). */
+  dealTimeline: (id: string, apiKey?: string | null) => request<T.OrderTimeline>("GET", `/deals/${enc(id)}/timeline`, apiKey ? { headers: { Authorization: `Bearer ${apiKey}` } } : {}),
+  markRequest: (id: string, requestId: string, body: { status: T.RequestMark; note?: string }, apiKey?: string | null) =>
+    request<{ requestId: string; status: string }>("POST", `/deals/${enc(id)}/requests/${enc(requestId)}/status`, { body, ...(apiKey ? { headers: { Authorization: `Bearer ${apiKey}` } } : {}) }),
   recordDispute: (id: string, txHash: string, reason: string) => request<T.DealDispute>("POST", `/deals/${enc(id)}/dispute`, { body: { txHash, reason } }),
   confirmDealRating: (id: string, txHash: string) => request<{ value: number; txHash: string }>("POST", `/deals/${enc(id)}/rating`, { body: { txHash } }),
   acknowledgeUsage: (id: string, body: T.UsageAckBody) => request<T.UsageAckResponse>("POST", `/deals/${enc(id)}/usage-acknowledgments`, { body }),
@@ -319,6 +323,8 @@ export const api = {
     closeTerm: (id: string) => request<{ txHash: T.Hex }>("POST", `/app/deals/${enc(id)}/close-term`, { body: {} }),
     /** Seller-confirmed delivery: records N delivered units with proof as a signed receipt the buyer then countersigns. */
     recordDelivery: (id: string, body: { units: number; note: string; proofUrl?: string; requestId: string }) => request<{ requestId: string; units: number; deal: { cumulativeUnits: string; cumulativeCharged: string } }>("POST", `/app/deals/${enc(id)}/deliveries`, { body }),
+    dealTimeline: (id: string) => request<T.OrderTimeline>("GET", `/app/deals/${enc(id)}/timeline`),
+    postOrderUpdate: (id: string, body: { status: T.OrderStatus; note?: string; trackingUrl?: string }) => request<{ id: string; status: string; label: string }>("POST", `/app/deals/${enc(id)}/order-updates`, { body }),
     finance: () => request<T.SellerFinance>("GET", "/app/finance"),
     signer: () => request<T.SignerInfo>("GET", "/app/signer"),
     revokeSigner: () => request<{ revokedAt: T.IsoTime; note?: string; [k: string]: unknown }>("POST", "/app/signer/revoke", { body: {} }),

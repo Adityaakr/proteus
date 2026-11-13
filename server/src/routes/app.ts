@@ -11,6 +11,8 @@ import { dealView, listDeals, sellerCloseTerm } from "../services/deals";
 import { listNegotiations, reviveCandidate, sellerNegotiationView } from "../services/negotiation";
 import { decideApproval } from "../services/quotes";
 import { confirmDelivery } from "../services/delivery";
+import { orderTimeline, postOrderUpdate } from "../services/orders";
+import { loadDeal } from "../services/deals";
 import { exportCsv, type ExportKind } from "../services/exports";
 import { updateCost, updatePolicy } from "../services/product-rules";
 import { catalogSyncView, runCatalogSync, saveCatalogSync } from "../services/catalog-sync";
@@ -268,6 +270,19 @@ appRoutes.post("/app/deals/:id/deliveries", async (c) => {
   const s = session(c);
   const b = (await c.req.json()) as { units?: number; note?: string; proofUrl?: string; requestId?: string };
   return json(c, await confirmDelivery(s.orgId, c.req.param("id"), { units: Number(b.units), note: String(b.note ?? ""), proofUrl: b.proofUrl || undefined, requestId: String(b.requestId ?? "") }, s.address ?? `${s.kind}:${s.orgId}`), 201);
+});
+
+/** The order history the buyer sees, for the seller's own deal. */
+appRoutes.get("/app/deals/:id/timeline", async (c) => {
+  const deal = await loadDeal(c.req.param("id"));
+  if (deal.orgId !== session(c).orgId) throw new HttpError(404, "deal not found");
+  return json(c, await orderTimeline(deal.id));
+});
+
+/** Order status for the buyer: accepted, in production, shipped (with tracking), out for delivery, delayed, or a note. */
+appRoutes.post("/app/deals/:id/order-updates", async (c) => {
+  const b = (await c.req.json().catch(() => ({}))) as { status?: unknown; note?: unknown; trackingUrl?: unknown };
+  return json(c, await postOrderUpdate(session(c).orgId, c.req.param("id"), b), 201);
 });
 
 /** Accounting CSV: deals, receipts or journal (QuickBooks/Xero journal-import columns); every row links its Arc tx. */

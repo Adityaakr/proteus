@@ -11,6 +11,7 @@ import { RateSeller } from "./RateSeller";
 import { Dispute } from "./Dispute";
 import { BusinessSetup } from "./BusinessSetup";
 import { VoiceTalk } from "./VoiceTalk";
+import { OrderTracker } from "./OrderTracker";
 
 /** Proteus-run scheduling services: they read the buyer's business profile and Google Calendar, and take voice. */
 const SCHEDULING = new Set(["callback-booking", "after-hours-answering", "ai-receptionist"]);
@@ -184,8 +185,7 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
       ? [{ id: "details", label: "Order details sent to the seller", status: receipts.length > 0 ? "completed" : provisioned ? "in-progress" : "pending" } satisfies TodoItem]
       : ([
           { id: "prov", label: "Service provisioned", status: provisioned ? "completed" : fundedish ? "in-progress" : "pending" },
-          { id: "key", label: "API key issued", status: provisioned ? "completed" : "pending", detail: provisioned ? "Shown once below" : undefined },
-          { id: "test", label: "Send a first test request", status: receipts.length > 0 ? "completed" : provisioned ? "in-progress" : "pending" },
+          { id: "test", label: "Send your first request", status: receipts.length > 0 ? "completed" : provisioned ? "in-progress" : "pending" },
         ] satisfies TodoItem[])),
     { id: "ack", label: sellerDelivered ? "Sign deliveries to settle" : "Acknowledge usage to settle", status: BigInt(deal.usage.settled) > 0n && !usage?.pendingAcceptance ? "completed" : receipts.some((r) => r.status === "delivered") ? "in-progress" : "pending" },
   ];
@@ -220,7 +220,7 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
           <p className={f.lede}>
             {sellerDelivered
               ? "Send the seller your order details, then sign each delivery they record so they are paid from escrow. Anything not delivered stays yours."
-              : "Use the service, review every metered request, and sign usage so the seller is paid from escrow. Unused funds stay yours."}
+              : "Use the service here, see every result, and confirm usage so the seller is paid from escrow. Unused funds stay yours."}
           </p>
         </header>
 
@@ -229,6 +229,8 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
             <FundFlow deal={deal} onFunded={(d) => { qc.setQueryData(qk.deal(d.id), d); navigate(`/app/deals/${d.id}`, { replace: true }); }} onCancel={() => navigate("/app/deals")} />
           </section>
         )}
+
+        {fundedish && sellerDelivered && <OrderTracker dealId={deal.id} apiKey={apiKey} />}
 
         <dl className={d.stats} aria-label="Balances">
           <div><dt>Deposited</dt><dd><Money micro={deal.balances.deposit} /></dd></div>
@@ -244,11 +246,11 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
 
         <section className={f.section} aria-labelledby="h-try">
           <div className={f.sectionHead}>
-            <h2 id="h-try" className={f.h2}>{sellerDelivered ? "Order details for the seller" : "Try the service"}</h2>
+            <h2 id="h-try" className={f.h2}>{sellerDelivered ? "Order details for the seller" : "Use the service"}</h2>
             <span className={f.h2Sub}>
               {sellerDelivered
                 ? "The seller sees everything you send here on your order. Sending details is never charged; you can send updates any time."
-                : "Only delivered answers are billable. Retries with the same request id never charge twice."}
+                : "Send a request and get the result here. You pay only for delivered results, from your escrow balance."}
             </span>
           </div>
           {!provisioned ? (
@@ -336,7 +338,7 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
       </article>
 
       <aside className={f.rail} aria-label="Deal status">
-        <div className={f.railBlock}>
+        {!sellerDelivered && <div className={f.railBlock}>
           <span className={f.label}>Setup</span>
           <ol className={f.stepList} style={{ borderTop: 0, paddingTop: 0 }}>
             {todos.map((t) => (
@@ -349,7 +351,7 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
               </li>
             ))}
           </ol>
-        </div>
+        </div>}
 
         {pa && (
           <div className={f.railBlock}>
@@ -378,8 +380,9 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
           </div>
         )}
 
-        <div className={f.railBlock}>
-          <span className={f.label}>Credentials</span>
+        {!sellerDelivered && <details className={f.railBlock} open={Boolean(freshKey)}>
+          <summary className={f.label} style={{ cursor: "pointer" }}>For developers: use it from your own app or website</summary>
+          <p className={f.fine}>Everything above also works over the API, so you can plug this service into your own product.</p>
           <dl className={f.summary}>
             <div className={d.wrapRow}><dt>Endpoint</dt><dd><MonoValue value={`POST ${deal.service.endpoint}`} copy label="endpoint" /></dd></div>
             <div><dt>Docs</dt><dd><a href={deal.service.docsUrl} className={f.textBtn}>API reference</a></dd></div>
@@ -394,9 +397,9 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
               <p className={f.fine}>Store this key now. It will not be shown again after you leave this page.</p>
             </>
           ) : (
-            <p className={f.fine}>{provisioned ? "Your API key was shown once at provisioning." : "Your API key appears here once, when the service is provisioned."}</p>
+            <p className={f.fine}>{provisioned ? "Your API key was shown once at provisioning; issue a new one under Use the service if you lost it." : "Your API key appears here once, when the service is provisioned."}</p>
           )}
-        </div>
+        </details>}
 
         <div className={f.railBlock}>
           <span className={f.label}>Balances</span>

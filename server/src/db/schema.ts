@@ -636,3 +636,27 @@ export const serviceConnections = pgTable(
   },
   (t) => [uniqueIndex("service_connections_deal_kind").on(t.dealId, t.kind)],
 );
+
+/**
+ * Human progress on a deal that the chain does not show: a seller's order status for physical goods (accepted,
+ * in production, shipped with tracking) and a buyer's status on a service request (a booking confirmed or done).
+ * `data` ({ note?, url? }) is sealed with the seller org's vault key; only the deal's buyer and seller read it.
+ */
+export const dealUpdates = pgTable(
+  "deal_updates",
+  {
+    id: text("id").primaryKey(),
+    dealId: text("deal_id").notNull(),
+    orgId: text("org_id").notNull(),
+    /** "seller" | "buyer" */
+    actor: text("actor").notNull(),
+    /** "order_status" | "request_status" */
+    kind: text("kind").notNull(),
+    status: text("status").notNull(),
+    /** For request_status: the service request it marks. */
+    requestId: text("request_id"),
+    data: jsonb("data"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("deal_updates_deal").on(t.dealId)],
+);

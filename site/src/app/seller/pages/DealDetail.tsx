@@ -5,7 +5,7 @@ import { ARC_NETWORK_NAMES, defaultNetwork, explorerTx } from "@proteus/domain";
 import { ActionButton, Card, DataTable, ExplorerLink, KeyValue, Money, MonoValue, Notice, StatusTag } from "../kit";
 import { useCloseTerm, useDeal, useRecordDelivery } from "../api";
 import { Field } from "../../ui/Field";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api as appApi, downloadFile } from "../../lib/api";
 import { QueryView } from "../parts/QueryView";
 import { PageHeader } from "../parts/PageHeader";
@@ -179,6 +179,7 @@ function Body({ d }: { d: Deal }) {
 
       <SellerDispute dealId={d.id} />
 
+      {(d.status === "funded" || d.status === "active") && <OrderUpdates dealId={d.id} />}
       {(d.status === "funded" || d.status === "active") && <RecordDelivery d={d} />}
 
       <CloseTerm d={d} />
@@ -212,6 +213,65 @@ function SellerDispute({ dealId }: { dealId: string }) {
           ]}
         />
         {x.status === "open" && <Notice tone="warn">The deal is frozen: no settlement or refund until the arbiter decides. Share any evidence with the arbiter.</Notice>}
+      </div>
+    </Card>
+  );
+}
+
+/** Order status the buyer sees on its "Your order" page, like a shop's order tracking. */
+const UPDATE_BUTTONS: { status: "accepted" | "in_production" | "shipped" | "out_for_delivery" | "delayed" | "note"; label: string }[] = [
+  { status: "accepted", label: "Order accepted" },
+  { status: "in_production", label: "In production" },
+  { status: "shipped", label: "Shipped" },
+  { status: "out_for_delivery", label: "Out for delivery" },
+  { status: "delayed", label: "Delayed" },
+  { status: "note", label: "Message" },
+];
+
+function OrderUpdates({ dealId }: { dealId: string }) {
+  const qc = useQueryClient();
+  const tl = useQuery({ queryKey: ["seller-deal-timeline", dealId], queryFn: () => appApi.app.dealTimeline(dealId) });
+  const [status, setStatus] = useState<(typeof UPDATE_BUTTONS)[number]["status"]>("accepted");
+  const [note, setNote] = useState("");
+  const [tracking, setTracking] = useState("");
+  const m = useMutation({
+    mutationFn: () => appApi.app.postOrderUpdate(dealId, { status, note: note.trim() || undefined, trackingUrl: tracking.trim() || undefined }),
+    onSuccess: () => {
+      setNote("");
+      setTracking("");
+      qc.invalidateQueries({ queryKey: ["seller-deal-timeline", dealId] });
+    },
+  });
+  const needsNote = status === "note" || status === "delayed";
+  const valid = (!needsNote || note.trim().length >= 2) && (!tracking || /^https:\/\//.test(tracking));
+  const events = tl.data?.events ?? [];
+  return (
+    <Card title="Update the buyer" subtitle="The buyer sees each update on its order page, in order, like tracking a parcel. Notes and tracking links are encrypted and visible only to you and the buyer.">
+      <div className={s.fields}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }} role="radiogroup" aria-label="Order status">
+          {UPDATE_BUTTONS.map((b) => (
+            <button key={b.status} type="button" role="radio" aria-checked={status === b.status} onClick={() => setStatus(b.status)} className="body3" style={{ padding: "6px 12px", borderRadius: 999, border: "1px solid var(--c-dark-20, #d5d8de)", background: status === b.status ? "var(--c-dark-100, #111)" : "transparent", color: status === b.status ? "#fff" : "inherit", cursor: "pointer" }}>
+              {b.label}
+            </button>
+          ))}
+        </div>
+        {(status === "shipped" || status === "out_for_delivery") && <Field label="Tracking link (optional)" value={tracking} onChange={(e) => setTracking(e.target.value.trim())} placeholder="https://www.courier.example/track/AB123" />}
+        <Field label={needsNote ? (status === "delayed" ? "Why, and the new expected date" : "Message for the buyer") : "Note for the buyer (optional)"} value={note} onChange={(e) => setNote(e.target.value)} placeholder={status === "delayed" ? "Print run slipped a day; ships Thursday" : "Proof approved, printing starts tomorrow"} maxLength={1000} />
+        {m.isError && <Notice tone="danger">{errorMessage(m.error)}</Notice>}
+        {m.isSuccess && <Notice tone="success">Sent. The buyer sees "{m.data.label}" on its order page.</Notice>}
+        <div className={s.formActions}>
+          <ActionButton onClick={() => m.mutate()} disabled={!valid} loading={m.isPending} loadingLabel="Sending">Send update</ActionButton>
+        </div>
+        {events.length > 0 && (
+          <ul className="body3" style={{ listStyle: "none", padding: 0, margin: "8px 0 0", display: "flex", flexDirection: "column", gap: 8 }}>
+            {events.map((e, i) => (
+              <li key={`${e.at}-${i}`} style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 10 }}>
+                <span style={{ opacity: 0.65 }}>{dateTime(e.at)}</span>
+                <span>{e.label}{e.note ? `: “${e.note}”` : ""}{e.url ? <> · <a href={e.url} target="_blank" rel="noreferrer">link</a></> : null}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </Card>
   );

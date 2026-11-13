@@ -792,3 +792,18 @@ export interface ServiceConnections {
   profileSaved: boolean;
   profile?: BusinessProfile | null;
 }
+
+export type OrderStatus = "accepted" | "in_production" | "shipped" | "out_for_delivery" | "delayed" | "note";
+export type RequestMark = "new" | "confirmed" | "done" | "cancelled";
+
+/** A deal's order history, like a shop's "track your order". */
+export interface OrderTimeline {
+  dealId: string;
+  product: string;
+  seller: string;
+  sellerDelivered: boolean;
+  steps: { id: "paid" | "accepted" | "in_production" | "shipped" | "delivered" | "settled"; done: boolean }[];
+  current: string | null;
+  tracking: string | null;
+  events: { at: string; kind: string; label: string; status?: string; note?: string; url?: string; txHash?: string; units?: number }[];
+}

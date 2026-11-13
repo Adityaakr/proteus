@@ -10,6 +10,11 @@ import { fundGasless, permitRequest } from "../services/gasless";
 import { dealView, fundingIntent, provisionIfFunded, requestRefund, rotateServiceKey } from "../services/deals";
 import { authenticateDeal, execute } from "../services/gateway";
 import { acknowledgeUsage, pendingAcceptance } from "../services/usage";
+import { orderTimeline, markRequest } from "../services/orders";
+import { loadDeal } from "../services/deals";
+import { userOwnsAddress } from "../services/accounts";
+import { resolveAuth } from "./auth";
+import { sha256 } from "../lib/ids";
 import { completeGoogle, connectionsView, disconnectGoogle, getProfile, googleAuthUrl, isScheduling, setProfile } from "../services/calendar";
 
 export const dealRoutes = new Hono();
@@ -130,4 +135,30 @@ dealRoutes.get("/integrations/google/callback", async (c) => {
     console.error(`[calendar] connect failed: ${String((e as Error).message).slice(0, 160)}`);
     return back(dealGuess, "calendar=failed");
   }
+});
+
+/* ---------------------------------------------------------------- the buyer's order view */
+
+/**
+ * Only the deal's buyer reads its order history and marks its requests: the signed-in owner of the buyer wallet, or
+ * a caller holding the deal's service key. Anyone else gets 403, even with the deal id.
+ */
+async function buyerDeal(c: Parameters<typeof resolveAuth>[0], dealId: string) {
+  const deal = await loadDeal(dealId);
+  const bearer = c.req.header("authorization")?.replace(/^Bearer\s+/i, "");
+  if (bearer && deal.apiKeyHash && sha256(bearer) === deal.apiKeyHash) return deal;
+  const auth = await resolveAuth(c);
+  if (auth && (await userOwnsAddress(auth.userId, deal.buyerAddress))) return deal;
+  throw new HttpError(403, "Only this deal's buyer can see its order history. Sign in with the wallet that placed the order.");
+}
+
+dealRoutes.get("/deals/:id/timeline", async (c) => {
+  const deal = await buyerDeal(c, c.req.param("id"));
+  return json(c, await orderTimeline(deal.id));
+});
+
+dealRoutes.post("/deals/:id/requests/:requestId/status", async (c) => {
+  const deal = await buyerDeal(c, c.req.param("id"));
+  const b = (await c.req.json().catch(() => ({}))) as { status?: string; note?: string };
+  return json(c, await markRequest(deal.id, c.req.param("requestId"), String(b.status ?? ""), b.note));
 });
