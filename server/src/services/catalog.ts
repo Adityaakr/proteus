@@ -59,6 +59,27 @@ export function policyFromRow(r: typeof schema.policies.$inferSelect): Policy {
   };
 }
 
+/**
+ * Lumen Voice's original copy promised phone calls and calendar entries that the service does not do on these
+ * deployments. Until the stored rows are edited, the old wording is replaced when read, and only while it is still the
+ * exact old text, so any later edit by the seller wins. No stored data is changed.
+ */
+const LEGACY_COPY: Record<string, { old: string; fix: Partial<Product> }> = {
+  "lumen-voice/ai-receptionist": {
+    old: "Answers inbound calls for service businesses, books appointments and hands off anything it should not decide.",
+    fix: { summary: "Front desk for service businesses: answers your customers by chat or voice on your link or website, takes bookings and hands off anything it should not decide.", billableUnit: "one customer request handled and a booking or message recorded for you", capabilities: ["Answer customer questions", "Take bookings"] },
+  },
+  "lumen-voice/after-hours-answering": {
+    old: "Covers the phone when the office is closed: takes the message, books the slot, and escalates emergencies to the on-call line.",
+    fix: { summary: "Covers your front desk when the office is closed: takes the message, records the booking request, and flags emergencies to you at once.", billableUnit: "One after-hours customer request handled and either recorded as a booking request, taken as a message, or flagged as an emergency, with a written summary for the business.", capabilities: ["Message taking", "Booking requests", "Emergency flags", "Written summaries"] },
+  },
+};
+
+function withCurrentCopy(orgSlug: string, product: Product): Product {
+  const legacy = LEGACY_COPY[`${orgSlug}/${product.slug}`];
+  return legacy && product.summary === legacy.old ? { ...product, ...legacy.fix } : product;
+}
+
 export async function loadProductById(productId: string): Promise<LoadedProduct> {
   const [row] = await db.select().from(schema.products).where(eq(schema.products.id, productId));
   if (!row) throw new HttpError(404, "product not found");
@@ -67,7 +88,7 @@ export async function loadProductById(productId: string): Promise<LoadedProduct>
   const [costRow] = await db.select().from(schema.costModels).where(eq(schema.costModels.productId, row.id)).orderBy(desc(schema.costModels.version)).limit(1);
   const [policyRow] = await db.select().from(schema.policies).where(eq(schema.policies.productId, row.id)).orderBy(desc(schema.policies.version)).limit(1);
   if (!costRow || !policyRow) throw new HttpError(500, "product has no cost model or policy");
-  return { org, row, product: reviveProduct(row.public as Record<string, unknown>), cost: costFromRow(costRow), policy: policyFromRow(policyRow), costRow, policyRow };
+  return { org, row, product: withCurrentCopy(org.slug, reviveProduct(row.public as Record<string, unknown>)), cost: costFromRow(costRow), policy: policyFromRow(policyRow), costRow, policyRow };
 }
 
 export async function loadProductBySlugs(sellerSlug: string, productSlug: string): Promise<LoadedProduct> {
