@@ -241,6 +241,9 @@ export const api = {
   dealRating: (id: string) => request<T.DealRating>("GET", `/deals/${enc(id)}/rating`),
   /** Disputes: the party's wallet calls openDispute on the escrow; the server verifies the event and keeps the reason. */
   dealDispute: (id: string) => request<T.DealDispute>("GET", `/deals/${enc(id)}/dispute`),
+  dealNotifications: (id: string, apiKey?: string | null) => request<T.BuyerNotify>("GET", `/deals/${enc(id)}/notifications`, apiKey ? { headers: { Authorization: `Bearer ${apiKey}` } } : {}),
+  saveDealNotifications: (id: string, body: { email?: string | null; telegramChatId?: string | null; webhookUrl?: string | null }, apiKey?: string | null) =>
+    request<T.BuyerNotify & { webhookSecret?: string }>("PUT", `/deals/${enc(id)}/notifications`, { body, ...(apiKey ? { headers: { Authorization: `Bearer ${apiKey}` } } : {}) }),
   /** The buyer's order history (signed-in owner of the buyer wallet, or the deal's service key). */
   dealTimeline: (id: string, apiKey?: string | null) => request<T.OrderTimeline>("GET", `/deals/${enc(id)}/timeline`, apiKey ? { headers: { Authorization: `Bearer ${apiKey}` } } : {}),
   markRequest: (id: string, requestId: string, body: { status: T.RequestMark; note?: string }, apiKey?: string | null) =>
@@ -253,6 +256,15 @@ export const api = {
   /* Service */
   execute: (productSlug: string, apiKey: string, body: { requestId: string; input: T.ExecuteInput }) =>
     request<T.ExecuteResponse>("POST", `/services/${enc(productSlug)}/execute`, { body, headers: { Authorization: `Bearer ${apiKey}` } }),
+  /* A business's customer link (scheduling services) and its inbox. */
+  customerLink: (productSlug: string, apiKey: string) => request<{ link: T.CustomerLink | null }>("GET", `/services/${enc(productSlug)}/customer-link`, { headers: { Authorization: `Bearer ${apiKey}` } }),
+  rotateCustomerLink: (productSlug: string, apiKey: string) => request<{ link: T.CustomerLink | null }>("POST", `/services/${enc(productSlug)}/customer-link`, { body: {}, headers: { Authorization: `Bearer ${apiKey}` } }),
+  revokeCustomerLink: (productSlug: string, apiKey: string) => request<{ link: null }>("DELETE", `/services/${enc(productSlug)}/customer-link`, { headers: { Authorization: `Bearer ${apiKey}` } }),
+  serviceInbox: (productSlug: string, apiKey: string) => request<{ items: T.InboxItem[] }>("GET", `/services/${enc(productSlug)}/inbox`, { headers: { Authorization: `Bearer ${apiKey}` } }),
+  /* The public customer page (no sign-in). */
+  talkPage: (token: string) => request<T.TalkPage>("GET", `/public/talk/${enc(token)}`),
+  talkSend: (token: string, body: Record<string, string>) => request<{ ok: boolean; reply: string }>("POST", `/public/talk/${enc(token)}/messages`, { body }),
+
   /* Scheduling services: the buyer's business profile and Google Calendar, authorised by the deal's service key. */
   serviceConnections: (productSlug: string, apiKey: string) =>
     request<T.ServiceConnections>("GET", `/services/${enc(productSlug)}/connections`, { headers: { Authorization: `Bearer ${apiKey}` } }),

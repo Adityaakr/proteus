@@ -14,6 +14,8 @@ import { openJsonOr, sealJson } from "../lib/vault";
 import { loadDeal } from "./deals";
 import { loadProductById } from "./catalog";
 import { sellerDelivered } from "./gateway";
+import { notifyBuyer } from "./buyer-notify";
+import { env } from "../env";
 
 export const ORDER_STATUSES = ["accepted", "in_production", "shipped", "out_for_delivery", "delayed", "note"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
@@ -46,6 +48,9 @@ export async function postOrderUpdate(orgId: string, dealId: string, body: { sta
   const data: UpdateData = { ...(note ? { note } : {}), ...(httpsUrl(body.trackingUrl) ? { url: httpsUrl(body.trackingUrl) } : {}) };
   const row = { id: id("du"), dealId, orgId, actor: "seller", kind: "order_status", status, data: Object.keys(data).length ? await sealJson(orgId, data) : null };
   await db.insert(schema.dealUpdates).values(row);
+  const lp = await loadProductById(deal.productId);
+  const link = `${env.WEB_ORIGIN.replace(/\/$/, "")}/app/deals/${deal.id}`;
+  notifyBuyer(deal.id, orgId, `${lp.org.name}: ${ORDER_LABEL[status]}`, [`Your order of ${lp.product.name}: ${ORDER_LABEL[status]}.`, data.note ? `"${data.note}"` : "", data.url ? `Tracking: ${data.url}` : "", `Order page: ${link}`].filter(Boolean).join("\n"), { event: "order_update", status, deal: deal.publicId, note: data.note ?? null, trackingUrl: data.url ?? null, url: link });
   return { id: row.id, status, label: ORDER_LABEL[status] };
 }
 

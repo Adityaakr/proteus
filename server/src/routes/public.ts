@@ -18,6 +18,7 @@ import { limit } from "../lib/ratelimit";
 import { insertWalletLink, userOwnsAddress, userWallets } from "../services/accounts";
 import { sellerCard, sellerStats } from "../services/brand";
 import { publicRatings } from "../services/ratings";
+import { customerPage, customerRequest } from "../services/customer-link";
 
 export const publicRoutes = new Hono();
 
@@ -40,6 +41,15 @@ publicRoutes.get("/public/sellers/:sellerSlug/ratings", async (c) => {
   const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.slug, c.req.param("sellerSlug")));
   if (!org) throw new HttpError(404, "seller not found");
   return json(c, await publicRatings(org));
+});
+
+/** A business's public page for its own customers (scheduling services): what to fill in. */
+publicRoutes.get("/public/talk/:token", async (c) => json(c, await customerPage(c.req.param("token"))));
+
+/** A customer's request to the business's AI receptionist; the customer gets only the reply meant for them. */
+publicRoutes.post("/public/talk/:token/messages", async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+  return json(c, await customerRequest(c.req.param("token"), clientIp((n) => c.req.header(n)), body));
 });
 
 /** Store-wide deal desk: which of this seller's products a buyer message is about. */

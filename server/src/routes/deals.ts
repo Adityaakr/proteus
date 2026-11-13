@@ -11,6 +11,8 @@ import { dealView, fundingIntent, provisionIfFunded, requestRefund, rotateServic
 import { authenticateDeal, execute } from "../services/gateway";
 import { acknowledgeUsage, pendingAcceptance } from "../services/usage";
 import { orderTimeline, markRequest } from "../services/orders";
+import { buyerNotifyView, saveBuyerNotify } from "../services/buyer-notify";
+import { customerLinkView, inbox, revokeCustomerLink, rotateCustomerLink } from "../services/customer-link";
 import { loadDeal } from "../services/deals";
 import { userOwnsAddress } from "../services/accounts";
 import { resolveAuth } from "./auth";
@@ -161,4 +163,40 @@ dealRoutes.post("/deals/:id/requests/:requestId/status", async (c) => {
   const deal = await buyerDeal(c, c.req.param("id"));
   const b = (await c.req.json().catch(() => ({}))) as { status?: string; note?: string };
   return json(c, await markRequest(deal.id, c.req.param("requestId"), String(b.status ?? ""), b.note));
+});
+
+/* ---------------------------------------------------------------- customer link and inbox (scheduling services) */
+
+dealRoutes.get("/services/:productSlug/customer-link", async (c) => {
+  const deal = await schedulingDeal(c);
+  return json(c, { link: await customerLinkView(deal.id, deal.orgId) });
+});
+
+/** Creates the link, or replaces it so the old one stops working. */
+dealRoutes.post("/services/:productSlug/customer-link", async (c) => {
+  const deal = await schedulingDeal(c);
+  return json(c, { link: await rotateCustomerLink(deal.id, deal.orgId, c.req.param("productSlug")) });
+});
+
+dealRoutes.delete("/services/:productSlug/customer-link", async (c) => {
+  const deal = await schedulingDeal(c);
+  await revokeCustomerLink(deal.id);
+  return json(c, { link: null });
+});
+
+dealRoutes.get("/services/:productSlug/inbox", async (c) => {
+  const deal = await schedulingDeal(c);
+  return json(c, await inbox(deal.id));
+});
+
+/** Where the buyer hears about this deal: email, Telegram or a signed webhook. */
+dealRoutes.get("/deals/:id/notifications", async (c) => {
+  const deal = await buyerDeal(c, c.req.param("id"));
+  return json(c, await buyerNotifyView(deal.id, deal.orgId));
+});
+
+dealRoutes.put("/deals/:id/notifications", async (c) => {
+  const deal = await buyerDeal(c, c.req.param("id"));
+  const b = (await c.req.json().catch(() => ({}))) as { email?: string | null; telegramChatId?: string | null; webhookUrl?: string | null };
+  return json(c, await saveBuyerNotify(deal.id, deal.orgId, b));
 });

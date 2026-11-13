@@ -29,7 +29,7 @@ export function callerPart(answer: string): string {
   return cut.replace(/^(What the caller hears|Reply to (?:the )?caller|Reply given)\s*:\s*/i, "").trim().slice(0, 900);
 }
 
-export function VoiceTalk({ onTranscript, reply, busy }: { onTranscript: (text: string) => void; reply: string | null; busy: boolean }) {
+export function VoiceTalk({ onTranscript, reply, busy, label = "Talk as the caller" }: { onTranscript: (text: string) => void; reply: string | null; busy: boolean; label?: string }) {
   const [supported] = useState(() => typeof window !== "undefined" && Boolean(recognitionCtor()));
   const [listening, setListening] = useState(false);
   const [heard, setHeard] = useState("");
@@ -95,7 +95,7 @@ export function VoiceTalk({ onTranscript, reply, busy }: { onTranscript: (text: 
         {listening ? (
           <button type="button" className={f.textBtn} onClick={() => rec.current?.stop()}><Square size={13} aria-hidden /> Stop and send</button>
         ) : (
-          <button type="button" className={f.textBtn} onClick={start} disabled={busy}><Mic size={13} aria-hidden /> Talk as the caller</button>
+          <button type="button" className={f.textBtn} onClick={start} disabled={busy}><Mic size={13} aria-hidden /> {label}</button>
         )}
         <button type="button" className={f.textBtn} onClick={() => setSpeak((s) => !s)} aria-pressed={speak}>
           {speak ? <Volume2 size={13} aria-hidden /> : <VolumeX size={13} aria-hidden />} {speak ? "Reply read aloud" : "Reply muted"}

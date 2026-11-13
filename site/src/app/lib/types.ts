@@ -807,3 +807,9 @@ export interface OrderTimeline {
   tracking: string | null;
   events: { at: string; kind: string; label: string; status?: string; note?: string; url?: string; txHash?: string; units?: number }[];
 }
+
+export interface CustomerLink { url: string; embed: string; createdAt: string }
+export interface InboxItem { requestId: string; at: string; via: "customer" | "you"; status: string; billable: boolean; answer: string; mark: RequestMark }
+export interface TalkPage { business: string; service: string; intro: string; fields: { key: string; label: string; required: boolean; placeholder: string }[]; voice: boolean }
+
+export interface BuyerNotify { email: string | null; telegramChatId: string | null; webhookUrl: string | null; channels: { email: boolean; telegram: boolean; webhook: boolean }; telegramBot: string | null }

@@ -181,3 +181,31 @@ export async function sendTest(orgId: string) {
   if (errors.length) await db.update(schema.notifications).set({ status: "failed" }).where(eq(schema.notifications.id, row!.id)); // no background retries for a test
   return { ok: errors.length === 0, errors };
 }
+
+/* ---------------------------------------------------------------- the buyer's own channels (per deal) */
+
+/** Which channels this server can deliver to; the deal page shows only these. */
+export const channelsAvailable = () => ({ email: Boolean(env.SMTP_URL), telegram: Boolean(env.TELEGRAM_BOT_TOKEN), webhook: true });
+
+/**
+ * Sends one message to a buyer's channels right away (order updates to a shopper, new customer requests to a
+ * business). Each channel is tried twice; a failure is logged with the channel name only, never the content.
+ */
+export async function sendToChannels(target: { email?: string | null; telegramChatId?: string | null; webhookUrl?: string | null; webhookSecretEnc?: string | null }, subject: string, text: string, payload: Record<string, unknown>) {
+  const jobs: [string, () => Promise<void>][] = [];
+  if (target.email && env.SMTP_URL) jobs.push(["email", () => sendEmail(target.email!, subject, text)]);
+  if (target.telegramChatId && env.TELEGRAM_BOT_TOKEN) jobs.push(["telegram", () => sendTelegram(target.telegramChatId!, `${subject}\n\n${text}`)]);
+  if (target.webhookUrl && target.webhookSecretEnc) jobs.push(["webhook", () => sendWebhook(target.webhookUrl!, target.webhookSecretEnc!, JSON.stringify({ event: payload.event, subject, ...payload, at: new Date().toISOString() }))]);
+  await Promise.all(
+    jobs.map(async ([name, run]) => {
+      for (let i = 0; i < 2; i++) {
+        try {
+          await run();
+          return;
+        } catch (e) {
+          if (i === 1) console.error(`[notify] buyer ${name} delivery failed: ${String((e as Error).message).slice(0, 120)}`);
+        }
+      }
+    }),
+  );
+}

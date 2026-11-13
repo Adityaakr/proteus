@@ -12,6 +12,8 @@ import { Dispute } from "./Dispute";
 import { BusinessSetup } from "./BusinessSetup";
 import { VoiceTalk } from "./VoiceTalk";
 import { OrderTracker } from "./OrderTracker";
+import { CustomerDesk } from "./CustomerDesk";
+import { NotifySettings } from "./NotifySettings";
 
 /** Proteus-run scheduling services: they read the buyer's business profile and Google Calendar, and take voice. */
 const SCHEDULING = new Set(["callback-booking", "after-hours-answering", "ai-receptionist"]);
@@ -231,6 +233,7 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
         )}
 
         {fundedish && sellerDelivered && <OrderTracker dealId={deal.id} apiKey={apiKey} />}
+        {fundedish && sellerDelivered && <NotifySettings dealId={deal.id} apiKey={apiKey} forBusiness={false} />}
 
         <dl className={d.stats} aria-label="Balances">
           <div><dt>Deposited</dt><dd><Money micro={deal.balances.deposit} /></dd></div>
@@ -242,6 +245,8 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
         {BigInt(deal.balances.settled) > 0n && <RateSeller dealId={deal.id} />}
         <Dispute dealId={deal.id} />
 
+        {provisioned && apiKey && !sellerDelivered && SCHEDULING.has(productSlugFrom(deal)) && <CustomerDesk productSlug={productSlugFrom(deal)} apiKey={apiKey} dealId={deal.id} />}
+        {provisioned && apiKey && !sellerDelivered && SCHEDULING.has(productSlugFrom(deal)) && <NotifySettings dealId={deal.id} apiKey={apiKey} forBusiness />}
         {provisioned && apiKey && !sellerDelivered && SCHEDULING.has(productSlugFrom(deal)) && <BusinessSetup productSlug={productSlugFrom(deal)} apiKey={apiKey} dealId={deal.id} />}
 
         <section className={f.section} aria-labelledby="h-try">
