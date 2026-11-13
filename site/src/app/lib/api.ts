@@ -263,7 +263,8 @@ export const api = {
   serviceInbox: (productSlug: string, apiKey: string) => request<{ items: T.InboxItem[] }>("GET", `/services/${enc(productSlug)}/inbox`, { headers: { Authorization: `Bearer ${apiKey}` } }),
   /* The public customer page (no sign-in). */
   talkPage: (token: string) => request<T.TalkPage>("GET", `/public/talk/${enc(token)}`),
-  talkSend: (token: string, body: Record<string, string>) => request<{ ok: boolean; reply: string }>("POST", `/public/talk/${enc(token)}/messages`, { body }),
+  talkSend: (token: string, body: { sessionId: string; messages: { role: "customer" | "assistant"; text: string }[] }) =>
+    request<{ done: boolean; reply: string; urgent?: boolean }>("POST", `/public/talk/${enc(token)}/messages`, { body }),
 
   /* Scheduling services: the buyer's business profile and Google Calendar, authorised by the deal's service key. */
   serviceConnections: (productSlug: string, apiKey: string) =>

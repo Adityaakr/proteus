@@ -18,7 +18,7 @@ import { limit } from "../lib/ratelimit";
 import { insertWalletLink, userOwnsAddress, userWallets } from "../services/accounts";
 import { sellerCard, sellerStats } from "../services/brand";
 import { publicRatings } from "../services/ratings";
-import { customerPage, customerRequest } from "../services/customer-link";
+import { customerChat, customerPage } from "../services/customer-link";
 
 export const publicRoutes = new Hono();
 
@@ -48,8 +48,8 @@ publicRoutes.get("/public/talk/:token", async (c) => json(c, await customerPage(
 
 /** A customer's request to the business's AI receptionist; the customer gets only the reply meant for them. */
 publicRoutes.post("/public/talk/:token/messages", async (c) => {
-  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
-  return json(c, await customerRequest(c.req.param("token"), clientIp((n) => c.req.header(n)), body));
+  const body = (await c.req.json().catch(() => ({}))) as { sessionId?: unknown; messages?: unknown };
+  return json(c, await customerChat(c.req.param("token"), clientIp((n) => c.req.header(n)), body));
 });
 
 /** Store-wide deal desk: which of this seller's products a buyer message is about. */

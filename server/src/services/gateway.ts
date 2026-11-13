@@ -74,6 +74,8 @@ export interface ServiceOutput {
   billable: boolean;
   answer: string;
   source: { store: string; orderId?: string; fields: string[] };
+  /** Live chat only: the agent asked a follow-up question instead of finishing; never billed or recorded. */
+  followUp?: boolean;
 }
 
 /** First-party adapter: AI-assisted e-commerce order support over a labeled sample store. */
@@ -198,7 +200,8 @@ export async function authenticateDeal(bearer: string | undefined, productSlug: 
   return { deal, lp };
 }
 
-export async function execute(dealId: string, requestId: string, input: ServiceInput) {
+/** `precomputed`: an output already produced for this request (a live chat's final turn), metered without re-running. */
+export async function execute(dealId: string, requestId: string, input: ServiceInput, precomputed?: ServiceOutput) {
   assertInputSize(input);
   const started = Date.now();
   const deal = await loadDeal(dealId);
@@ -209,7 +212,7 @@ export async function execute(dealId: string, requestId: string, input: ServiceI
   const [existing] = await db.select().from(schema.serviceRequests).where(and(eq(schema.serviceRequests.dealId, dealId), eq(schema.serviceRequests.requestId, requestId)));
   if (existing) return receiptView(existing, terms.prepaid);
 
-  const output: ServiceOutput = await runAdapter(lp, { requestId, dealId }, input);
+  const output: ServiceOutput = precomputed ?? (await runAdapter(lp, { requestId, dealId }, input));
 
   // Serialize metering per deal with a row lock on the deal.
   const row = await db.transaction(async (tx) => {

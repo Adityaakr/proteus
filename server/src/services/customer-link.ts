@@ -19,6 +19,7 @@ import { getProfile } from "./calendar";
 import { loadDeal } from "./deals";
 import { loadProductById } from "./catalog";
 import { execute } from "./gateway";
+import { runServiceAgent } from "./workers";
 import { requestMarks } from "./orders";
 import { notifyBuyer } from "./buyer-notify";
 
@@ -85,48 +86,68 @@ async function dealForToken(token: string) {
   return { deal, lp };
 }
 
-/** What the public page shows: the business's name and what to fill in. No prices, no private notes. */
+const GREETING: Record<string, string> = {
+  "ai-receptionist": "Hi! I'm the front desk assistant. Ask me anything or tell me what you'd like to book.",
+  "after-hours-answering": "Hi! We're closed right now, but I can take your message or move your appointment. What can I do for you?",
+  "callback-booking": "Hi! Want us to call you back? Tell me when suits you and what it's about.",
+};
+const STARTERS: Record<string, string[]> = {
+  "ai-receptionist": ["Book an appointment", "What are your opening hours?", "How much does it cost?"],
+  "after-hours-answering": ["Leave a message", "Move my appointment", "It's urgent"],
+  "callback-booking": ["Call me back tomorrow morning", "Call me back this afternoon"],
+};
+
+/** What the public page shows: the business's name, a greeting and starters. No prices, no private notes. */
 export async function customerPage(token: string) {
   const { deal, lp } = await dealForToken(token);
   const profile = await getProfile(deal.id, deal.orgId).catch(() => null);
   return {
-    business: profile?.businessName || "This business",
+    business: profile?.businessName || null,
     service: lp.product.name,
-    intro: lp.product.slug === "callback-booking" ? "Leave your details and pick a time; we will call you back." : lp.product.slug === "after-hours-answering" ? "We are closed right now. Leave a message and we will get back to you." : "Ask a question or book an appointment. You are talking to our AI assistant.",
-    fields: CUSTOMER_FIELDS[lp.product.slug] ?? [],
+    greeting: GREETING[lp.product.slug] ?? "Hi! How can I help?",
+    starters: STARTERS[lp.product.slug] ?? [],
+    hours: profile?.hours ?? null,
     voice: true,
   };
 }
 
-/** The part of the agent's answer meant for the customer; the call note stays with the business. */
 export function customerReply(answer: string): string {
   const m = answer.match(/(?:What the caller hears|Reply to (?:the )?caller|Reply given)\s*:\s*([\s\S]*?)(?=\n\s*(?:Call note|Customer\s*:|Caller\s*:|Phone\s*:|Summary for the business|Note for the business)|$)/i);
   const reply = (m?.[1] ?? "").trim();
   return reply ? reply.slice(0, 1500) : "Thanks, we have your request. The team will be in touch to confirm.";
 }
 
-/** A customer's request: runs on the business's deal, billed only if delivered, and lands in the inbox. */
-export async function customerRequest(token: string, ip: string, body: Record<string, unknown>) {
-  limit(`talk-ip:${ip}`, 8);
-  limit(`talk-link:${sha256(token)}`, 200, 24 * 3600_000);
+const MAX_TURNS = 14;
+
+/**
+ * One turn of a customer's chat. The agent sees the whole conversation; while it still needs something it asks one
+ * question (never billed, never recorded). When it finishes, the request is metered once for this conversation
+ * (request id = the session), lands in the business's inbox and notifies the business.
+ */
+export async function customerChat(token: string, ip: string, body: { sessionId?: unknown; messages?: unknown }) {
+  limit(`talk-ip:${ip}`, 40);
+  limit(`talk-link:${sha256(token)}`, 400, 24 * 3600_000);
+  const sessionId = typeof body.sessionId === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(body.sessionId) ? body.sessionId : null;
+  if (!sessionId) throw new HttpError(400, "missing session");
+  const raw = Array.isArray(body.messages) ? body.messages : [];
+  const msgs = raw
+    .filter((m): m is { role: string; text: string } => Boolean(m) && typeof (m as { text?: unknown }).text === "string")
+    .map((m) => ({ role: m.role === "assistant" ? "Assistant" : "Customer", text: m.text.trim().slice(0, 1500) }))
+    .filter((m) => m.text)
+    .slice(-MAX_TURNS * 2);
+  if (!msgs.length || msgs.at(-1)!.role !== "Customer") throw new HttpError(400, "send a message");
+  if (msgs.filter((m) => m.role === "Customer").length > MAX_TURNS) throw new HttpError(429, "This conversation is long; please start a new one.");
   const { deal, lp } = await dealForToken(token);
-  const fields = CUSTOMER_FIELDS[lp.product.slug] ?? [];
-  const input: Record<string, string> = {};
-  for (const f of fields) {
-    const v = typeof body[f.key] === "string" ? (body[f.key] as string).trim().slice(0, 2000) : "";
-    if (f.required && !v) throw new HttpError(400, `${f.label} is required.`);
-    if (v) input[f.key] = v;
-  }
-  if (input.name && lp.product.slug !== "callback-booking") input.question = `Caller name: ${input.name}\n${input.question ?? ""}`;
-  delete input.name;
-  input.channel = "Customer link on the business's website";
-  const receipt = (await execute(deal.id, `talk-${Date.now().toString(36)}-${randomBytes(4).toString("hex")}`, input)) as { status: string; answer?: string };
-  const answer = String(receipt.answer ?? "");
-  if (receipt.status === "failed") return { ok: false, reply: "Sorry, we could not take your request right now. Please try again in a moment." };
-  const urgent = /\bemergenc/i.test(answer) || receipt.status === "handoff";
+  const input = { mode: "live chat", channel: "Customer chat on the business's website", conversation: msgs.map((m) => `${m.role}: ${m.text}`).join("\n") };
+  const out = await runServiceAgent(lp, { requestId: `talk-${sessionId}`, dealId: deal.id }, input as never);
+  if (out.followUp) return { done: false, reply: out.answer };
+  if (out.status === "failed") return { done: false, reply: "Sorry, something went wrong on our side. Could you send that again?" };
+  const receipt = (await execute(deal.id, `talk-${sessionId}`, input as never, out)) as { status: string; answer?: string };
+  const answer = String(receipt.answer ?? out.answer);
+  const urgent = /\bemergenc/i.test(answer) || out.status === "handoff";
   const link = `${env.WEB_ORIGIN.replace(/\/$/, "")}/app/deals/${deal.id}`;
   notifyBuyer(deal.id, deal.orgId, urgent ? "Urgent: a customer needs you now" : "New request from a customer", `${answer.slice(0, 1500)}\n\nInbox: ${link}`, { event: urgent ? "customer_urgent" : "customer_request", product: lp.product.slug, note: answer.slice(0, 4000), url: link });
-  return { ok: true, reply: customerReply(answer) };
+  return { done: true, reply: customerReply(answer), urgent };
 }
 
 /** The business's inbox: every request on the deal, newest first, with its full answer and the business's mark. */

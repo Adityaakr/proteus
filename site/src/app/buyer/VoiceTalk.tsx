@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Mic, Square, Volume2, VolumeX } from "lucide-react";
 import f from "./fund.module.css";
+import { SPEECH_ERRORS } from "../embed/useSpeech";
 
 /**
  * Talk to a voice service from the browser: the browser's own speech recognition turns the caller's words into the
@@ -75,7 +76,7 @@ export function VoiceTalk({ onTranscript, reply, busy, label = "Talk as the call
       }
       setHeard((finalText + interim).trim());
     };
-    r.onerror = (e) => setErr(e.error === "not-allowed" ? "Microphone access was blocked. Allow it in the browser and try again." : `Voice input stopped (${e.error}).`);
+    r.onerror = (e) => setErr(SPEECH_ERRORS[e.error] ?? "Voice stopped. Type the caller's words instead.");
     r.onend = () => {
       setListening(false);
       const text = finalText.trim();

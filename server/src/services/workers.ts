@@ -189,7 +189,8 @@ async function runWithClaude(lp: LP, input: ServiceInput, dealId?: string): Prom
   const scheduling = Boolean(dealId) && isScheduling(lp);
   const profile = scheduling ? await getProfile(dealId!, lp.org.id).catch(() => null) : null;
   const calendar = scheduling ? await calendarFor(dealId!, lp.org.id).catch(() => null) : null;
-  const system = `${role.system} ${role.deliverable} ${RULES}${scheduling ? schedulingContext(profile, calendar) : ""}`;
+  const liveChat = input.mode === "live chat";
+  const system = `${role.system} ${role.deliverable} ${RULES}${scheduling ? schedulingContext(profile, calendar) : ""}${liveChat ? LIVE_CHAT_RULES : ""}`;
   try {
     const res = calendar
       ? await askClaudeWithTools(job, { system, content: claudeContent(parts), tools: calendarTools(calendar, profile), maxTokens })
@@ -198,6 +199,8 @@ async function runWithClaude(lp: LP, input: ServiceInput, dealId?: string): Prom
     if (res.stopReason === "refusal") return { status: "failed", billable: false, answer: "The agent declined this request. This request was not charged.", source: { store, fields } };
     if (res.stopReason === "max_tokens") return { status: "failed", billable: false, answer: "The result was cut off before it was complete. This request was not charged; send a shorter request or split it.", source: { store, fields } };
     if (!res.text) return { status: "failed", billable: false, answer: "The agent returned an empty result. This request was not charged.", source: { store, fields } };
+    const ask = liveChat ? res.text.match(/^STATUS:\s*ask\s*\n+/i) : null;
+    if (ask) return { status: "handoff", billable: false, followUp: true, answer: res.text.slice(ask[0].length).trim(), source: { store, fields } };
     const m = res.text.match(/^STATUS:\s*(delivered|needs_human)\s*\n+/i);
     const body = (m ? res.text.slice(m[0].length) : res.text).trim();
     if (m && m[1]!.toLowerCase() === "needs_human") return { status: "handoff", billable: false, answer: `${body}\n\nThis request was not charged.`, source: { store, fields } };
@@ -260,3 +263,6 @@ export function calendarTools(calendar: DealCalendar, profile: BusinessProfile |
     },
   ];
 }
+
+/** Live chat on a business's customer page: ask for what is missing, one question at a time, then finish. */
+const LIVE_CHAT_RULES = `\n\nThis is a live chat with one of the business's customers; the conversation so far is in the "conversation" field, newest last. Talk to them directly, warmly and briefly, in their language. If something essential is still missing (their name, a phone number to reach them, the day and time they want, or what they need), reply with exactly one line "STATUS: ask", a blank line, then ONE short question, nothing else. Do not ask for anything the conversation already contains. Once you have enough, finish with "STATUS: delivered" (or "STATUS: needs_human" for an emergency or something only the business can decide) and the full deliverable, starting with the "Reply to the caller:" line.`;
