@@ -52,6 +52,9 @@ const Env = z.object({
   SOLANA_RPC_URL: z.string().url().optional(),
   OPENROUTER_API_KEY: z.string().optional(),
   OPENROUTER_MODEL: z.string().default("anthropic/claude-sonnet-4.5"),
+  /** Google OAuth client (Web application) that lets a buyer connect its Google Calendar to a scheduling service. */
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
 
   /** Privy: tokens are verified against the app's public JWKS; no app secret is needed for that. */
   PRIVY_APP_ID: z.string().default("cmvb0p1b901l50fl20lp1eths"),
@@ -122,6 +125,7 @@ export const features = {
   escrow: Boolean(env.ESCROW_ADDRESS),
   sellerSigner: Boolean(env.SELLER_SIGNER_PRIVATE_KEY),
   whatsapp: Boolean(env.WHATSAPP_APP_SECRET && env.WHATSAPP_VERIFY_TOKEN),
+  googleCalendar: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
   inviteGate: env.INVITE_GATE ? env.INVITE_GATE === "1" : env.NODE_ENV === "production",
   admin: Boolean(env.ADMIN_TOKEN),
 };

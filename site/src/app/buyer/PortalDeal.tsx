@@ -9,6 +9,11 @@ import { useAuth } from "../auth/useAuth";
 import { FundFlow } from "./FundFlow";
 import { RateSeller } from "./RateSeller";
 import { Dispute } from "./Dispute";
+import { BusinessSetup } from "./BusinessSetup";
+import { VoiceTalk } from "./VoiceTalk";
+
+/** Proteus-run scheduling services: they read the buyer's business profile and Google Calendar, and take voice. */
+const SCHEDULING = new Set(["callback-booking", "after-hours-answering", "ai-receptionist"]);
 import type { TodoItem } from "../agentic/TodoList";
 import type { ToolApprovalStatus } from "../agentic/ToolApproval";
 import { ActionButton } from "../ui/ActionButton";
@@ -235,6 +240,8 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
         {BigInt(deal.balances.settled) > 0n && <RateSeller dealId={deal.id} />}
         <Dispute dealId={deal.id} />
 
+        {provisioned && apiKey && !sellerDelivered && SCHEDULING.has(productSlugFrom(deal)) && <BusinessSetup productSlug={productSlugFrom(deal)} apiKey={apiKey} dealId={deal.id} />}
+
         <section className={f.section} aria-labelledby="h-try">
           <div className={f.sectionHead}>
             <h2 id="h-try" className={f.h2}>{sellerDelivered ? "Order details for the seller" : "Try the service"}</h2>
@@ -259,6 +266,19 @@ function PortalView({ deal, stage, onSettled }: { deal: Deal; stage: 2 | 3; onSe
           ) : (
             <form onSubmit={submitTest} noValidate style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <RequestForm spec={spec} values={values} onChange={(v) => { setValues(v); setQErr(null); }} />
+              {SCHEDULING.has(productSlugFrom(deal)) && spec.fields.some((x) => x.key === "question") && (
+                <VoiceTalk
+                  busy={exec.isPending}
+                  reply={result?.answer ?? null}
+                  onTranscript={(text) => {
+                    const v = { ...values, question: text };
+                    setValues(v);
+                    const missing = missingRequired(spec, v);
+                    if (missing) return setQErr(missing);
+                    exec.mutate({ requestId: newRequestId(), input: toInput(spec, v) });
+                  }}
+                />
+              )}
               {qErr && <Notice tone="danger">{qErr}</Notice>}
               <div className={f.actions}>
                 <ActionButton type="submit" size="sm" loading={exec.isPending && exec.variables?.requestId !== lastReq?.requestId} loadingLabel="Sending" icon={<Send size={14} strokeWidth={2} />}>

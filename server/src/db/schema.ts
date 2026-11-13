@@ -614,3 +614,25 @@ export const whatsappLinks = pgTable("whatsapp_links", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * What a buyer connects to a Proteus-run service for its deal: a Google Calendar (OAuth tokens) or the business
+ * profile the agent answers from (hours, services, prices, timezone). `data` is sealed with the seller org's vault
+ * key; tokens are never returned by any endpoint.
+ */
+export const serviceConnections = pgTable(
+  "service_connections",
+  {
+    id: text("id").primaryKey(),
+    dealId: text("deal_id").notNull(),
+    orgId: text("org_id").notNull(),
+    /** "google_calendar" | "business_profile" */
+    kind: text("kind").notNull(),
+    data: jsonb("data").notNull(),
+    /** Public label, e.g. the connected calendar's email. */
+    label: text("label"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("service_connections_deal_kind").on(t.dealId, t.kind)],
+);

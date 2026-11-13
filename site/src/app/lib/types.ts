@@ -774,3 +774,21 @@ export interface CatalogSync {
   lastStatus: "ok" | "error" | null;
   lastResult: CatalogSyncResult | null;
 }
+
+/** What a buyer told a scheduling service about its business (hours, services, prices, timezone). */
+export interface BusinessProfile {
+  businessName?: string;
+  timezone?: string;
+  hours?: string;
+  services?: string;
+  prices?: string;
+  emergencyContact?: string;
+  slotMinutes?: number;
+  notes?: string;
+}
+
+export interface ServiceConnections {
+  googleCalendar: { available: boolean; connected: boolean; account: string | null; connectedAt: string | null };
+  profileSaved: boolean;
+  profile?: BusinessProfile | null;
+}

@@ -249,6 +249,15 @@ export const api = {
   /* Service */
   execute: (productSlug: string, apiKey: string, body: { requestId: string; input: T.ExecuteInput }) =>
     request<T.ExecuteResponse>("POST", `/services/${enc(productSlug)}/execute`, { body, headers: { Authorization: `Bearer ${apiKey}` } }),
+  /* Scheduling services: the buyer's business profile and Google Calendar, authorised by the deal's service key. */
+  serviceConnections: (productSlug: string, apiKey: string) =>
+    request<T.ServiceConnections>("GET", `/services/${enc(productSlug)}/connections`, { headers: { Authorization: `Bearer ${apiKey}` } }),
+  saveBusinessProfile: (productSlug: string, apiKey: string, body: T.BusinessProfile) =>
+    request<{ profile: T.BusinessProfile }>("PUT", `/services/${enc(productSlug)}/profile`, { body, headers: { Authorization: `Bearer ${apiKey}` } }),
+  connectGoogleCalendar: (productSlug: string, apiKey: string) =>
+    request<{ url: string }>("POST", `/services/${enc(productSlug)}/connections/google`, { body: {}, headers: { Authorization: `Bearer ${apiKey}` } }),
+  disconnectGoogleCalendar: (productSlug: string, apiKey: string) =>
+    request<T.ServiceConnections>("DELETE", `/services/${enc(productSlug)}/connections/google`, { headers: { Authorization: `Bearer ${apiKey}` } }),
 
   /* Pay per call (x402). A 402 response throws ApiError with status 402 and body PayRequired. */
   payExecute: (sellerSlug: string, productSlug: string, body: T.PayExecuteBody) =>

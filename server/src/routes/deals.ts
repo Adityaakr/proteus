@@ -10,6 +10,7 @@ import { fundGasless, permitRequest } from "../services/gasless";
 import { dealView, fundingIntent, provisionIfFunded, requestRefund, rotateServiceKey } from "../services/deals";
 import { authenticateDeal, execute } from "../services/gateway";
 import { acknowledgeUsage, pendingAcceptance } from "../services/usage";
+import { completeGoogle, connectionsView, disconnectGoogle, getProfile, googleAuthUrl, isScheduling, setProfile } from "../services/calendar";
 
 export const dealRoutes = new Hono();
 
@@ -80,4 +81,53 @@ dealRoutes.post("/services/:productSlug/execute", async (c) => {
   const { deal } = await authenticateDeal(bearer, c.req.param("productSlug"));
   const body = ServiceExecuteBody.parse(await c.req.json());
   return json(c, await execute(deal.id, body.requestId, body.input));
+});
+
+/* ---------------------------------------------------------------- scheduling services: profile and calendar */
+
+/** The deal's service key authorises setup, the same key that calls the service. Only scheduling products have it. */
+async function schedulingDeal(c: { req: { header(n: string): string | undefined; param(n: string): string } }) {
+  const bearer = c.req.header("authorization")?.replace(/^Bearer\s+/i, "");
+  const { deal, lp } = await authenticateDeal(bearer, c.req.param("productSlug"));
+  if (!isScheduling(lp)) throw new HttpError(404, "This service has no calendar or business profile settings.");
+  return deal;
+}
+
+dealRoutes.get("/services/:productSlug/connections", async (c) => {
+  const deal = await schedulingDeal(c);
+  return json(c, { ...(await connectionsView(deal.id)), profile: await getProfile(deal.id, deal.orgId) });
+});
+
+dealRoutes.put("/services/:productSlug/profile", async (c) => {
+  const deal = await schedulingDeal(c);
+  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+  return json(c, { profile: await setProfile(deal.id, deal.orgId, body) });
+});
+
+/** Starts Google OAuth for this deal; the browser follows the returned URL. */
+dealRoutes.post("/services/:productSlug/connections/google", async (c) => {
+  const deal = await schedulingDeal(c);
+  return json(c, { url: googleAuthUrl(deal.id) });
+});
+
+dealRoutes.delete("/services/:productSlug/connections/google", async (c) => {
+  const deal = await schedulingDeal(c);
+  await disconnectGoogle(deal.id, deal.orgId);
+  return json(c, await connectionsView(deal.id));
+});
+
+/** Google sends the buyer back here; we store the tokens and return the buyer to the deal page. */
+dealRoutes.get("/integrations/google/callback", async (c) => {
+  const origin = env.WEB_ORIGIN.replace(/\/$/, "");
+  const state = c.req.query("state") ?? "";
+  const dealGuess = state.split(".")[0] ?? "";
+  const back = (dealId: string, q: string) => c.redirect(`${origin}/app/deals/${encodeURIComponent(dealId)}?${q}`);
+  if (c.req.query("error")) return back(dealGuess, "calendar=denied");
+  try {
+    const dealId = await completeGoogle(c.req.query("code") ?? "", state);
+    return back(dealId, "calendar=connected");
+  } catch (e) {
+    console.error(`[calendar] connect failed: ${String((e as Error).message).slice(0, 160)}`);
+    return back(dealGuess, "calendar=failed");
+  }
 });
