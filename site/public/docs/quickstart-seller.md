@@ -1,17 +1,18 @@
 # Sell: from wallet to a listed product · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/quickstart-seller> · facts as of 2026-11-13 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/quickstart-seller> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
 
 
 
-_Six steps, about five minutes, from your own wallet._
+_Seven steps from your own wallet to getting paid._
 
 1. **Sign in with your wallet.** At [app.proteus.co.in](https://app.proteus.co.in). It owns the account and receives payouts.
 2. **Publish products and rules.** Tiers and list prices, plus private rules: cost, floor, discount cap, minimum, capacity, approval threshold.
 3. **Register on Arc.** One transaction registers your agent in Arc's ERC-8004 IdentityRegistry ([code](https://github.com/Adityaakr/proteus/blob/main/server/src/services/agent-registry.ts#L90)).
 4. **Policies are committed.** Proteus checks owner, payee and signer on chain, then commits each policy to ProteusPolicyRegistry.
 5. **Take orders.** On your store page, on your website, or from buyers' AI agents. Large offers wait for you.
-6. **Deliver and get paid.** API calls are metered; goods are confirmed per batch by you, not verified by Proteus. Escrow pays what the buyer countersigns.
+6. **Keep the buyer posted.** For goods: Order accepted, In production, Shipped with a tracking link, Out for delivery. The buyer sees each update on its order page and in its alerts.
+7. **Deliver and get paid.** API calls are metered; goods are confirmed per batch by you, not verified by Proteus. Escrow pays what the buyer countersigns.
 
 ![Shoonya Store's store page on Proteus AI](https://app.proteus.co.in/docs/store.jpg)
 _A store: every product with its tiers and one deal agent for all of them. [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e) is a real business. (Arc mainnet)_

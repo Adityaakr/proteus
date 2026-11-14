@@ -1,6 +1,6 @@
 # What is live today · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/status> · facts as of 2026-11-13 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/status> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
 
 
 
@@ -18,5 +18,11 @@ _Each capability, the network it is proven on, and the transaction that shows it
 | An AI agent (Claude) negotiates, funds and settles through MCP within a mandate | ✓ Arc testnet | [transcript and transactions](https://github.com/Adityaakr/proteus/blob/main/docs/evidence/2026-10-23-claude-mcp-kitbox.md) |
 | x402 pay per call (exact, through Circle's facilitator) | ✓ Arc testnet | [payment](https://explorer.testnet.arc.io/tx/0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8) |
 | x402 through Circle Gateway batching (transfer 18395b90-7bfa-4cc2-b655-a2f4c7219be1) | ✓ Arc testnet | [deposit](https://explorer.testnet.arc.io/tx/0x2e048bf4ca99132f730503acc952d90b66b1843e008fdc6e373192939c1a8eb7) |
+| Proteus-run services do real work on Claude, with the model chosen per job; refused, cut-off or failed requests are never billed | Off-chain test | [claude.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/lib/claude.ts) · [workers.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/workers.ts) |
+| Front desk: a business's customers chat or speak with its AI assistant on a link or website embed; one finished request is billed once, follow-up questions never | Off-chain test | [customer-link.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/customer-link.ts) |
+| Order tracking for goods: seller updates, tracking link and on-chain proof on the buyer's order page | Off-chain test | [orders.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/orders.ts) |
+| Booking straight into the business's Google Calendar (tested against a stand-in calendar; not switched on) | Off-chain test | [calendar.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/calendar.ts) |
+| Phone calls answered by the front desk | Not yet | Not yet. |
+| An AI agent buying through MCP on Arc mainnet | Not yet | Not yet. |
 | Disputes (open from the wallet, arbiter splits the unspent balance) | Off-chain test | [disputes.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/disputes.ts) |
 | Catalog sync from the seller's own endpoint (tested against a local sample feed) | Off-chain test | [catalog-sync.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/catalog-sync.ts) |

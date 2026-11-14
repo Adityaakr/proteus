@@ -1,6 +1,6 @@
 # Market · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/market> · facts as of 2026-11-13 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/market> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
 
 
 

@@ -2,7 +2,7 @@
 
 > The deal desk for internet businesses. A deal agent for anything sold by quote, volume or usage. It negotiates with buyers and their AI agents inside the seller's rules, both sides sign the same terms, and USDC waits on Arc until delivery: the seller is paid for what was delivered, the rest is refundable.
 
-Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (https://ai.proteus.co.in, chain 5042002). DealEscrow: 0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46 on both. Facts as of 2026-11-13. Proven claims link an Arc transaction, a contract or the code; what is not proven yet is listed in facts.json under notProven.
+Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (https://ai.proteus.co.in, chain 5042002). DealEscrow: 0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46 on both. Facts as of 2026-11-14. Proven claims link an Arc transaction, a contract or the code; what is not proven yet is listed in facts.json under notProven.
 
 ## Start here
 
@@ -21,7 +21,7 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 
 ## Quickstarts
 
-- [Sell: from wallet to a listed product](https://app.proteus.co.in/docs/quickstart-seller.md): Six steps, about five minutes, from your own wallet.
+- [Sell: from wallet to a listed product](https://app.proteus.co.in/docs/quickstart-seller.md): Seven steps from your own wallet to getting paid.
 - [Buy: from a question to a refund](https://app.proteus.co.in/docs/quickstart-buyer.md): Ask, review, sign once, pay only for what you countersign.
 - [Buy with an AI agent (MCP)](https://app.proteus.co.in/docs/quickstart-agent.md): Give any MCP client the full buying loop, within a limit you set.
 
@@ -32,6 +32,8 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 - [What is signed, and by whom](https://app.proteus.co.in/docs/signatures.md): Eight messages; the contract checks each one.
 - [How offers are priced](https://app.proteus.co.in/docs/pricing.md): Code decides the price; the model only writes the words.
 - [Privacy](https://app.proteus.co.in/docs/privacy.md): What each party can see when a buyer talks to a seller's agent, on the web or on WhatsApp.
+- [Front desk, orders and inbox](https://app.proteus.co.in/docs/front-desk.md): What a business and its customers see after the deal: a front desk customers can talk to, order tracking, an inbox, and alerts.
+- [The AI behind it](https://app.proteus.co.in/docs/ai-models.md): Which Claude model does which job, and the rules that keep it inside the seller's terms.
 - [Ratings and reputation](https://app.proteus.co.in/docs/ratings.md): Who can rate a seller, how a rating is checked, how the score is computed, and how to verify it on Arc.
 
 ## Product

@@ -1,6 +1,6 @@
 # Glossary · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/glossary> · facts as of 2026-11-13 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/glossary> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
 
 
 
@@ -17,6 +17,11 @@ Source: <https://app.proteus.co.in/docs/glossary> · facts as of 2026-11-13 · a
 | Mandate | The largest prepaid amount an AI agent may commit per deal. |
 | Policy commitment | A salted hash of a pricing policy on ProteusPolicyRegistry. |
 | ERC-8004 | Arc's agent identity standard: owner, payee and signer, plus a reputation registry for feedback. |
+| Front desk | A scheduling service's public chat (customer link or website embed) where a business's customers talk to its AI assistant. |
+| Customer link | The business's link to its front desk; replacing it stops the old one at once. |
+| Inbox | Every request on a deal with its full note, marked confirmed, done or cancelled by the buyer. |
+| Order update | A status the seller posts for goods: accepted, in production, shipped (with tracking), out for delivery, delayed, or a message. |
+| Business profile | Hours, services, prices, timezone and emergency line the front desk answers from. |
 | Verified buyer | A buyer who reached the seller through WhatsApp or holds a Proteus account with an email; their rating weighs 1, others 0.5. |
 | Linked rating | A rating whose buyer is tied to the seller (a seller wallet, funded by one, or the same bridge source); listed, not counted. |
 | Trusted reviewers | The buyers whose ratings count for a seller; pass them to ERC-8004 getSummary to read their feedback on chain. |
