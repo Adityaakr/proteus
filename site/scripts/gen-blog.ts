@@ -69,7 +69,7 @@ const indexHtml = [
 for (const p of POSTS) writeFileSync(join(pub, "blog", `${p.slug}.md`), postMarkdown(p));
 
 const ssr = {
-  index: { title: `Blog · Proteus AI`, description: BLOG_LEDE, image: `${ORIGIN}/og/docs.jpg`, html: indexHtml, ld: [indexLd(ORIGIN)] },
+  index: { title: `Blog · Proteus AI`, description: BLOG_LEDE, image: `${ORIGIN}/og/blog.jpg`, html: indexHtml, ld: [indexLd(ORIGIN)] },
   posts: Object.fromEntries(POSTS.map((p) => [p.slug, { title: `${p.title} · Proteus AI`, description: p.description, image: ogImage(ORIGIN, p), date: p.date, tags: p.tags, html: postHtml(p), ld: postLd(ORIGIN, p) }])),
 };
 writeFileSync(join(pub, "blog", "ssr.json"), JSON.stringify(ssr));
