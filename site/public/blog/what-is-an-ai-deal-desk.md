@@ -69,7 +69,7 @@ It also serves a new kind of buyer: AI agents that shop for their owners. A deal
 
 ## What it looks like in practice
 
-The first business live on Proteus AI on Arc mainnet is a custom merch studio. A customer asked its deal desk for one tee, accepted an offer computed from the studio's committed rules, and funded it in USDC with no gas. The studio delivered, the customer confirmed, the escrow paid the studio, and the customer rated it 5 stars on chain. Every step is a public transaction you can check.
+The first business live on Proteus AI on Arc mainnet is a custom merch studio. A customer asked its deal desk for one tee, accepted an offer computed from the studio's committed rules, and funded it in USDC with no gas. The studio delivered, the customer confirmed, the escrow paid the studio, and the customer rated it 5 stars on chain (a rating made before our [link checks](https://app.proteus.co.in/docs/ratings) existed, and disclosed as such). Every step is a public transaction you can check.
 
 > The model proposes. The seller's policy decides. The signed agreement controls the money.
 

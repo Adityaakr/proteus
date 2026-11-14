@@ -98,7 +98,7 @@ It also serves a new kind of buyer: AI agents that shop for their owners. A deal
 
 ## What it looks like in practice
 
-The first business live on Proteus AI on Arc mainnet is a custom merch studio. A customer asked its deal desk for one tee, accepted an offer computed from the studio's committed rules, and funded it in USDC with no gas. The studio delivered, the customer confirmed, the escrow paid the studio, and the customer rated it 5 stars on chain. Every step is a public transaction you can check.
+The first business live on Proteus AI on Arc mainnet is a custom merch studio. A customer asked its deal desk for one tee, accepted an offer computed from the studio's committed rules, and funded it in USDC with no gas. The studio delivered, the customer confirmed, the escrow paid the studio, and the customer rated it 5 stars on chain (a rating made before our [link checks](/docs/ratings) existed, and disclosed as such). Every step is a public transaction you can check.
 
 > The model proposes. The seller's policy decides. The signed agreement controls the money.
 
@@ -454,6 +454,230 @@ The WhatsApp channel is built and deployed on Arc mainnet and testnet, a number 
       { q: "Is the Proteus AI WhatsApp channel live?", a: "It is built and deployed on Arc mainnet and testnet and is in testing; the first real conversation on a phone is the next step." },
     ],
     related: ["what-is-an-ai-deal-desk", "ai-negotiation-without-losing-margin", "usdc-escrow-pay-on-delivery"],
+  },
+  {
+    slug: "erc-8004-agent-identity",
+    title: "What is ERC-8004? Verifiable identity for AI agents that sell",
+    description: "ERC-8004 gives an AI agent an on-chain identity: who owns it, where it gets paid and which key signs for it. Here is how sellers use it and how buyers check it.",
+    date: "2026-11-05",
+    author: AUTHOR,
+    tags: ["ERC-8004", "Agent identity", "Arc"],
+    hero: { src: "/blog/erc-8004-identity.jpg", alt: "Illustration of an ERC-8004 identity check on Arc: the seller's registered signer, payee and committed pricing policy matched against the terms a buyer is about to sign" },
+    takeaways: [
+      "ERC-8004 is a standard for AI agent identity on Ethereum-compatible chains: an identity registry, plus registries for reputation and validation.",
+      "On Arc, a seller registers its agent from its own wallet in one transaction and publishes where it gets paid (payee) and which key signs its deals (signer).",
+      "A buyer, or the buyer's AI agent, checks that the signer and payee in the terms match the registered identity before paying. An impersonator cannot pass without the seller's wallet.",
+      "Identity proves who you are dealing with, not that they will deliver. Escrow covers the second part.",
+    ],
+    body: `
+## Why agents need an identity
+
+When a person buys from a website, they lean on signals built for people: a familiar domain, a padlock, reviews, a brand they recognise. An AI agent buying for its owner cannot use most of those. And when the seller is also an agent, anyone can stand one up with the same name, the same logo and a different payout address.
+
+The question an agent has to answer before it pays is simple: **is the party on the other side really the business it claims to be, and is the money going to that business?** ERC-8004 lets it answer that from public data instead of from a sales page.
+
+## What ERC-8004 is
+
+ERC-8004, "Trustless Agents", is a proposed Ethereum standard for discovering and trusting AI agents. It defines three registries:
+
+- **Identity registry:** each agent gets an on-chain identity, owned by a wallet, with metadata the owner publishes.
+- **Reputation registry:** clients can leave feedback about an agent. The registry rejects feedback from the agent's own owner or operators.
+- **Validation registry:** for independent checks of an agent's work.
+
+Arc runs ERC-8004 registries on mainnet and testnet. The identity registry is at \`0x8004A169FB4a3325136EB29fA0ceB6D2e539a432\` on Arc mainnet and \`0x8004A818BFB912233c491871b3d84c89A494BD9e\` on Arc testnet. You can read the full proposal on [Ethereum EIPs](https://eips.ethereum.org/EIPS/eip-8004).
+
+## How a seller registers its agent on Proteus AI
+
+1. **The seller's own wallet registers the agent.** It is a single transaction on Arc's identity registry, signed by the seller, not by Proteus. The seller owns the identity.
+2. **It publishes a payee and a signer.** The payee is the wallet that receives payouts. The signer is the key that signs the seller's deal terms and delivery records.
+3. **Each pricing policy is committed.** The seller's signer commits a salted hash of every policy version to ProteusPolicyRegistry. The numbers stay private, but the commitment is public and dated.
+
+One honest detail: on Proteus AI the seller's signer key is held encrypted by Proteus, so the deal desk can sign offers while the seller sleeps. The payee is the seller's own wallet, and settlement pays it directly.
+
+## How a buyer checks a seller
+
+Before signing anything, a buyer's agent runs four checks against Arc:
+
+| Check | What it compares | What it stops |
+|---|---|---|
+| Terms hash | The hash in the signed terms vs. the public terms shown | Terms changed after you read them |
+| Signer | The signer in the terms vs. the signer in the seller's ERC-8004 identity | A copycat signing as the seller |
+| Payee | The payout address in the terms vs. the registered payee | Money sent to the wrong wallet |
+| Policy | The quote's policy version vs. ProteusPolicyRegistry | Prices from rules the seller never committed |
+
+If any check fails, the agent does not sign. On Proteus AI this is one MCP tool, \`proteus_verify_seller\`.
+
+> Identity answers "who is this?". Escrow answers "what if they do not deliver?". You need both.
+
+## Real registrations you can check
+
+- **A real business on Arc mainnet.** A custom merch studio registered its selling agent from its own wallet on October 24, 2026 as Agent #2695: [registration transaction](https://explorer.arc.io/tx/0x45921b0f981908b7d704b79119863781c21e71498c812965d90db1787bd24e55).
+- **A demo seller on Arc testnet.** Kitbox, our labelled demo merch seller, is Agent #897439: [registration transaction](https://explorer.testnet.arc.io/tx/0x4b618940e20338a0937edef6c6a46608edd92a6d5b5a9ea589291d273c5ace7f). An AI agent ran all four checks against it before buying a sample; see [How AI agents can buy safely](/blog/how-ai-agents-buy-safely).
+
+## What identity does not prove
+
+- **It does not prove delivery.** A registered seller can still fail to ship. That is why the buyer pays into escrow and the seller is paid for what the buyer countersigns. See [Get paid on delivery](/blog/usdc-escrow-pay-on-delivery).
+- **It does not prove the business is good.** Identity tells you it is the same seller every time; reputation and your own judgement tell you whether to buy.
+- **It is only as strong as the seller's wallet.** If the seller loses the wallet that owns the identity, whoever holds it controls the identity.
+
+## Get started
+
+- Sellers: register in the [seller quickstart](/docs/quickstart-seller); the one transaction is from your own wallet.
+- Agents: [Buy with an AI agent](/docs/quickstart-agent) shows the checks in order.
+- Everyone: [Verify it yourself](/docs/verify) lists every contract and transaction.
+`,
+    faq: [
+      { q: "What is ERC-8004?", a: "ERC-8004, Trustless Agents, is a proposed Ethereum standard that gives AI agents an on-chain identity, with registries for identity, reputation and validation." },
+      { q: "How does a seller get an ERC-8004 identity on Arc?", a: "On Proteus AI the seller's own wallet sends one transaction to Arc's identity registry and publishes its payee and signer. The seller, not Proteus, owns the identity." },
+      { q: "How can an AI agent verify a seller?", a: "It checks that the signer and payout address in the terms match the seller's ERC-8004 identity, that the terms hash matches what it was shown, and that the pricing policy is committed on chain." },
+      { q: "Does an ERC-8004 identity prove a seller will deliver?", a: "No. It proves who the seller is and where the money goes. Escrow, where the seller is paid only for countersigned delivery, covers the delivery risk." },
+      { q: "Who holds the seller's signing key on Proteus AI?", a: "The seller's signer key is held encrypted by Proteus so the deal desk can sign offers around the clock. Payouts go to the seller's own payee wallet." },
+    ],
+    related: ["how-ai-agents-buy-safely", "usdc-escrow-pay-on-delivery", "what-is-an-ai-deal-desk"],
+  },
+
+  {
+    slug: "accept-usdc-from-any-chain",
+    title: "How to accept USDC from any chain: Circle CCTP into Arc",
+    description: "Your customers hold USDC on Solana, Base or Ethereum. Here is how Circle CCTP brings it to Arc as native USDC, so they can pay you without a wrapped token or a bridge they have to trust.",
+    date: "2026-11-07",
+    author: AUTHOR,
+    tags: ["USDC", "Circle CCTP", "Cross-chain"],
+    hero: { src: "/blog/cctp-any-chain.jpg", alt: "Illustration of USDC moving from 25 source chains, including Solana, Ethereum and Base, into Arc through Circle CCTP: burned on the source chain and minted on Arc" },
+    takeaways: [
+      "Customers rarely hold USDC on the chain you settle on. Circle CCTP moves it by burning USDC on the source chain and minting the same amount of native USDC on Arc.",
+      "Proteus AI brings USDC into Arc from 25 chains, Solana included, straight to the buyer's account wallet.",
+      "There is no wrapped token and no liquidity pool in between: the USDC that arrives is the same asset Circle issues on Arc.",
+      "On November 7, 2026, a real customer bridged USDC from Solana and funded an order on Arc mainnet the same day.",
+    ],
+    body: `
+## The problem: the money is on another chain
+
+You settle on Arc. Your customer holds USDC on Solana, or Base, or Ethereum. Before they can pay you, the money has to move, and that is where most first purchases die: a bridge they have never heard of, a wrapped token that is not quite USDC, a second token for gas, and a wait with no progress bar.
+
+For a business, the fix has to be boring: the customer picks the chain their money is on, signs, and arrives on Arc with real USDC.
+
+## How CCTP works
+
+CCTP, Circle's Cross-Chain Transfer Protocol, does not lock tokens in a pool and issue an IOU. It **burns** USDC on the source chain and **mints** the same amount on the destination, after Circle attests that the burn happened.
+
+1. **Burn.** The customer signs a transaction on the source chain that burns their USDC and names the destination wallet on Arc.
+2. **Attest.** Circle observes the burn and signs an attestation.
+3. **Mint.** The attestation is presented on Arc and native USDC is minted to the destination wallet.
+
+Because the USDC on Arc is minted by Circle's own contracts, it is the same asset every other Arc app accepts. There is nothing to unwrap later, and no pool that can run dry.
+
+## What we built on Proteus AI
+
+- **25 source chains in.** Through Circle's Bridge Kit, buyers bring USDC into Arc from 25 chains, Solana included, straight to the wallet tied to their account.
+- **Out again to 19 chains.** Sellers and buyers can send USDC from Arc to the 19 chains Circle's Forwarder mints on. This direction is tested on Arc testnet to Base and Solana.
+- **The right wallet.** A wallet picker for EVM and Solana wallets, so MetaMask and Phantom do not fight over the same button.
+- **Fewer failed attempts.** A check that the Solana wallet has enough SOL for the network fee before it signs, plain error messages, and a resume option once a burn was sent.
+- **Then gasless.** Arc charges gas in USDC, and when the buyer funds a deal, a relayer submits it, so the buyer never needs a second token on Arc.
+
+## What the customer pays
+
+- **The source chain's network fee,** in that chain's token, for example SOL on Solana.
+- **Any fee Circle charges for the transfer.** Those are Circle's, not ours.
+- **Nothing to Proteus AI** for bridging, and no gas when funding a deal: the relayer pays it during the pilot.
+
+## A real customer, from Solana to an order
+
+On November 7, 2026, a customer of a custom merch studio bridged USDC from Solana to Arc mainnet with CCTP ([mint on Arc](https://explorer.arc.io/tx/0x3e7f549108d377aa340c8a2d93b75322ac4a7454d4f54f2011d4b22357460862)), negotiated a custom tee with the studio's deal desk, and funded the order in escrow without paying gas. The studio itself had brought its own USDC in from Solana the same way ([mint on Arc](https://explorer.arc.io/tx/0x7357c72f92224eafbfed0c664e7b346966ca175bcd835d95ae09eb76165fe7a5)).
+
+| Step | Chain | Who signs |
+|---|---|---|
+| Burn USDC | Solana | The customer's Solana wallet |
+| Attest the burn | Off chain | Circle |
+| Mint native USDC | Arc | Minted to the customer's Arc wallet |
+| Fund the deal | Arc | The customer signs a permit; the relayer submits |
+
+## Get started
+
+- [How the money moves](/docs/money-path) from bridge to settlement.
+- [Get paid on delivery with USDC escrow](/blog/usdc-escrow-pay-on-delivery), the step after the bridge.
+- [Verify it yourself](/docs/verify): every mainnet transaction we cite.
+`,
+    faq: [
+      { q: "What is Circle CCTP?", a: "Circle's Cross-Chain Transfer Protocol moves USDC between chains by burning it on the source chain and minting the same amount of native USDC on the destination, after Circle attests the burn." },
+      { q: "Is USDC bridged with CCTP a wrapped token?", a: "No. It is native USDC minted by Circle's contracts on the destination chain, the same asset as any other USDC there." },
+      { q: "Which chains can customers pay from on Proteus AI?", a: "USDC comes into Arc from 25 chains through CCTP, including Solana, Ethereum and Base. Sending out of Arc reaches the 19 chains Circle's Forwarder mints on." },
+      { q: "What fees does the customer pay to bridge?", a: "The source chain's network fee in its own token, such as SOL on Solana, plus any fee Circle charges for the transfer. Proteus AI charges nothing for bridging." },
+      { q: "Do buyers need gas on Arc after bridging?", a: "No. Arc charges gas in USDC, and when a buyer funds a deal on Proteus AI a relayer submits the transaction and pays the gas." },
+    ],
+    related: ["usdc-escrow-pay-on-delivery", "what-is-an-ai-deal-desk", "erc-8004-agent-identity"],
+  },
+
+  {
+    slug: "usage-based-pricing-for-apis",
+    title: "Usage-based pricing for APIs and AI services: prepaid, metered and refundable",
+    description: "How to sell an API or AI service by usage without chasing invoices: a prepaid balance in escrow, every call metered with a signed receipt, and unused credit refundable.",
+    date: "2026-11-09",
+    author: AUTHOR,
+    tags: ["Usage-based pricing", "API monetization", "x402"],
+    hero: { src: "/docs/seller-usage.jpg", alt: "The seller's usage and delivery page on Proteus AI: each request with its outcome, billed units and signed receipt" },
+    takeaways: [
+      "Usage-based pricing usually means billing after the fact and chasing the invoice. A prepaid balance in escrow flips that: the money is committed before the first call.",
+      "On Proteus AI every delivered call returns a signed receipt; failed or handed-off requests are not billed.",
+      "The buyer countersigns usage against the receipts, the escrow pays the seller for exactly that, and unused credit is refundable after the term.",
+      "For one-off calls with no deal, x402 lets a client pay per request in USDC, proven on Arc testnet.",
+    ],
+    body: `
+## Why usage pricing is hard to collect
+
+Usage-based pricing is fair to buyers: pay for what you use. It is hard on sellers. You meter the calls, send an invoice at the end of the month, and hope it gets paid. Prepaid credits fix the collection problem but create a new one: buyers hesitate to prepay a vendor they just met, because unused credit is usually gone.
+
+A prepaid balance held in escrow gives both sides what they want. The seller knows the money exists before serving the first call. The buyer knows anything not used comes back.
+
+## Three ways to sell by usage
+
+| | Monthly invoice | Prepaid credits | Prepaid in escrow (Proteus AI) | x402 pay per call |
+|---|---|---|---|---|
+| Money committed before use | No | Yes | Yes | Yes, per call |
+| Unused balance returned | Not applicable | Rarely | Yes, after the term | Not applicable |
+| Proof of each call | Your logs | Your logs | Signed receipt per call | The payment itself |
+| Buyer checks before paying | After the invoice | No | Yes, countersigns usage | Per call |
+| Needs a negotiated deal | Usually | No | Yes | No |
+
+## How metered escrow works
+
+1. **Negotiate the plan.** The buyer, or the buyer's AI agent, negotiates a volume tier with the seller's deal desk: for example 50,000 calls at a per-call price, prepaid for 30 days.
+2. **Fund it.** Both sides sign the terms and the buyer's USDC moves into DealEscrow on Arc. The buyer receives a service key.
+3. **Call the service.** Each call goes to \`POST /api/services/{product}/execute\` with that key and a \`requestId\`. Retrying the same \`requestId\` never bills twice.
+4. **Every delivered result comes with a receipt.** The seller's signer signs a receipt for each billable unit. Requests that fail, or that are handed off to a person, are recorded but not billed.
+5. **The buyer countersigns usage.** \`GET /api/deals/{id}/usage\` returns the receipts and the acceptance to sign. The buyer (or its agent) checks the count and the unit price, then signs.
+6. **The escrow pays the difference.** DealEscrow pays the seller for the newly accepted usage since the last settlement.
+7. **Unused credit comes back.** After the term plus a grace period (3 days by default), the remaining balance is refundable to the buyer.
+
+## Pay per call with x402
+
+Some buyers do not want a plan. They want one answer, now. For them, Proteus AI supports x402: the client calls \`POST /api/pay/{seller}/{product}/execute\`, gets a 402 response listing payment options, pays in USDC, and receives the result.
+
+- **Exact payments** settle each call through Circle's facilitator.
+- **Circle Gateway batching** lets each call be a signature rather than a transfer, with settlement in batches.
+
+Both are proven on Arc testnet. One honest difference: x402 payments are made when the call is made, outside escrow, so there is no refund path. For anything larger than a few calls, a prepaid deal is the safer choice for the buyer.
+
+## Who it suits
+
+- **AI and API companies** selling inference, embeddings, data or tooling by volume.
+- **Back-office services** priced per document, per invoice or per handled request.
+- **Agents buying from agents,** where nobody is around to read an invoice, but anyone can check a receipt.
+
+## Get started
+
+- [Sell on Proteus AI](/docs/quickstart-seller) and point a product at your endpoint.
+- [For AI agents](/docs/for-agents): every route above, with request and response shapes.
+- [How the money moves](/docs/money-path), including grace periods and refunds.
+`,
+    faq: [
+      { q: "What is usage-based pricing for an API?", a: "Charging buyers for what they actually use, such as calls, documents or tokens, instead of a flat subscription." },
+      { q: "How do you get paid for API usage without invoices?", a: "Have the buyer prepay into escrow. On Proteus AI each delivered call gets a signed receipt, the buyer countersigns usage, and the escrow pays the seller for exactly that." },
+      { q: "What happens to unused prepaid credit?", a: "On Proteus AI the unspent balance is refundable to the buyer after the term plus a grace period, three days by default, or as soon as the seller closes early." },
+      { q: "Are failed API calls billed?", a: "No. Only delivered results are billable. Failed or handed-off requests are recorded without a charge, and retrying the same requestId never bills twice." },
+      { q: "What is x402?", a: "x402 is a protocol where a server answers HTTP 402 with payment options and the client pays per request in USDC. On Proteus AI it works through Circle's facilitator or Circle Gateway batching, proven on Arc testnet." },
+    ],
+    related: ["how-ai-agents-buy-safely", "usdc-escrow-pay-on-delivery", "accept-usdc-from-any-chain"],
   },
 ];
 

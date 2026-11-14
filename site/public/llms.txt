@@ -67,6 +67,9 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 - [Get paid on delivery: USDC escrow for small business orders](https://app.proteus.co.in/blog/usdc-escrow-pay-on-delivery.md): How USDC escrow lets a buyer pay up front and a business get paid only for what it delivers, with automatic refunds, no gas for buyers and funding from 25 chains.
 - [How AI agents can buy safely: budgets, seller checks and MCP](https://app.proteus.co.in/blog/how-ai-agents-buy-safely.md): What an AI agent needs to buy on its owner's behalf without overspending or paying the wrong seller: a spending mandate, on-chain seller checks and escrow.
 - [Selling on WhatsApp with an AI agent: five rules for trust, privacy and payment](https://app.proteus.co.in/blog/whatsapp-ai-sales-agent.md): How to put an AI sales agent on a business's WhatsApp without taking payments in chat, exposing customers' numbers or breaking Meta's rules.
+- [What is ERC-8004? Verifiable identity for AI agents that sell](https://app.proteus.co.in/blog/erc-8004-agent-identity.md): ERC-8004 gives an AI agent an on-chain identity: who owns it, where it gets paid and which key signs for it. Here is how sellers use it and how buyers check it.
+- [How to accept USDC from any chain: Circle CCTP into Arc](https://app.proteus.co.in/blog/accept-usdc-from-any-chain.md): Your customers hold USDC on Solana, Base or Ethereum. Here is how Circle CCTP brings it to Arc as native USDC, so they can pay you without a wrapped token or a bridge they have to trust.
+- [Usage-based pricing for APIs and AI services: prepaid, metered and refundable](https://app.proteus.co.in/blog/usage-based-pricing-for-apis.md): How to sell an API or AI service by usage without chasing invoices: a prepaid balance in escrow, every call metered with a signed receipt, and unused credit refundable.
 
 ## Optional
 

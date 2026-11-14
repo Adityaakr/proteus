@@ -58,5 +58,35 @@
 <category>AI sales agent</category>
 <category>Privacy</category>
 </item>
+<item>
+<title>What is ERC-8004? Verifiable identity for AI agents that sell</title>
+<link>https://app.proteus.co.in/blog/erc-8004-agent-identity</link>
+<guid isPermaLink="true">https://app.proteus.co.in/blog/erc-8004-agent-identity</guid>
+<pubDate>Thu, 05 Nov 2026 09:00:00 GMT</pubDate>
+<description>ERC-8004 gives an AI agent an on-chain identity: who owns it, where it gets paid and which key signs for it. Here is how sellers use it and how buyers check it.</description>
+<category>ERC-8004</category>
+<category>Agent identity</category>
+<category>Arc</category>
+</item>
+<item>
+<title>How to accept USDC from any chain: Circle CCTP into Arc</title>
+<link>https://app.proteus.co.in/blog/accept-usdc-from-any-chain</link>
+<guid isPermaLink="true">https://app.proteus.co.in/blog/accept-usdc-from-any-chain</guid>
+<pubDate>Sat, 07 Nov 2026 09:00:00 GMT</pubDate>
+<description>Your customers hold USDC on Solana, Base or Ethereum. Here is how Circle CCTP brings it to Arc as native USDC, so they can pay you without a wrapped token or a bridge they have to trust.</description>
+<category>USDC</category>
+<category>Circle CCTP</category>
+<category>Cross-chain</category>
+</item>
+<item>
+<title>Usage-based pricing for APIs and AI services: prepaid, metered and refundable</title>
+<link>https://app.proteus.co.in/blog/usage-based-pricing-for-apis</link>
+<guid isPermaLink="true">https://app.proteus.co.in/blog/usage-based-pricing-for-apis</guid>
+<pubDate>Mon, 09 Nov 2026 09:00:00 GMT</pubDate>
+<description>How to sell an API or AI service by usage without chasing invoices: a prepaid balance in escrow, every call metered with a signed receipt, and unused credit refundable.</description>
+<category>Usage-based pricing</category>
+<category>API monetization</category>
+<category>x402</category>
+</item>
 </channel>
 </rss>

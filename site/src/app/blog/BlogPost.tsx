@@ -48,7 +48,7 @@ export default function BlogPost() {
           <h1 className={s.postTitle}>{p.title}</h1>
           <p className={s.postLede}>{p.description}</p>
           <div className={s.byline}>
-            <span className={s.avatar} aria-hidden>P</span>
+            <span className={s.avatar} aria-hidden><img src="/assets/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png" alt="" width={18} height={18} /></span>
             <span className={s.author}>{p.author}</span>
             <span className={s.dot} aria-hidden />
             <span>Published <time dateTime={p.date}>{formatDate(p.date)}</time></span>
