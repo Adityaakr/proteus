@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && pnpm --dir ../server exec tsx ../site/scripts/gen-agent-docs.ts && vite build",
+    "build": "tsc -b && pnpm --dir ../server exec tsx ../site/scripts/gen-agent-docs.ts && pnpm --dir ../server exec tsx ../site/scripts/gen-blog.ts && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
     "shot": "node scripts/shot.mjs"

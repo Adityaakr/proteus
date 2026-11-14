@@ -9,6 +9,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { POSTS } from "../src/app/blog/posts";
 import { API, CLAIMS, CONTRACTS, DOC_LEDE, DOC_TITLE, EVIDENCE, FACTS_AS_OF, GRACE, LIMITS, MCP_TOOLS, NETWORKS, SECTIONS, TRUST, compareRows, docsMarkdown, FEES, MODELS } from "../src/app/docs/docsContent";
 
 const ORIGIN = "https://app.proteus.co.in";
@@ -35,6 +36,10 @@ const llms = [
   `- [Example service skill](${API.example.skill}) and [OpenAPI](${API.example.openapi})`,
   "",
   ...groups.flatMap((g) => [`## ${g}`, "", ...SECTIONS.filter((x) => x.group === g).map((x) => `- [${x.title}](${ORIGIN}/docs/${x.id}.md)${x.summary ? `: ${x.summary}` : ""}`), ""]),
+  "## Blog",
+  "",
+  ...POSTS.map((p) => `- [${p.title}](${ORIGIN}/blog/${p.slug}.md): ${p.description}`),
+  "",
   "## Optional",
   "",
   `- [Evidence: Claude buys through the MCP server on Arc testnet](${EVIDENCE})`,

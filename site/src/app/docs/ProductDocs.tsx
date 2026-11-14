@@ -65,6 +65,7 @@ function DocsPage({ sec }: { sec: DocSection }) {
             const first = SECTIONS.find((x) => x.group === g)!;
             return <Link key={g} to={`/docs/${first.id}`} className={`${s.pill} ${sec.group === g ? s.pillOn : ""}`}>{g}</Link>;
           })}
+          <Link to="/blog" className={s.pill}>Blog</Link>
         </nav>
         <a href="https://app.proteus.co.in" className={s.cta}>Open the app <ArrowUpRight size={14} aria-hidden /></a>
       </header>

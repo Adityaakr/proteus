@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>The Proteus AI blog</title>
+<link>https://app.proteus.co.in/blog</link>
+<description>Plain answers on AI deal desks, agent negotiation, USDC escrow and selling to AI agents. Every claim matches our docs, and anything not done yet says so.</description>
+<language>en</language>
+<atom:link href="https://app.proteus.co.in/blog/rss.xml" rel="self" type="application/rss+xml" />
+<item>
+<title>What is an AI deal desk? How autonomous agents negotiate and close B2B deals</title>
+<link>https://app.proteus.co.in/blog/what-is-an-ai-deal-desk</link>
+<guid isPermaLink="true">https://app.proteus.co.in/blog/what-is-an-ai-deal-desk</guid>
+<pubDate>Fri, 16 Oct 2026 09:00:00 GMT</pubDate>
+<description>An AI deal desk quotes, negotiates and closes deals inside a business's own rules, then turns the agreement into a paid transaction. Here is how it works.</description>
+<category>AI deal desk</category>
+<category>B2B sales</category>
+<category>Autonomous agents</category>
+</item>
+<item>
+<title>How to let an AI negotiate for your business without giving away your margin</title>
+<link>https://app.proteus.co.in/blog/ai-negotiation-without-losing-margin</link>
+<guid isPermaLink="true">https://app.proteus.co.in/blog/ai-negotiation-without-losing-margin</guid>
+<pubDate>Wed, 11 Nov 2026 09:00:00 GMT</pubDate>
+<description>Seven guardrails that let an AI agent negotiate prices for your business while your floor, costs and approval rules stay in your control.</description>
+<category>AI negotiation</category>
+<category>Pricing</category>
+<category>Guardrails</category>
+</item>
+<item>
+<title>Get paid on delivery: USDC escrow for small business orders</title>
+<link>https://app.proteus.co.in/blog/usdc-escrow-pay-on-delivery</link>
+<guid isPermaLink="true">https://app.proteus.co.in/blog/usdc-escrow-pay-on-delivery</guid>
+<pubDate>Wed, 11 Nov 2026 09:00:00 GMT</pubDate>
+<description>How USDC escrow lets a buyer pay up front and a business get paid only for what it delivers, with automatic refunds, no gas for buyers and funding from 25 chains.</description>
+<category>USDC</category>
+<category>Escrow</category>
+<category>Payments</category>
+<category>Arc</category>
+</item>
+<item>
+<title>How AI agents can buy safely: budgets, seller checks and MCP</title>
+<link>https://app.proteus.co.in/blog/how-ai-agents-buy-safely</link>
+<guid isPermaLink="true">https://app.proteus.co.in/blog/how-ai-agents-buy-safely</guid>
+<pubDate>Fri, 23 Oct 2026 09:00:00 GMT</pubDate>
+<description>What an AI agent needs to buy on its owner's behalf without overspending or paying the wrong seller: a spending mandate, on-chain seller checks and escrow.</description>
+<category>Agentic commerce</category>
+<category>MCP</category>
+<category>ERC-8004</category>
+<category>AI agents</category>
+</item>
+<item>
+<title>Selling on WhatsApp with an AI agent: five rules for trust, privacy and payment</title>
+<link>https://app.proteus.co.in/blog/whatsapp-ai-sales-agent</link>
+<guid isPermaLink="true">https://app.proteus.co.in/blog/whatsapp-ai-sales-agent</guid>
+<pubDate>Wed, 11 Nov 2026 09:00:00 GMT</pubDate>
+<description>How to put an AI sales agent on a business's WhatsApp without taking payments in chat, exposing customers' numbers or breaking Meta's rules.</description>
+<category>WhatsApp</category>
+<category>AI sales agent</category>
+<category>Privacy</category>
+</item>
+</channel>
+</rss>

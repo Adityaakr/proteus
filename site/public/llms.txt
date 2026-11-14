@@ -60,6 +60,14 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 - [Glossary](https://app.proteus.co.in/docs/glossary.md)
 - [Links](https://app.proteus.co.in/docs/links.md)
 
+## Blog
+
+- [What is an AI deal desk? How autonomous agents negotiate and close B2B deals](https://app.proteus.co.in/blog/what-is-an-ai-deal-desk.md): An AI deal desk quotes, negotiates and closes deals inside a business's own rules, then turns the agreement into a paid transaction. Here is how it works.
+- [How to let an AI negotiate for your business without giving away your margin](https://app.proteus.co.in/blog/ai-negotiation-without-losing-margin.md): Seven guardrails that let an AI agent negotiate prices for your business while your floor, costs and approval rules stay in your control.
+- [Get paid on delivery: USDC escrow for small business orders](https://app.proteus.co.in/blog/usdc-escrow-pay-on-delivery.md): How USDC escrow lets a buyer pay up front and a business get paid only for what it delivers, with automatic refunds, no gas for buyers and funding from 25 chains.
+- [How AI agents can buy safely: budgets, seller checks and MCP](https://app.proteus.co.in/blog/how-ai-agents-buy-safely.md): What an AI agent needs to buy on its owner's behalf without overspending or paying the wrong seller: a spending mandate, on-chain seller checks and escrow.
+- [Selling on WhatsApp with an AI agent: five rules for trust, privacy and payment](https://app.proteus.co.in/blog/whatsapp-ai-sales-agent.md): How to put an AI sales agent on a business's WhatsApp without taking payments in chat, exposing customers' numbers or breaking Meta's rules.
+
 ## Optional
 
 - [Evidence: Claude buys through the MCP server on Arc testnet](https://github.com/Adityaakr/proteus/blob/main/docs/evidence/2026-10-23-claude-mcp-kitbox.md)

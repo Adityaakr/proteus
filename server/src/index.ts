@@ -96,10 +96,15 @@ if (existsSync(join(siteDist, "index.html"))) {
     },
   }));
   const docsShell = docsPreviewShell(shell, siteDist);
+  const blogShell = blogPrerenderShell(shell, siteDist);
   app.get("/*", (c) => {
     const p = c.req.path;
     if (p.startsWith("/api/")) return c.notFound();
     c.header("cache-control", "no-cache");
+    if (p === "/blog" || p === "/blog/" || p.startsWith("/blog/")) {
+      const page = blogShell(p);
+      return page ? c.html(page) : c.html(shell, 404);
+    }
     return c.html((p === "/docs" || p.startsWith("/docs/")) ? docsShell(p, env.WEB_ORIGIN.replace(/\/$/, "")) : shell);
   });
   console.log(`serving site from ${siteDist}`);
@@ -166,5 +171,53 @@ function docsPreviewShell(shell: string, dist: string) {
       .replace(/<meta property="og:(title|description)"[^>]*>\s*/g, "")
       .replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
       .replace("</head>", `    ${meta}\n  </head>`);
+  };
+}
+
+/**
+ * /blog and /blog/<slug> for crawlers and answer engines: the shell carries the article itself (prerendered at build
+ * into blog/ssr.json from the same posts.ts the page renders), its meta tags, canonical URL and JSON-LD. The SPA
+ * replaces the static article with the same content on load. Unknown slugs return null (404).
+ */
+function blogPrerenderShell(shell: string, dist: string) {
+  type Page = { title: string; description: string; image: string; date?: string; tags?: string[]; html: string; ld: unknown[] };
+  let data: { index: Page; posts: Record<string, Page> } | null = null;
+  try { data = JSON.parse(readFileSync(join(dist, "blog", "ssr.json"), "utf8")); } catch { /* no generated blog */ }
+  const canonicalOrigin = "https://app.proteus.co.in";
+  const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  // JSON-LD inside <script>: escape "<" so a "</script>" in text cannot end the tag.
+  const ldJson = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
+  return (path: string): string | null => {
+    if (!data) return shell;
+    const slug = path.replace(/^\/blog\/?/, "").replace(/\/$/, "");
+    const page = slug ? data.posts[slug] : data.index;
+    if (!page) return null;
+    const url = `${canonicalOrigin}/blog${slug ? `/${slug}` : ""}`;
+    const meta = [
+      `<meta name="description" content="${esc(page.description)}" />`,
+      `<link rel="canonical" href="${url}" />`,
+      `<link rel="alternate" type="application/rss+xml" title="Proteus AI blog" href="${canonicalOrigin}/blog/rss.xml" />`,
+      ...(slug ? [`<link rel="alternate" type="text/markdown" href="${url}.md" />`] : []),
+      `<meta property="og:type" content="${slug ? "article" : "website"}" />`,
+      `<meta property="og:site_name" content="Proteus AI" />`,
+      `<meta property="og:url" content="${url}" />`,
+      `<meta property="og:title" content="${esc(page.title)}" />`,
+      `<meta property="og:description" content="${esc(page.description)}" />`,
+      `<meta property="og:image" content="${esc(page.image)}" />`,
+      `<meta property="og:image:width" content="2400" />`,
+      `<meta property="og:image:height" content="1260" />`,
+      ...(page.date ? [`<meta property="article:published_time" content="${page.date}" />`] : []),
+      ...(page.tags ?? []).map((t) => `<meta property="article:tag" content="${esc(t)}" />`),
+      `<meta name="twitter:card" content="summary_large_image" />`,
+      `<meta name="twitter:title" content="${esc(page.title)}" />`,
+      `<meta name="twitter:description" content="${esc(page.description)}" />`,
+      `<meta name="twitter:image" content="${esc(page.image)}" />`,
+      ...page.ld.map((x) => `<script type="application/ld+json">${ldJson(x)}</script>`),
+    ].join("\n    ");
+    return shell
+      .replace(/<meta (property="og:(title|description)"|name="description")[^>]*>\s*/g, "")
+      .replace(/<title>[^<]*<\/title>/, `<title>${esc(page.title)}</title>`)
+      .replace("</head>", `    ${meta}\n  </head>`)
+      .replace('<div id="root"></div>', `<div id="root">${page.html}</div>`);
   };
 }

@@ -1,0 +1,7 @@
+# Proteus AI. Public pages, docs and the blog are open to search engines and AI agents.
+User-agent: *
+Allow: /
+Disallow: /app/
+Disallow: /embed/
+
+Sitemap: https://app.proteus.co.in/sitemap.xml

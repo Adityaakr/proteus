@@ -7,6 +7,7 @@ export const links = {
   record: "/review",
   github: "https://github.com/Adityaakr/proteus",
   docs: "/docs",
+  blog: "/blog",
 };
 
 export const nav = {
@@ -16,6 +17,7 @@ export const nav = {
     { label: "Use cases", href: "/#partners" },
     { label: "FAQ", href: "/#faqs" },
     { label: "Docs", href: links.docs },
+    { label: "Blog", href: links.blog },
   ],
   secondary: { label: "Seller console", href: links.earlyAccess },
   primary: { label: "Negotiate a deal", href: links.explore },
@@ -335,6 +337,7 @@ export const footer = {
     { label: "Use cases", href: "/#partners" },
     { label: "FAQ", href: "/#faqs" },
     { label: "Docs", href: links.docs },
+    { label: "Blog", href: links.blog },
     { label: "GitHub", href: links.github },
   ],
   copyright: "© 2026 Proteus AI. Built with Circle and Arc.",

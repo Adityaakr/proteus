@@ -18,6 +18,8 @@ const WalletPage = lazy(() => import("./app/wallet/WalletPage"));
 const ApiDocs = lazy(() => import("./app/docs/ApiDocs"));
 const ProductDocs = lazy(() => import("./app/docs/ProductDocs"));
 const ServiceDocs = lazy(() => import("./app/docs/ServiceDocs"));
+const BlogIndex = lazy(() => import("./app/blog/BlogIndex"));
+const BlogPost = lazy(() => import("./app/blog/BlogPost"));
 const Welcome = lazy(() => import("./app/auth/Welcome"));
 const Market = lazy(() => import("./app/market/Market"));
 const StorePage = lazy(() => import("./app/market/StorePage"));
@@ -69,6 +71,8 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/docs/api" element={<ApiDocs />} />
               <Route path="/docs/:page" element={<ProductDocs />} />
               <Route path="/docs/:sellerSlug/:productSlug" element={<ServiceDocs />} />
+              <Route path="/blog" element={<BlogIndex />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/records/:publicId" element={<ReviewRecord />} />
               <Route path="/embed/talk/:token" element={<CustomerTalk />} />
               <Route path="/embed/:sellerSlug" element={<EmbedAgent />} />
