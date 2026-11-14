@@ -29,6 +29,8 @@ Because the USDC on Arc is minted by Circle's own contracts, it is the same asse
 
 ## What we built on Proteus AI
 
+![CCTP into Arc](https://app.proteus.co.in/blog/cctp-any-chain.jpg "Burned at the source, attested by Circle, minted on Arc.")
+
 - **25 source chains in.** Through Circle's Bridge Kit, buyers bring USDC into Arc from 25 chains, Solana included, straight to the wallet tied to their account.
 - **Out again to 19 chains.** Sellers and buyers can send USDC from Arc to the 19 chains Circle's Forwarder mints on. This direction is tested on Arc testnet to Base and Solana.
 - **The right wallet.** A wallet picker for EVM and Solana wallets, so MetaMask and Phantom do not fight over the same button.

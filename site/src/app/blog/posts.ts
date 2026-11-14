@@ -32,7 +32,7 @@ export const POSTS: Post[] = [
     updated: "2026-11-14",
     author: AUTHOR,
     tags: ["AI deal desk", "B2B sales", "Autonomous agents"],
-    hero: { src: "/docs/negotiation.jpg", alt: "A buyer negotiating with a seller's AI deal desk on Proteus AI, with offers computed from the seller's rules" },
+    hero: { src: "/blog/covers/what-is-an-ai-deal-desk.jpg", alt: "A buyer asks Kitbox's deal agent for 20 branded boxes; the agent answers with two offers computed from the seller's rules, a $230 team pack and a $12.50 sample" },
     takeaways: [
       "An AI deal desk is software that quotes, negotiates and closes deals for a business, inside rules the business sets.",
       "The model writes the conversation; prices come from code that applies the seller's rules, so the agent cannot invent a discount.",
@@ -126,7 +126,7 @@ The first business live on Proteus AI on Arc mainnet is a custom merch studio. A
     updated: "2026-11-14",
     author: AUTHOR,
     tags: ["AI negotiation", "Pricing", "Guardrails"],
-    hero: { src: "/docs/policies.jpg", alt: "Agent policies page on Proteus AI where a seller sets cost, margin floor, discount cap and approval threshold" },
+    hero: { src: "/blog/covers/ai-negotiation-without-losing-margin.jpg", alt: "A product's enforced pricing policy (15% margin floor, 8% max discount, $500 approval threshold) beside a buyer's lowball counteroffer being refused" },
     takeaways: [
       "Never let the model choose a price. Compute offers in code from the seller's rules, and let the model only write the words.",
       "Check every figure in the reply against the computed offers, and fall back to a fixed reply if anything else appears.",
@@ -211,7 +211,7 @@ Set up a product and its rules in the [seller quickstart](/docs/quickstart-selle
     updated: "2026-11-14",
     author: AUTHOR,
     tags: ["USDC", "Escrow", "Payments", "Arc"],
-    hero: { src: "/docs/deal.jpg", alt: "A deal page on Proteus AI showing escrow balances read from the chain, the settlement transaction and the refund option" },
+    hero: { src: "/blog/covers/usdc-escrow-pay-on-delivery.jpg", alt: "A settled deal on Arc mainnet: $6.60 deposited and $6.60 paid to the seller after the buyer countersigned delivery" },
     takeaways: [
       "Escrow removes the one-way trust problem: the buyer's money is committed up front, and the seller is paid only for what the buyer confirms as delivered.",
       "With USDC on Arc, the same escrow works for a business in any country, settles in seconds and charges gas in USDC.",
@@ -287,7 +287,7 @@ On Arc mainnet, a custom merch studio's customer bought one tee for $6.60. The c
     updated: "2026-11-14",
     author: AUTHOR,
     tags: ["Agentic commerce", "MCP", "ERC-8004", "AI agents"],
-    hero: { src: "/docs/offer.jpg", alt: "Offer review page on Proteus AI with the exact terms, on-chain details and gasless funding steps an agent verifies before signing" },
+    hero: { src: "/blog/covers/how-ai-agents-buy-safely.jpg", alt: "Claude's tool calls through the Proteus MCP server, from negotiating and declining to verifying, funding and settling, within a 13 USDC spending mandate" },
     takeaways: [
       "An agent that buys needs three things: a budget it cannot exceed, a way to verify the seller, and a payment that waits for delivery.",
       "On Proteus AI the budget is a spending mandate enforced by the MCP server; the seller check reads the seller's ERC-8004 identity and committed policy on Arc.",
@@ -381,7 +381,7 @@ The escrow still shows that deal on chain: 12.50 deposited, 12.50 settled.
     updated: "2026-11-14",
     author: AUTHOR,
     tags: ["WhatsApp", "AI sales agent", "Privacy"],
-    hero: { src: "/blog/whatsapp-chat.jpg", alt: "Illustration of the WhatsApp flow with a demo seller: the agent says it is an AI, sends offers as tap-to-accept buttons, then a pay link that works for 30 minutes" },
+    hero: { src: "/blog/covers/whatsapp-ai-sales-agent.jpg", alt: "Illustration of the WhatsApp flow with a demo seller: the agent says it is an AI, sends offers as buttons, then a pay link that works for 30 minutes" },
     takeaways: [
       "Let the chat negotiate, never take money: offers as buttons, then a short-lived link to a signed checkout on the web.",
       "Tell the customer it is an AI from the first message, and give them HUMAN and STOP.",
@@ -396,6 +396,8 @@ For many small businesses, WhatsApp is the shop. Quotes, haggling, photos of sam
 So the same deal desk, under the same rules, answers on a seller's WhatsApp Business number through Meta's official Cloud API. Building it meant deciding what an AI should and should not do inside a chat. These are the five rules we landed on.
 
 ## Rule 1: the chat negotiates, it never takes money
+
+![The WhatsApp flow on Proteus AI, step by step](/blog/whatsapp-chat.jpg "Illustration with a demo seller. Every message from the business is the text our server sends today.")
 
 Offers arrive as tap-to-accept buttons. Accepting sends a secure pay link that works for 30 minutes. Signing the terms and paying in USDC happen on the web, never inside the chat.
 
@@ -462,7 +464,7 @@ The WhatsApp channel is built and deployed on Arc mainnet and testnet, a number 
     date: "2026-11-05",
     author: AUTHOR,
     tags: ["ERC-8004", "Agent identity", "Arc"],
-    hero: { src: "/blog/erc-8004-identity.jpg", alt: "Illustration of an ERC-8004 identity check on Arc: the seller's registered signer, payee and committed pricing policy matched against the terms a buyer is about to sign" },
+    hero: { src: "/blog/covers/erc-8004-agent-identity.jpg", alt: "A demo seller's ERC-8004 identity on Arc beside the four checks a buyer runs before signing" },
     takeaways: [
       "ERC-8004 is a standard for AI agent identity on Ethereum-compatible chains: an identity registry, plus registries for reputation and validation.",
       "On Arc, a seller registers its agent from its own wallet in one transaction and publishes where it gets paid (payee) and which key signs its deals (signer).",
@@ -495,6 +497,8 @@ Arc runs ERC-8004 registries on mainnet and testnet. The identity registry is at
 One honest detail: on Proteus AI the seller's signer key is held encrypted by Proteus, so the deal desk can sign offers while the seller sleeps. The payee is the seller's own wallet, and settlement pays it directly.
 
 ## How a buyer checks a seller
+
+![An ERC-8004 identity and the four checks](/blog/erc-8004-identity.jpg "The demo seller Kitbox: its identity on Arc testnet, and the checks a buyer runs against it.")
 
 Before signing anything, a buyer's agent runs four checks against Arc:
 
@@ -543,7 +547,7 @@ If any check fails, the agent does not sign. On Proteus AI this is one MCP tool,
     date: "2026-11-07",
     author: AUTHOR,
     tags: ["USDC", "Circle CCTP", "Cross-chain"],
-    hero: { src: "/blog/cctp-any-chain.jpg", alt: "Illustration of USDC moving from 25 source chains, including Solana, Ethereum and Base, into Arc through Circle CCTP: burned on the source chain and minted on Arc" },
+    hero: { src: "/blog/covers/accept-usdc-from-any-chain.jpg", alt: "USDC from 25 chains, including Solana, Ethereum and Base, burned at the source and minted as native USDC on Arc through Circle CCTP" },
     takeaways: [
       "Customers rarely hold USDC on the chain you settle on. Circle CCTP moves it by burning USDC on the source chain and minting the same amount of native USDC on Arc.",
       "Proteus AI brings USDC into Arc from 25 chains, Solana included, straight to the buyer's account wallet.",
@@ -568,6 +572,8 @@ CCTP, Circle's Cross-Chain Transfer Protocol, does not lock tokens in a pool and
 Because the USDC on Arc is minted by Circle's own contracts, it is the same asset every other Arc app accepts. There is nothing to unwrap later, and no pool that can run dry.
 
 ## What we built on Proteus AI
+
+![CCTP into Arc](/blog/cctp-any-chain.jpg "Burned at the source, attested by Circle, minted on Arc.")
 
 - **25 source chains in.** Through Circle's Bridge Kit, buyers bring USDC into Arc from 25 chains, Solana included, straight to the wallet tied to their account.
 - **Out again to 19 chains.** Sellers and buyers can send USDC from Arc to the 19 chains Circle's Forwarder mints on. This direction is tested on Arc testnet to Base and Solana.
@@ -615,7 +621,7 @@ On November 7, 2026, a customer of a custom merch studio bridged USDC from Solan
     date: "2026-11-09",
     author: AUTHOR,
     tags: ["Usage-based pricing", "API monetization", "x402"],
-    hero: { src: "/docs/seller-usage.jpg", alt: "The seller's usage and delivery page on Proteus AI: each request with its outcome, billed units and signed receipt" },
+    hero: { src: "/blog/covers/usage-based-pricing-for-apis.jpg", alt: "A seller's usage page: one request delivered and billed with a signed receipt, nothing billed for failed or handed-off requests" },
     takeaways: [
       "Usage-based pricing usually means billing after the fact and chasing the invoice. A prepaid balance in escrow flips that: the money is committed before the first call.",
       "On Proteus AI every delivered call returns a signed receipt; failed or handed-off requests are not billed.",
@@ -648,6 +654,8 @@ A prepaid balance held in escrow gives both sides what they want. The seller kno
 5. **The buyer countersigns usage.** \`GET /api/deals/{id}/usage\` returns the receipts and the acceptance to sign. The buyer (or its agent) checks the count and the unit price, then signs.
 6. **The escrow pays the difference.** DealEscrow pays the seller for the newly accepted usage since the last settlement.
 7. **Unused credit comes back.** After the term plus a grace period (3 days by default), the remaining balance is refundable to the buyer.
+
+![The seller's usage and delivery page](/docs/seller-usage.jpg "Every request with its outcome, the units billed, and the signed receipt behind each one.")
 
 ## Pay per call with x402
 

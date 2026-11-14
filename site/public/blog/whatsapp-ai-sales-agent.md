@@ -19,6 +19,8 @@ So the same deal desk, under the same rules, answers on a seller's WhatsApp Busi
 
 ## Rule 1: the chat negotiates, it never takes money
 
+![The WhatsApp flow on Proteus AI, step by step](https://app.proteus.co.in/blog/whatsapp-chat.jpg "Illustration with a demo seller. Every message from the business is the text our server sends today.")
+
 Offers arrive as tap-to-accept buttons. Accepting sends a secure pay link that works for 30 minutes. Signing the terms and paying in USDC happen on the web, never inside the chat.
 
 Payments inside a chat are hard to verify and easy to fake: a screenshot is not a receipt. A signed checkout on Arc leaves a record both sides can check, and the money waits in escrow until delivery.

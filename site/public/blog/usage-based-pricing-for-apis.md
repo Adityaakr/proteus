@@ -37,6 +37,8 @@ A prepaid balance held in escrow gives both sides what they want. The seller kno
 6. **The escrow pays the difference.** DealEscrow pays the seller for the newly accepted usage since the last settlement.
 7. **Unused credit comes back.** After the term plus a grace period (3 days by default), the remaining balance is refundable to the buyer.
 
+![The seller's usage and delivery page](https://app.proteus.co.in/docs/seller-usage.jpg "Every request with its outcome, the units billed, and the signed receipt behind each one.")
+
 ## Pay per call with x402
 
 Some buyers do not want a plan. They want one answer, now. For them, Proteus AI supports x402: the client calls `POST /api/pay/{seller}/{product}/execute`, gets a 402 response listing payment options, pays in USDC, and receives the result.

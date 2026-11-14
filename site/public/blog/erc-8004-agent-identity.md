@@ -37,6 +37,8 @@ One honest detail: on Proteus AI the seller's signer key is held encrypted by Pr
 
 ## How a buyer checks a seller
 
+![An ERC-8004 identity and the four checks](https://app.proteus.co.in/blog/erc-8004-identity.jpg "The demo seller Kitbox: its identity on Arc testnet, and the checks a buyer runs against it.")
+
 Before signing anything, a buyer's agent runs four checks against Arc:
 
 | Check | What it compares | What it stops |
