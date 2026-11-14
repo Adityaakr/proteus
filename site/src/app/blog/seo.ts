@@ -2,7 +2,7 @@
 import { POSTS, readMinutes, type Post } from "./posts";
 
 export const BLOG_TITLE = "The Proteus AI blog";
-export const BLOG_LEDE = "Plain answers on AI deal desks, agent negotiation, USDC escrow and selling to AI agents. Every claim matches our docs, and anything not done yet says so.";
+export const BLOG_LEDE = "Notes from building Proteus AI, the deal desk for internet businesses: how it works, what broke along the way, and what is not done yet. Every claim matches our docs or the chain.";
 
 const PUBLISHER = (origin: string) => ({ "@type": "Organization", name: "Proteus AI", url: origin, logo: { "@type": "ImageObject", url: `${origin}/og/docs.jpg` } });
 
@@ -21,7 +21,7 @@ export function postLd(origin: string, p: Post) {
       image: [ogImage(origin, p), origin + p.hero.src],
       datePublished: p.date,
       dateModified: p.updated ?? p.date,
-      author: { "@type": "Organization", name: p.author, url: origin },
+      author: { "@type": "Person", name: "Aditya", jobTitle: "Founder", worksFor: { "@type": "Organization", name: "Proteus AI", url: origin } },
       publisher: PUBLISHER(origin),
       keywords: p.tags.join(", "),
       timeRequired: `PT${readMinutes(p)}M`,

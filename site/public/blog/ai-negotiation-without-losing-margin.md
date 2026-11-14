@@ -2,74 +2,80 @@
 
 > Seven guardrails that let an AI agent negotiate prices for your business while your floor, costs and approval rules stay in your control.
 
-Proteus AI team · published 2026-11-11, updated 2026-11-14 · 4 min read · https://app.proteus.co.in/blog/ai-negotiation-without-losing-margin
+Aditya, founder of Proteus AI · published 2026-11-11, updated 2026-11-14 · 4 min read · https://app.proteus.co.in/blog/ai-negotiation-without-losing-margin
 
 ## Key takeaways
 
-- Never let the model choose a price. Compute offers in code from the seller's rules, and let the model only write the words.
-- Check every figure in the reply against the computed offers, and fall back to a fixed reply if anything else appears.
-- Give every price refusal the same public reason and limit counteroffers, so buyers cannot probe for your floor.
+- Never let the model pick a price. Compute offers in code from the seller's rules, and let the model only write the words around them.
+- Check every number in the reply against the offers you computed. If anything else shows up, send a fixed reply instead.
+- Give every price refusal the same public reason and cap counteroffers. Different reasons let a buyer find your floor in about 20 tries. We learned that from our own audit.
 - Keep costs and margins out of the model's context entirely, and send big deals to a person.
 
-## Why AI negotiation scares business owners
+## The question every seller asks first
 
-Letting software talk money with your customers sounds like a fast way to lose margin. A language model wants to be helpful, buyers are persuasive, and "can you do a bit better?" works on people, so why not on a model?
+If you run a business, the first thing you should ask about Proteus AI is not about features. It is: "So the AI is going to negotiate with my customers. What stops it from giving my margin away?"
 
-It works on models too, if the model is in charge of the price. The fix is architectural, not a better prompt: **the model never decides a number.**
+That is the right question. A model wants to be helpful. A buyer says "come on, can you do a bit better?" and helpful things say yes. If the model is the one deciding the price, you will lose money, slowly, one nice conversation at a time.
 
-## The seven guardrails
+So the answer is not a better prompt. The answer is that the model never decides a number.
+
+## Seven guardrails, and why each one exists
 
 ### 1. Prices come from code
 
-The seller sets the rules once: cost per unit, margin floor, maximum discount, minimum order, capacity, and a threshold above which a person approves. A pricing engine turns a buyer's request into a short list of offers that satisfy every rule. On Proteus AI this engine is ordinary, open code in the domain package; the model is never asked what to charge.
+The seller sets the rules once: cost per unit, margin floor, maximum discount, minimum order, capacity, and an approval threshold. A pricing engine, which is ordinary open code, turns the buyer's request into a short list of offers that pass every rule. The model is never asked what to charge.
 
-![A negotiation on Proteus AI with offers computed from the seller's rules](https://app.proteus.co.in/docs/negotiation.jpg "What the buyer sees: offers with units, totals and inclusions. The seller's cost and floor never appear.")
+![The agent policies page on Proteus AI](https://app.proteus.co.in/docs/policies.jpg "The rules each product's agent has to obey, shown on Kitbox's seller console on Arc testnet.")
 
 ### 2. The model only writes the words
 
-The model receives the buyer's message and the public offers, and writes a reply that presents them. It does not see your cost or your floor, so it cannot leak them and cannot be argued into going below them.
+The model gets the buyer's message and the offers the buyer is allowed to see. That is it. It never sees your cost or your floor, which means it cannot leak them and cannot be argued below them.
 
 ### 3. A figure guard on every reply
 
-Before a reply is sent, every price and quantity in it is compared with the figures the engine produced. If the model wrote a number that is not on the list, the reply is discarded and a fixed, rule-based reply goes out instead. Models are good writers and unreliable accountants; the guard turns that into a non-issue.
+Before a reply goes out, every price and quantity in it is compared with the numbers the engine produced. If the model wrote a number that is not on the list, we drop the reply and send a plain one built from the rules. Models are good writers and bad accountants. This makes that a non-issue.
 
-### 4. One public reason for every refusal
+### 4. One reason for every refusal
 
-If a counteroffer is below your floor, the buyer is told it is outside what the seller can offer. If it breaks the discount cap, the minimum or capacity, the buyer hears the **same** reason. Different messages for different rules let a buyer binary-search your floor by watching which one fires.
+This one we got wrong at first, and I want to be honest about it.
 
-### 5. A limit on counteroffers
+On November 11 we ran a privacy audit on our own code. One finding: when a counteroffer was rejected, the reason text was different depending on which rule fired. Below the margin floor said one thing, past the discount cap said another. Our engine is deterministic, so a patient buyer could binary-search the floor in about 20 tries just by reading which message came back.
 
-Probing works by asking many times. On Proteus AI a negotiation allows 12 counteroffers, and each IP address 40 per 10 minutes. Real buyers rarely need more than three.
+We fixed it the same day. Now every price rule returns the same public reason, on purpose. The comment in the code says it plainly: distinct texts would tell a buyer which private limit it hit.
+
+### 5. A cap on counteroffers
+
+Probing works by asking again and again. Since that same fix, a negotiation allows 12 counteroffers, and each IP address gets 40 per 10 minutes. A real buyer rarely needs more than a few.
 
 ### 6. A person approves the big ones
 
-Above the approval threshold, the offer is not sent; it waits for the seller. The agent tells the buyer the seller will confirm. Automation handles the many small deals, and a person handles the few that matter most.
+Above the threshold the seller sets, the offer is not sent. It waits for a human, and the agent tells the buyer the seller will confirm. Automation takes the many small deals. You keep the few that matter.
 
-### 7. The rules are public commitments
+### 7. The rules are committed in public
 
-On Proteus AI each version of a seller's pricing policy is committed on chain as a salted hash, and every quote's terms point at the version that produced it. Your actual numbers stay private, but anyone can check later that a quote came from the rules you committed to at that time.
+Each version of a seller's pricing policy is committed on Arc as a salted hash, and every quote points at the version that produced it. Your numbers stay private. But anyone can check later that a quote came from rules you committed to at the time, and not from something we changed quietly.
 
-## What the buyer sees
-
-The buyer sees offers, totals and a plain reason when a request does not fit. Never the cost, never the floor, never which rule said no. If they ask for something you do not sell, the agent points them to the right product instead of improvising.
+## What the buyer sees, and what they never do
 
 | The buyer can see | The buyer never sees |
 |---|---|
 | Offers, units, totals, inclusions | Your cost and margin floor |
-| One public reason for a refusal | Which rule refused |
+| One public reason for a refusal | Which rule said no |
 | Your list prices and products | Your discount cap and approval threshold |
 
-## Common questions from sellers
+If they ask for something you do not sell, the agent points them at the right product instead of making something up.
 
-**Can the agent still be persuasive?** Yes. It can explain value, suggest a larger tier, or offer a sample. It just cannot change the numbers the engine allows.
+## Three things sellers ask after that
 
-**What if the model makes a mistake?** The figure guard catches invented numbers, and the buyer still has to sign terms that show the exact price before any money moves.
+**Can it still sell?** Yes. It can explain value, suggest a bigger tier, offer a sample. It just cannot move the numbers.
 
-**What about my data?** Costs, margins and policy never enter the model's context, and contact details are removed from the conversation before each model call. See our [privacy page](https://app.proteus.co.in/docs/privacy).
+**What if the model makes a mistake anyway?** The figure guard catches invented numbers, and the buyer still has to sign terms that show the exact price before any money moves. A typo in a chat cannot become a contract.
 
-## Try it
+**What about my data?** Costs, margins and policy never go to the model. Emails and phone numbers typed into the chat are removed before every model call. The details are on our [privacy page](https://app.proteus.co.in/docs/privacy).
 
-Set up a product and its rules in the [seller quickstart](https://app.proteus.co.in/docs/quickstart-seller), then negotiate with your own agent on the [market](https://app.proteus.co.in/app/market). The full pricing rules are documented under [Pricing](https://app.proteus.co.in/docs/pricing).
+## Try it on yourself
+
+Set up a product and its rules in the [seller quickstart](https://app.proteus.co.in/docs/quickstart-seller), then go and haggle with your own agent on the [market](https://app.proteus.co.in/app/market). Try to get it below your floor. That is the fastest way to trust it. The full rules are under [Pricing](https://app.proteus.co.in/docs/pricing).
 
 ## Frequently asked questions
 

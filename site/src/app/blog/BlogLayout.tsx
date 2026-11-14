@@ -35,7 +35,7 @@ export function BlogLayout({ children }: { children: ReactNode }) {
 export function Foot() {
   return (
     <footer className={s.foot}>
-      Written by the Proteus AI team. Facts match <a href="/docs" className={s.a}>the docs</a> and <a href="/docs/facts.json" className={s.a}>facts.json</a>. For agents: <a href="/llms.txt" className={s.a}>llms.txt</a> · <a href="/blog/rss.xml" className={s.a}>RSS</a>
+      Written by Aditya, founder of Proteus AI. Facts match <a href="/docs" className={s.a}>the docs</a> and <a href="/docs/facts.json" className={s.a}>facts.json</a>. For agents: <a href="/llms.txt" className={s.a}>llms.txt</a> · <a href="/blog/rss.xml" className={s.a}>RSS</a>
     </footer>
   );
 }
