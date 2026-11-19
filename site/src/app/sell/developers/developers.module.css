@@ -1,0 +1,130 @@
+/* Developers page. Built on the dashboard tokens and the shared Card/DataTable/StatusTag look. */
+
+/* Section index under the header */
+.sectionNav {
+  position: sticky; top: 64px; z-index: 2; display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto; padding: 4px;
+  border-radius: 12px; background: var(--c-white); box-shadow: inset 0 0 0 1px var(--c-dark-10); scrollbar-width: none;
+}
+.sectionNav::-webkit-scrollbar { display: none; }
+.sectionNav a {
+  flex: none; display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 8px; white-space: nowrap;
+  font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--c-dark-60); text-decoration: none;
+}
+.sectionNav a:hover { color: var(--c-dark); background: var(--c-dark-5); }
+.sectionNav a:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 1px; }
+
+.section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 120px; min-width: 0; }
+.sectionHead { display: flex; flex-direction: column; gap: 4px; }
+.sectionTitle { margin: 0; font-family: var(--font-heading); font-size: 20px; line-height: 1.25; font-weight: 500; color: var(--c-dark); }
+.sectionLede { margin: 0; max-width: 720px; font-family: var(--font-body); font-size: 14px; line-height: 1.5; color: var(--c-dark-60); }
+
+/* Environment switch (live / test) */
+.envTabs { align-self: flex-start; display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--c-dark-5); }
+.envTab {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 12px; border: 0; border-radius: 8px; cursor: pointer;
+  font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--c-dark-60); background: transparent;
+}
+.envTab:hover { color: var(--c-dark); }
+.envTabOn { color: var(--c-dark); background: var(--c-white); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), inset 0 0 0 1px var(--c-dark-10); }
+.envDot { width: 7px; height: 7px; border-radius: 50%; background: var(--c-dark-40); }
+.envDotLive { background: rgb(11, 186, 26); }
+.envDotTest { background: rgb(9, 174, 255); }
+
+/* Key table cells */
+.keyName { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.keyName strong { font-weight: 500; color: var(--c-dark); }
+.mask { font-family: var(--font-mono); font-size: 12.5px; color: var(--c-dark-80); white-space: nowrap; }
+.scopeList { display: flex; flex-wrap: wrap; gap: 4px; max-width: 280px; }
+.scope {
+  display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 1000px; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 11px; color: var(--c-dark-80); background: var(--c-dark-5); box-shadow: inset 0 0 0 1px var(--c-dark-10);
+}
+.scopeWrite { color: rgb(120, 60, 0); background: rgba(255, 170, 0, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 170, 0, 0.3); }
+.when { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; white-space: nowrap; font-size: 13px; }
+.whenSub { font-size: 12px; color: var(--c-dark-60); }
+.keyName .whenSub .when { display: inline; font-size: 12px; }
+.untilSub { max-width: 150px; font-size: 12px; line-height: 1.35; color: var(--c-dark-60); white-space: normal; }
+.rowActions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: nowrap; }
+.dimRow { opacity: 0.55; }
+
+/* Panels that open inside a card (create, reveal, confirm) */
+.panel { display: flex; flex-direction: column; gap: 14px; padding: 16px; border-radius: 12px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+.panelHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.panelTitle { margin: 0; font-family: var(--font-body); font-size: 15px; font-weight: 600; color: var(--c-dark); }
+.danger { background: rgba(214, 40, 40, 0.04); box-shadow: inset 0 0 0 1px rgba(214, 40, 40, 0.25); }
+
+.scopeGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.scopeGroupLabel { grid-column: 1 / -1; margin-top: 4px; font-family: var(--font-body); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--c-dark-60); }
+.check {
+  display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; cursor: pointer; min-width: 0;
+  background: var(--c-white); box-shadow: inset 0 0 0 1px var(--c-dark-10); transition: box-shadow 140ms ease;
+}
+.check:hover { box-shadow: inset 0 0 0 1px var(--c-dark-20); }
+.checkOn { box-shadow: inset 0 0 0 2px var(--c-primary); }
+.check input { margin-top: 2px; flex: none; accent-color: var(--c-primary); }
+.check > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.check strong { font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--c-dark); }
+.check code { font-family: var(--font-mono); font-size: 11px; color: var(--c-dark-60); }
+.check small { font-family: var(--font-body); font-size: 12px; line-height: 1.4; color: var(--c-dark-60); }
+
+/* One-time reveal */
+.reveal { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 12px; background: rgba(11, 186, 26, 0.05); box-shadow: inset 0 0 0 1px rgba(11, 186, 26, 0.3); }
+.secretRow {
+  display: flex; align-items: center; gap: 8px; min-width: 0; padding: 10px 10px 10px 14px; border-radius: 10px;
+  background: #0f1117; color: #e6e8ee;
+}
+.secretRow code { flex: 1; min-width: 0; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 13px; line-height: 1.5; }
+.copyBtn {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border: 0; border-radius: 8px; cursor: pointer;
+  font-family: var(--font-body); font-size: 13px; font-weight: 500; color: #0f1117; background: #fff;
+}
+.copyBtn:hover { background: #e9ecf3; }
+.copyBtn:focus-visible { outline: 2px solid rgb(120, 140, 255); outline-offset: 2px; }
+
+/* Regenerate choice */
+.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+
+/* Webhook */
+.urlRow { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.urlRow > :first-child { flex: 1 1 320px; min-width: 0; }
+.eventList { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.statusCode { font-family: var(--font-mono); font-size: 12.5px; }
+.errText { display: block; max-width: 360px; font-size: 12px; color: var(--c-dark-60); overflow-wrap: anywhere; }
+
+/* Products and endpoints */
+.products { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+.product { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 12px 20px; padding: 14px 16px; border-bottom: 1px solid var(--c-dark-5); }
+.product:last-child { border-bottom: 0; }
+.productName { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.productName strong { font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--c-dark); }
+.productLinks { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.linkRow { display: flex; gap: 6px 14px; flex-wrap: wrap; align-items: center; }
+.endpoint { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.method { flex: none; padding: 1px 6px; border-radius: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--c-primary); background: rgba(1, 43, 255, 0.07); }
+.inlineLink { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-body); font-size: 13px; color: var(--c-primary); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Quickstart */
+.langTabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--c-dark-5); }
+.steps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; margin: 0; padding: 0; list-style: none; }
+.step { display: grid; grid-template-columns: minmax(200px, 0.7fr) minmax(0, 1.6fr); gap: 16px; align-items: start; }
+.stepText { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.stepText h3 { margin: 0; font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--c-dark); }
+.stepText p { margin: 0; font-family: var(--font-body); font-size: 13px; line-height: 1.5; color: var(--c-dark-60); }
+.refPath { font-family: var(--font-mono); font-size: 12.5px; color: var(--c-dark); white-space: nowrap; }
+
+/* "Moved to Developers" pointer on Seller settings */
+.moved { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.movedIcon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: 10px; color: var(--c-primary); background: rgba(1, 43, 255, 0.07); }
+.movedText { display: flex; flex-direction: column; gap: 2px; flex: 1 1 320px; min-width: 0; }
+.movedText h2 { margin: 0; }
+.movedCta { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border-radius: 10px; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--c-dark); background: var(--c-white); box-shadow: inset 0 0 0 1px var(--c-dark-20); text-decoration: none; }
+.movedCta:hover { box-shadow: inset 0 0 0 1px var(--c-dark-40); }
+
+@media (max-width: 1023.98px) {
+  .step { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+}
+@media (max-width: 809.98px) {
+  .sectionNav { top: 56px; }
+  .scopeGrid, .choices { grid-template-columns: minmax(0, 1fr); }
+  .product { grid-template-columns: minmax(0, 1fr); }
+}

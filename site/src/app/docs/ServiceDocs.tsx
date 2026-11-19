@@ -9,12 +9,12 @@ import { api, qk, type PublicProduct, type RequestField, type RequestSpec } from
 import { DEFAULT_SPEC } from "../buyer/RequestForm";
 import { Code } from "./Code";
 import s from "./docs.module.css";
-import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, defaultNetwork, usdPrice } from "@proteus/domain";
 
 const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://proteus.example";
 
-/** "$0.3500" -> "$0.35". */
-const money = (v?: string | null) => (v ? v.replace(/(\.\d*?[1-9])0+$/, "$1").replace(/\.0+$/, "") : v);
+/** Prices show two decimals, more only for sub-cent prices: "$6.5" -> "$6.50", "$0.3500" -> "$0.35". */
+const money = (v?: string | null) => (v ? usdPrice(v) : v);
 const sentences = (...parts: (string | undefined | null)[]) => parts.filter(Boolean).map((x) => String(x).trim().replace(/\.+$/, "")).join(". ");
 const typeWord = (t: RequestField["type"]) => (t === "file" ? "file object" : t === "number" ? "number" : t === "textarea" ? "string (long)" : "string");
 function exampleValue(f: RequestField): unknown {
@@ -65,7 +65,7 @@ function Reference({ product: p, sellerSlug, sellerName }: { product: PublicProd
           <h1 className={s.title}>{p.name}</h1>
           <p className={s.lede}>{p.summary ?? p.billableUnit}</p>
           <ul className={s.facts}>
-            <li><Server size={14} strokeWidth={1.9} /><span>One {p.unitLabel}: {p.billableUnit}</span></li>
+            <li><Server size={14} strokeWidth={1.9} /><span>One {p.unitLabel}: {sentences(p.billableUnit)}.</span></li>
             <li><Coins size={14} strokeWidth={1.9} /><span>From {money(bestUnit)} per {p.unitLabel} on a deal{p.payPerCallUsd ? `, ${money(p.payPerCallUsd)} per call without one` : ""}. {p.termDays}-day term.</span></li>
             <li><BadgeCheck size={14} strokeWidth={1.9} /><span>{p.capabilities.join(" · ")}</span></li>
           </ul>

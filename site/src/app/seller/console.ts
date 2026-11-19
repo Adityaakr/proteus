@@ -26,8 +26,12 @@ export interface DashboardDeal {
   createdAt: IsoTime;
 }
 export interface Dashboard {
+  /** USDC the escrow contract paid out to you. Never includes money still held for buyers. */
   revenueEarned: MicroStr;
+  /** Deals fully delivered and paid out (the contract may still list them as open). */
   fulfilledDeals: number;
+  /** Deals that paid out anything, fully or in part. */
+  settledDeals?: number;
   activeNegotiations: number;
   needsAttention: number;
   marginBps: number | null;

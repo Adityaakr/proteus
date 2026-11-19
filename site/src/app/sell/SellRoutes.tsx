@@ -30,6 +30,7 @@ const DealDetail = lazy(() => import("../seller/pages/DealDetail"));
 const Finance = lazy(() => import("../seller/pages/Finance"));
 const StartSelling = lazy(() => import("./onboarding/StartSelling"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Developers = lazy(() => import("./pages/Developers"));
 const ImportListing = lazy(() => import("./pages/ImportListing"));
 
 /** Use the app's QueryClient when one is provided above us; otherwise bring our own. */
@@ -138,6 +139,7 @@ export default function SellRoutes() {
         <Route path="usage" element={<Page title="Usage & delivery">{guarded(<Usage />)}</Page>} />
         <Route path="insights" element={<Page title="Insights">{guarded(<Insights />)}</Page>} />
         <Route path="policies" element={<Page title="Agent policies">{guarded(<AgentPolicies />)}</Page>} />
+        <Route path="developers" element={<Page title="Developers">{guarded(<Developers />)}</Page>} />
         <Route path="settings" element={<Page title="Settings"><Settings /></Page>} />
         <Route path="import/:name" element={<Page title="Publish your listing"><ImportListing /></Page>} />
         <Route path="*" element={<Page><NotFound /></Page>} />

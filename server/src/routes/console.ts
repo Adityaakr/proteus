@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { db, schema } from "../db";
 import { json } from "../lib/http";
@@ -6,6 +6,7 @@ import { loadProductById } from "../services/catalog";
 import { reviveCandidate } from "../services/negotiation";
 import { session } from "./session";
 import { features } from "../env";
+import { dealTotals, effectiveDealStatus, usageView } from "../services/seller-reports";
 
 /**
  * Seller console additions: a dashboard-grade overview, customers, usage and delivery, insights.
@@ -34,11 +35,7 @@ consoleRoutes.get("/app/dashboard", async (c) => {
   const pending = await db.select().from(schema.approvals).where(and(eq(schema.approvals.orgId, orgId), eq(schema.approvals.status, "pending"))).orderBy(desc(schema.approvals.createdAt)).limit(5);
   const names = await productNames([...deals.map((d) => d.productId), ...quotes.map((q) => q.productId)]);
 
-  const funded = deals.filter((d) => d.deposit > 0n);
-  const earned = funded.reduce((s, d) => s + d.settled, 0n);
-  const refunded = funded.reduce((s, d) => s + d.refunded, 0n);
-  const held = funded.filter((d) => d.status === "funded" || d.status === "active").reduce((s, d) => s + d.deposit - d.settled - d.refunded, 0n);
-  const fulfilled = funded.filter((d) => d.status === "closed").length;
+  const totals = dealTotals(deals);
 
   // Margin: revenue-weighted contribution margin across accepted quotes (falls back to every quote the agent issued).
   const accepted = quotes.filter((q) => q.status === "accepted");
@@ -62,17 +59,18 @@ consoleRoutes.get("/app/dashboard", async (c) => {
   }
 
   return json(c, {
-    revenueEarned: earned,
-    fulfilledDeals: fulfilled,
+    revenueEarned: totals.revenueEarned,
+    fulfilledDeals: totals.fulfilledDeals,
+    settledDeals: totals.settledDeals,
     activeNegotiations: negs.filter((n) => n.status === "open" || n.status === "quoted").length,
     needsAttention: pending.length,
     marginBps,
     marginBasis: accepted.length ? "accepted" : quotes.length ? "quoted" : "none",
-    fundsHeld: held,
-    refunded,
-    dealsFunded: funded.length,
+    fundsHeld: totals.fundsHeld,
+    refunded: totals.refunded,
+    dealsFunded: totals.dealsFunded,
     attention,
-    recentDeals: deals.slice(0, 6).map((d) => ({ id: d.id, publicId: d.publicId, buyerAddress: d.buyerAddress, productName: names.get(d.productId) ?? "Product", deposit: d.deposit, settled: d.settled, status: d.status, createdAt: d.createdAt })),
+    recentDeals: deals.slice(0, 6).map((d) => ({ id: d.id, publicId: d.publicId, buyerAddress: d.buyerAddress, productName: names.get(d.productId) ?? "Product", deposit: d.deposit, settled: d.settled, status: effectiveDealStatus(d), createdAt: d.createdAt })),
     labels: { seller: org?.label ?? "live", network: features.network },
   });
 });
@@ -113,19 +111,7 @@ consoleRoutes.get("/app/customers", async (c) => {
 
 consoleRoutes.get("/app/usage", async (c) => {
   const { orgId } = session(c);
-  const rows = await db.select().from(schema.serviceRequests).where(eq(schema.serviceRequests.orgId, orgId)).orderBy(desc(schema.serviceRequests.createdAt)).limit(300);
-  const dealIds = Array.from(new Set(rows.map((r) => r.dealId)));
-  const deals = dealIds.length ? await db.select().from(schema.deals).where(inArray(schema.deals.id, dealIds)) : [];
-  const names = await productNames(deals.map((d) => d.productId));
-  const dealMap = new Map(deals.map((d) => [d.id, d]));
-  const totals = { requests: rows.length, delivered: rows.filter((r) => r.status === "delivered").length, handoff: rows.filter((r) => r.status === "handoff").length, failed: rows.filter((r) => r.status === "failed").length, billableUnits: rows.reduce((s, r) => s + r.units, 0), avgLatencyMs: rows.length ? Math.round(rows.reduce((s, r) => s + r.latencyMs, 0) / rows.length) : 0 };
-  return json(c, {
-    totals,
-    requests: rows.map((r) => {
-      const d = dealMap.get(r.dealId);
-      return { id: r.id, requestId: r.requestId, dealId: r.dealId, dealPublicId: d?.publicId ?? null, buyerAddress: d?.buyerAddress ?? null, productName: d ? names.get(d.productId) ?? "Product" : "Product", status: r.status, billable: r.billable, units: r.units, cumulativeUnits: r.cumulativeUnits, cumulativeCharged: r.cumulativeCharged, latencyMs: r.latencyMs, signed: Boolean(r.sellerSignature), at: r.createdAt };
-    }),
-  });
+  return json(c, await usageView(orgId, async (id) => (await productNames([id])).get(id) ?? "Product"));
 });
 
 consoleRoutes.get("/app/insights", async (c) => {

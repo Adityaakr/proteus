@@ -179,8 +179,8 @@ function Body({ d }: { d: Deal }) {
 
       <SellerDispute dealId={d.id} />
 
-      {(d.status === "funded" || d.status === "active") && <OrderUpdates dealId={d.id} />}
-      {(d.status === "funded" || d.status === "active") && <RecordDelivery d={d} />}
+      {(d.chainStatus === "funded" || d.chainStatus === "active") && <OrderUpdates dealId={d.id} />}
+      {(d.chainStatus === "funded" || d.chainStatus === "active") && <RecordDelivery d={d} />}
 
       <CloseTerm d={d} />
     </>
@@ -315,7 +315,7 @@ function RecordDelivery({ d }: { d: Deal }) {
 function CloseTerm({ d }: { d: Deal }) {
   const m = useCloseTerm(d.id);
   const [confirming, setConfirming] = useState(false);
-  const closed = d.status === "closed";
+  const closed = d.chainStatus === "closed";
   return (
     <Card title="Close term early" subtitle="Ends the term now. Accepted usage settles to you and the unused balance becomes refundable to the buyer after the grace period.">
       {m.isSuccess ? (

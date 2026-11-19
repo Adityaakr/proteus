@@ -23,6 +23,7 @@ import { channelRoutes } from "./routes/channels";
 import { inviteRoutes } from "./routes/invites";
 import { circleAuthRoutes } from "./routes/circle-auth";
 import { consoleRoutes } from "./routes/console";
+import { developerRoutes, sellerApiRoutes } from "./routes/developers";
 import { embedAncestors } from "./services/embed";
 
 const app = new Hono();
@@ -71,6 +72,8 @@ app.route("/api", meRoutes);
 app.route("/api", payRoutes);
 app.route("/api", appRoutes);
 app.route("/api", consoleRoutes);
+app.route("/api", developerRoutes());
+app.route("/api", sellerApiRoutes());
 app.route("/api", rpcRoutes);
 app.route("/api", channelRoutes);
 

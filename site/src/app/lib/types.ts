@@ -490,7 +490,7 @@ export interface JournalEntry {
   [k: string]: unknown;
 }
 
-export type SellerDeal = Deal & { economics: EconomicsWire | Record<string, unknown>; journal: JournalEntry[]; chainTxs: { kind: string; txHash: Hex; at: IsoTime; explorerUrl?: string }[] };
+export type SellerDeal = Omit<Deal, "status"> & { status: DealStatus | "settled"; chainStatus?: DealStatus; economics: EconomicsWire | Record<string, unknown>; journal: JournalEntry[]; chainTxs: { kind: string; txHash: Hex; at: IsoTime; explorerUrl?: string }[] };
 
 export interface SellerFinance {
   funded: MicroStr;

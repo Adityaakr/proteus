@@ -228,7 +228,7 @@ The endpoint answers with JSON: `{ "answer": "...", "billable": true | false, "s
 
 ### Seller console v2 (owner session)
 
-- `GET /api/app/dashboard`: `revenueEarned` (settled), `fulfilledDeals`, `activeNegotiations`, `needsAttention` (pending approvals), `marginBps` (revenue-weighted contribution margin over accepted quotes, falling back to all quotes; `marginBasis` says which), `fundsHeld` (deposit minus settled minus refunded on funded or active deals), `attention[]` (pending approvals with buyer, product, tier, units, prepaid total, margin and rule ids), `recentDeals[]`.
+- `GET /api/app/dashboard`: `revenueEarned` (USDC the escrow paid out; never money still held), `fulfilledDeals` (deals whose deposit is fully paid out, including those the contract still lists as funded), `settledDeals` (deals that paid out anything), `activeNegotiations`, `needsAttention` (pending approvals), `marginBps` (revenue-weighted contribution margin over accepted quotes, falling back to all quotes; `marginBasis` says which), `fundsHeld` (deposit minus settled minus refunded on funded, active or disputed deals), `recentDeals[].status` ("settled" once nothing is left in escrow), `attention[]` (pending approvals with buyer, product, tier, units, prepaid total, margin and rule ids).
 - `GET /api/app/customers`: one row per buyer wallet with negotiation and deal counts, funded, settled, in escrow, products and first/last activity.
 - `GET /api/app/usage`: totals plus the latest 300 service requests with outcome, billed units, cumulative charge, latency and whether the seller receipt is signed.
 - `GET /api/app/insights`: a 30-day daily series (negotiations, deals funded, USDC funded, USDC settled from confirmed usage acceptances, requests, billable units) plus conversion and delivery counts. Counts and sums only.
@@ -267,3 +267,43 @@ The 402 body's `accepts` lists `exact` (Circle facilitator, `extra.name = "USDC"
   - Only fields that differ are written, each as a new policy or cost version.
   - List prices are not part of the feed.
 - `DELETE /api/app/org`: discards a seller account with no history and no ERC-8004 identity (for example, a draft published from the wrong wallet). Otherwise it returns 409.
+
+## Developers: seller API keys, webhooks and the seller API (2026-11-20)
+
+Managed on the dashboard's **Developers** page (`/app/sell/developers`, owner session only; the shared example seller cannot).
+
+- `GET /api/app/developers` → `{ env, network, peer, apiBase, scopes, overlap, keys[] }`. Keys are listed masked (`psk_live_Ab3x••••••••9fQz`) with `createdAt`, `lastUsedAt`, `state` (`active | expiring | expired | revoked`).
+- `POST /api/app/developers/keys` `{ name, scopes[] }` → `{ key, secret }`. `secret` is the full key, returned **once**; only its SHA-256 is stored.
+- `POST /api/app/developers/keys/{id}/regenerate` `{ overlapHours }` → `{ key, secret, previous }`. `overlapHours` 1 to 72 keeps the old key working until then (default 24); `0` cuts it off immediately.
+- `POST /api/app/developers/keys/{id}/revoke` → the key, revoked at once.
+- `GET /api/app/developers/webhook` → `{ url, hasSecret, events, deliveries[] }` (the newest 50 deliveries: time, event, HTTP status, latency, error).
+- `PUT /api/app/developers/webhook` `{ url | null }` → a first URL also returns its signing `secret` once. `POST …/webhook/secret` regenerates it (returned once). `POST …/webhook/test` sends one signed sample event and logs it.
+- Events carry `X-Proteus-Signature: t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`.
+
+Keys are environment-bound: a deployment on Arc testnet issues and accepts only `psk_test_…` keys (testnet data); Arc mainnet only `psk_live_…` keys (mainnet data). A key from the other environment answers 401.
+
+### Seller API (`/api/v1/seller/*`, `Authorization: Bearer psk_…`)
+
+| Method | Path | Permission |
+|---|---|---|
+| GET | `/v1/seller/me` | any key |
+| GET | `/v1/seller/products` | any key |
+| PATCH | `/v1/seller/products/{id}/tiers` | `products:write` |
+| PATCH | `/v1/seller/products/{id}/listing` | `products:write` |
+| GET | `/v1/seller/deals` | `deals:read` |
+| GET | `/v1/seller/deals/{id}` | `deals:read` |
+| POST | `/v1/seller/deals/{id}/deliveries` | `deliveries:write` |
+| POST | `/v1/seller/deals/{id}/order-updates` | `deliveries:write` |
+| GET | `/v1/seller/usage` | `usage:read` |
+| GET | `/v1/seller/payments` | `payments:read` |
+
+401: missing, unknown, revoked, expired or wrong-environment key. 403: the key lacks the permission (`details.required` names it). Every call records the key's `lastUsedAt`.
+
+```bash
+curl https://app.proteus.co.in/api/v1/seller/deals -H "Authorization: Bearer $PROTEUS_SELLER_KEY"
+```
+
+```ts
+const r = await fetch("https://app.proteus.co.in/api/v1/seller/deals", { headers: { Authorization: `Bearer ${process.env.PROTEUS_SELLER_KEY}` } });
+const { deals } = await r.json();
+```

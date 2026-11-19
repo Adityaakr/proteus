@@ -4,7 +4,7 @@
  * prices, unit and limits differ per product. The platform skill covers discovering, negotiating,
  * funding, using and settling a deal through the public API.
  */
-import { ARC_NETWORK_NAMES, circleBlockchainFor, formatUsd, networkOf, pluralUnit } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, circleBlockchainFor, formatUsd, networkOf, pluralUnit, usdPrice } from "@proteus/domain";
 import { env } from "../env";
 
 /** Network wording follows the deployment (CHAIN_ID), so a mainnet skill never says testnet. */
@@ -34,8 +34,8 @@ function exampleValue(f: Field): unknown {
   return f.placeholder ?? `<${f.label.toLowerCase()}>`;
 }
 
-/** "$0.3500" -> "$0.35", "$0.18" stays. */
-const money = (v: string | null | undefined) => (v ? v.replace(/(\.\d*?[1-9])0+$/, "$1").replace(/\.0+$/, "") : v);
+/** Prices always show two decimals, more only for sub-cent prices: "$6.5" -> "$6.50", "$0.3500" -> "$0.35". */
+const money = (v: string | null | undefined) => (v ? usdPrice(v) : v);
 /** Joins sentences without doubling periods. */
 const sentences = (...parts: (string | undefined | null)[]) => parts.filter(Boolean).map((x) => String(x).trim().replace(/\.+$/, "")).join(". ");
 const typeWord = (t: Field["type"]) => (t === "file" ? "file object" : t === "number" ? "number" : "string");
@@ -57,7 +57,7 @@ export function serviceSkill(lp: LP, origin: string): string {
   lines.push("");
   lines.push(p.summary ?? "");
   lines.push("");
-  lines.push(`One billable ${p.unitLabel} is ${p.billableUnit}. Capabilities: ${p.capabilities.join("; ")}.`);
+  lines.push(`${sentences(`One billable ${p.unitLabel} is ${p.billableUnit}`, p.capabilities.length ? `Capabilities: ${p.capabilities.join("; ")}` : null)}.`);
   lines.push(`Price: from ${money(bestUnit) ?? "see product page"} per ${p.unitLabel} on a prepaid deal${p.payPerCallUsd ? `, or ${money(p.payPerCallUsd)} per call without a deal` : ""}. Term ${p.termDays} days. ${p.refundPolicy}`);
   lines.push("");
   if (isScheduling(lp)) {
@@ -144,7 +144,7 @@ export function serviceOpenApi(lp: LP, origin: string) {
       post: {
         operationId: `execute_${p.slug.replace(/-/g, "_")}`,
         summary: `${p.name}: one ${p.unitLabel}`,
-        description: `${p.summary ?? ""} One billable ${p.unitLabel} is ${p.billableUnit}. Only delivered responses are billed; the request id is idempotent.`,
+        description: `${sentences(p.summary, `One billable ${p.unitLabel} is ${p.billableUnit}`, "Only delivered responses are billed; the request id is idempotent")}.`,
         security: [{ dealKey: [] }],
         requestBody: { required: true, content: { "application/json": { schema: body } } },
         responses: { "200": { description: "Result with receipt", content: { "application/json": { schema: response } } }, "401": { description: "Missing or invalid API key" }, "403": { description: "Key not valid for this product, or the deal is not active" }, "413": { description: "Input too large" } },

@@ -12,7 +12,7 @@ import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import { explorerTx } from "@proteus/domain";
-import { AgentIdentityCard } from "./Settings";
+import { AgentIdentityCard } from "../developers/IdentityCards";
 import { Card } from "../../ui/Card";
 import { ActionButton } from "../../ui/ActionButton";
 import { Notice } from "../../ui/misc";

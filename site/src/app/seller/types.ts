@@ -237,7 +237,10 @@ export interface JournalEntry {
 export interface DealDetail {
   id: string;
   publicId: string;
-  status: DealStatus;
+  /** What to show: "settled" once the escrow paid out the whole deposit. */
+  status: DealStatus | "settled";
+  /** The contract's status; seller actions follow it. */
+  chainStatus: DealStatus;
   productName?: string;
   chainId: number;
   escrowAddress: string;

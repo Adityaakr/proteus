@@ -6,6 +6,7 @@
  * in-browser mock that returns data shaped exactly like the contract.
  */
 import type * as T from "./types";
+import type * as D from "../sell/developers/types";
 export type * from "./types";
 
 const BASE = "/api";
@@ -343,9 +344,9 @@ export const api = {
     revokeSigner: () => request<{ revokedAt: T.IsoTime; note?: string; [k: string]: unknown }>("POST", "/app/signer/revoke", { body: {} }),
     /** ERC-8004 identity on Arc: the inputs the seller's wallet signs, and confirmation read back from the chain. */
     agent: () => request<T.AgentRegistration>("GET", "/app/agent"),
-    /** Deal notifications: email, Telegram chat and an HMAC-signed webhook. `webhookSecret` is returned once, when created. */
+    /** Deal notifications: email and Telegram (the webhook is managed on Developers; leaving webhookUrl out keeps it). */
     notifications: () => request<T.NotifySettings>("GET", "/app/notifications"),
-    setNotifications: (body: { email: string | null; telegramChatId: string | null; webhookUrl: string | null }) => request<T.NotifySettings & { webhookSecret: string | null }>("PUT", "/app/notifications", { body }),
+    setNotifications: (body: { email: string | null; telegramChatId: string | null; webhookUrl?: string | null }) => request<T.NotifySettings & { webhookSecret: string | null }>("PUT", "/app/notifications", { body }),
     testNotification: () => request<{ ok: boolean; errors: string[] }>("POST", "/app/notifications/test"),
     /** The seller's own WhatsApp Business number (Cloud API). The access token goes in once and is never returned. */
     whatsapp: () => request<WhatsAppAccount>("GET", "/app/whatsapp"),
@@ -371,6 +372,15 @@ export const api = {
     usage: () => request<import("../seller/console").Usage>("GET", "/app/usage"),
     insights: () => request<import("../seller/console").Insights>("GET", "/app/insights"),
     updateOrg: (body: { name?: string; brand?: Partial<T.SellerBrand> }) => request<{ slug: string; name: string; label: T.SellerLabel; brand: T.SellerBrand }>("PATCH", "/app/org", { body }),
+    /** Developers: seller API keys (the full key comes back once, from create or regenerate) and the webhook. */
+    developers: () => request<D.DevelopersOverview>("GET", "/app/developers"),
+    createApiKey: (body: { name: string; scopes: D.ApiScope[] }) => request<D.KeyReveal>("POST", "/app/developers/keys", { body }),
+    regenerateApiKey: (id: string, overlapHours: number) => request<D.KeyReveal>("POST", `/app/developers/keys/${enc(id)}/regenerate`, { body: { overlapHours } }),
+    revokeApiKey: (id: string) => request<D.ApiKey>("POST", `/app/developers/keys/${enc(id)}/revoke`, { body: {} }),
+    webhook: () => request<D.WebhookSettings>("GET", "/app/developers/webhook"),
+    setWebhookUrl: (url: string | null) => request<D.WebhookSettings>("PUT", "/app/developers/webhook", { body: { url } }),
+    rotateWebhookSecret: () => request<D.WebhookSettings>("POST", "/app/developers/webhook/secret", { body: {} }),
+    testWebhook: () => request<D.WebhookTestResult>("POST", "/app/developers/webhook/test", { body: {} }),
   },
 };
 

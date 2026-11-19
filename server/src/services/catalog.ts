@@ -1,6 +1,6 @@
 import { howItWorksToday, isScheduling } from "./calendar";
 import { and, desc, eq } from "drizzle-orm";
-import { formatUsd, mulDivFloor, type CostModel, type EvaluationContext, type Policy, type Product, type Tier } from "@proteus/domain";
+import { formatUnitPrice, formatUsd, mulDivFloor, type CostModel, type EvaluationContext, type Policy, type Product, type Tier } from "@proteus/domain";
 import { db, schema } from "../db";
 import { HttpError } from "../lib/http";
 
@@ -139,10 +139,7 @@ export function publicProduct(lp: LoadedProduct) {
   };
 }
 
+/** Per-unit price for buyers and docs: two decimals ("$6.50"), up to four for sub-cent prices ("$0.035"). */
 export function unitPriceUsd(num: bigint, den: bigint): string {
-  // Show up to 4 decimals for per-unit prices.
-  const scaled = (num * 10_000n) / den; // micro * 1e4 / den
-  const whole = scaled / 10_000_000_000n;
-  const frac = (scaled % 10_000_000_000n).toString().padStart(10, "0").slice(0, 4).replace(/0+$/, "");
-  return `$${whole}${frac ? "." + frac : ""}`;
+  return formatUnitPrice(num, den);
 }

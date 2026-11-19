@@ -1,4 +1,4 @@
-import { formatUsd, toMicro, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
+import { formatUnitPrice, formatUsd, toMicro, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
 import type { AgentAdapter, AgentStep, ComposeInput, ExtractInput } from "./adapter";
 import { detectInjection } from "./adapter";
 
@@ -120,12 +120,7 @@ function cap(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function unitPrice(num: bigint, den: bigint): string {
-  const scaled = (num * 10_000n) / den;
-  const whole = scaled / 10_000_000_000n;
-  const frac = (scaled % 10_000_000_000n).toString().padStart(10, "0").slice(0, 4).replace(/0+$/, "");
-  return `$${whole}${frac ? "." + frac : ""}`;
-}
+const unitPrice = formatUnitPrice;
 
 export const ruleBasedAdapter: AgentAdapter = {
   name: "rule-based",

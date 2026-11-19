@@ -13,6 +13,12 @@ import type { loadProductById } from "./catalog";
 import type { ServiceInput, ServiceOutput } from "./gateway";
 
 type LP = Awaited<ReturnType<typeof loadProductById>>;
+
+/** "Deliver one tee: <billable unit>. Capabilities: …." without doubling the unit sentence's own period. */
+const deliverableText = (lp: LP) => {
+  const unit = lp.product.billableUnit.trim().replace(/\.+$/, "");
+  return `Deliver one ${lp.product.unitLabel}: ${unit}.${lp.product.capabilities.length ? ` Capabilities: ${lp.product.capabilities.join(", ")}.` : ""}`;
+};
 type FileEnvelope = { name: string; type: string; size: number; dataBase64: string };
 type Part = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } } | { type: "file"; file: { filename: string; file_data: string } };
 
@@ -113,7 +119,7 @@ export async function runServiceAgent(lp: LP, ctx: { requestId: string; dealId?:
 
   const role = ROLES[slug] ?? {
     system: `You are the service agent for ${lp.org.name}, ${lp.product.name}.`,
-    deliverable: `Deliver one ${lp.product.unitLabel}: ${lp.product.billableUnit}. Capabilities: ${lp.product.capabilities.join(", ")}.`,
+    deliverable: deliverableText(lp),
   };
   const client = new OpenAI({ apiKey: env.OPENROUTER_API_KEY, baseURL: "https://openrouter.ai/api/v1", timeout: 120_000, defaultHeaders: { "HTTP-Referer": env.WEB_ORIGIN, "X-OpenRouter-Title": `Proteus AI service agent (${lp.org.name})` } });
   const maxTokens = slug === "inference-capacity" && typeof input.maxTokens === "number" && input.maxTokens > 0 ? Math.min(4000, Math.floor(input.maxTokens)) : 1800;
@@ -182,7 +188,7 @@ async function runWithClaude(lp: LP, input: ServiceInput, dealId?: string): Prom
   if (unsupported.length) parts.push({ type: "text", text: `These attachments are in a type the agent cannot read and were ignored: ${unsupported.join(", ")}. Readable types: text, markdown, CSV, JSON, PDF and images.` });
   const role = ROLES[slug] ?? {
     system: `You are the service agent for ${lp.org.name}, ${lp.product.name}.`,
-    deliverable: `Deliver one ${lp.product.unitLabel}: ${lp.product.billableUnit}. Capabilities: ${lp.product.capabilities.join(", ")}.`,
+    deliverable: deliverableText(lp),
   };
   const maxTokens = slug === "inference-capacity" && typeof input.maxTokens === "number" && input.maxTokens > 0 ? Math.min(16_000, Math.floor(input.maxTokens) + 2_000) : 16_000;
   // Scheduling services read the buyer's business profile and, when connected, its Google Calendar.
