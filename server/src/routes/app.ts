@@ -18,7 +18,7 @@ import { replaceTiers, updateCost, updatePolicy } from "../services/product-rule
 import { catalogSyncView, runCatalogSync, saveCatalogSync } from "../services/catalog-sync";
 import { createSandboxSession, requireSession, session } from "./session";
 import { features } from "../env";
-import { dealTotals, financeView } from "../services/seller-reports";
+import { dealTotals, financeView, withEffectiveStatus } from "../services/seller-reports";
 
 export const appRoutes = new Hono();
 
@@ -178,7 +178,7 @@ appRoutes.get("/app/deals", async (c) => json(c, await listDeals(session(c).orgI
 
 appRoutes.get("/app/deals/:id", async (c) => {
   const { orgId } = session(c);
-  const view = await dealView(c.req.param("id"));
+  const view = withEffectiveStatus(await dealView(c.req.param("id")));
   const [deal] = await db.select().from(schema.deals).where(eq(schema.deals.id, view.id));
   if (!deal || deal.orgId !== orgId) throw new HttpError(404, "deal not found");
   const [q] = await db.select().from(schema.quotes).where(eq(schema.quotes.id, deal.quoteId));

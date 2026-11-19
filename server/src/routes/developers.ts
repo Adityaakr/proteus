@@ -13,7 +13,7 @@ import { dealView, listDeals } from "../services/deals";
 import { confirmDelivery } from "../services/delivery";
 import { postOrderUpdate } from "../services/orders";
 import { replaceTiers, setListing } from "../services/product-rules";
-import { financeView, usageView } from "../services/seller-reports";
+import { financeView, usageView, withEffectiveStatus } from "../services/seller-reports";
 import { rotateWebhookSecret, sendWebhookTest, setWebhookUrl, webhookView } from "../services/notify";
 import { requireSession, session } from "./session";
 
@@ -148,7 +148,7 @@ export function sellerApiRoutes(store: KeyStore = dbKeyStore, network: () => Net
     "GET /v1/seller/deals": async (c) => json(c, { deals: await listDeals(apiKeyOf(c).orgId) }),
     "GET /v1/seller/deals/:id": async (c) => {
       const d = await ownDeal(apiKeyOf(c).orgId, c.req.param("id")!);
-      return json(c, await dealView(d.id));
+      return json(c, withEffectiveStatus(await dealView(d.id)));
     },
     "POST /v1/seller/deals/:id/deliveries": async (c) => {
       const k = apiKeyOf(c);

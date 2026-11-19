@@ -249,6 +249,7 @@ export function deal(raw: W.SellerDeal | Loose): DealDetail {
     id: String(d.id),
     publicId: String(d.publicId ?? d.id),
     status: d.status,
+    chainStatus: d.chainStatus ?? (d.status as W.DealStatus),
     productName: str((d as Loose).productName),
     chainId: Number(d.chainId ?? 0),
     escrowAddress: String(d.escrowAddress ?? ""),

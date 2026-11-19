@@ -33,6 +33,11 @@ export function effectiveDealStatus(d: DealMoney): string {
   return (d.status === "funded" || d.status === "active") && d.deposit > 0n && d.settled > 0n && remaining(d) === 0n ? "settled" : d.status;
 }
 
+/** A deal view for the seller: `status` is what to show, `chainStatus` is the contract's and gates seller actions. */
+export function withEffectiveStatus<V extends { status: string; balances: { deposit: bigint; settled: bigint; refunded: bigint } }>(view: V) {
+  return { ...view, status: effectiveDealStatus({ status: view.status, ...view.balances }), chainStatus: view.status };
+}
+
 export function dealTotals(deals: DealMoney[]) {
   const funded = deals.filter((d) => d.deposit > 0n);
   return {
