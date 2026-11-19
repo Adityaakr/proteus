@@ -12,6 +12,7 @@ import { loadProductById, publicProduct } from "../services/catalog";
 import { dealView, listDeals } from "../services/deals";
 import { confirmDelivery } from "../services/delivery";
 import { postOrderUpdate } from "../services/orders";
+import { deliveryInputOf } from "../services/seller-api-rules";
 import { replaceTiers, setListing } from "../services/product-rules";
 import { financeView, usageView, withEffectiveStatus } from "../services/seller-reports";
 import { rotateWebhookSecret, sendWebhookTest, setWebhookUrl, webhookView } from "../services/notify";
@@ -153,8 +154,8 @@ export function sellerApiRoutes(store: KeyStore = dbKeyStore, network: () => Net
     "POST /v1/seller/deals/:id/deliveries": async (c) => {
       const k = apiKeyOf(c);
       const d = await ownDeal(k.orgId, c.req.param("id")!);
-      const b = (await c.req.json().catch(() => ({}))) as { units?: unknown; note?: unknown; proofUrl?: unknown; requestId?: unknown };
-      return json(c, await confirmDelivery(k.orgId, d.id, { units: Number(b.units), note: String(b.note ?? ""), proofUrl: typeof b.proofUrl === "string" && b.proofUrl ? b.proofUrl : undefined, requestId: String(b.requestId ?? "") }, `api-key:${k.keyId}`), 201);
+      const b = (await c.req.json().catch(() => ({}))) as Parameters<typeof deliveryInputOf>[0];
+      return json(c, await confirmDelivery(k.orgId, d.id, deliveryInputOf(b), `api-key:${k.keyId}`), 201);
     },
     "POST /v1/seller/deals/:id/order-updates": async (c) => {
       const k = apiKeyOf(c);

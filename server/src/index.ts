@@ -24,12 +24,17 @@ import { inviteRoutes } from "./routes/invites";
 import { circleAuthRoutes } from "./routes/circle-auth";
 import { consoleRoutes } from "./routes/console";
 import { developerRoutes, sellerApiRoutes } from "./routes/developers";
+import { sandboxCors, sandboxEnabled, sandboxRoutes } from "./routes/sandbox";
+import { SANDBOX_PREFIX } from "./services/sandbox";
 import { embedAncestors } from "./services/embed";
 
 const app = new Hono();
 // Chat links are short-lived capabilities: keep them out of the request log.
 app.use("*", logger((s) => console.log(s.replace(/\/api\/w\/[A-Za-z0-9_-]+/g, "/api/w/…"))));
-app.use("/api/*", cors({ origin: env.WEB_ORIGIN, credentials: true }));
+// The public seller API sandbox answers any origin without cookies (docs on either deployment call it); every other
+// API route answers only this deployment's own web origin.
+const appCors = cors({ origin: env.WEB_ORIGIN, credentials: true });
+app.use("/api/*", (c, next) => (c.req.path.startsWith(`/api${SANDBOX_PREFIX}/`) ? sandboxCors(c, next) : appCors(c, next)));
 
 // Framing policy. /embed/<seller> is the deal agent sellers put on their own websites, so other sites may frame it
 // (restricted to the seller's own domains when it lists them). Every other page, including offer signing, funding and
@@ -74,6 +79,8 @@ app.route("/api", appRoutes);
 app.route("/api", consoleRoutes);
 app.route("/api", developerRoutes());
 app.route("/api", sellerApiRoutes());
+// The sandbox serves fixed demo data only, and only on the testnet deployment.
+if (sandboxEnabled(features.network)) app.route("/api", sandboxRoutes());
 app.route("/api", rpcRoutes);
 app.route("/api", channelRoutes);
 

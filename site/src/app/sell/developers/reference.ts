@@ -51,6 +51,19 @@ export const MOVED_TO_DEVELOPERS = [
 
 export const DEVELOPERS_PATH = "/app/sell/developers";
 
+/**
+ * The public seller API sandbox: a demo seller with fixed demo data on the Arc testnet deployment. Its key is published
+ * on purpose: reads return demo records and writes are dry runs that store nothing. Keep in sync with
+ * server/src/services/sandbox.ts (a server test checks).
+ */
+export const SANDBOX = {
+  key: "psk_sandbox_demo_seller_testnet_read_only",
+  path: "/api/v1/sandbox/seller",
+  baseUrl: "https://ai.proteus.co.in/api/v1/sandbox/seller",
+  readScopes: ["deals:read", "usage:read", "payments:read"],
+  ids: { product: "prd_sandbox_tees", deal: "deal_sandbox_active", settledDeal: "deal_sandbox_settled", closedDeal: "deal_sandbox_closed" },
+} as const;
+
 /** This deployment's origin in the browser (empty when rendered outside one). */
 export const currentOrigin = () => (typeof window !== "undefined" ? window.location.origin : "");
 

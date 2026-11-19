@@ -16,36 +16,20 @@ import { loadProductById } from "./catalog";
 import { sellerDelivered } from "./gateway";
 import { notifyBuyer } from "./buyer-notify";
 import { env } from "../env";
+import { ORDER_LABEL, checkDealOpen, parseOrderStatus, parseOrderUpdateBody, type OrderStatus } from "./seller-api-rules";
 
-export const ORDER_STATUSES = ["accepted", "in_production", "shipped", "out_for_delivery", "delayed", "note"] as const;
-export type OrderStatus = (typeof ORDER_STATUSES)[number];
+export { ORDER_STATUSES, type OrderStatus } from "./seller-api-rules";
 export const REQUEST_STATUSES = ["new", "confirmed", "done", "cancelled"] as const;
-
-const ORDER_LABEL: Record<OrderStatus, string> = {
-  accepted: "Seller accepted your order",
-  in_production: "In production",
-  shipped: "Shipped",
-  out_for_delivery: "Out for delivery",
-  delayed: "Delayed",
-  note: "Message from the seller",
-};
 
 interface UpdateData { note?: string; url?: string }
 
-const httpsUrl = (u: unknown) => (typeof u === "string" && /^https:\/\/[^\s]{4,2000}$/.test(u.trim()) ? u.trim() : undefined);
-
 /** Seller posts an order status (physical goods and other seller-delivered work). */
 export async function postOrderUpdate(orgId: string, dealId: string, body: { status?: unknown; note?: unknown; trackingUrl?: unknown }) {
-  const status = String(body.status ?? "") as OrderStatus;
-  if (!ORDER_STATUSES.includes(status)) throw new HttpError(400, `status must be one of ${ORDER_STATUSES.join(", ")}`);
+  const status = parseOrderStatus(body);
   const deal = await loadDeal(dealId);
   if (deal.orgId !== orgId) throw new HttpError(404, "deal not found");
-  if (!["funded", "active"].includes(deal.status)) throw new HttpError(409, `deal is ${deal.status}; updates can be posted only on a funded deal`);
-  const note = typeof body.note === "string" ? body.note.trim().slice(0, 1000) : "";
-  if (status === "note" && note.length < 2) throw new HttpError(400, "write the message for the buyer");
-  if (status === "delayed" && note.length < 2) throw new HttpError(400, "tell the buyer why and the new expected date");
-  if (body.trackingUrl && !httpsUrl(body.trackingUrl)) throw new HttpError(400, "tracking link must be an https URL");
-  const data: UpdateData = { ...(note ? { note } : {}), ...(httpsUrl(body.trackingUrl) ? { url: httpsUrl(body.trackingUrl) } : {}) };
+  checkDealOpen(deal.status, "updates can be posted");
+  const data: UpdateData = parseOrderUpdateBody(status, body);
   const row = { id: id("du"), dealId, orgId, actor: "seller", kind: "order_status", status, data: Object.keys(data).length ? await sealJson(orgId, data) : null };
   await db.insert(schema.dealUpdates).values(row);
   const lp = await loadProductById(deal.productId);

@@ -9,35 +9,22 @@
  */
 import { and, desc, eq } from "drizzle-orm";
 import { keccak256, toHex, type Hex } from "viem";
-import { cumulativeCharge } from "@proteus/domain";
 import { orgSignerAccount } from "../chain/signer";
 import { db, schema } from "../db";
 import { HttpError } from "../lib/http";
 import { id, sha256 } from "../lib/ids";
 import { loadDeal, reviveTerms } from "./deals";
 import { receiptView } from "./gateway";
+import { checkDealOpen, checkDeliveryInput, planDelivery, type DeliveryInput } from "./seller-api-rules";
 
-export interface DeliveryInput {
-  /** Units delivered in this batch (whole units, at least 1). */
-  units: number;
-  /** What was delivered, in the seller's words: shown to the buyer as the receipt's answer. */
-  note: string;
-  /** Optional https link to proof: tracking page, photo, signed delivery note, shared folder. */
-  proofUrl?: string;
-  /** Idempotency key; the same key never records the batch twice. */
-  requestId: string;
-}
+export type { DeliveryInput } from "./seller-api-rules";
 
 export async function confirmDelivery(orgId: string, dealId: string, input: DeliveryInput, confirmedBy: string) {
-  if (!Number.isInteger(input.units) || input.units < 1 || input.units > 1_000_000) throw new HttpError(400, "units must be a whole number from 1");
-  const note = input.note.trim();
-  if (note.length < 3 || note.length > 2000) throw new HttpError(400, "describe what was delivered (3 to 2000 characters)");
-  if (input.proofUrl && !/^https:\/\/[^\s]{4,2000}$/.test(input.proofUrl)) throw new HttpError(400, "proof must be an https link");
-  if (!/^[A-Za-z0-9._:-]{4,80}$/.test(input.requestId)) throw new HttpError(400, "requestId: 4 to 80 letters, digits, . _ : -");
+  const note = checkDeliveryInput(input);
 
   const deal = await loadDeal(dealId);
   if (deal.orgId !== orgId) throw new HttpError(404, "deal not found");
-  if (!["funded", "active"].includes(deal.status)) throw new HttpError(409, `deal is ${deal.status}; deliveries can be recorded only on a funded deal`);
+  checkDealOpen(deal.status, "deliveries can be recorded");
   const terms = reviveTerms(deal.terms as Record<string, unknown>);
 
   const [existing] = await db.select().from(schema.serviceRequests).where(and(eq(schema.serviceRequests.dealId, dealId), eq(schema.serviceRequests.requestId, input.requestId)));
@@ -54,11 +41,7 @@ export async function confirmDelivery(orgId: string, dealId: string, input: Deli
     await tx.execute(`SELECT id FROM deals WHERE id = '${dealId.replace(/'/g, "")}' FOR UPDATE`);
     const [last] = await tx.select().from(schema.serviceRequests).where(and(eq(schema.serviceRequests.dealId, dealId), eq(schema.serviceRequests.billable, true))).orderBy(desc(schema.serviceRequests.cumulativeUnits)).limit(1);
     const prevUnits = last?.cumulativeUnits ?? 0n;
-    const units = BigInt(input.units);
-    if (prevUnits + units > terms.maxUnits) throw new HttpError(409, `This would deliver ${prevUnits + units} units; the agreement covers ${terms.maxUnits}.`);
-    const cumulativeUnits = prevUnits + units;
-    const cumulativeCharged = cumulativeCharge(cumulativeUnits, { num: terms.unitNum, den: terms.unitDen });
-    if (cumulativeCharged > terms.prepaid) throw new HttpError(409, "This delivery would exceed the prepaid balance.");
+    const { cumulativeUnits, cumulativeCharged } = planDelivery(prevUnits, BigInt(input.units), terms);
     // The proof link and who confirmed it are inside the signed evidence, so they cannot be swapped later.
     const evidence = {
       dealId: deal.dealIdOnchain.toString(),
