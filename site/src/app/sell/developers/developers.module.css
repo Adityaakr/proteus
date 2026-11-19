@@ -103,13 +103,36 @@
 .method { flex: none; padding: 1px 6px; border-radius: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--c-primary); background: rgba(1, 43, 255, 0.07); }
 .inlineLink { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-body); font-size: 13px; color: var(--c-primary); text-decoration: underline; text-underline-offset: 3px; }
 
-/* Quickstart */
-.langTabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--c-dark-5); }
-.steps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; margin: 0; padding: 0; list-style: none; }
-.step { display: grid; grid-template-columns: minmax(200px, 0.7fr) minmax(0, 1.6fr); gap: 16px; align-items: start; }
-.stepText { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.stepText h3 { margin: 0; font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--c-dark); }
-.stepText p { margin: 0; font-family: var(--font-body); font-size: 13px; line-height: 1.5; color: var(--c-dark-60); }
+/* Quickstart & reference: base URL strip, then an endpoint list beside the selected endpoint's code and console */
+.baseRow { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; min-width: 0; padding: 10px 12px; border-radius: 10px; background: var(--c-card); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+.baseLabel { font-family: var(--font-body); font-size: 12px; font-weight: 600; color: var(--c-dark-60); }
+.baseUrl { min-width: 0; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 13px; color: var(--c-dark); }
+.baseCopy { color: var(--c-dark-60) !important; }
+.baseCopy:hover { color: var(--c-dark) !important; background: var(--c-dark-5) !important; }
+.baseNote { flex: 1 1 260px; font-family: var(--font-body); font-size: 12.5px; color: var(--c-dark-60); }
+.console { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start; min-width: 0; }
+.consoleNav { position: sticky; top: 120px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.consoleSelect { display: none; }
+.navList { display: flex; flex-direction: column; gap: 1px; }
+.navGroup { margin: 0 0 4px 8px; font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-dark-60); }
+.navItem { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; text-align: left; font-family: var(--font-body); font-size: 13px; color: var(--c-dark-80); cursor: pointer; }
+.navItem:hover { color: var(--c-dark); background: var(--c-dark-5); }
+.navItem:focus-visible { outline: 2px solid var(--c-primary); outline-offset: -2px; }
+.navOn { color: var(--c-dark); font-weight: 500; background: var(--c-dark-5); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
+.navLabel { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.verb { flex: none; display: inline-flex; justify-content: center; min-width: 44px; padding: 1px 5px; border-radius: 5px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; }
+.verbGET { color: #0b6b3a; background: rgba(18, 160, 90, 0.13); }
+.verbPOST { color: #1d4ed8; background: rgba(37, 99, 235, 0.12); }
+.verbPATCH { color: #9a4d00; background: rgba(234, 140, 0, 0.14); }
+.consoleMain { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.consoleHead { display: flex; flex-direction: column; gap: 8px; }
+.consoleTitle { margin: 0; font-family: var(--font-heading); font-size: 17px; font-weight: 500; color: var(--c-dark); }
+.consoleRoute { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.consoleRoute code { min-width: 0; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 13px; color: var(--c-dark); }
+.consoleText { margin: 0; max-width: 680px; font-family: var(--font-body); font-size: 13.5px; line-height: 1.55; color: var(--c-dark-60); }
+.inlineCode { padding: 0 5px; border-radius: 5px; font-family: var(--font-mono); font-size: 0.92em; color: var(--c-dark); background: var(--c-dark-5); }
+.errorsBox summary { cursor: pointer; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--c-dark-80); }
+.errorsBox[open] summary { margin-bottom: 10px; }
 .refPath { font-family: var(--font-mono); font-size: 12.5px; color: var(--c-dark); white-space: nowrap; }
 
 /* "Moved to Developers" pointer on Seller settings */
@@ -121,7 +144,11 @@
 .movedCta:hover { box-shadow: inset 0 0 0 1px var(--c-dark-40); }
 
 @media (max-width: 1023.98px) {
-  .step { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .console { grid-template-columns: minmax(0, 1fr); }
+  .consoleNav { position: static; }
+  .navList { display: none; }
+  .consoleSelect { display: flex; flex-direction: column; gap: 4px; }
+  .consoleSelect select { min-height: 38px; padding: 0 10px; border: 0; border-radius: 10px; font-family: var(--font-body); font-size: 14px; color: var(--c-dark); background: var(--c-white); box-shadow: inset 0 0 0 1px var(--c-dark-20); }
 }
 @media (max-width: 809.98px) {
   .sectionNav { top: 56px; }

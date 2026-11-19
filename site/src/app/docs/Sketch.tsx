@@ -11,13 +11,14 @@ interface SketchNode { id: string; x: number; y: number; w: number; h: number; t
 interface SketchEdge { from: string; to: string; label?: string; dashed?: boolean; bend?: number; labelAt?: number }
 export interface SketchSpec { w: number; h: number; nodes: SketchNode[]; edges: SketchEdge[]; alt: string }
 
+/** Tone colors come from CSS variables on the docs root, so diagrams follow the light and dark themes. */
 const TONE: Record<Tone, { fill: string; stroke: string }> = {
-  blue: { fill: "#e8efff", stroke: "#1b4dff" },
-  green: { fill: "#e6f6ee", stroke: "#067647" },
-  amber: { fill: "#fdf2dc", stroke: "#b54708" },
-  rose: { fill: "#fdebec", stroke: "#b42318" },
-  gray: { fill: "#f2f3f5", stroke: "#475467" },
-  ink: { fill: "#ffffff", stroke: "#1d2939" },
+  blue: { fill: "var(--sk-blue-f)", stroke: "var(--sk-blue-s)" },
+  green: { fill: "var(--sk-green-f)", stroke: "var(--sk-green-s)" },
+  amber: { fill: "var(--sk-amber-f)", stroke: "var(--sk-amber-s)" },
+  rose: { fill: "var(--sk-rose-f)", stroke: "var(--sk-rose-s)" },
+  gray: { fill: "var(--sk-gray-f)", stroke: "var(--sk-gray-s)" },
+  ink: { fill: "var(--sk-ink-f)", stroke: "var(--sk-ink-s)" },
 };
 
 /** Small deterministic PRNG (mulberry32) so a diagram draws the same way every time. */
@@ -91,12 +92,12 @@ export function Sketch({ spec, seed = 7 }: { spec: SketchSpec; seed?: number }) 
   return (
     <svg viewBox={`0 0 ${spec.w} ${spec.h}`} className={s.sketch} role="img" aria-label={spec.alt}>
       {drawn.edges.map(({ e, shaft, head, lx, ly }, i) => (
-        <g key={`e${i}`} fill="none" stroke="#475467" strokeWidth={1.4} strokeLinecap="round" strokeDasharray={e.dashed ? "6 6" : undefined}>
+        <g key={`e${i}`} fill="none" style={{ stroke: "var(--sk-line)" }} strokeWidth={1.4} strokeLinecap="round" strokeDasharray={e.dashed ? "6 6" : undefined}>
           {shaft.map((d, k) => <path key={k} d={d} opacity={k ? 0.55 : 1} />)}
           {head.map((d, k) => <path key={`h${k}`} d={d} strokeDasharray="none" />)}
           {e.label && (
             <g>
-              <rect x={lx - e.label.length * 3.3 - 6} y={ly - 10} width={e.label.length * 6.6 + 12} height={20} rx={6} fill="var(--c-bg, #fafafa)" stroke="none" />
+              <rect x={lx - e.label.length * 3.3 - 6} y={ly - 10} width={e.label.length * 6.6 + 12} height={20} rx={6} style={{ fill: "var(--sk-label-bg)", stroke: "none" }} />
               <text x={lx} y={ly + 4} textAnchor="middle" className={s.sketchEdge} stroke="none" strokeDasharray="none">{e.label}</text>
             </g>
           )}
@@ -104,8 +105,8 @@ export function Sketch({ spec, seed = 7 }: { spec: SketchSpec; seed?: number }) 
       ))}
       {drawn.nodes.map(({ n, paths, tone }) => (
         <g key={n.id}>
-          <rect x={n.x} y={n.y} width={n.w} height={n.h} rx={6} fill={tone.fill} stroke="none" />
-          <g fill="none" stroke={tone.stroke} strokeWidth={1.6} strokeLinecap="round">
+          <rect x={n.x} y={n.y} width={n.w} height={n.h} rx={6} style={{ fill: tone.fill }} stroke="none" />
+          <g fill="none" style={{ stroke: tone.stroke }} strokeWidth={1.6} strokeLinecap="round">
             {paths.map((d, k) => <path key={k} d={d} opacity={k < 4 ? 1 : 0.5} />)}
           </g>
           <text x={n.x + n.w / 2} y={n.y + n.h / 2 + (n.sub ? -4 : 5)} textAnchor="middle" className={s.sketchTitle}>{n.title}</text>
@@ -119,6 +120,79 @@ export function Sketch({ spec, seed = 7 }: { spec: SketchSpec; seed?: number }) 
 /* ---------------------------------------------------------------- the diagrams */
 
 export const DIAGRAMS: Record<string, SketchSpec> = {
+  system: {
+    w: 780,
+    h: 372,
+    alt: "The system: a buyer or the buyer's AI agent negotiates with the seller's deal agent on Proteus, which quotes only from the rules the seller set. Signed terms go to the relayer, which submits transactions to DealEscrow on Arc and pays the gas. The buyer's USDC goes into DealEscrow, never to Proteus, and DealEscrow pays the seller's payee for each unit the buyer countersigns. The seller's own systems call the seller API and receive webhooks; policy commitments and the seller's identity live in Arc registries.",
+    nodes: [
+      { id: "buyer", x: 16, y: 30, w: 170, h: 64, title: "Buyer or AI agent", sub: "asks, signs, funds", tone: "blue" },
+      { id: "agent", x: 300, y: 30, w: 180, h: 64, title: "Deal agent", sub: "quotes only from rules", tone: "amber" },
+      { id: "seller", x: 594, y: 30, w: 170, h: 64, title: "Seller", sub: "rules, products, delivery", tone: "green" },
+      { id: "relayer", x: 300, y: 172, w: 180, h: 64, title: "Relayer", sub: "submits, pays gas", tone: "gray" },
+      { id: "systems", x: 594, y: 172, w: 170, h: 64, title: "Seller's systems", sub: "seller API · webhooks", tone: "gray" },
+      { id: "escrow", x: 300, y: 296, w: 180, h: 64, title: "DealEscrow on Arc", sub: "holds USDC per deal", tone: "green" },
+      { id: "payee", x: 594, y: 296, w: 170, h: 64, title: "Seller payee", sub: "paid per delivered unit", tone: "green" },
+    ],
+    edges: [
+      { from: "buyer", to: "agent", label: "negotiate" },
+      { from: "seller", to: "agent", label: "rules" },
+      { from: "agent", to: "relayer", label: "signed terms" },
+      { from: "relayer", to: "escrow", dashed: true },
+      { from: "buyer", to: "escrow", label: "USDC", labelAt: 0.62 },
+      { from: "escrow", to: "payee", label: "settle" },
+      { from: "systems", to: "agent", bend: 26, label: "seller API", labelAt: 0.5 },
+      { from: "agent", to: "systems", dashed: true, bend: 26, label: "webhooks", labelAt: 0.5 },
+    ],
+  },
+  apiAuth: {
+    w: 780,
+    h: 360,
+    alt: "Seller API authentication: your server sends a bearer key. Proteus looks up the key's SHA-256 hash (missing, unknown, revoked or expired: 401), checks its environment against the network (a test key on mainnet or a live key on testnet: 401), checks the route's permission (missing: 403 naming it), then answers with your seller's data only (another seller's deal or product: 404). The public sandbox key goes to /api/v1/sandbox/seller instead, which answers from fixed demo data and runs writes as dry runs.",
+    nodes: [
+      { id: "you", x: 8, y: 40, w: 124, h: 64, title: "Your server", sub: "Bearer psk_…", tone: "blue" },
+      { id: "key", x: 170, y: 40, w: 124, h: 64, title: "Key", sub: "SHA-256 lookup", tone: "gray" },
+      { id: "env", x: 332, y: 40, w: 124, h: 64, title: "Environment", sub: "test ↔ testnet", tone: "gray" },
+      { id: "scope", x: 494, y: 40, w: 124, h: 64, title: "Permission", sub: "scope for route", tone: "gray" },
+      { id: "data", x: 656, y: 40, w: 116, h: 64, title: "Your data", sub: "your seller only", tone: "green" },
+      { id: "e401", x: 232, y: 176, w: 162, h: 56, title: "401", sub: "unknown, revoked, other env", tone: "rose" },
+      { id: "e403", x: 470, y: 176, w: 136, h: 56, title: "403", sub: "names the scope", tone: "rose" },
+      { id: "e404", x: 640, y: 176, w: 132, h: 56, title: "404", sub: "not your seller", tone: "rose" },
+      { id: "sbx", x: 8, y: 286, w: 214, h: 56, title: "Sandbox key", sub: "/api/v1/sandbox/seller", tone: "amber" },
+      { id: "demo", x: 444, y: 286, w: 328, h: 56, title: "Demo seller, fixed data", sub: "reads: demo records · writes: dry runs", tone: "amber" },
+    ],
+    edges: [
+      { from: "you", to: "key" },
+      { from: "key", to: "env" },
+      { from: "env", to: "scope" },
+      { from: "scope", to: "data" },
+      { from: "key", to: "e401", dashed: true },
+      { from: "env", to: "e401", dashed: true },
+      { from: "scope", to: "e403", dashed: true },
+      { from: "data", to: "e404", dashed: true },
+      { from: "sbx", to: "demo", label: "never real data" },
+    ],
+  },
+  webhooks: {
+    w: 780,
+    h: 280,
+    alt: "Webhook delivery: a deal event is queued once in the outbox. After each reconciler tick Proteus checks your host resolves to a public address, signs t.body with HMAC-SHA256 and your secret, and POSTs it with X-Proteus-Signature. Any 2xx within 5 seconds is delivered; anything else is retried on later runs, up to 5 attempts. Your receiver checks the timestamp, recomputes the HMAC over the raw body, compares it in constant time, and deduplicates on the event id.",
+    nodes: [
+      { id: "event", x: 8, y: 40, w: 136, h: 64, title: "Deal event", sub: "funded, settled, …", tone: "blue" },
+      { id: "outbox", x: 196, y: 40, w: 136, h: 64, title: "Outbox", sub: "queued once", tone: "gray" },
+      { id: "post", x: 384, y: 40, w: 160, h: 64, title: "Signed POST", sub: "HMAC-SHA256 · 5 s", tone: "green" },
+      { id: "you", x: 596, y: 40, w: 176, h: 64, title: "Your receiver", sub: "your https URL", tone: "ink" },
+      { id: "retry", x: 384, y: 186, w: 160, h: 64, title: "Retry", sub: "later runs, 5 attempts", tone: "rose" },
+      { id: "verify", x: 596, y: 186, w: 176, h: 64, title: "Verify, then dedupe", sub: "time · HMAC · event id", tone: "amber" },
+    ],
+    edges: [
+      { from: "event", to: "outbox" },
+      { from: "outbox", to: "post" },
+      { from: "post", to: "you" },
+      { from: "post", to: "retry", dashed: true, label: "not 2xx" },
+      { from: "retry", to: "outbox", dashed: true },
+      { from: "you", to: "verify", label: "on receipt" },
+    ],
+  },
   lifecycle: {
     w: 780,
     h: 300,

@@ -66,3 +66,48 @@ describe("webhook signing", () => {
     expect(e.data).toHaveProperty("amountUsdc");
   });
 });
+
+describe("generated docs", async () => {
+  const { SECTIONS, docsMarkdown, endpointAnchor } = await import("../../site/src/app/docs/docsContent");
+  const { SELLER_API_REFERENCE, endpointExamples, quickstartSnippets } = await import("../../site/src/app/sell/developers/reference");
+  const md = docsMarkdown("https://app.example");
+
+  it("never doubles a period and shows prices with two decimals", () => {
+    expect(md).not.toMatch(/[^.]\.\.[^.]/);
+    expect(md).not.toMatch(/\$\d+\.\d(?![\dBMKT])/);
+  });
+
+  it("the Developers group reads Overview, API reference, Webhooks in the sidebar", () => {
+    expect(SECTIONS.filter((s) => s.group === "Developers").map((s) => s.nav ?? s.title)).toEqual(["Overview", "API reference", "Webhooks"]);
+  });
+
+  it("the reference documents every seller API route, with its parameters and errors", () => {
+    const ref = SECTIONS.find((s) => s.id === "seller-api-reference")!;
+    const documented = ref.blocks.filter((b) => b.kind === "endpoint").map((b) => (b as { method: string; path: string }).method + " " + (b as { path: string }).path);
+    expect(documented).toEqual(SELLER_API_REFERENCE.map((r) => `${r.method} ${r.path}`));
+    for (const r of SELLER_API_REFERENCE) expect(ref.blocks.some((b) => b.kind === "h3" && b.id === endpointAnchor(r.method, r.path))).toBe(true);
+    for (const ex of endpointExamples("https://app.example/api/v1/seller")) {
+      const route = SELLER_API_REFERENCE.find((r) => r.method === ex.method && r.path === ex.path)!;
+      expect(ex.params.some((p) => p.in === "path"), `${ex.method} ${ex.path}`).toBe(ex.path.includes(":id"));
+      const bodyParams = ex.params.filter((p) => p.in === "body" && !p.name.includes("[]")).map((p) => p.name);
+      expect(Object.keys(ex.example ?? {}).every((k) => bodyParams.includes(k)), `${ex.method} ${ex.path}`).toBe(true);
+      expect(ex.example === null, `${ex.method} ${ex.path}`).toBe(ex.method === "GET");
+      expect(ex.errors.map((e) => e.status)).toContain("401");
+      if (route.scope) expect(ex.errors.find((e) => e.status === "403")?.when).toContain(route.scope);
+      expect(ex.bash.split("\n").every((l) => l.length <= 100), `${ex.method} ${ex.path}: no curl line runs off the block`).toBe(true);
+    }
+  });
+
+  it("quickstart steps name real routes", () => {
+    for (const st of quickstartSnippets("https://app.example/api/v1/seller", "test")) expect(SELLER_API_REFERENCE.map((r) => `${r.method} ${r.path}`)).toContain(st.route);
+  });
+
+  it("every diagram on a page also has a plain-text description for /docs.md", () => {
+    const diagrams = SECTIONS.flatMap((s) => s.blocks.filter((b) => b.kind === "diagram")) as { caption: string; describe: string }[];
+    expect(diagrams.length).toBeGreaterThanOrEqual(6);
+    for (const d of diagrams) {
+      expect(d.describe.length).toBeGreaterThan(80);
+      expect(md).toContain(d.describe);
+    }
+  });
+});

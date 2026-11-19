@@ -6,7 +6,7 @@ Source: <https://app.proteus.co.in/docs/security> · facts as of 2026-11-14 · a
 
 _What each part can and cannot do, stated plainly._
 
-> DealEscrow is not independently audited yet. It is source-verified (Sourcify exact match) on both networks and covered by Foundry unit and invariant tests; the invariant handler does not exercise disputes.
+> **Warning:** DealEscrow is not independently audited yet. It is source-verified (Sourcify exact match) on both networks and covered by Foundry unit and invariant tests; the invariant handler does not exercise disputes.
 
 | Component | Controlled by | Can | Cannot |
 |---|---|---|---|

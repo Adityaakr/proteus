@@ -69,38 +69,75 @@ export const currentOrigin = () => (typeof window !== "undefined" ? window.locat
 
 export type SnippetLang = "bash" | "ts";
 
+/* ---------------------------------------------------------------- example builders */
+
+const KEY_VAR = "PROTEUS_SELLER_KEY";
+const AUTH = `-H "Authorization: Bearer $${KEY_VAR}"`;
+
+/** A JSON value as a TypeScript object literal: identifier keys unquoted, indented by `pad`. */
+export function tsLiteral(value: unknown, pad = ""): string {
+  return JSON.stringify(value, null, 2)
+    .replace(/"([A-Za-z_$][\w$]*)":/g, "$1:")
+    .split("\n")
+    .map((line, i) => (i ? pad + line : line))
+    .join("\n");
+}
+
+/** A request as curl. GETs stay on one line plus the key; bodies are pretty JSON so no line runs off the block. */
+export function curlOf(method: string, url: string, body?: unknown): string {
+  if (method === "GET" || body === undefined) return `curl ${url} \\\n  ${AUTH}`;
+  const json = JSON.stringify(body, null, 2).split("\n").map((l, i) => (i ? "  " + l : l)).join("\n");
+  return `curl -X ${method} ${url} \\\n  ${AUTH} \\\n  -H "Content-Type: application/json" \\\n  -d '${json}'`;
+}
+
+/** The same request with fetch. Assumes `base` and `headers` from quickstart step 1; `result` names the parsed JSON. */
+export function fetchOf(method: string, path: string, result: string, body?: unknown): string {
+  if (method === "GET" || body === undefined) return `const ${result} = await fetch(\`\${base}${path}\`, { headers })\n  .then((r) => r.json());`;
+  return `const ${result} = await fetch(\`\${base}${path}\`, {\n  method: "${method}",\n  headers: { ...headers, "Content-Type": "application/json" },\n  body: JSON.stringify(${tsLiteral(body, "  ")}),\n}).then((r) => r.json());`;
+}
+
+/** Example bodies for the write endpoints. Each one passes the API's own checks (a server test runs them). */
+export const EXAMPLE_BODIES = {
+  tiers: { tiers: [{ name: "Starter", includedUnits: "1", unitPriceUsd: "6.60" }, { name: "Bulk", includedUnits: "100", unitPriceUsd: "6.50" }] },
+  listing: { active: false },
+  delivery: { requestId: "order-1042-shipped", units: 1, note: "Shipped by courier", proofUrl: "https://track.example/1042" },
+  orderUpdate: { status: "shipped", note: "Two boxes by courier", trackingUrl: "https://track.example/1042" },
+} as const;
+
 /** Quickstart steps for the seller API, as curl and TypeScript. `base` is the API base URL, e.g. https://host/api/v1/seller. */
 export function quickstartSnippets(base: string, env: "test" | "live") {
-  const keyVar = "PROTEUS_SELLER_KEY";
-  const sample = `psk_${env}_…`;
   return [
     {
       id: "verify",
       title: "1. Check the key",
-      body: "Every request sends the key as a bearer token. This answers with the key's name, environment and permissions.",
-      bash: `export ${keyVar}=${sample}\n\ncurl ${base}/me \\\n  -H "Authorization: Bearer $${keyVar}"`,
-      ts: `const base = "${base}";\nconst headers = { Authorization: \`Bearer \${process.env.${keyVar}}\` };\n\nconst me = await fetch(\`\${base}/me\`, { headers }).then((r) => r.json());\nconsole.log(me.key.scopes); // ["deals:read", ...]`,
+      route: "GET /v1/seller/me",
+      body: "Send the key as a bearer token. The answer names the key, its environment and its permissions.",
+      bash: `export ${KEY_VAR}=psk_${env}_…\n\ncurl ${base}/me \\\n  ${AUTH}`,
+      ts: `const base = "${base}";\nconst headers = { Authorization: \`Bearer \${process.env.${KEY_VAR}}\` };\n\nconst me = await fetch(\`\${base}/me\`, { headers }).then((r) => r.json());\nconsole.log(me.key.scopes); // ["deals:read", …]`,
     },
     {
       id: "deals",
       title: "2. Read your deals",
-      body: "Needs deals:read. Amounts are micro-USDC strings: 6600000 is $6.60.",
-      bash: `curl ${base}/deals \\\n  -H "Authorization: Bearer $${keyVar}"`,
+      route: "GET /v1/seller/deals",
+      body: "Needs `deals:read`. Amounts are micro-USDC strings: `6600000` is $6.60.",
+      bash: curlOf("GET", `${base}/deals`),
       ts: `const { deals } = await fetch(\`\${base}/deals\`, { headers }).then((r) => r.json());\nfor (const d of deals) console.log(d.publicId, d.status, d.settled, d.remaining);`,
     },
     {
       id: "deliver",
       title: "3. Report a delivery",
-      body: "Needs deliveries:write. Records delivered units with proof as a signed receipt the buyer then accepts; requestId makes retries safe.",
-      bash: `curl -X POST ${base}/deals/DEAL_ID/deliveries \\\n  -H "Authorization: Bearer $${keyVar}" \\\n  -H "Content-Type: application/json" \\\n  -d '{"requestId":"order-1042-shipped","units":1,"note":"Shipped by courier","proofUrl":"https://track.example/1042"}'`,
-      ts: `await fetch(\`\${base}/deals/\${dealId}/deliveries\`, {\n  method: "POST",\n  headers: { ...headers, "Content-Type": "application/json" },\n  body: JSON.stringify({ requestId: "order-1042-shipped", units: 1, note: "Shipped by courier", proofUrl: "https://track.example/1042" }),\n});`,
+      route: "POST /v1/seller/deals/:id/deliveries",
+      body: "Needs `deliveries:write`. Records delivered units as a signed receipt the buyer then countersigns. The same `requestId` never records twice, so retries are safe.",
+      bash: curlOf("POST", `${base}/deals/DEAL_ID/deliveries`, EXAMPLE_BODIES.delivery),
+      ts: fetchOf("POST", "/deals/${dealId}/deliveries", "receipt", EXAMPLE_BODIES.delivery),
     },
     {
       id: "prices",
       title: "4. Update prices",
-      body: "Needs products:write. Replaces the public tiers buyers see; deals already signed keep their prices.",
-      bash: `curl -X PATCH ${base}/products/PRODUCT_ID/tiers \\\n  -H "Authorization: Bearer $${keyVar}" \\\n  -H "Content-Type: application/json" \\\n  -d '{"tiers":[{"name":"Starter","includedUnits":"1","unitPriceUsd":"6.60"},{"name":"Bulk","includedUnits":"100","unitPriceUsd":"6.50"}]}'`,
-      ts: `await fetch(\`\${base}/products/\${productId}/tiers\`, {\n  method: "PATCH",\n  headers: { ...headers, "Content-Type": "application/json" },\n  body: JSON.stringify({ tiers: [{ name: "Starter", includedUnits: "1", unitPriceUsd: "6.60" }] }),\n});`,
+      route: "PATCH /v1/seller/products/:id/tiers",
+      body: "Needs `products:write`. Replaces the public tiers buyers see; deals already signed keep their prices.",
+      bash: curlOf("PATCH", `${base}/products/PRODUCT_ID/tiers`, EXAMPLE_BODIES.tiers),
+      ts: fetchOf("PATCH", "/products/${productId}/tiers", "product", EXAMPLE_BODIES.tiers),
     },
   ];
 }
@@ -156,86 +193,139 @@ export const WEBHOOK_EVENTS_REFERENCE: { event: string; title: string; data: str
   { event: "whatsapp_human", title: "A WhatsApp buyer asked for a person", data: "channel, link" },
 ];
 
+export interface ApiParam {
+  name: string;
+  in: "path" | "body";
+  type: string;
+  required: boolean;
+  description: string;
+}
+
 export interface EndpointExample {
   method: ApiRoute["method"];
   path: string;
-  /** What to send, in plain words, or null when there is no body. */
-  body: string | null;
+  /** A short name, as a heading: "Record a delivery". */
+  title: string;
+  /** One or two sentences: what it does and anything to know before calling it. */
+  description: string;
+  /** The HTTP status of a successful call. */
+  status: 200 | 201;
+  params: ApiParam[];
+  /** The example body (also the try-it default), or null when the endpoint takes none. */
+  example: Record<string, unknown> | null;
+  /** Statuses this endpoint can answer besides success, and when. */
+  errors: { status: string; when: string }[];
   bash: string;
   ts: string;
   /** A trimmed sample response. */
   response: string;
 }
 
+const ID_PRODUCT: ApiParam = { name: "id", in: "path", type: "string", required: true, description: "The product's `id` (`prd_…`) from `GET /products`, not its slug." };
+const ID_DEAL: ApiParam = { name: "id", in: "path", type: "string", required: true, description: "The deal's `id` (`deal_…`) from `GET /deals`, not its public id (`d_…`)." };
+const E401 = { status: "401", when: "The key is missing, unknown, revoked, expired or from the other environment." };
+const e403 = (scope: ScopeId) => ({ status: "403", when: `The key lacks \`${scope}\`.` });
+
 /**
- * One curl and one TypeScript example per seller API route, with a sample response. The TypeScript assumes `base` and
- * `headers` from quickstart step 1. `base` is the API base URL, e.g. https://host/api/v1/seller.
+ * Every seller API route with its parameters, errors, a curl and a TypeScript example and a sample response. The
+ * TypeScript assumes `base` and `headers` from quickstart step 1. `base` is the API base URL, e.g.
+ * https://host/api/v1/seller. Parameters and errors follow server/src/services/seller-api-rules.ts.
  */
 export function endpointExamples(base: string): EndpointExample[] {
-  const auth = `-H "Authorization: Bearer $PROTEUS_SELLER_KEY"`;
-  const json = `-H "Content-Type: application/json"`;
-  const post = (method: string, path: string, body: string) => `curl -X ${method} ${base}${path} \\\n  ${auth} \\\n  ${json} \\\n  -d '${body}'`;
-  const write = (method: string, path: string, body: string) => `await fetch(\`\${base}${path}\`, {\n  method: "${method}",\n  headers: { ...headers, "Content-Type": "application/json" },\n  body: JSON.stringify(${body}),\n}).then((r) => r.json());`;
+  const get = (path: string, result: string) => ({ bash: curlOf("GET", `${base}${path}`), ts: fetchOf("GET", path, result) });
+  const write = (method: string, curlPath: string, tsPath: string, result: string, body: Record<string, unknown>) => ({ bash: curlOf(method, `${base}${curlPath}`, body), ts: fetchOf(method, tsPath, result, body) });
   return [
     {
-      method: "GET", path: "/v1/seller/me", body: null,
-      bash: `curl ${base}/me \\\n  ${auth}`,
-      ts: `const me = await fetch(\`\${base}/me\`, { headers }).then((r) => r.json());`,
-      response: `{\n  "orgId": "org_…",\n  "key": { "id": "key_…", "name": "Order sync", "env": "test", "scopes": ["deals:read", "deliveries:write"] },\n  "network": "testnet"\n}`,
+      method: "GET", path: "/v1/seller/me", title: "Retrieve the key", status: 200, example: null, params: [],
+      description: "The seller this key belongs to, with the key's name, environment and permissions. Works with any valid key: use it to check a key before anything else.",
+      errors: [E401],
+      ...get("/me", "me"),
+      response: `{\n  "orgId": "org_…",\n  "key": {\n    "id": "key_…",\n    "name": "Order sync",\n    "env": "test",\n    "scopes": ["deals:read", "deliveries:write"]\n  },\n  "network": "testnet"\n}`,
     },
     {
-      method: "GET", path: "/v1/seller/products", body: null,
-      bash: `curl ${base}/products \\\n  ${auth}`,
-      ts: `const { products } = await fetch(\`\${base}/products\`, { headers }).then((r) => r.json());`,
-      response: `{\n  "products": [{\n    "id": "prd_…", "slug": "custom-tees", "name": "Custom oversized tees", "active": true, "unitLabel": "tee",\n    "tiers": [{ "id": "starter", "name": "Starter", "includedUnits": "1", "unitPriceUsd": "$6.60", "prepaidTotalUsd": "$6.60", "includes": [] }],\n    "payPerCallUsd": null,\n    "endpoint": "https://…/api/services/custom-tees/execute",\n    "docsUrl": "https://…/docs/your-store/custom-tees"\n  }]\n}`,
+      method: "GET", path: "/v1/seller/products", title: "List products", status: 200, example: null, params: [],
+      description: "Your products, newest first, with the public price tiers buyers see, the service endpoint and the product's docs page. Works with any valid key.",
+      errors: [E401],
+      ...get("/products", "{ products }"),
+      response: `{\n  "products": [{\n    "id": "prd_…",\n    "slug": "custom-tees",\n    "name": "Custom oversized tees",\n    "active": true,\n    "unitLabel": "tee",\n    "tiers": [{\n      "id": "starter",\n      "name": "Starter",\n      "includedUnits": "1",\n      "unitPriceUsd": "$6.60",\n      "prepaidTotalUsd": "$6.60",\n      "includes": []\n    }],\n    "payPerCallUsd": null,\n    "endpoint": "https://…/api/services/custom-tees/execute",\n    "docsUrl": "https://…/docs/your-store/custom-tees"\n  }]\n}`,
     },
     {
-      method: "PATCH", path: "/v1/seller/products/:id/tiers", body: "tiers: 1 to 6 of { name, includedUnits (whole number, each tier its own, at most the product's units per deal), unitPriceUsd (dollars as a string, up to 6 decimals, more than 0), includes? (up to 8 short strings) }. Replaces every tier.",
-      bash: post("PATCH", "/products/PRODUCT_ID/tiers", `{"tiers":[{"name":"Starter","includedUnits":"1","unitPriceUsd":"6.60"},{"name":"Bulk","includedUnits":"100","unitPriceUsd":"6.50"}]}`),
-      ts: write("PATCH", "/products/${productId}/tiers", `{ tiers: [{ name: "Starter", includedUnits: "1", unitPriceUsd: "6.60" }, { name: "Bulk", includedUnits: "100", unitPriceUsd: "6.50" }] }`),
-      response: `{ "id": "prd_…", "slug": "custom-tees", "active": true, "tiers": [{ "name": "Starter", "includedUnits": "1", "unitPriceUsd": "$6.60", … }, { "name": "Bulk", "includedUnits": "100", "unitPriceUsd": "$6.50", … }], … }`,
+      method: "PATCH", path: "/v1/seller/products/:id/tiers", title: "Replace price tiers", status: 200, example: { ...EXAMPLE_BODIES.tiers },
+      description: "Replaces every public price tier of a product and returns the product. New quotes use the new prices; deals already signed keep theirs.",
+      params: [
+        ID_PRODUCT,
+        { name: "tiers", in: "body", type: "array", required: true, description: "1 to 6 tiers. They are sorted by `includedUnits`." },
+        { name: "tiers[].name", in: "body", type: "string", required: true, description: "Shown to buyers; up to 40 characters are kept." },
+        { name: "tiers[].includedUnits", in: "body", type: "string", required: true, description: "A whole number from 1, at most the product's units per deal. Each tier needs its own quantity." },
+        { name: "tiers[].unitPriceUsd", in: "body", type: "string", required: true, description: "Dollars per unit, more than 0, up to 6 decimals: `\"6.60\"`." },
+        { name: "tiers[].includes", in: "body", type: "string[]", required: false, description: "Up to 8 short lines (60 characters each) listing what the tier includes." },
+      ],
+      errors: [{ status: "400", when: "A tier breaks a rule above; the message names the tier and the rule." }, E401, e403("products:write"), { status: "404", when: "No product with this id belongs to your seller." }],
+      ...write("PATCH", "/products/PRODUCT_ID/tiers", "/products/${productId}/tiers", "product", EXAMPLE_BODIES.tiers),
+      response: `{\n  "id": "prd_…",\n  "slug": "custom-tees",\n  "active": true,\n  "tiers": [\n    { "name": "Starter", "unitPriceUsd": "$6.60", … },\n    { "name": "Bulk", "unitPriceUsd": "$6.50", … }\n  ],\n  …\n}`,
     },
     {
-      method: "PATCH", path: "/v1/seller/products/:id/listing", body: "active: true to list the product in the market, false to hide it. Existing deals keep working.",
-      bash: post("PATCH", "/products/PRODUCT_ID/listing", `{"active":false}`),
-      ts: write("PATCH", "/products/${productId}/listing", `{ active: false }`),
+      method: "PATCH", path: "/v1/seller/products/:id/listing", title: "List or unlist a product", status: 200, example: { ...EXAMPLE_BODIES.listing },
+      description: "Shows a product in the market or hides it, and returns the product. Hidden products keep their existing deals and keys working.",
+      params: [ID_PRODUCT, { name: "active", in: "body", type: "boolean", required: true, description: "`true` lists the product, `false` hides it." }],
+      errors: [{ status: "400", when: "`active` is not `true` or `false`." }, E401, e403("products:write"), { status: "404", when: "No product with this id belongs to your seller." }],
+      ...write("PATCH", "/products/PRODUCT_ID/listing", "/products/${productId}/listing", "product", EXAMPLE_BODIES.listing),
       response: `{ "id": "prd_…", "slug": "custom-tees", "active": false, … }`,
     },
     {
-      method: "GET", path: "/v1/seller/deals", body: null,
-      bash: `curl ${base}/deals \\\n  ${auth}`,
-      ts: `const { deals } = await fetch(\`\${base}/deals\`, { headers }).then((r) => r.json());`,
-      response: `{\n  "deals": [{\n    "id": "deal_…", "publicId": "d_…", "status": "active", "chainStatus": "active", "buyerAddress": "0x…",\n    "deposit": "6600000", "settled": "0", "refunded": "0", "remaining": "6600000",\n    "balancesSource": "chain", "fundingTxHash": "0x…", "createdAt": "2026-11-20T10:00:00.000Z"\n  }]\n}`,
+      method: "GET", path: "/v1/seller/deals", title: "List deals", status: 200, example: null, params: [],
+      description: "Your newest 200 deals with their balances in micro-USDC. `status` is what the console shows (`settled` once the whole deposit is paid out); `chainStatus` is the escrow contract's.",
+      errors: [E401, e403("deals:read")],
+      ...get("/deals", "{ deals }"),
+      response: `{\n  "deals": [{\n    "id": "deal_…",\n    "publicId": "d_…",\n    "status": "active",\n    "chainStatus": "active",\n    "buyerAddress": "0x…",\n    "deposit": "6600000",\n    "settled": "0",\n    "refunded": "0",\n    "remaining": "6600000",\n    "balancesSource": "chain",\n    "fundingTxHash": "0x…",\n    "createdAt": "2026-11-20T10:00:00.000Z"\n  }]\n}`,
     },
     {
-      method: "GET", path: "/v1/seller/deals/:id", body: null,
-      bash: `curl ${base}/deals/DEAL_ID \\\n  ${auth}`,
-      ts: `const deal = await fetch(\`\${base}/deals/\${dealId}\`, { headers }).then((r) => r.json());`,
-      response: `{\n  "id": "deal_…", "publicId": "d_…", "status": "active", "chainStatus": "active",\n  "terms": { … }, "termsHash": "0x…", "buyerAddress": "0x…", "sellerPayee": "0x…",\n  "funding": { "txHash": "0x…", "status": "confirmed", "explorerUrl": "https://…" },\n  "balances": { "deposit": "6600000", "settled": "0", "refunded": "0", "remaining": "6600000", "source": "chain" },\n  …\n}`,
+      method: "GET", path: "/v1/seller/deals/:id", title: "Retrieve a deal", status: 200, example: null, params: [ID_DEAL],
+      description: "One deal: its signed terms and hash, balances, funding transaction, usage so far and every transaction on Arc.",
+      errors: [E401, e403("deals:read"), { status: "404", when: "No deal with this id belongs to your seller." }],
+      ...get("/deals/DEAL_ID", "deal"),
+      response: `{\n  "id": "deal_…",\n  "publicId": "d_…",\n  "status": "active",\n  "chainStatus": "active",\n  "terms": { … },\n  "termsHash": "0x…",\n  "buyerAddress": "0x…",\n  "sellerPayee": "0x…",\n  "funding": {\n    "txHash": "0x…",\n    "status": "confirmed",\n    "explorerUrl": "https://…"\n  },\n  "balances": {\n    "deposit": "6600000",\n    "settled": "0",\n    "refunded": "0",\n    "remaining": "6600000",\n    "source": "chain"\n  },\n  …\n}`,
     },
     {
-      method: "POST", path: "/v1/seller/deals/:id/deliveries", body: "requestId (4 to 80 of letters, digits . _ : -; the same id again returns the first receipt), units (whole number from 1), note (3 to 2000 characters: what was delivered), proofUrl? (https link). The deal must be funded or active, and the units must fit the agreement and the prepaid balance.",
-      bash: post("POST", "/deals/DEAL_ID/deliveries", `{"requestId":"order-1042-shipped","units":1,"note":"Shipped by courier","proofUrl":"https://track.example/1042"}`),
-      ts: write("POST", "/deals/${dealId}/deliveries", `{ requestId: "order-1042-shipped", units: 1, note: "Shipped by courier", proofUrl: "https://track.example/1042" }`),
-      response: `{\n  "requestId": "order-1042-shipped", "status": "delivered", "billable": true, "units": 1,\n  "receipt": { "digest": "0x…", "sellerSignature": "0x…", "at": "2026-11-20T10:00:00.000Z" },\n  "deal": { "cumulativeUnits": "1", "cumulativeCharged": "6600000", "remaining": "0" },\n  …\n}`,
+      method: "POST", path: "/v1/seller/deals/:id/deliveries", title: "Record a delivery", status: 201, example: { ...EXAMPLE_BODIES.delivery },
+      description: "Records delivered units with proof as a receipt signed by your seller signer. The buyer countersigns the running total, and only then does the escrow pay. Sending the same `requestId` again returns the first receipt instead of recording twice.",
+      params: [
+        ID_DEAL,
+        { name: "requestId", in: "body", type: "string", required: true, description: "Your idempotency key: 4 to 80 letters, digits, `.`, `_`, `:` or `-`." },
+        { name: "units", in: "body", type: "integer", required: true, description: "Units delivered in this batch, 1 to 1,000,000. The running total must fit the agreement and the prepaid balance." },
+        { name: "note", in: "body", type: "string", required: true, description: "What was delivered, 3 to 2000 characters. The buyer sees it on the receipt." },
+        { name: "proofUrl", in: "body", type: "string", required: false, description: "An https link to proof: tracking page, signed delivery note or shared folder." },
+      ],
+      errors: [{ status: "400", when: "A field breaks a rule above." }, E401, e403("deliveries:write"), { status: "404", when: "No deal with this id belongs to your seller." }, { status: "409", when: "The deal is not funded or active, or the units would exceed the agreement or the prepaid balance." }],
+      ...write("POST", "/deals/DEAL_ID/deliveries", "/deals/${dealId}/deliveries", "receipt", EXAMPLE_BODIES.delivery),
+      response: `{\n  "requestId": "order-1042-shipped",\n  "status": "delivered",\n  "billable": true,\n  "units": 1,\n  "receipt": {\n    "digest": "0x…",\n    "sellerSignature": "0x…",\n    "at": "2026-11-20T10:00:00.000Z"\n  },\n  "deal": {\n    "cumulativeUnits": "1",\n    "cumulativeCharged": "6600000",\n    "remaining": "0"\n  },\n  …\n}`,
     },
     {
-      method: "POST", path: "/v1/seller/deals/:id/order-updates", body: "status: accepted, in_production, shipped, out_for_delivery, delayed (note required: why and the new date) or note (note required); note? (up to 1000 characters); trackingUrl? (https link). The deal must be funded or active.",
-      bash: post("POST", "/deals/DEAL_ID/order-updates", `{"status":"shipped","note":"Two boxes by courier","trackingUrl":"https://track.example/1042"}`),
-      ts: write("POST", "/deals/${dealId}/order-updates", `{ status: "shipped", note: "Two boxes by courier", trackingUrl: "https://track.example/1042" }`),
+      method: "POST", path: "/v1/seller/deals/:id/order-updates", title: "Post an order update", status: 201, example: { ...EXAMPLE_BODIES.orderUpdate },
+      description: "Posts a status to the buyer's order page and alerts the buyer on the channels they chose. For goods and other work you deliver yourself.",
+      params: [
+        ID_DEAL,
+        { name: "status", in: "body", type: "string", required: true, description: "One of `accepted`, `in_production`, `shipped`, `out_for_delivery`, `delayed` or `note`." },
+        { name: "note", in: "body", type: "string", required: false, description: "Up to 1000 characters. Required for `delayed` (why, and the new date) and for `note`." },
+        { name: "trackingUrl", in: "body", type: "string", required: false, description: "An https tracking link." },
+      ],
+      errors: [{ status: "400", when: "Unknown status, a missing note, or a tracking link that is not https." }, E401, e403("deliveries:write"), { status: "404", when: "No deal with this id belongs to your seller." }, { status: "409", when: "The deal is not funded or active." }],
+      ...write("POST", "/deals/DEAL_ID/order-updates", "/deals/${dealId}/order-updates", "update", EXAMPLE_BODIES.orderUpdate),
       response: `{ "id": "du_…", "status": "shipped", "label": "Shipped" }`,
     },
     {
-      method: "GET", path: "/v1/seller/usage", body: null,
-      bash: `curl ${base}/usage \\\n  ${auth}`,
-      ts: `const { totals, requests } = await fetch(\`\${base}/usage\`, { headers }).then((r) => r.json());`,
-      response: `{\n  "totals": { "requests": 12, "delivered": 11, "handoff": 0, "failed": 1, "billableUnits": 11, "avgLatencyMs": 840 },\n  "requests": [{ "requestId": "order-1042-shipped", "dealId": "deal_…", "dealPublicId": "d_…", "productName": "Custom oversized tees", "status": "delivered", "billable": true, "units": 1, "cumulativeCharged": "6600000", "signed": true, "at": "2026-11-20T10:00:00.000Z", … }]\n}`,
+      method: "GET", path: "/v1/seller/usage", title: "List usage", status: 200, example: null, params: [],
+      description: "Totals and your newest 300 metered requests and delivery reports, each with its deal, units, running charge and whether its receipt is signed.",
+      errors: [E401, e403("usage:read")],
+      ...get("/usage", "{ totals, requests }"),
+      response: `{\n  "totals": {\n    "requests": 12,\n    "delivered": 11,\n    "handoff": 0,\n    "failed": 1,\n    "billableUnits": 11,\n    "avgLatencyMs": 840\n  },\n  "requests": [{\n    "requestId": "order-1042-shipped",\n    "dealId": "deal_…",\n    "dealPublicId": "d_…",\n    "productName": "Custom oversized tees",\n    "status": "delivered",\n    "billable": true,\n    "units": 1,\n    "cumulativeCharged": "6600000",\n    "signed": true,\n    "at": "2026-11-20T10:00:00.000Z",\n    …\n  }]\n}`,
     },
     {
-      method: "GET", path: "/v1/seller/payments", body: null,
-      bash: `curl ${base}/payments \\\n  ${auth}`,
-      ts: `const payments = await fetch(\`\${base}/payments\`, { headers }).then((r) => r.json());`,
-      response: `{\n  "funded": "13200000", "settled": "6600000", "earnedUnsettled": "0", "liability": "6600000", "refunded": "0",\n  "reconciliation": { "lastRunAt": "2026-11-20T10:00:00.000Z", "discrepancies": [] },\n  "labels": { "network": "testnet", "note": "Deposits are customer liabilities until usage is accepted and settled. Unused balances are never seller revenue." }\n}`,
+      method: "GET", path: "/v1/seller/payments", title: "Retrieve payments", status: 200, example: null, params: [],
+      description: "Money across all your deals, in micro-USDC: funded, settled to you, delivered but not yet settled, still held for buyers, and refunded.",
+      errors: [E401, e403("payments:read")],
+      ...get("/payments", "payments"),
+      response: `{\n  "funded": "13200000",\n  "settled": "6600000",\n  "earnedUnsettled": "0",\n  "liability": "6600000",\n  "refunded": "0",\n  "reconciliation": {\n    "lastRunAt": "2026-11-20T10:00:00.000Z",\n    "discrepancies": []\n  },\n  "labels": {\n    "network": "testnet",\n    "note": "Deposits are customer liabilities until …"\n  }\n}`,
     },
   ];
 }

@@ -4,8 +4,9 @@ Source: <https://app.proteus.co.in/docs/links> · facts as of 2026-11-14 · all 
 
 
 
-- [API reference](https://app.proteus.co.in/docs/api): calling a service, billing, settlement, the seller endpoint
-- [Seller API](https://app.proteus.co.in/docs/seller-api): keys, quickstart, every /api/v1/seller endpoint and webhooks
+- [Seller API](https://app.proteus.co.in/docs/seller-api): keys, quickstart and a sandbox you can call now
+- [Seller API reference](https://app.proteus.co.in/docs/seller-api-reference): every /api/v1/seller endpoint, with a Send button
+- [Buyer HTTP API](https://app.proteus.co.in/docs/api): calling a service, billing, settlement
 - [Agent skill](https://app.proteus.co.in/api/public/agents/skill.md): discover, negotiate, fund and settle over HTTP
 - [Docs as Markdown](https://app.proteus.co.in/docs.md)
 - [Facts as JSON](https://app.proteus.co.in/docs/facts.json)

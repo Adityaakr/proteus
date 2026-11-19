@@ -10,8 +10,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { POSTS } from "../src/app/blog/posts";
-import { SELLER_API_REFERENCE, SCOPES_REFERENCE, KEY_RULES, WEBHOOK_EVENTS_REFERENCE, ERRORS_REFERENCE } from "../src/app/sell/developers/reference";
-import { API, CLAIMS, CONTRACTS, DOC_LEDE, DOC_TITLE, EVIDENCE, FACTS_AS_OF, GRACE, LIMITS, MCP_TOOLS, NETWORKS, SECTIONS, TRUST, compareRows, docsMarkdown, FEES, MODELS, SELLER_API_BASE } from "../src/app/docs/docsContent";
+import { SANDBOX, SELLER_API_REFERENCE, SCOPES_REFERENCE, KEY_RULES, WEBHOOK_EVENTS_REFERENCE, ERRORS_REFERENCE } from "../src/app/sell/developers/reference";
+import { API, CLAIMS, CONTRACTS, DOC_LEDE, DOC_TITLE, EVIDENCE, FACTS_AS_OF, GRACE, LIMITS, MCP_TOOLS, NETWORKS, SECTIONS, TRUST, compareRows, docsMarkdown, FEES, MODELS, SELLER_API_BASE, SELLER_EXAMPLES } from "../src/app/docs/docsContent";
 
 const ORIGIN = "https://app.proteus.co.in";
 const pub = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
@@ -63,7 +63,11 @@ const facts = {
     auth: "Authorization: Bearer psk_live_… (Arc mainnet) or psk_test_… (Arc testnet), created on the seller's Developers page (/app/sell/developers); shown once, stored as a SHA-256 hash",
     keys: { regenerateOverlapHours: { default: KEY_RULES.overlapDefaultHours, max: KEY_RULES.overlapMaxHours, cutOffNow: 0 }, maxWorkingKeys: KEY_RULES.maxWorkingKeys, revoke: "immediate" },
     scopes: SCOPES_REFERENCE,
-    endpoints: SELLER_API_REFERENCE.map((r) => ({ method: r.method, path: `/api${r.path}`, scope: r.scope, does: r.summary })),
+    endpoints: SELLER_API_REFERENCE.map((r) => {
+      const ex = SELLER_EXAMPLES.find((e) => e.method === r.method && e.path === r.path)!;
+      return { method: r.method, path: `/api${r.path}`, scope: r.scope, does: r.summary, status: ex.status, params: ex.params, example: ex.example, errors: ex.errors };
+    }),
+    sandbox: { base: SANDBOX.baseUrl, key: SANDBOX.key, network: "testnet only", reads: "fixed demo data for a demo seller", writes: "dry runs: the API's own checks, answering { dryRun: true, persisted: false, status, wouldReturn, wouldHappen }; nothing is stored, signed, paid or sent", ids: SANDBOX.ids },
     errors: ERRORS_REFERENCE,
     money: "micro-USDC as decimal strings (6600000 = $6.60)",
     rateLimit: "none today",

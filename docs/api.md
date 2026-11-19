@@ -299,6 +299,14 @@ Keys are environment-bound: a deployment on Arc testnet issues and accepts only 
 
 401: missing, unknown, revoked, expired or wrong-environment key. 403: the key lacks the permission (`details.required` names it). Every call records the key's `lastUsedAt`.
 
+### Seller API sandbox (`/api/v1/sandbox/seller/*`, Arc testnet deployment only)
+
+The same routes as `/api/v1/seller/*`, answered from a fixed demo seller held in memory ([`services/sandbox.ts`](../server/src/services/sandbox.ts)), with a published key: `Authorization: Bearer psk_sandbox_demo_seller_testnet_read_only`. The docs reference and the Developers page call it from their Send buttons (any origin, no cookies).
+
+- Reads return demo records in the real response shapes; `GET /me` lists the read scopes and `sandbox.dryRunScopes`.
+- Writes are dry runs: the real endpoint's checks run ([`seller-api-rules.ts`](../server/src/services/seller-api-rules.ts), shared with the real handlers), and the answer is `200 { dryRun: true, persisted: false, status, wouldReturn, wouldHappen[] }`. Nothing is stored, signed, paid or sent; refusals use the real status and message.
+- The module imports no database, chain or notification code; the real seller API refuses the sandbox key and the sandbox refuses real keys.
+
 ```bash
 curl https://app.proteus.co.in/api/v1/seller/deals -H "Authorization: Bearer $PROTEUS_SELLER_KEY"
 ```

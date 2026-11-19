@@ -117,3 +117,17 @@ describe("seller API sandbox", () => {
     expect(SANDBOX).toEqual({ key: SANDBOX_KEY, path: `/api${SANDBOX_PREFIX}`, ids: SANDBOX_IDS, readScopes: [...SANDBOX_READ_SCOPES], baseUrl: `https://ai.proteus.co.in/api${SANDBOX_PREFIX}` });
   });
 });
+
+describe("the docs' example requests", () => {
+  it("every documented example body passes the API's own checks (run as sandbox dry runs)", async () => {
+    const { endpointExamples } = await import("../../site/src/app/sell/developers/reference");
+    const { call } = sandbox();
+    for (const ex of endpointExamples("https://app.example/api/v1/seller").filter((e) => e.example)) {
+      const path = ex.path.replace("/v1/seller", "").replace(":id", ex.path.includes("products/") ? SANDBOX_IDS.product : SANDBOX_IDS.deal);
+      const res = await call(ex.method, path, ex.example);
+      const out = await body(res);
+      expect(res.status, `${ex.method} ${ex.path}: ${out.error ?? ""}`).toBe(200);
+      expect(out).toMatchObject({ dryRun: true, status: ex.status });
+    }
+  });
+});

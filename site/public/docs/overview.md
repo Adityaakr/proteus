@@ -19,6 +19,12 @@ _A deal desk for anything sold by quote, volume or usage._
 
 > The model proposes. The seller's policy decides. The signed agreement controls the money.
 
+### How the parts fit together
+
+_Diagram: Proteus negotiates and relays; the money only ever sits in DealEscrow on Arc._
+
+The buyer, or the buyer's AI agent, negotiates with the seller's deal agent on Proteus, which quotes only from the rules the seller set. The signed terms go to the relayer, which submits transactions to DealEscrow on Arc and pays the gas. The buyer's USDC goes into DealEscrow, never to Proteus; DealEscrow pays the seller's payee for each unit the buyer countersigns. The seller's own systems use the seller API and receive deal events by webhook.
+
 ### Who it is for
 
 - **Merch and corporate gifting.** "20 boxes, our logo, Mumbai by Oct 31, price per box?" Answered in seconds instead of by hand. Live: [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e).

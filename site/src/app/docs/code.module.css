@@ -1,0 +1,43 @@
+/* Code blocks shared by the docs and the app. Dark in both themes (like most API docs); colors meet WCAG AA on #0d1117. */
+.block {
+  --code-bg: #0d1117; --code-head: #11161e; --code-line: rgba(255, 255, 255, 0.08); --code-fg: #e6edf3; --code-dim: #8b949e;
+  min-width: 0; margin: 0; border-radius: 12px; background: var(--code-bg); box-shadow: inset 0 0 0 1px var(--code-line), 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden; color: var(--code-fg);
+}
+.head { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; padding: 0 8px 0 14px; background: var(--code-head); border-bottom: 1px solid var(--code-line); }
+.headStart, .headEnd { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.headEnd { flex: none; gap: 6px; }
+.title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-body); font-size: 12.5px; font-weight: 500; color: var(--code-fg); }
+.lang { font-family: var(--font-body); font-size: 11px; font-weight: 500; letter-spacing: 0.04em; color: var(--code-dim); }
+.tabs { display: inline-flex; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: none; min-height: 28px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent; font-family: var(--font-body); font-size: 12.5px; font-weight: 500; color: var(--code-dim); cursor: pointer; }
+.tab:hover { color: var(--code-fg); }
+.tabOn { color: var(--code-fg); background: rgba(255, 255, 255, 0.08); }
+.tab:focus-visible, .copy:focus-visible, .pre:focus-visible { outline: 2px solid #79a8ff; outline-offset: -2px; }
+.copy { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent; font-family: var(--font-body); font-size: 12px; font-weight: 500; color: var(--code-dim); cursor: pointer; transition: color 120ms ease, background 120ms ease; }
+.copy:hover { color: var(--code-fg); background: rgba(255, 255, 255, 0.08); }
+
+.pre { margin: 0; padding: 14px 16px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 12.75px; line-height: 1.7; white-space: pre; tab-size: 2; color: var(--code-fg); background: transparent; }
+.pre code { display: block; width: max-content; min-width: 100%; font: inherit; color: inherit; background: none; padding: 0; }
+
+/* highlight.js tokens (GitHub dark, tuned) */
+.pre :global(.hljs-comment), .pre :global(.hljs-quote) { color: #8b949e; font-style: italic; }
+.pre :global(.hljs-keyword), .pre :global(.hljs-selector-tag), .pre :global(.hljs-built_in), .pre :global(.hljs-type) { color: #ff7b72; }
+.pre :global(.hljs-string), .pre :global(.hljs-regexp), .pre :global(.hljs-template-string) { color: #a5d6ff; }
+.pre :global(.hljs-attr), .pre :global(.hljs-attribute), .pre :global(.hljs-property) { color: #7ee787; }
+.pre :global(.hljs-number), .pre :global(.hljs-literal), .pre :global(.hljs-symbol) { color: #79c0ff; }
+.pre :global(.hljs-title), .pre :global(.hljs-title.function_), .pre :global(.hljs-section) { color: #d2a8ff; }
+.pre :global(.hljs-variable), .pre :global(.hljs-template-variable), .pre :global(.hljs-params) { color: #ffa657; }
+.pre :global(.hljs-meta), .pre :global(.hljs-subst) { color: #e6edf3; }
+.pre :global(.hljs-name), .pre :global(.hljs-tag) { color: #7ee787; }
+.pre :global(.hljs-bullet), .pre :global(.hljs-link) { color: #79c0ff; }
+
+/* Request/response pair: side by side when there is room */
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+@media (max-width: 1100px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  .head { padding-left: 12px; }
+  .title { white-space: normal; }
+  .head .lang { display: none; }
+}

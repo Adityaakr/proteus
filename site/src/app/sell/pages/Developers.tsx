@@ -31,7 +31,7 @@ const LEDES: Record<SectionId, string> = {
   "catalog-sync": "Let your own endpoint keep stock, cost and order rules current.",
   embed: "Put your deal agent on your own website.",
   signer: "The key that signs terms and deliveries for you, and your agent's identity on Arc.",
-  quickstart: "Call the seller API with curl or TypeScript.",
+  quickstart: "Call the seller API with curl or TypeScript, or press Send to try it right here. The sandbox key is already loaded: demo data, and writes are dry runs.",
 };
 
 function Section({ id, children }: { id: SectionId; children: ReactNode }) {
@@ -83,7 +83,7 @@ export default function Developers() {
         {!sandbox && <AgentIdentityCard />}
       </>
     ),
-    quickstart: <Quickstart apiBase={apiBase} env={env} />,
+    quickstart: <Quickstart apiBase={apiBase} env={env} ownKeys={!sandbox && q.isSuccess} />,
   };
 
   return (

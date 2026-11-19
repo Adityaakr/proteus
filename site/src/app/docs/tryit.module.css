@@ -1,0 +1,55 @@
+/* The try-it console. Built on the app's tokens, so it follows the docs' light and dark themes. */
+.console { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 14px; border-radius: 12px; background: var(--c-card, #fff); box-shadow: inset 0 0 0 1px var(--c-dark-10); font-family: var(--font-body); }
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-dark-60); }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 500; color: var(--docs-patch, #8a5a00); background: rgba(255, 176, 32, 0.14); box-shadow: inset 0 0 0 1px rgba(255, 176, 32, 0.35); }
+.targets { display: inline-flex; gap: 2px; padding: 3px; border-radius: 9px; background: var(--c-dark-5); }
+.target { min-height: 26px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent; font: inherit; font-size: 12.5px; font-weight: 500; color: var(--c-dark-60); cursor: pointer; }
+.target:hover { color: var(--c-dark); }
+.targetOn { color: var(--c-dark); background: var(--c-white, #fff); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), inset 0 0 0 1px var(--c-dark-10); }
+
+.request { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 6px 6px 6px 10px; border-radius: 10px; background: var(--c-dark-5); }
+.method { flex: none; padding: 2px 7px; border-radius: 6px; font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em; }
+.get { color: var(--docs-get, #0b6b3a); background: color-mix(in srgb, var(--docs-get, #0b6b3a) 14%, transparent); }
+.post { color: var(--docs-post, #1d4ed8); background: color-mix(in srgb, var(--docs-post, #1d4ed8) 14%, transparent); }
+.patch { color: var(--docs-patch, #9a4d00); background: color-mix(in srgb, var(--docs-patch, #9a4d00) 15%, transparent); }
+.url { flex: 1 1 auto; min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; font-family: var(--font-mono); font-size: 12.5px; color: var(--c-dark); }
+.url::-webkit-scrollbar { display: none; }
+.urlBase { color: var(--c-dark-60); }
+.idInput { min-width: 0; padding: 1px 6px; border: 0; border-radius: 6px; font: inherit; color: var(--c-dark); background: var(--c-card, #fff); box-shadow: inset 0 0 0 1px var(--c-dark-20); }
+.idInput:focus { outline: 2px solid var(--c-primary); outline-offset: 0; }
+.send { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 14px; border: 0; border-radius: 8px; font: inherit; font-size: 13px; font-weight: 600; color: #fff; background: var(--docs-solid, var(--c-primary)); cursor: pointer; }
+.send:hover:not(:disabled) { filter: brightness(1.08); }
+.send:disabled { opacity: 0.45; cursor: not-allowed; }
+.send:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 2px; }
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.auth, .bodyWrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.bodyWrap { flex-direction: column; align-items: stretch; gap: 6px; }
+.authName { flex: none; font-size: 12px; font-weight: 500; color: var(--c-dark-60); }
+.authValue { min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; font-family: var(--font-mono); font-size: 12px; color: var(--c-dark-80); }
+.keyInput, .body { min-width: 0; flex: 1 1 auto; padding: 7px 10px; border: 0; border-radius: 8px; font-family: var(--font-mono); font-size: 12.5px; color: var(--c-dark); background: var(--c-white, #fff); box-shadow: inset 0 0 0 1px var(--c-dark-20); }
+.body { resize: vertical; line-height: 1.6; white-space: pre; overflow-x: auto; }
+.keyInput:focus, .body:focus { outline: 2px solid var(--c-primary); outline-offset: 0; }
+.hint { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--c-dark-60); }
+.problem { margin: 0; font-size: 13px; color: var(--docs-error, #b42318); }
+
+.result { min-width: 0; }
+.result :global(pre) { max-height: 440px; overflow: auto; }
+.resultHead { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.status { padding: 1px 8px; border-radius: 999px; font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; }
+.ok { color: #7ee787; background: rgba(46, 160, 67, 0.18); }
+.warn { color: #f2cc60; background: rgba(210, 153, 34, 0.2); }
+.bad { color: #ffa198; background: rgba(248, 81, 73, 0.2); }
+.ms { font-family: var(--font-mono); font-size: 11.5px; color: #8b949e; }
+.dry { font-size: 11.5px; color: #d2a8ff; }
+
+.compact { padding: 12px; }
+@media (max-width: 640px) {
+  .request { flex-wrap: wrap; }
+  .url { flex-basis: calc(100% - 60px); }
+  .urlBase { display: none; }
+  .send { width: 100%; justify-content: center; }
+  .auth { flex-direction: column; align-items: stretch; gap: 4px; }
+}

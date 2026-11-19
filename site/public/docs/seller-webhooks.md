@@ -4,15 +4,19 @@ Source: <https://app.proteus.co.in/docs/seller-webhooks> · facts as of 2026-11-
 
 
 
-_Deal events POSTed to your server as they happen, signed so you can check they came from Proteus._
+_Deal events POSTed to your server as they happen, signed so you can prove they came from Proteus._
 
-> Events are informational: the Arc chain is the record. Read balances from the [seller API](https://app.proteus.co.in/docs/seller-api-reference) or the chain before you act on money.
+_Diagram: From a deal event to your server, and the check your server makes._
+
+A deal event (funded, settled, refunded, dispute, approval needed, order details, WhatsApp handoff) is queued once in the outbox. After each reconciler tick the outbox is drained: Proteus resolves your host (private, loopback, link-local and metadata addresses are refused), signs t.body with HMAC-SHA256 and your secret, and POSTs it with X-Proteus-Signature: t=…,v1=…. Any 2xx within 5 seconds is a success. A failure is tried again on later runs, up to 5 attempts. Your receiver checks the timestamp, recomputes the HMAC over the raw body and compares in constant time, then deduplicates on the event id.
+
+> Events tell you something happened; the Arc chain is the record. Read balances from the [seller API](https://app.proteus.co.in/docs/seller-api-reference) or the chain before you act on money.
 
 ### Set up
 
-1. **Add your URL.** Sell → [Developers](https://app.proteus.co.in/app/sell/developers#webhooks) → Webhooks. It must be https, with no credentials in it, and its host must resolve to a public address ([notify.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/notify.ts)).
-2. **Copy the signing secret.** Your first URL gets a secret (`whsec_` and 48 hex characters), shown once and stored encrypted. Changing the URL keeps the secret; removing the URL deletes it.
-3. **Send a test.** Send test POSTs one signed `test` event right away, records it in the delivery log and shows the HTTP status and latency. It is tried once, with no retries.
+1. **Add your URL.** Sell → [Developers](https://app.proteus.co.in/app/sell/developers#webhooks) → Webhooks. It must be https, with no credentials in it, and resolve to a public address ([notify.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/notify.ts)).
+2. **Copy the signing secret.** Your first URL gets a secret, `whsec_` and 48 hex characters, shown once and stored encrypted. Changing the URL keeps it; removing the URL deletes it.
+3. **Send a test.** Send test POSTs one signed `test` event at once, logs it and shows the HTTP status and latency. It is tried once, with no retries.
 
 ### Events
 
@@ -27,7 +31,7 @@ _Deal events POSTed to your server as they happen, signed so you can check they 
 | `order_details` | A buyer sent order details | deal, product, link |
 | `whatsapp_human` | A WhatsApp buyer asked for a person | channel, link |
 
-Amounts in events are USDC with six decimals as a string (`"6.600000"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up.
+Amounts in events are USDC with six decimals, as a string (`"6.600000"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up.
 
 ### Payload
 
@@ -41,7 +45,13 @@ X-Proteus-Signature: t=1795122246,v1=5f2c…
   "id": "ntf_…",
   "event": "usage_settled",
   "createdAt": "2026-11-20T10:00:00.000Z",
-  "data": { "deal": "d_…", "amountUsdc": "6.600000", "txHash": "0x…", "explorer": "https://explorer.arc.io/tx/0x…", "link": "https://app.proteus.co.in/app/sell/deals/deal_…" }
+  "data": {
+    "deal": "d_…",
+    "amountUsdc": "6.600000",
+    "txHash": "0x…",
+    "explorer": "https://explorer.arc.io/tx/0x…",
+    "link": "https://app.proteus.co.in/app/sell/deals/deal_…"
+  }
 }
 ```
 
@@ -49,7 +59,9 @@ A test event has the same envelope with `"event": "test"`, `"test": true` and an
 
 ### Verify the signature
 
-`X-Proteus-Signature` is `t=<unix seconds>,v1=<hex>`, where the hex is HMAC-SHA256 of `<t>.<raw body>` with your signing secret. Check it against the body exactly as received, before parsing, and reject old timestamps:
+1. **Read the header.** `X-Proteus-Signature` is `t=<unix seconds>,v1=<hex>`.
+2. **Check the time.** Reject a `t` more than a few minutes from now, so an old request cannot be replayed.
+3. **Recompute and compare.** HMAC-SHA256 of `<t>.<raw body>` with your secret, compared in constant time with `v1`. Use the body exactly as received, before parsing.
 
 ```ts
 import { createHmac, timingSafeEqual } from "node:crypto";
@@ -64,11 +76,14 @@ export function verifyProteus(header: string, rawBody: string, secret: string, t
 }
 ```
 
-Regenerating the secret takes effect at once, with no overlap: update your receiver right after.
+> **Warning:** Regenerating the secret takes effect at once, with no overlap. Update your receiver right after.
 
 ### Delivery and retries
 
-- **Success is any 2xx.** Within 5 seconds. Redirects are not followed and the response body is ignored.
-- **Retries.** A failed event is tried again on the next delivery runs, up to 5 attempts in all. If your email or Telegram fails, the webhook can receive the event again too: deduplicate on `id`.
-- **Checked at send time.** The host is resolved and refused if it points at a private, loopback, link-local or metadata address.
-- **Delivery log.** The Developers page lists your last 50 attempts, newest first: time, event, result, HTTP status, latency and error.
+| Rule | Behaviour |
+|---|---|
+| Success | Any 2xx within 5 seconds. Redirects are not followed and the response body is ignored. |
+| Retries | A failed event is tried again on later delivery runs, up to 5 attempts in all. |
+| Duplicates | If your email or Telegram fails, the webhook can receive the same event again. Deduplicate on `id`. |
+| Address check | The host is resolved at send time and refused if it points at a private, loopback, link-local or metadata address. |
+| Delivery log | The Developers page lists your last 50 attempts, newest first: time, event, result, HTTP status, latency and error. |

@@ -5,11 +5,15 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Copy, FileText, Minus } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, ArrowUpRight, Check, Copy, FileText, Info, Lightbulb, Minus, Monitor, Moon, Sun } from "lucide-react";
 import "../app.css";
 import { Wordmark } from "../layouts/Wordmark";
 import { compare } from "../../content/proteus";
-import { DOC_LEDE, DOC_TITLE, FACTS_AS_OF, GROUPS, SECTIONS, docsMarkdown, type Block, type DocSection } from "./docsContent";
+import { DOC_LEDE, DOC_TITLE, FACTS_AS_OF, GROUPS, SECTIONS, SELLER_EXAMPLES, docsMarkdown, type Block, type DocSection } from "./docsContent";
+import { CodeBlock, CodeTabs } from "./Code";
+import { TryIt } from "./TryIt";
+import { SELLER_API_REFERENCE } from "../sell/developers/reference";
+import c from "./code.module.css";
 import { DIAGRAMS, Sketch } from "./Sketch";
 import s from "./productDocs.module.css";
 
@@ -27,11 +31,12 @@ export default function ProductDocs() {
 
 function DocsPage({ sec }: { sec: DocSection }) {
   const [copied, setCopied] = useState(false);
+  const [theme, setTheme] = useDocsTheme();
   const index = SECTIONS.findIndex((x) => x.id === sec.id);
   const prev = SECTIONS[index - 1];
   const next = SECTIONS[index + 1];
   // Wide pages (the comparison) drop the right rail so the table fits.
-  const wide = sec.blocks.some((b) => b.kind === "compare");
+  const wide = sec.layout === "wide" || sec.blocks.some((b) => b.kind === "compare");
   const onPage = useMemo(() => sec.blocks.filter((b): b is Extract<Block, { kind: "h3" }> => b.kind === "h3"), [sec]);
   const url = `${ORIGIN}/docs/${sec.id}`;
   const md = `${ORIGIN}/docs/${sec.id}.md`;
@@ -56,10 +61,10 @@ function DocsPage({ sec }: { sec: DocSection }) {
   const ld = { "@context": "https://schema.org", "@type": "TechArticle", headline: sec.title, description: sec.summary ?? DOC_LEDE, url, dateModified: FACTS_AS_OF, isPartOf: { "@type": "WebSite", name: "Proteus AI docs", url: `${ORIGIN}/docs` }, encoding: { "@type": "MediaObject", encodingFormat: "text/markdown", contentUrl: md } };
 
   return (
-    <div data-app className={s.root}>
+    <div data-app className={s.root} data-theme={theme === "system" ? undefined : theme}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
       <header className={s.top}>
-        <Link to="/" className={s.brand} aria-label="Proteus AI home"><Wordmark /></Link>
+        <span className={s.brand}><Wordmark /></span>
         <nav className={s.pills} aria-label="Docs sections">
           {GROUPS.map((g) => {
             const first = SECTIONS.find((x) => x.group === g)!;
@@ -67,7 +72,10 @@ function DocsPage({ sec }: { sec: DocSection }) {
           })}
           <Link to="/blog" className={s.pill}>Blog</Link>
         </nav>
-        <a href="https://app.proteus.co.in" className={s.cta}>Open the app <ArrowUpRight size={14} aria-hidden /></a>
+        <span className={s.topEnd}>
+          <ThemeSwitch theme={theme} onChange={setTheme} />
+          <a href="https://app.proteus.co.in" className={s.cta}>Open the app <ArrowUpRight size={14} aria-hidden /></a>
+        </span>
       </header>
 
       <div className={`${s.grid} ${wide ? s.gridWide : ""}`}>
@@ -76,9 +84,9 @@ function DocsPage({ sec }: { sec: DocSection }) {
             <div key={g} className={s.sideGroup}>
               <span className={s.sideLabel}>{g}</span>
               {SECTIONS.filter((x) => x.group === g).map((x) => (
-                <Link key={x.id} to={`/docs/${x.id}`} className={`${s.sideLink} ${sec.id === x.id ? s.sideOn : ""}`} aria-current={sec.id === x.id ? "page" : undefined}>{x.title}</Link>
+                <Link key={x.id} to={`/docs/${x.id}`} className={`${s.sideLink} ${sec.id === x.id ? s.sideOn : ""}`} aria-current={sec.id === x.id ? "page" : undefined}>{x.nav ?? x.title}</Link>
               ))}
-              {g === "Reference" && <Link to="/docs/api" className={s.sideLink}>API reference</Link>}
+              {g === "Reference" && <Link to="/docs/api" className={s.sideLink}>Buyer HTTP API</Link>}
             </div>
           ))}
         </aside>
@@ -151,10 +159,24 @@ function BlockView({ b }: { b: Block }) {
   switch (b.kind) {
     case "p":
       return <p className={s.p}><Rich text={b.text} /></p>;
-    case "callout":
-      return <blockquote className={s.callout}><Rich text={b.text} /></blockquote>;
+    case "callout": {
+      const tone = b.tone ?? "note";
+      const Icon = tone === "warning" ? AlertTriangle : tone === "tip" ? Lightbulb : Info;
+      return (
+        <aside className={`${s.callout} ${tone === "warning" ? s.calloutWarn : tone === "tip" ? s.calloutTip : ""}`} role={tone === "warning" ? "note" : undefined}>
+          <Icon size={16} aria-hidden className={s.calloutIcon} />
+          <p>{b.title && <strong>{b.title}. </strong>}<Rich text={b.text} /></p>
+        </aside>
+      );
+    }
     case "h3":
-      return <h3 id={b.id} className={s.h3}>{b.text}</h3>;
+      return <h3 id={b.id} className={s.h3}><a href={`#${b.id}`} className={s.anchor}>{b.text}</a></h3>;
+    case "h4":
+      return <h4 className={s.h4}>{b.text}</h4>;
+    case "codetabs":
+      return <CodeTabs tabs={b.tabs.map((t) => ({ label: t.label, lang: t.lang, code: t.text }))} />;
+    case "endpoint":
+      return <Endpoint method={b.method} path={b.path} />;
     case "list":
       return <ul className={s.list}>{b.items.map((t) => <li key={t}><Rich text={t} /></li>)}</ul>;
     case "points":
@@ -245,7 +267,7 @@ function BlockView({ b }: { b: Block }) {
         </figure>
       );
     case "code":
-      return <pre className={s.pre} data-lang={b.lang}><code>{b.text}</code></pre>;
+      return <CodeBlock code={b.text} lang={b.lang} title={b.title} />;
     case "diagram":
       return (
         <figure className={s.figure}>
@@ -256,6 +278,91 @@ function BlockView({ b }: { b: Block }) {
     case "compare":
       return <CompareTable />;
   }
+}
+
+/** One seller API endpoint: badge and path, permission, parameters, request beside response, errors, and Try it. */
+function Endpoint({ method, path }: { method: string; path: string }) {
+  const ex = SELLER_EXAMPLES.find((x) => x.method === method && x.path === path)!;
+  const route = SELLER_API_REFERENCE.find((r) => r.method === method && r.path === path)!;
+  const rel = path.replace("/v1/seller", "");
+  return (
+    <div className={s.endpoint}>
+      <div className={s.endpointHead}>
+        <span className={`${s.verb} ${s[`verb${method}`] ?? ""}`}>{method}</span>
+        <code className={s.endpointPath}>{rel}</code>
+        <span className={route.scope ? s.scopeChip : s.scopeAny}>{route.scope ?? "Any valid key"}</span>
+      </div>
+      <p className={s.p}><Rich text={ex.description} /></p>
+      {ex.params.length > 0 && (
+        <div className={s.params}>
+          <span className={s.paramsLabel}>Parameters</span>
+          <ul className={s.paramList}>
+            {ex.params.map((x) => (
+              <li key={x.name} className={s.param}>
+                <span className={s.paramHead}>
+                  <code className={s.paramName}>{x.name}</code>
+                  <span className={s.paramType}>{x.type}</span>
+                  <span className={s.paramIn}>{x.in}</span>
+                  {x.required && <span className={s.paramReq}>required</span>}
+                </span>
+                <span className={s.paramText}><Rich text={x.description} /></span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className={c.pair}>
+        <CodeTabs title="Request" tabs={[{ label: "cURL", lang: "bash", code: ex.bash }, { label: "TypeScript", lang: "ts", code: ex.ts }]} />
+        <CodeBlock title={`Response ${ex.status}`} code={ex.response} lang="json" />
+      </div>
+      <TryIt route={route} example={ex.example} />
+      <details className={s.errors}>
+        <summary>Errors</summary>
+        <ul>
+          {ex.errors.map((e) => (
+            <li key={e.status}><code className={s.code}>{e.status}</code> <Rich text={e.when} /></li>
+          ))}
+        </ul>
+      </details>
+    </div>
+  );
+}
+
+type Theme = "system" | "light" | "dark";
+
+/** The reader's theme choice for the docs, remembered in this browser when storage allows. */
+function useDocsTheme(): [Theme, (t: Theme) => void] {
+  const [theme, setTheme] = useState<Theme>(() => {
+    try {
+      const v = localStorage.getItem("proteus-docs-theme");
+      return v === "light" || v === "dark" ? v : "system";
+    } catch {
+      return "system";
+    }
+  });
+  const set = (t: Theme) => {
+    setTheme(t);
+    try {
+      if (t === "system") localStorage.removeItem("proteus-docs-theme");
+      else localStorage.setItem("proteus-docs-theme", t);
+    } catch {
+      /* storage blocked: the choice lasts for this visit */
+    }
+  };
+  return [theme, set];
+}
+
+function ThemeSwitch({ theme, onChange }: { theme: Theme; onChange: (t: Theme) => void }) {
+  const opts = [["system", Monitor, "System theme"], ["light", Sun, "Light theme"], ["dark", Moon, "Dark theme"]] as const;
+  return (
+    <span className={s.themes} role="radiogroup" aria-label="Theme">
+      {opts.map(([id, Icon, label]) => (
+        <button key={id} type="button" role="radio" aria-checked={theme === id} aria-label={label} title={label} className={`${s.themeBtn} ${theme === id ? s.themeOn : ""}`} onClick={() => onChange(id)}>
+          <Icon size={14} aria-hidden />
+        </button>
+      ))}
+    </span>
+  );
 }
 
 function LinkBody({ l }: { l: { label: string; note?: string } }) {
