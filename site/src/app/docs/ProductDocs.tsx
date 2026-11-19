@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { AlertTriangle, ArrowLeft, ArrowRight, ArrowUpRight, Check, Copy, FileText, Info, Lightbulb, Minus, Monitor, Moon, Sun } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, ArrowUpRight, Check, Copy, FileText, Info, Lightbulb, Minus } from "lucide-react";
 import "../app.css";
 import { Wordmark } from "../layouts/Wordmark";
 import { compare } from "../../content/proteus";
@@ -31,7 +31,6 @@ export default function ProductDocs() {
 
 function DocsPage({ sec }: { sec: DocSection }) {
   const [copied, setCopied] = useState(false);
-  const [theme, setTheme] = useDocsTheme();
   const index = SECTIONS.findIndex((x) => x.id === sec.id);
   const prev = SECTIONS[index - 1];
   const next = SECTIONS[index + 1];
@@ -61,7 +60,7 @@ function DocsPage({ sec }: { sec: DocSection }) {
   const ld = { "@context": "https://schema.org", "@type": "TechArticle", headline: sec.title, description: sec.summary ?? DOC_LEDE, url, dateModified: FACTS_AS_OF, isPartOf: { "@type": "WebSite", name: "Proteus AI docs", url: `${ORIGIN}/docs` }, encoding: { "@type": "MediaObject", encodingFormat: "text/markdown", contentUrl: md } };
 
   return (
-    <div data-app className={s.root} data-theme={theme === "system" ? undefined : theme}>
+    <div data-app className={s.root}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
       <header className={s.top}>
         <span className={s.brand}><Wordmark /></span>
@@ -73,7 +72,6 @@ function DocsPage({ sec }: { sec: DocSection }) {
           <Link to="/blog" className={s.pill}>Blog</Link>
         </nav>
         <span className={s.topEnd}>
-          <ThemeSwitch theme={theme} onChange={setTheme} />
           <a href="https://app.proteus.co.in" className={s.cta}>Open the app <ArrowUpRight size={14} aria-hidden /></a>
         </span>
       </header>
@@ -325,43 +323,6 @@ function Endpoint({ method, path }: { method: string; path: string }) {
         </ul>
       </details>
     </div>
-  );
-}
-
-type Theme = "system" | "light" | "dark";
-
-/** The reader's theme choice for the docs, remembered in this browser when storage allows. */
-function useDocsTheme(): [Theme, (t: Theme) => void] {
-  const [theme, setTheme] = useState<Theme>(() => {
-    try {
-      const v = localStorage.getItem("proteus-docs-theme");
-      return v === "light" || v === "dark" ? v : "system";
-    } catch {
-      return "system";
-    }
-  });
-  const set = (t: Theme) => {
-    setTheme(t);
-    try {
-      if (t === "system") localStorage.removeItem("proteus-docs-theme");
-      else localStorage.setItem("proteus-docs-theme", t);
-    } catch {
-      /* storage blocked: the choice lasts for this visit */
-    }
-  };
-  return [theme, set];
-}
-
-function ThemeSwitch({ theme, onChange }: { theme: Theme; onChange: (t: Theme) => void }) {
-  const opts = [["system", Monitor, "System theme"], ["light", Sun, "Light theme"], ["dark", Moon, "Dark theme"]] as const;
-  return (
-    <span className={s.themes} role="radiogroup" aria-label="Theme">
-      {opts.map(([id, Icon, label]) => (
-        <button key={id} type="button" role="radio" aria-checked={theme === id} aria-label={label} title={label} className={`${s.themeBtn} ${theme === id ? s.themeOn : ""}`} onClick={() => onChange(id)}>
-          <Icon size={14} aria-hidden />
-        </button>
-      ))}
-    </span>
   );
 }
 

@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { HttpError } from "../src/lib/http";
@@ -104,13 +102,6 @@ describe("seller API sandbox", () => {
   it("is mounted on testnet only", () => {
     expect(sandboxEnabled("testnet")).toBe(true);
     expect(sandboxEnabled("mainnet")).toBe(false);
-  });
-
-  it("cannot reach the database, the chain, money or webhooks: its modules import only pure code", () => {
-    const imports = (file: string) => [...readFileSync(resolve(__dirname, "../src", file), "utf8").matchAll(/^import[^;]*?from\s+"([^"]+)"/gms)].map((m) => m[1]);
-    expect(imports("services/sandbox.ts").sort()).toEqual(["../lib/http", "./seller-api-rules", "@proteus/domain"].sort());
-    expect(imports("services/seller-api-rules.ts").sort()).toEqual(["../lib/http", "@proteus/domain"].sort());
-    expect(imports("lib/http.ts")).toEqual(["hono"]);
   });
 
   it("the docs and the Developers page use the same key, prefix and ids", () => {

@@ -182,13 +182,8 @@ tbody tr:last-child .cmpUs { border-radius: 0 0 12px 12px; }
 .entryCta { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 14px; font-weight: 500; color: var(--c-primary); }
 @media (max-width: 900px) { .entry { grid-template-columns: minmax(0, 1fr); } }
 
-/* ---------- header end: theme switch + CTA ---------- */
+/* ---------- header end: CTA ---------- */
 .topEnd { display: inline-flex; align-items: center; gap: 10px; flex: none; }
-.themes { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--c-card, #fff); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
-.themeBtn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 0; border-radius: 999px; background: transparent; color: var(--c-dark-60); cursor: pointer; }
-.themeBtn:hover { color: var(--c-dark); }
-.themeOn { color: var(--c-dark); background: var(--c-dark-5); box-shadow: inset 0 0 0 1px var(--c-dark-10); }
-.themeBtn:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 1px; }
 
 /* ---------- headings ---------- */
 .anchor { color: inherit; text-decoration: none; }
@@ -227,20 +222,8 @@ tbody tr:last-child .cmpUs { border-radius: 0 0 12px 12px; }
   --sk-blue-f: #e8efff; --sk-blue-s: #1b4dff; --sk-green-f: #e6f6ee; --sk-green-s: #067647; --sk-amber-f: #fdf2dc; --sk-amber-s: #b54708;
   --sk-rose-f: #fdebec; --sk-rose-s: #b42318; --sk-gray-f: #f2f3f5; --sk-gray-s: #475467; --sk-ink-f: #ffffff; --sk-ink-s: #1d2939;
 }
-.root[data-theme="dark"] { color-scheme: dark; }
-@media (prefers-color-scheme: dark) { .root:not([data-theme="light"]) { color-scheme: dark; } }
-.root[data-theme="dark"] {
-  --c-bg: #0b0d12; --c-card: #12151c; --c-white: #171b24;
-  --c-dark: #ececf1; --c-dark-80: rgba(236, 236, 241, 0.82); --c-dark-60: rgba(236, 236, 241, 0.62); --c-dark-40: rgba(236, 236, 241, 0.42);
-  --c-dark-20: rgba(236, 236, 241, 0.2); --c-dark-10: rgba(236, 236, 241, 0.1); --c-dark-5: rgba(236, 236, 241, 0.06);
-  --c-primary: #7c9bff; --c-primary-10: rgba(124, 155, 255, 0.14);
-  --docs-solid: #3a5cff; --docs-error: #f87171;
-  --docs-get: #4ade80; --docs-post: #7ca8ff; --docs-patch: #fbbf24; --docs-warn: #fbbf24; --docs-ok: #4ade80;
-  --sk-paper: #10131a; --sk-dot: rgba(236, 236, 241, 0.07); --sk-ink: #ececf1; --sk-sub: #9aa3b2; --sk-edge: #b4bccb; --sk-line: #9aa3b2; --sk-label-bg: #10131a;
-  --sk-blue-f: rgba(124, 155, 255, 0.14); --sk-blue-s: #7c9bff; --sk-green-f: rgba(74, 222, 128, 0.12); --sk-green-s: #4ade80; --sk-amber-f: rgba(251, 191, 36, 0.13); --sk-amber-s: #fbbf24;
-  --sk-rose-f: rgba(248, 113, 113, 0.13); --sk-rose-s: #f87171; --sk-gray-f: rgba(236, 236, 241, 0.06); --sk-gray-s: #9aa3b2; --sk-ink-f: rgba(236, 236, 241, 0.04); --sk-ink-s: #d0d5dd;
-}
-@media (prefers-color-scheme: dark) { .root:not([data-theme="light"]) {
+@media (prefers-color-scheme: dark) { .root {
+  color-scheme: dark;
   --c-bg: #0b0d12; --c-card: #12151c; --c-white: #171b24;
   --c-dark: #ececf1; --c-dark-80: rgba(236, 236, 241, 0.82); --c-dark-60: rgba(236, 236, 241, 0.62); --c-dark-40: rgba(236, 236, 241, 0.42);
   --c-dark-20: rgba(236, 236, 241, 0.2); --c-dark-10: rgba(236, 236, 241, 0.1); --c-dark-5: rgba(236, 236, 241, 0.06);
@@ -252,10 +235,8 @@ tbody tr:last-child .cmpUs { border-radius: 0 0 12px 12px; }
   --sk-rose-f: rgba(248, 113, 113, 0.13); --sk-rose-s: #f87171; --sk-gray-f: rgba(236, 236, 241, 0.06); --sk-gray-s: #9aa3b2; --sk-ink-f: rgba(236, 236, 241, 0.04); --sk-ink-s: #d0d5dd;
 } }
 /* The wordmark is a dark PNG: invert it (the hue turn keeps the blue mark blue). Filled buttons keep white text readable. */
-.root[data-theme="dark"] .brand img { filter: invert(1) hue-rotate(180deg); }
-@media (prefers-color-scheme: dark) { .root:not([data-theme="light"]) .brand img { filter: invert(1) hue-rotate(180deg); } }
+@media (prefers-color-scheme: dark) { .root .brand img { filter: invert(1) hue-rotate(180deg); } }
 .cta { background: var(--docs-solid, var(--c-primary)); }
-.root[data-theme="dark"] .netMain { color: #4ade80; background: rgba(74, 222, 128, 0.12); }
-@media (prefers-color-scheme: dark) { .root:not([data-theme="light"]) .netMain { color: #4ade80; background: rgba(74, 222, 128, 0.12); } }
-@media (max-width: 860px) { .themes { display: none; } .scopeChip, .scopeAny { margin-left: 0; } }
+@media (prefers-color-scheme: dark) { .root .netMain { color: #4ade80; background: rgba(74, 222, 128, 0.12); } }
+@media (max-width: 860px) { .scopeChip, .scopeAny { margin-left: 0; } }
 .gridWide .p, .gridWide .summary { max-width: 760px; }

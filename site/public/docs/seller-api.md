@@ -46,7 +46,7 @@ curl https://ai.proteus.co.in/api/v1/sandbox/seller/me \
 
 ### Quickstart
 
-The same four steps as on the [Developers](https://app.proteus.co.in/app/sell/developers#quickstart) page, against Arc testnet with a test key. Keep the key in an environment variable on your server; never commit it or ship it to a browser.
+The same four steps as on the [Developers](https://app.proteus.co.in/app/sell/developers#quickstart) page, against Arc testnet with a test key. Keep the key in an environment variable on your server. Never commit it or embed it in client-side code you ship; testing it from the console on your own Developers page is fine.
 
 #### 1. Check the key
 

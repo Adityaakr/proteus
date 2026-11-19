@@ -186,7 +186,7 @@ export function TryIt({ route, example, own, compact }: { route: ApiRoute; examp
             ? "Writes are not sent with your key from this page: a delivery report or price change acts on real deals. Try it as a dry run with the sandbox key, then send it from your server."
             : wrongEnv
               ? `This page's API takes ${own!.env} keys (psk_${own!.env}_…); that key will be refused with 401.`
-              : "Sent from your browser to your own seller API. The key stays in this page's memory and is cleared when you leave."}
+              : "Sent from your Developers page to your own seller API. The key stays in this page's memory and is cleared when you leave; never embed it in client-side code you ship."}
       </p>
 
       {problem && <p className={t.problem} role="alert">{problem}</p>}

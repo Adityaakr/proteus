@@ -499,7 +499,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "code", lang: "bash", text: "curl " + SANDBOX.baseUrl + "/me \\\n  -H \"Authorization: Bearer " + SANDBOX.key + "\"" },
       { kind: "callout", tone: "note", title: "Sandbox", text: "Reads return the same fields as the real API, from fixed demo records. Writes run the API's own checks and answer `{ \"dryRun\": true, \"wouldReturn\": …, \"wouldHappen\": [...] }`: nothing is stored, signed, paid or sent. It runs on the Arc testnet deployment and never touches a real seller, the chain or a webhook." },
       { kind: "h3", id: "seller-api-quickstart", text: "Quickstart" },
-      { kind: "p", text: "The same four steps as on the [Developers](/app/sell/developers#quickstart) page, against Arc testnet with a test key. Keep the key in an environment variable on your server; never commit it or ship it to a browser." },
+      { kind: "p", text: "The same four steps as on the [Developers](/app/sell/developers#quickstart) page, against Arc testnet with a test key. Keep the key in an environment variable on your server. Never commit it or embed it in client-side code you ship; testing it from the console on your own Developers page is fine." },
       ...SELLER_QUICKSTART.flatMap((st): Block[] => [
         { kind: "h4", text: st.title },
         { kind: "p", text: st.body },

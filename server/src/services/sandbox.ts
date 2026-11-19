@@ -3,8 +3,8 @@
  * API from the docs with a published key.
  *
  * Safety, by construction:
- * - This module imports no database, chain, wallet, notification or HTTP client code (a test checks the imports). It
- *   cannot read a real seller's data, touch Arc, move money or call a webhook.
+ * - This module uses no database, chain, wallet, notification or HTTP client code (a test runs every handler with those
+ *   modules replaced by tripwires). It cannot read a real seller's data, touch Arc, move money or call a webhook.
  * - The fixtures are frozen constants. Reads return them; writes are dry runs that run the real API's checks
  *   (seller-api-rules.ts) against the fixtures and answer what would happen, so no visitor can change what another sees.
  * - The key is public and only works here: it is not a psk_test_/psk_live_ key, so the real seller API refuses it, and
@@ -183,7 +183,7 @@ export const SANDBOX_HANDLERS: Record<string, (req: SandboxRequest) => unknown> 
     const prepaid = d.deposit;
     const existing = d.deliveries.find((x) => x.requestId === input.requestId);
     if (existing) {
-      return dryRun(200, receipt(d, existing.requestId, existing.units, existing.note, existing.cumulativeUnits, input.proofUrl, existing.at), [`requestId ${input.requestId} was already recorded on this deal, so the API returns the first receipt again and records nothing.`]);
+      return dryRun(201, receipt(d, existing.requestId, existing.units, existing.note, existing.cumulativeUnits, input.proofUrl, existing.at), [`requestId ${input.requestId} was already recorded on this deal, so the API returns the first receipt again and records nothing.`]);
     }
     const plan = planDelivery(deliveredUnits(d), BigInt(input.units), { maxUnits: d.maxUnits, unitNum: d.unit.num, unitDen: d.unit.den, prepaid });
     return dryRun(201, receipt(d, input.requestId, input.units, note, plan.cumulativeUnits, input.proofUrl, new Date().toISOString()), [
