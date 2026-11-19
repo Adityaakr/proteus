@@ -660,3 +660,52 @@ export const dealUpdates = pgTable(
   },
   (t) => [index("deal_updates_deal").on(t.dealId)],
 );
+
+/**
+ * Seller API keys for the /api/v1/seller endpoints. Only a SHA-256 of the key is stored, plus a short non-secret
+ * prefix and the last 4 characters for the masked view; the full key is returned once, by create or regenerate.
+ * `env` is "test" (Arc testnet data) or "live" (Arc mainnet data); a key only works on a deployment of its network.
+ * Regenerating with an overlap sets `expiresAt` on the old key; revoking sets `revokedAt` and takes effect at once.
+ */
+export const sellerApiKeys = pgTable(
+  "seller_api_keys",
+  {
+    id: text("id").primaryKey(),
+    orgId: text("org_id").notNull(),
+    name: text("name").notNull(),
+    env: text("env").notNull(), // test | live
+    keyHash: text("key_hash").notNull(),
+    /** Non-secret display prefix, e.g. "psk_live_Ab3x". */
+    prefix: text("prefix").notNull(),
+    last4: text("last4").notNull(),
+    scopes: jsonb("scopes").notNull(),
+    createdBy: text("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    /** Set when the key was replaced with an overlap: it keeps working until then. */
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    /** The key that replaced this one on regenerate. */
+    replacedBy: text("replaced_by"),
+  },
+  (t) => [uniqueIndex("seller_api_keys_hash").on(t.keyHash), index("seller_api_keys_org").on(t.orgId)],
+);
+
+/** Recent webhook deliveries per seller (sample tests and real events), trimmed to the newest few dozen. */
+export const webhookDeliveries = pgTable(
+  "webhook_deliveries",
+  {
+    id: text("id").primaryKey(),
+    orgId: text("org_id").notNull(),
+    event: text("event").notNull(),
+    /** The outbox row this delivery sent, when it was a real event. */
+    notificationId: text("notification_id"),
+    url: text("url").notNull(),
+    ok: boolean("ok").notNull(),
+    statusCode: integer("status_code"),
+    latencyMs: integer("latency_ms").notNull(),
+    error: text("error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("webhook_deliveries_org").on(t.orgId, t.createdAt)],
+);

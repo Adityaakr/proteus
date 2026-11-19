@@ -1,5 +1,7 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": { "types": ["node"], "noEmit": true, "module": "ESNext", "moduleResolution": "Bundler" },
-  "include": ["src", "scripts", "test"]
+  "include": ["src", "scripts", "test"],
+  // test/*.test.tsx render site pages with the site's React (see vitest.config.ts); the site build typechecks those pages.
+  "exclude": ["test/**/*.tsx"]
 }

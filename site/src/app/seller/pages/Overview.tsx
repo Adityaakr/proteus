@@ -9,6 +9,15 @@ import s from "../seller.module.css";
 import d from "../dashboard.module.css";
 import { ARC_NETWORK_NAMES, defaultNetwork } from "@proteus/domain";
 
+const dealsWord = (n: number) => (n === 1 ? "1 deal" : `${n} deals`);
+
+/** Where revenue came from: only USDC the escrow paid out; money still held for buyers is under "Customer funds held". */
+export function revenueHint(settledDeals: number, fulfilledDeals: number): string {
+  if (settledDeals === 0) return "Nothing settled yet. Funds count once usage is accepted";
+  if (fulfilledDeals >= settledDeals) return `Settled on chain from ${fulfilledDeals === 1 ? "1 fulfilled deal" : `${fulfilledDeals} fulfilled deals`}`;
+  return `Settled on chain from ${dealsWord(settledDeals)}, ${fulfilledDeals} fully delivered`;
+}
+
 /** Seller overview: four numbers that matter, what needs the owner, and the latest deals. Every figure is a sum over real rows. */
 export default function Overview() {
   const q = useDashboard();
@@ -22,7 +31,7 @@ export default function Overview() {
               <div className={d.stat}>
                 <span className={d.statLabel}>Revenue earned</span>
                 <span className={d.statValue}><Money micro={o.revenueEarned} /></span>
-                <span className={d.statHint}>Settled from {o.fulfilledDeals === 1 ? "1 fulfilled deal" : `${o.fulfilledDeals} fulfilled deals`}</span>
+                <span className={d.statHint}>{revenueHint(o.settledDeals ?? o.fulfilledDeals, o.fulfilledDeals)}</span>
               </div>
               <div className={d.stat}>
                 <span className={d.statLabel}>Active negotiations</span>

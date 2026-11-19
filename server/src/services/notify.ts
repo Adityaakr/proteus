@@ -9,7 +9,7 @@
 import { createHmac, randomBytes } from "node:crypto";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
-import { and, asc, eq, lt } from "drizzle-orm";
+import { and, asc, desc, eq, lt, notInArray } from "drizzle-orm";
 import { db, schema } from "../db";
 import { env } from "../env";
 import { decryptSecret, encryptSecret } from "../lib/crypto";
@@ -53,9 +53,10 @@ export async function saveSettings(orgId: string, body: { email?: string | null;
   if (email && !/^[^\s@]{1,64}@[^\s@]{1,190}\.[a-z]{2,}$/i.test(email)) throw new HttpError(400, "Enter a valid email address.");
   const chat = body.telegramChatId?.trim() || null;
   if (chat && !/^-?\d{4,20}$/.test(chat)) throw new HttpError(400, "A Telegram chat id is a number (message the bot, then use the id it shows).");
-  const url = body.webhookUrl?.trim() || null;
-  if (url) await assertPublicHttps(url);
   const [cur] = await db.select().from(schema.notificationSettings).where(eq(schema.notificationSettings.orgId, orgId));
+  // The webhook is managed on the Developers page; a save that does not mention it keeps it as it is.
+  const url = body.webhookUrl === undefined ? cur?.webhookUrl ?? null : body.webhookUrl?.trim() || null;
+  if (url && url !== cur?.webhookUrl) await assertPublicHttps(url);
   let secret: string | null = null;
   let webhookSecretEnc = cur?.webhookSecretEnc ?? null;
   if (url && (!cur?.webhookUrl || cur.webhookUrl !== url || !webhookSecretEnc)) {
@@ -106,17 +107,68 @@ export async function assertPublicHttps(raw: string): Promise<URL> {
 
 /* ---------------------------------------------------------------- delivery */
 
-async function sendWebhook(url: string, secretEnc: string, body: string) {
-  const u = await assertPublicHttps(url); // re-checked at send time (DNS can change after saving)
+/** X-Proteus-Signature value: HMAC-SHA256 of "<t>.<body>" with the seller's signing secret. */
+export function signWebhook(secret: string, t: number, body: string): string {
+  return `t=${t},v1=${createHmac("sha256", secret).update(`${t}.${body}`).digest("hex")}`;
+}
+
+export class WebhookError extends Error {
+  constructor(message: string, public statusCode: number | null, public latencyMs: number) {
+    super(message);
+  }
+}
+
+/** POSTs one signed event. Resolves with the status and latency on 2xx; throws a WebhookError carrying both otherwise. */
+async function sendWebhook(url: string, secretEnc: string, body: string): Promise<{ statusCode: number; latencyMs: number }> {
+  const started = Date.now();
+  let u: URL;
+  try {
+    u = await assertPublicHttps(url); // re-checked at send time (DNS can change after saving)
+  } catch (e) {
+    throw new WebhookError((e as Error).message, null, 0);
+  }
   const t = Math.floor(Date.now() / 1000);
-  const sig = createHmac("sha256", decryptSecret(secretEnc)).update(`${t}.${body}`).digest("hex");
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 5000);
   try {
-    const r = await fetch(u, { method: "POST", redirect: "manual", signal: ctl.signal, headers: { "content-type": "application/json", "user-agent": "ProteusAI-Webhooks/1", "x-proteus-signature": `t=${t},v1=${sig}` }, body });
-    if (r.status < 200 || r.status >= 300) throw new Error(`webhook answered HTTP ${r.status}`);
+    const r = await fetch(u, { method: "POST", redirect: "manual", signal: ctl.signal, headers: { "content-type": "application/json", "user-agent": "ProteusAI-Webhooks/1", "x-proteus-signature": signWebhook(decryptSecret(secretEnc), t, body) }, body });
+    const latencyMs = Date.now() - started;
+    if (r.status < 200 || r.status >= 300) throw new WebhookError(`webhook answered HTTP ${r.status}`, r.status, latencyMs);
+    return { statusCode: r.status, latencyMs };
+  } catch (e) {
+    if (e instanceof WebhookError) throw e;
+    const latencyMs = Date.now() - started;
+    throw new WebhookError((e as Error).name === "AbortError" ? "no answer within 5 s" : `could not reach the webhook: ${String((e as Error).message).slice(0, 120)}`, null, latencyMs);
   } finally {
     clearTimeout(timer);
+  }
+}
+
+/* ---------------------------------------------------------------- webhook delivery log */
+
+/** How many recent deliveries each seller keeps. */
+export const DELIVERY_LOG_SIZE = 50;
+
+async function logDelivery(orgId: string, entry: { event: string; url: string; notificationId?: string | null; ok: boolean; statusCode: number | null; latencyMs: number; error: string | null }) {
+  try {
+    await db.insert(schema.webhookDeliveries).values({ id: id("whd"), orgId, event: entry.event, notificationId: entry.notificationId ?? null, url: entry.url, ok: entry.ok, statusCode: entry.statusCode, latencyMs: entry.latencyMs, error: entry.error?.slice(0, 300) ?? null });
+    const keep = db.select({ id: schema.webhookDeliveries.id }).from(schema.webhookDeliveries).where(eq(schema.webhookDeliveries.orgId, orgId)).orderBy(desc(schema.webhookDeliveries.createdAt)).limit(DELIVERY_LOG_SIZE);
+    await db.delete(schema.webhookDeliveries).where(and(eq(schema.webhookDeliveries.orgId, orgId), notInArray(schema.webhookDeliveries.id, keep)));
+  } catch (e) {
+    console.error("[notify] delivery log", String((e as Error).message).slice(0, 120));
+  }
+}
+
+/** Sends one webhook event and records the attempt in the delivery log. Returns the error text, or null when delivered. */
+async function deliverWebhook(orgId: string, url: string, secretEnc: string, event: string, body: string, notificationId?: string | null): Promise<{ error: string | null; statusCode: number | null; latencyMs: number }> {
+  try {
+    const r = await sendWebhook(url, secretEnc, body);
+    await logDelivery(orgId, { event, url, notificationId, ok: true, statusCode: r.statusCode, latencyMs: r.latencyMs, error: null });
+    return { error: null, statusCode: r.statusCode, latencyMs: r.latencyMs };
+  } catch (e) {
+    const w = e instanceof WebhookError ? e : new WebhookError((e as Error).message, null, 0);
+    await logDelivery(orgId, { event, url, notificationId, ok: false, statusCode: w.statusCode, latencyMs: w.latencyMs, error: w.message });
+    return { error: w.message, statusCode: w.statusCode, latencyMs: w.latencyMs };
   }
 }
 
@@ -153,7 +205,10 @@ async function deliver(n: Row): Promise<string[]> {
   const payload = n.payload as Record<string, unknown>;
   const text = render(n.event as NotifyEvent, payload);
   const errors: string[] = [];
-  if (s?.webhookUrl && s.webhookSecretEnc) await sendWebhook(s.webhookUrl, s.webhookSecretEnc, JSON.stringify({ id: n.id, event: n.event, createdAt: n.createdAt, data: payload })).catch((e) => errors.push(`webhook: ${(e as Error).message}`));
+  if (s?.webhookUrl && s.webhookSecretEnc) {
+    const w = await deliverWebhook(n.orgId, s.webhookUrl, s.webhookSecretEnc, n.event, JSON.stringify({ id: n.id, event: n.event, createdAt: n.createdAt, data: payload }), n.id);
+    if (w.error) errors.push(`webhook: ${w.error}`);
+  }
   if (s?.telegramChatId && env.TELEGRAM_BOT_TOKEN) await sendTelegram(s.telegramChatId, text).catch((e) => errors.push(`telegram: ${(e as Error).message}`));
   if (s?.email && env.SMTP_URL) await sendEmail(s.email, `Proteus AI: ${TITLES[n.event as NotifyEvent]}`, text).catch((e) => errors.push(`email: ${(e as Error).message}`));
   const failed = errors.length > 0;
@@ -182,6 +237,68 @@ export async function sendTest(orgId: string) {
   return { ok: errors.length === 0, errors };
 }
 
+/* ---------------------------------------------------------------- webhook management (Developers page) */
+
+/** The events a seller webhook receives, in the order the Developers page lists them. */
+export const WEBHOOK_EVENTS: { event: Exclude<NotifyEvent, "test">; title: string }[] = (Object.keys(TITLES) as NotifyEvent[]).filter((e): e is Exclude<NotifyEvent, "test"> => e !== "test").map((event) => ({ event, title: TITLES[event] }));
+
+const newWebhookSecret = () => `whsec_${randomBytes(24).toString("hex")}`;
+
+export async function webhookView(orgId: string) {
+  const [s] = await db.select().from(schema.notificationSettings).where(eq(schema.notificationSettings.orgId, orgId));
+  const deliveries = await db.select().from(schema.webhookDeliveries).where(eq(schema.webhookDeliveries.orgId, orgId)).orderBy(desc(schema.webhookDeliveries.createdAt)).limit(DELIVERY_LOG_SIZE);
+  return {
+    url: s?.webhookUrl ?? null,
+    hasSecret: Boolean(s?.webhookSecretEnc),
+    events: WEBHOOK_EVENTS,
+    signature: "X-Proteus-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of \"<t>.<raw body>\" with your signing secret>",
+    deliveries: deliveries.map((d) => ({ id: d.id, at: d.createdAt, event: d.event, ok: d.ok, statusCode: d.statusCode, latencyMs: d.latencyMs, error: d.error })),
+  };
+}
+
+/**
+ * Sets or clears the webhook URL. A first URL gets a new signing secret, returned once as `secret`; changing the URL
+ * keeps the existing secret so a receiver that already verifies signatures keeps working.
+ */
+export async function setWebhookUrl(orgId: string, raw: string | null) {
+  const url = raw?.trim() || null;
+  if (url) await assertPublicHttps(url);
+  const [cur] = await db.select().from(schema.notificationSettings).where(eq(schema.notificationSettings.orgId, orgId));
+  let secret: string | null = null;
+  let webhookSecretEnc = url ? cur?.webhookSecretEnc ?? null : null;
+  if (url && !webhookSecretEnc) {
+    secret = newWebhookSecret();
+    webhookSecretEnc = encryptSecret(secret);
+  }
+  await db
+    .insert(schema.notificationSettings)
+    .values({ orgId, webhookUrl: url, webhookSecretEnc, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: schema.notificationSettings.orgId, set: { webhookUrl: url, webhookSecretEnc, updatedAt: new Date() } });
+  return { ...(await webhookView(orgId)), secret };
+}
+
+/** Replaces the signing secret. The new one is returned once; deliveries are signed with it from now on. */
+export async function rotateWebhookSecret(orgId: string) {
+  const [cur] = await db.select().from(schema.notificationSettings).where(eq(schema.notificationSettings.orgId, orgId));
+  if (!cur?.webhookUrl) throw new HttpError(400, "Add a webhook URL first.");
+  const secret = newWebhookSecret();
+  await db.update(schema.notificationSettings).set({ webhookSecretEnc: encryptSecret(secret), updatedAt: new Date() }).where(eq(schema.notificationSettings.orgId, orgId));
+  return { ...(await webhookView(orgId)), secret };
+}
+
+/** The body of a sample event: the same envelope real events use, clearly marked as a test. */
+export function sampleWebhookEvent(now = new Date()) {
+  return { id: id("evt_test"), event: "test", createdAt: now.toISOString(), test: true, data: { deal: "example", amountUsdc: "1.000000", link: `${env.WEB_ORIGIN}/app/sell` } };
+}
+
+/** Sends one signed sample event to the webhook only, records it in the delivery log and reports the result. */
+export async function sendWebhookTest(orgId: string) {
+  const [s] = await db.select().from(schema.notificationSettings).where(eq(schema.notificationSettings.orgId, orgId));
+  if (!s?.webhookUrl || !s.webhookSecretEnc) throw new HttpError(400, "Add a webhook URL first.");
+  const r = await deliverWebhook(orgId, s.webhookUrl, s.webhookSecretEnc, "test", JSON.stringify(sampleWebhookEvent()));
+  return { ok: r.error === null, statusCode: r.statusCode, latencyMs: r.latencyMs, error: r.error };
+}
+
 /* ---------------------------------------------------------------- the buyer's own channels (per deal) */
 
 /** Which channels this server can deliver to; the deal page shows only these. */
@@ -195,7 +312,7 @@ export async function sendToChannels(target: { email?: string | null; telegramCh
   const jobs: [string, () => Promise<void>][] = [];
   if (target.email && env.SMTP_URL) jobs.push(["email", () => sendEmail(target.email!, subject, text)]);
   if (target.telegramChatId && env.TELEGRAM_BOT_TOKEN) jobs.push(["telegram", () => sendTelegram(target.telegramChatId!, `${subject}\n\n${text}`)]);
-  if (target.webhookUrl && target.webhookSecretEnc) jobs.push(["webhook", () => sendWebhook(target.webhookUrl!, target.webhookSecretEnc!, JSON.stringify({ event: payload.event, subject, ...payload, at: new Date().toISOString() }))]);
+  if (target.webhookUrl && target.webhookSecretEnc) jobs.push(["webhook", async () => void (await sendWebhook(target.webhookUrl!, target.webhookSecretEnc!, JSON.stringify({ event: payload.event, subject, ...payload, at: new Date().toISOString() })))]);
   await Promise.all(
     jobs.map(async ([name, run]) => {
       for (let i = 0; i < 2; i++) {

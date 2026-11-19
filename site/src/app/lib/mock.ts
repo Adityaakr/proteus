@@ -408,7 +408,7 @@ async function sendMessage(id: string, body: Body): Promise<T.Negotiation> {
       role: "agent",
       kind: "clarify",
       createdAt: now(),
-      content: `One billable resolution is ${product.billableUnit}. Failed lookups and handoffs to your team are never billed. How many order questions do you expect in a month?`,
+      content: `One billable resolution is ${product.billableUnit.replace(/\.+$/, "")}. Failed lookups and handoffs to your team are never billed. How many order questions do you expect in a month?`,
     });
   } else {
     const unsupported = rec.req.integrations.filter((i) => !product.supportedIntegrations.includes(i));

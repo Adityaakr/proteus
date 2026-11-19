@@ -39,6 +39,24 @@ export function formatUsd(m: Micro, fractionDigits = 2): string {
   return `${neg ? "-" : ""}$${grouped}${fractionDigits > 0 ? "." + fracStr : ""}`;
 }
 
+/**
+ * A per-unit price from a rational micro-USDC amount, for people: always at least two decimals, up to four when the
+ * price has sub-cent precision. 6600000/1 -> "$6.60", 35000/1 -> "$0.035", 125/1 -> "$0.0001".
+ */
+export function formatUnitPrice(num: bigint, den: bigint): string {
+  const scaled = (num * 10_000n) / den; // 1e-10 dollars
+  const whole = scaled / 10_000_000_000n;
+  const frac = (scaled % 10_000_000_000n).toString().padStart(10, "0").slice(0, 4).replace(/0+$/, "").padEnd(2, "0");
+  return `$${whole}.${frac}`;
+}
+
+/** Normalizes a dollar price string to at least two decimals, keeping sub-cent digits: "$6.5" -> "$6.50", "$0.0350" -> "$0.035". */
+export function usdPrice(v: string): string {
+  const m = /^(-?)\$?(\d[\d,]*)(?:\.(\d+))?$/.exec(v.trim());
+  if (!m) return v;
+  return `${m[1]}$${m[2]}.${(m[3] ?? "").replace(/0+$/, "").padEnd(2, "0")}`;
+}
+
 /** floor(a * num / den) */
 export function mulDivFloor(a: bigint, num: bigint, den: bigint): bigint {
   if (den <= 0n) throw new Error("den must be > 0");

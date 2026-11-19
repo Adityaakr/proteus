@@ -1,7 +1,7 @@
 /**
  * AppShell: the signed in dashboard frame for every /app route (buy and sell).
  *  - 240px sidebar: Buy group [Home, Market, Negotiations, Deals, Wallet] and Sell group
- *    ["Start selling" until the account has an org, then Products, Negotiations, Approvals, Deals, Finance]
+ *    ["Start selling" until the account has an org, then the seller sections in navItems.tsx]
  *  - sticky top bar: page title, actions slot, network badge, account menu
  *  - bottom tab bar on phone widths (< 810px); sidebar hidden there
  *  - skip link to #app-main
@@ -9,7 +9,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
-import { Activity, BarChart3, BookOpen, Briefcase, ChevronDown, Handshake, Home, KeyRound, Landmark, LayoutDashboard, LogOut, MessagesSquare, Package, Settings, ShieldCheck, SlidersHorizontal, Store, Users, Wallet } from "lucide-react";
+import { BookOpen, Briefcase, ChevronDown, Home, KeyRound, LogOut, Settings, Store, Wallet } from "lucide-react";
 import { T_DEFAULT } from "../../lib/motion";
 import { NetworkBadge, StatusTag } from "../ui/StatusTag";
 import { useQuery } from "@tanstack/react-query";
@@ -21,20 +21,13 @@ import { WalletPicker } from "../wallet/WalletPicker";
 import { api, isMock, qk } from "../lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Wordmark } from "./Wordmark";
+import { BUY_NAV, SELL_NAV_ORG, SELL_NAV_START, type AppNavItem } from "./navItems";
+
+export { BUY_NAV, SELL_NAV_ORG, SELL_NAV_START, type AppNavItem };
 import "../app.css";
 import s from "./shells.module.css";
 
 export { SandboxNote, SANDBOX_TEXT } from "./SandboxNote";
-
-export interface AppNavItem {
-  label: string;
-  to: string;
-  icon: ReactNode;
-  /** Match the route exactly (index routes such as "/app"). */
-  end?: boolean;
-  /** Shorter label for the phone tab bar. */
-  short?: string;
-}
 
 export interface AppShellProps {
   children: ReactNode;
@@ -45,29 +38,6 @@ export interface AppShellProps {
 }
 
 const ic = (C: typeof Home) => <C size={17} strokeWidth={1.9} />;
-
-export const BUY_NAV: AppNavItem[] = [
-  { label: "Home", to: "/app", icon: ic(Home), end: true },
-  { label: "Market", to: "/app/market", icon: ic(Store) },
-  { label: "Negotiations", to: "/app/negotiations", icon: ic(MessagesSquare) },
-  { label: "Deals", to: "/app/deals", icon: ic(Handshake) },
-  { label: "Wallet", to: "/app/wallet", icon: ic(Wallet) },
-];
-
-export const SELL_NAV_START: AppNavItem[] = [{ label: "Start selling", to: "/app/sell", icon: ic(Briefcase), short: "Sell" }];
-
-export const SELL_NAV_ORG: AppNavItem[] = [
-  { label: "Overview", to: "/app/sell", icon: ic(LayoutDashboard), end: true },
-  { label: "Negotiations", to: "/app/sell/negotiations", icon: ic(MessagesSquare) },
-  { label: "Deals", to: "/app/sell/deals", icon: ic(Handshake) },
-  { label: "Customers", to: "/app/sell/customers", icon: ic(Users) },
-  { label: "Products & pricing", to: "/app/sell/products", icon: ic(Package) },
-  { label: "Payments", to: "/app/sell/payments", icon: ic(Landmark) },
-  { label: "Usage & delivery", to: "/app/sell/usage", icon: ic(Activity) },
-  { label: "Insights", to: "/app/sell/insights", icon: ic(BarChart3) },
-  { label: "Agent policies", to: "/app/sell/policies", icon: ic(ShieldCheck) },
-  { label: "Seller settings", to: "/app/sell/settings", icon: ic(SlidersHorizontal) },
-];
 
 const SETTINGS: AppNavItem = { label: "Settings", to: "/app/settings", icon: ic(Settings) };
 const DOCS: AppNavItem = { label: "Docs", to: "/docs", icon: ic(BookOpen) };

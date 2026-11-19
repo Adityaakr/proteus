@@ -14,10 +14,11 @@ import { confirmDelivery } from "../services/delivery";
 import { orderTimeline, postOrderUpdate } from "../services/orders";
 import { loadDeal } from "../services/deals";
 import { exportCsv, type ExportKind } from "../services/exports";
-import { updateCost, updatePolicy } from "../services/product-rules";
+import { replaceTiers, updateCost, updatePolicy } from "../services/product-rules";
 import { catalogSyncView, runCatalogSync, saveCatalogSync } from "../services/catalog-sync";
 import { createSandboxSession, requireSession, session } from "./session";
 import { features } from "../env";
+import { dealTotals, financeView } from "../services/seller-reports";
 
 export const appRoutes = new Hono();
 
@@ -37,20 +38,17 @@ appRoutes.get("/app/overview", async (c) => {
   const quotes = await db.select({ n: dsql<number>`count(*)` }).from(schema.quotes).where(eq(schema.quotes.orgId, orgId));
   const approvalsPending = await db.select({ n: dsql<number>`count(*)` }).from(schema.approvals).where(and(eq(schema.approvals.orgId, orgId), eq(schema.approvals.status, "pending")));
   const deals = await db.select().from(schema.deals).where(eq(schema.deals.orgId, orgId));
-  const funded = deals.filter((d) => d.deposit > 0n);
+  const t = dealTotals(deals);
   const usage = await db.select({ n: dsql<number>`coalesce(sum(units),0)` }).from(schema.serviceRequests).where(and(eq(schema.serviceRequests.orgId, orgId), eq(schema.serviceRequests.billable, true)));
-  const fundedValue = funded.reduce((s, d) => s + d.deposit, 0n);
-  const earned = funded.reduce((s, d) => s + d.settled, 0n);
-  const refunded = funded.reduce((s, d) => s + d.refunded, 0n);
   return json(c, {
     quotes: Number(quotes[0]?.n ?? 0),
     approvalsPending: Number(approvalsPending[0]?.n ?? 0),
-    dealsFunded: funded.length,
+    dealsFunded: t.dealsFunded,
     dealsAwaitingFunding: deals.filter((d) => d.status === "awaiting_funding" || d.status === "funding_pending").length,
-    fundedValue,
-    earnedSettled: earned,
-    pendingLiability: fundedValue - earned - refunded,
-    refunded,
+    fundedValue: t.fundedValue,
+    earnedSettled: t.revenueEarned,
+    pendingLiability: t.fundsHeld,
+    refunded: t.refunded,
     usageUnits: Number(usage[0]?.n ?? 0),
     labels: { seller: org?.label ?? "sandbox", network: features.network, note: org?.label === "sandbox" ? "Example seller: figures are testnet USDC and are excluded from live traction counters." : "Arc testnet USDC." },
   });
@@ -127,37 +125,12 @@ appRoutes.patch("/app/products/:id/policy", async (c) => {
   return json(c, await productWithPrivate(orgId, lp.row.id));
 });
 
-const MAX_TIERS = 6;
-
-/**
- * Replace a product's public price tiers. Tiers are list prices buyers see (and every quote's signed public terms
- * carry), not the private policy, so nothing is re-committed on Arc. A 1-unit tier is how a seller sells single items.
- */
+/** Replace a product's public price tiers (see replaceTiers). */
 appRoutes.patch("/app/products/:id/tiers", async (c) => {
   const { orgId } = session(c);
   const lp = await loadProductById(c.req.param("id"));
   if (lp.org.id !== orgId) throw new HttpError(404, "product not found");
-  const body = (await c.req.json()) as { tiers?: { name?: unknown; includedUnits?: unknown; unitPriceUsd?: unknown; includes?: unknown }[] };
-  const input = Array.isArray(body.tiers) ? body.tiers : [];
-  if (input.length < 1 || input.length > MAX_TIERS) throw new HttpError(400, `between 1 and ${MAX_TIERS} tiers`);
-  const pub = lp.row.public as { tiers: { id: string }[]; maxUnitsPerDeal: string };
-  const seen = new Set<string>();
-  const tiers = input.map((t, i) => {
-    const name = typeof t.name === "string" ? t.name.trim().slice(0, 40) : "";
-    const units = typeof t.includedUnits === "string" || typeof t.includedUnits === "number" ? String(t.includedUnits).trim() : "";
-    const price = typeof t.unitPriceUsd === "string" || typeof t.unitPriceUsd === "number" ? String(t.unitPriceUsd).trim() : "";
-    if (!name) throw new HttpError(400, `tier ${i + 1}: a name is required`);
-    if (!/^[1-9]\d{0,9}$/.test(units)) throw new HttpError(400, `tier ${i + 1}: units must be a whole number of at least 1`);
-    if (BigInt(units) > BigInt(pub.maxUnitsPerDeal)) throw new HttpError(400, `tier ${i + 1}: more units than this product allows in one deal (${pub.maxUnitsPerDeal})`);
-    if (seen.has(units)) throw new HttpError(400, `two tiers start at ${units} units; each tier needs its own quantity`);
-    seen.add(units);
-    if (!/^\d{1,7}(\.\d{1,6})?$/.test(price) || toMicro(price) <= 0n) throw new HttpError(400, `tier ${i + 1}: enter a unit price in dollars, more than 0`);
-    const includes = Array.isArray(t.includes) ? t.includes.filter((x): x is string => typeof x === "string" && x.trim() !== "").map((x) => x.trim().slice(0, 60)).slice(0, 8) : [];
-    const tierId = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `tier-${i}`;
-    return { id: pub.tiers.some((x, j) => x.id === tierId && j !== i) ? `${tierId}-${i}` : tierId, name, includedUnits: units, unitPrice: { num: toMicro(price).toString(), den: "1" }, includes };
-  });
-  tiers.sort((a, b) => (BigInt(a.includedUnits) < BigInt(b.includedUnits) ? -1 : 1));
-  await db.update(schema.products).set({ public: { ...(lp.row.public as object), tiers } }).where(eq(schema.products.id, lp.row.id));
+  await replaceTiers(lp, (await c.req.json()) as { tiers?: unknown });
   return json(c, await productWithPrivate(orgId, lp.row.id));
 });
 
@@ -293,21 +266,7 @@ appRoutes.get("/app/export.csv", async (c) => {
   return c.body(body);
 });
 
-appRoutes.get("/app/finance", async (c) => {
-  const { orgId } = session(c);
-  const deals = await db.select().from(schema.deals).where(eq(schema.deals.orgId, orgId));
-  const funded = deals.reduce((s, d) => s + d.deposit, 0n);
-  const settled = deals.reduce((s, d) => s + d.settled, 0n);
-  const refunded = deals.reduce((s, d) => s + d.refunded, 0n);
-  const reqs = await db.select().from(schema.serviceRequests).where(and(eq(schema.serviceRequests.orgId, orgId), eq(schema.serviceRequests.billable, true)));
-  // Earned-but-unsettled: max cumulative charged per deal minus settled.
-  const chargedByDeal = new Map<string, bigint>();
-  for (const r of reqs) chargedByDeal.set(r.dealId, r.cumulativeCharged > (chargedByDeal.get(r.dealId) ?? 0n) ? r.cumulativeCharged : (chargedByDeal.get(r.dealId) ?? 0n));
-  const earnedUnsettled = deals.reduce((s, d) => s + ((chargedByDeal.get(d.id) ?? 0n) - d.settled > 0n ? (chargedByDeal.get(d.id) ?? 0n) - d.settled : 0n), 0n);
-  const journal = await db.select().from(schema.journalEntries).where(eq(schema.journalEntries.orgId, orgId)).orderBy(desc(schema.journalEntries.createdAt)).limit(200);
-  const discrepancies = deals.filter((d) => d.balancesSource === "chain" && d.deposit - d.settled - d.refunded < 0n).map((d) => ({ dealId: d.id, issue: "negative remaining" }));
-  return json(c, { funded, settled, earnedUnsettled, liability: funded - settled - refunded, refunded, journal, reconciliation: { lastRunAt: deals.reduce<Date | null>((m, d) => (!m || d.updatedAt > m ? d.updatedAt : m), null), discrepancies }, labels: { network: features.network, note: "Deposits are customer liabilities until usage is accepted and settled. Unused balances are never seller revenue." } });
-});
+appRoutes.get("/app/finance", async (c) => json(c, await financeView(session(c).orgId)));
 
 /* WhatsApp channel: the seller's own number, and replies from the team after a buyer asks for a person. */
 appRoutes.get("/app/whatsapp", async (c) => json(c, await accountView(session(c).orgId)));

@@ -10,6 +10,7 @@ import { env, features } from "../env";
 import { HttpError } from "../lib/http";
 import { apiKey, id } from "../lib/ids";
 import { loadProductById } from "./catalog";
+import { effectiveDealStatus } from "./seller-reports";
 
 export async function loadDeal(dealId: string) {
   const [deal] = await db.select().from(schema.deals).where(eq(schema.deals.id, dealId));
@@ -192,5 +193,6 @@ export async function sellerCloseTerm(orgId: string, dealId: string) {
 
 export async function listDeals(orgId: string) {
   const rows = await db.select().from(schema.deals).where(eq(schema.deals.orgId, orgId)).orderBy(desc(schema.deals.createdAt)).limit(200);
-  return rows.map((d) => ({ id: d.id, publicId: d.publicId, status: d.status, buyerAddress: d.buyerAddress, deposit: d.deposit, settled: d.settled, refunded: d.refunded, remaining: d.deposit - d.settled - d.refunded, balancesSource: d.balancesSource, fundingTxHash: d.fundingTxHash, createdAt: d.createdAt }));
+  // `status` is what to show ("settled" when the escrow paid out the whole deposit); `chainStatus` is the contract's.
+  return rows.map((d) => ({ id: d.id, publicId: d.publicId, status: effectiveDealStatus(d), chainStatus: d.status, buyerAddress: d.buyerAddress, deposit: d.deposit, settled: d.settled, refunded: d.refunded, remaining: d.deposit - d.settled - d.refunded, balancesSource: d.balancesSource, fundingTxHash: d.fundingTxHash, createdAt: d.createdAt }));
 }
