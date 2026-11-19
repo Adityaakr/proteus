@@ -2,9 +2,10 @@ import { createHash } from "node:crypto";
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { HttpError } from "../src/lib/http";
-import { authenticateKey, createKey, envForNetwork, generateKey, hashKey, keyEnvOf, listKeys, memoryKeyStore, regenerateKey, revokeKey, type Network } from "../src/services/api-keys";
+import { authenticateKey, createKey, DEFAULT_OVERLAP_HOURS, envForNetwork, generateKey, hashKey, keyEnvOf, listKeys, MAX_OVERLAP_HOURS, memoryKeyStore, regenerateKey, revokeKey, SCOPE_INFO, SCOPES, type Network } from "../src/services/api-keys";
 import { SELLER_API, sellerApiRoutes } from "../src/routes/developers";
-import { SELLER_API_REFERENCE } from "../../site/src/app/sell/developers/reference";
+import { WEBHOOK_EVENTS } from "../src/services/notify";
+import { endpointExamples, KEY_RULES, SCOPES_REFERENCE, SELLER_API_REFERENCE, WEBHOOK_EVENTS_REFERENCE } from "../../site/src/app/sell/developers/reference";
 
 const ORG = "org_shop";
 const t0 = new Date("2026-11-20T10:00:00Z");
@@ -205,5 +206,19 @@ describe("scope enforcement on the seller API", () => {
 
   it("the dashboard's API reference matches the routes", () => {
     expect(SELLER_API_REFERENCE.map((r) => [r.method, r.path, r.scope])).toEqual(SELLER_API.map((r) => [r.method, r.path, r.scope]));
+  });
+
+  it("the public docs match the code: every route has an example, and scopes, overlap hours and webhook events agree", () => {
+    const examples = endpointExamples("https://app.example/api/v1/seller");
+    expect(examples.map((e) => [e.method, e.path])).toEqual(SELLER_API.map((r) => [r.method, r.path]));
+    for (const e of examples) {
+      expect(e.bash, `${e.method} ${e.path}`).toMatch(e.method === "GET" ? /^curl https:\/\/app\.example\/api\/v1\/seller\// : new RegExp(`^curl -X ${e.method} https://app\\.example/api/v1/seller/`));
+      expect(e.ts).toContain("fetch(");
+      expect(e.bash + e.ts).not.toMatch(/psk_(test|live)_[A-Za-z0-9_-]{43}/);
+    }
+    expect(SCOPES_REFERENCE.map((x) => x.id)).toEqual([...SCOPES]);
+    for (const x of SCOPES_REFERENCE) expect({ label: x.label, description: x.description }).toEqual(SCOPE_INFO[x.id]);
+    expect([KEY_RULES.overlapDefaultHours, KEY_RULES.overlapMaxHours]).toEqual([DEFAULT_OVERLAP_HOURS, MAX_OVERLAP_HOURS]);
+    expect(WEBHOOK_EVENTS_REFERENCE.map((e) => ({ event: e.event, title: e.title }))).toEqual(WEBHOOK_EVENTS);
   });
 });

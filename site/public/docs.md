@@ -90,7 +90,7 @@ _Everything an agent needs to read, verify and buy, in machine-readable form._
 ### HTTP API
 
 - **Base URL.** `https://app.proteus.co.in/api` (Arc mainnet) or `https://ai.proteus.co.in/api` (Arc testnet).
-- **Auth.** Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller routes (/api/app/*): wallet sign-in session.
+- **Auth.** Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller dashboard routes (/api/app/*): wallet sign-in session. Seller API (/api/v1/seller/*): Bearer seller API key (psk_live_… or psk_test_…) from the Developers page.
 - **Errors.** JSON { error: string, details: unknown | null } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert), 429 (rate limit), 500.
 - **Rate limits.** 10-minute window: per client IP, 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; per negotiation, 12 counters. Other public routes are not rate limited.
 - **Refund timing.** Each deal's terms carry `grace` (3 days by default). Refunds open at end + grace, or right after sellerCloseTerm; read refundableAt from GET /api/deals/{id}. Calling refundUnused earlier reverts.
@@ -248,6 +248,8 @@ _Agent policies: the rules each product's agent must obey, and catalog sync from
 ![The deal agent embedded on a seller's website, showing three offers](https://app.proteus.co.in/docs/embed.jpg)
 _A sample shop page with a seller's agent embedded (the Kitbox demo seller), answering a real request. (Arc testnet)_
 
+> Run it from your own systems: the [seller API](https://app.proteus.co.in/docs/seller-api) reads deals, usage and payments, updates prices and reports deliveries, and [webhooks](https://app.proteus.co.in/docs/seller-webhooks) push deal events to your server.
+
 ## Buy: from a question to a refund
 
 _Ask, review, sign once, pay only for what you countersign._
@@ -309,6 +311,469 @@ _Give any MCP client the full buying loop, within a limit you set._
 - **Private negotiation.** `proteus_negotiate` returns a negotiationKey; the MCP server keeps it and sends it on every later call, so no one else can read the conversation.
 
 > Proven on Arc testnet: Claude, with only these tools and a 13 USDC mandate, refused to buy when a delivery date did not fit, bought a sample once it did, checked the seller's receipt and settled. [Transcript](https://github.com/Adityaakr/proteus/blob/main/docs/evidence/2026-10-23-claude-mcp-kitbox.md) · [funding](https://explorer.testnet.arc.io/tx/0x280207802e1d34e8e8731abaab31fd31333ff3d8559867f6776eae04af1f3c73) · [settlement](https://explorer.testnet.arc.io/tx/0x63aeb139848a1067eedb1961ed0721ef00024e44b4e9ec1e46cc2cdbb7eb8b45)
+
+## Seller API: keys and quickstart
+
+_Read your deals, usage and payments and report deliveries from your own systems, with a key that can do only what you allow._
+
+> Keys, the webhook and this quickstart live on the [Developers](https://app.proteus.co.in/app/sell/developers) page of the seller console. The full endpoint list is in the [reference](https://app.proteus.co.in/docs/seller-api-reference); events pushed to your server are in [Webhooks](https://app.proteus.co.in/docs/seller-webhooks).
+
+- **Base URL.** `https://app.proteus.co.in/api/v1/seller` (Arc mainnet, live keys) or `https://ai.proteus.co.in/api/v1/seller` (Arc testnet, test keys). The Developers page shows the one for the app you are signed in to.
+- **JSON in and out.** Money is micro-USDC as a string: `6600000` is $6.60. Every response covers your own seller only ([developers.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/routes/developers.ts)).
+- **Separate from buyer service keys.** A seller API key acts for your seller. The key a buyer gets when a deal is funded calls that deal's service at `/api/services/{product}/execute` ([API reference](https://app.proteus.co.in/docs/api)).
+
+### Get a key
+
+1. **Open Developers.** In the seller console, Sell → [Developers](https://app.proteus.co.in/app/sell/developers) → API keys. Only the signed-in owner of the seller account can manage keys; the shared example seller cannot.
+2. **Name it and choose permissions.** A name of 1 to 60 characters, such as "Order sync", and at least one permission.
+3. **Copy it once.** The full key is shown once, in the create response. Proteus stores only its SHA-256 hash; after that the page shows a masked key (`psk_test_AbCd••••••••wXyZ`), when it was created and when it was last used ([api-keys.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/api-keys.ts)).
+4. **Keep it on your server.** Send it from your backend only. It is a bearer key: anyone who has it can do what its permissions allow until you revoke it.
+
+### Test and live keys
+
+| Key | Starts with | Works on | Data |
+|---|---|---|---|
+| Test | `psk_test_` | Arc testnet ([ai.proteus.co.in](https://ai.proteus.co.in)) | Testnet deals, test USDC |
+| Live | `psk_live_` | Arc mainnet ([app.proteus.co.in](https://app.proteus.co.in)) | Mainnet deals, real USDC |
+
+_Each app creates keys for its own network: create a test key on the testnet app and a live key on the mainnet app. A key sent to the other network is refused with 401 and a message saying which one it belongs to._
+
+### Permissions
+
+| Permission | Shown as | Allows |
+|---|---|---|
+| `deals:read` | Read deals | List deals and read one deal's terms, balances and status. |
+| `usage:read` | Read usage | Metered requests, delivered units and receipts. |
+| `payments:read` | Read payments | Funded, settled, refunded and held totals. |
+| `products:write` | Write products and prices | Change public price tiers and list or unlist a product. |
+| `deliveries:write` | Write delivery reports | Record delivered units with proof and post order updates. |
+
+`GET /me` and `GET /products` work with any valid key. Every other endpoint needs the permission listed for it in the [reference](https://app.proteus.co.in/docs/seller-api-reference); without it the answer is 403 and `details.required` names the missing permission. A key's permissions are fixed: to add one, create a new key.
+
+### Authenticate
+
+```text
+Authorization: Bearer psk_test_<43 characters>
+```
+
+A key is `psk_test_` or `psk_live_` followed by 43 base64url characters (256 random bits). Each authenticated call updates the key's last-used time.
+
+### Regenerate and revoke
+
+- **Regenerate with overlap.** Makes a new key with the same name, environment and permissions. The old key keeps working for an overlap you choose, 24 hours by default and at most 72, so a running integration can switch without downtime.
+- **Regenerate and cut off.** An overlap of 0 stops the old key at once. Use it when a key may have leaked.
+- **Revoke.** Stops a key immediately, including an old key still inside its overlap.
+- **Limits.** Up to 20 working keys per seller (active, or still inside an overlap). A key already replaced, expired or revoked cannot be regenerated: regenerate its replacement, or create a new key.
+
+### Quickstart
+
+The same four steps as on the Developers page, against Arc testnet with a test key. Put your key in `PROTEUS_SELLER_KEY`; never commit it.
+
+1. Check the key. Every request sends the key as a bearer token. This answers with the key's name, environment and permissions.
+
+```bash
+export PROTEUS_SELLER_KEY=psk_test_…
+
+curl https://ai.proteus.co.in/api/v1/seller/me \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY"
+```
+
+```ts
+const base = "https://ai.proteus.co.in/api/v1/seller";
+const headers = { Authorization: `Bearer ${process.env.PROTEUS_SELLER_KEY}` };
+
+const me = await fetch(`${base}/me`, { headers }).then((r) => r.json());
+console.log(me.key.scopes); // ["deals:read", ...]
+```
+
+2. Read your deals. Needs deals:read. Amounts are micro-USDC strings: 6600000 is $6.60.
+
+```bash
+curl https://ai.proteus.co.in/api/v1/seller/deals \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY"
+```
+
+```ts
+const { deals } = await fetch(`${base}/deals`, { headers }).then((r) => r.json());
+for (const d of deals) console.log(d.publicId, d.status, d.settled, d.remaining);
+```
+
+3. Report a delivery. Needs deliveries:write. Records delivered units with proof as a signed receipt the buyer then accepts; requestId makes retries safe.
+
+```bash
+curl -X POST https://ai.proteus.co.in/api/v1/seller/deals/DEAL_ID/deliveries \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"requestId":"order-1042-shipped","units":1,"note":"Shipped by courier","proofUrl":"https://track.example/1042"}'
+```
+
+```ts
+await fetch(`${base}/deals/${dealId}/deliveries`, {
+  method: "POST",
+  headers: { ...headers, "Content-Type": "application/json" },
+  body: JSON.stringify({ requestId: "order-1042-shipped", units: 1, note: "Shipped by courier", proofUrl: "https://track.example/1042" }),
+});
+```
+
+4. Update prices. Needs products:write. Replaces the public tiers buyers see; deals already signed keep their prices.
+
+```bash
+curl -X PATCH https://ai.proteus.co.in/api/v1/seller/products/PRODUCT_ID/tiers \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"tiers":[{"name":"Starter","includedUnits":"1","unitPriceUsd":"6.60"},{"name":"Bulk","includedUnits":"100","unitPriceUsd":"6.50"}]}'
+```
+
+```ts
+await fetch(`${base}/products/${productId}/tiers`, {
+  method: "PATCH",
+  headers: { ...headers, "Content-Type": "application/json" },
+  body: JSON.stringify({ tiers: [{ name: "Starter", includedUnits: "1", unitPriceUsd: "6.60" }] }),
+});
+```
+
+### Errors and limits
+
+Errors are JSON `{ "error": string, "details": unknown | null }`. The error text says what to fix in plain words.
+
+| Status | Meaning |
+|---|---|
+| 401 | Missing, unknown, revoked or expired key, or a key from the other environment (test keys only work on testnet, live keys only on mainnet). |
+| 403 | The key lacks the permission this endpoint needs. The body names it in details.required. |
+| 404 | The deal or product is not yours, or does not exist. |
+| 400 / 409 | The request was refused; the error field says why in plain words. |
+| 500 | Something failed on our side; the message is generic and the detail stays in our logs. Retry later. |
+
+```json
+{
+  "error": "This key does not have the deals:read permission (read deals). Add it by creating a key with that permission.",
+  "details": { "required": "deals:read", "granted": ["products:write"] }
+}
+```
+
+- The seller API has no request rate limit today.
+- `GET /deals` returns your newest 200 deals and `GET /usage` your newest 300 requests; there is no pagination yet.
+- Delivery reports are idempotent on `requestId`: retrying with the same id returns the first receipt instead of recording twice.
+
+## Seller API reference
+
+_Every /api/v1/seller endpoint, the permission it needs, and a curl and TypeScript example._
+
+Paths are relative to the base URL, `https://app.proteus.co.in/api/v1/seller` on Arc mainnet or `https://ai.proteus.co.in/api/v1/seller` on Arc testnet. The TypeScript examples use `base` and `headers` from [quickstart step 1](https://app.proteus.co.in/docs/seller-api#seller-api-quickstart). `:id` is the `id` field of a product or deal (`prd_…`, `deal_…`), not its public id or slug.
+
+| Method | Path | Permission | What it does |
+|---|---|---|---|
+| `GET` | `/me` | Any key | The key's seller, name, environment and permissions |
+| `GET` | `/products` | Any key | Your products with public tiers, endpoint and docs links |
+| `PATCH` | `/products/:id/tiers` | `products:write` | Replace a product's public price tiers |
+| `PATCH` | `/products/:id/listing` | `products:write` | List or unlist a product in the market |
+| `GET` | `/deals` | `deals:read` | Your deals, newest first, with balances |
+| `GET` | `/deals/:id` | `deals:read` | One deal: terms, balances, usage and transactions |
+| `POST` | `/deals/:id/deliveries` | `deliveries:write` | Record delivered units with proof (a signed receipt) |
+| `POST` | `/deals/:id/order-updates` | `deliveries:write` | Post an order status update the buyer sees |
+| `GET` | `/usage` | `usage:read` | Metered requests and delivery totals |
+| `GET` | `/payments` | `payments:read` | Funded, settled, refunded and held totals |
+
+### GET /me
+
+The key's seller, name, environment and permissions. Needs any valid key.
+
+```bash
+curl https://ai.proteus.co.in/api/v1/seller/me \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY"
+```
+
+```ts
+const me = await fetch(`${base}/me`, { headers }).then((r) => r.json());
+```
+
+```json
+{
+  "orgId": "org_…",
+  "key": { "id": "key_…", "name": "Order sync", "env": "test", "scopes": ["deals:read", "deliveries:write"] },
+  "network": "testnet"
+}
+```
+
+### GET /products
+
+Your products with public tiers, endpoint and docs links. Needs any valid key.
+
+```bash
+curl https://ai.proteus.co.in/api/v1/seller/products \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY"
+```
+
+```ts
+const { products } = await fetch(`${base}/products`, { headers }).then((r) => r.json());
+```
+
+```json
+{
+  "products": [{
+    "id": "prd_…", "slug": "custom-tees", "name": "Custom oversized tees", "active": true, "unitLabel": "tee",
+    "tiers": [{ "id": "starter", "name": "Starter", "includedUnits": "1", "unitPriceUsd": "$6.60", "prepaidTotalUsd": "$6.60", "includes": [] }],
+    "payPerCallUsd": null,
+    "endpoint": "https://…/api/services/custom-tees/execute",
+    "docsUrl": "https://…/docs/your-store/custom-tees"
+  }]
+}
+```
+
+### PATCH /products/:id/tiers
+
+Replace a product's public price tiers. Needs `products:write`. Body: tiers: 1 to 6 of { name, includedUnits (whole number, each tier its own, at most the product's units per deal), unitPriceUsd (dollars as a string, up to 6 decimals, more than 0), includes? (up to 8 short strings) }. Replaces every tier.
+
+```bash
+curl -X PATCH https://ai.proteus.co.in/api/v1/seller/products/PRODUCT_ID/tiers \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"tiers":[{"name":"Starter","includedUnits":"1","unitPriceUsd":"6.60"},{"name":"Bulk","includedUnits":"100","unitPriceUsd":"6.50"}]}'
+```
+
+```ts
+await fetch(`${base}/products/${productId}/tiers`, {
+  method: "PATCH",
+  headers: { ...headers, "Content-Type": "application/json" },
+  body: JSON.stringify({ tiers: [{ name: "Starter", includedUnits: "1", unitPriceUsd: "6.60" }, { name: "Bulk", includedUnits: "100", unitPriceUsd: "6.50" }] }),
+}).then((r) => r.json());
+```
+
+```json
+{ "id": "prd_…", "slug": "custom-tees", "active": true, "tiers": [{ "name": "Starter", "includedUnits": "1", "unitPriceUsd": "$6.60", … }, { "name": "Bulk", "includedUnits": "100", "unitPriceUsd": "$6.50", … }], … }
+```
+
+### PATCH /products/:id/listing
+
+List or unlist a product in the market. Needs `products:write`. Body: active: true to list the product in the market, false to hide it. Existing deals keep working.
+
+```bash
+curl -X PATCH https://ai.proteus.co.in/api/v1/seller/products/PRODUCT_ID/listing \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"active":false}'
+```
+
+```ts
+await fetch(`${base}/products/${productId}/listing`, {
+  method: "PATCH",
+  headers: { ...headers, "Content-Type": "application/json" },
+  body: JSON.stringify({ active: false }),
+}).then((r) => r.json());
+```
+
+```json
+{ "id": "prd_…", "slug": "custom-tees", "active": false, … }
+```
+
+### GET /deals
+
+Your deals, newest first, with balances. Needs `deals:read`.
+
+```bash
+curl https://ai.proteus.co.in/api/v1/seller/deals \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY"
+```
+
+```ts
+const { deals } = await fetch(`${base}/deals`, { headers }).then((r) => r.json());
+```
+
+```json
+{
+  "deals": [{
+    "id": "deal_…", "publicId": "d_…", "status": "active", "chainStatus": "active", "buyerAddress": "0x…",
+    "deposit": "6600000", "settled": "0", "refunded": "0", "remaining": "6600000",
+    "balancesSource": "chain", "fundingTxHash": "0x…", "createdAt": "2026-11-20T10:00:00.000Z"
+  }]
+}
+```
+
+### GET /deals/:id
+
+One deal: terms, balances, usage and transactions. Needs `deals:read`.
+
+```bash
+curl https://ai.proteus.co.in/api/v1/seller/deals/DEAL_ID \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY"
+```
+
+```ts
+const deal = await fetch(`${base}/deals/${dealId}`, { headers }).then((r) => r.json());
+```
+
+```json
+{
+  "id": "deal_…", "publicId": "d_…", "status": "active", "chainStatus": "active",
+  "terms": { … }, "termsHash": "0x…", "buyerAddress": "0x…", "sellerPayee": "0x…",
+  "funding": { "txHash": "0x…", "status": "confirmed", "explorerUrl": "https://…" },
+  "balances": { "deposit": "6600000", "settled": "0", "refunded": "0", "remaining": "6600000", "source": "chain" },
+  …
+}
+```
+
+### POST /deals/:id/deliveries
+
+Record delivered units with proof (a signed receipt). Needs `deliveries:write`. Body: requestId (4 to 80 of letters, digits . _ : -; the same id again returns the first receipt), units (whole number from 1), note (3 to 2000 characters: what was delivered), proofUrl? (https link). The deal must be funded or active, and the units must fit the agreement and the prepaid balance.
+
+```bash
+curl -X POST https://ai.proteus.co.in/api/v1/seller/deals/DEAL_ID/deliveries \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"requestId":"order-1042-shipped","units":1,"note":"Shipped by courier","proofUrl":"https://track.example/1042"}'
+```
+
+```ts
+await fetch(`${base}/deals/${dealId}/deliveries`, {
+  method: "POST",
+  headers: { ...headers, "Content-Type": "application/json" },
+  body: JSON.stringify({ requestId: "order-1042-shipped", units: 1, note: "Shipped by courier", proofUrl: "https://track.example/1042" }),
+}).then((r) => r.json());
+```
+
+```json
+{
+  "requestId": "order-1042-shipped", "status": "delivered", "billable": true, "units": 1,
+  "receipt": { "digest": "0x…", "sellerSignature": "0x…", "at": "2026-11-20T10:00:00.000Z" },
+  "deal": { "cumulativeUnits": "1", "cumulativeCharged": "6600000", "remaining": "0" },
+  …
+}
+```
+
+### POST /deals/:id/order-updates
+
+Post an order status update the buyer sees. Needs `deliveries:write`. Body: status: accepted, in_production, shipped, out_for_delivery, delayed (note required: why and the new date) or note (note required); note? (up to 1000 characters); trackingUrl? (https link). The deal must be funded or active.
+
+```bash
+curl -X POST https://ai.proteus.co.in/api/v1/seller/deals/DEAL_ID/order-updates \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"status":"shipped","note":"Two boxes by courier","trackingUrl":"https://track.example/1042"}'
+```
+
+```ts
+await fetch(`${base}/deals/${dealId}/order-updates`, {
+  method: "POST",
+  headers: { ...headers, "Content-Type": "application/json" },
+  body: JSON.stringify({ status: "shipped", note: "Two boxes by courier", trackingUrl: "https://track.example/1042" }),
+}).then((r) => r.json());
+```
+
+```json
+{ "id": "du_…", "status": "shipped", "label": "Shipped" }
+```
+
+### GET /usage
+
+Metered requests and delivery totals. Needs `usage:read`.
+
+```bash
+curl https://ai.proteus.co.in/api/v1/seller/usage \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY"
+```
+
+```ts
+const { totals, requests } = await fetch(`${base}/usage`, { headers }).then((r) => r.json());
+```
+
+```json
+{
+  "totals": { "requests": 12, "delivered": 11, "handoff": 0, "failed": 1, "billableUnits": 11, "avgLatencyMs": 840 },
+  "requests": [{ "requestId": "order-1042-shipped", "dealId": "deal_…", "dealPublicId": "d_…", "productName": "Custom oversized tees", "status": "delivered", "billable": true, "units": 1, "cumulativeCharged": "6600000", "signed": true, "at": "2026-11-20T10:00:00.000Z", … }]
+}
+```
+
+### GET /payments
+
+Funded, settled, refunded and held totals. Needs `payments:read`.
+
+```bash
+curl https://ai.proteus.co.in/api/v1/seller/payments \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY"
+```
+
+```ts
+const payments = await fetch(`${base}/payments`, { headers }).then((r) => r.json());
+```
+
+```json
+{
+  "funded": "13200000", "settled": "6600000", "earnedUnsettled": "0", "liability": "6600000", "refunded": "0",
+  "reconciliation": { "lastRunAt": "2026-11-20T10:00:00.000Z", "discrepancies": [] },
+  "labels": { "network": "testnet", "note": "Deposits are customer liabilities until usage is accepted and settled. Unused balances are never seller revenue." }
+}
+```
+
+## Webhooks
+
+_Deal events POSTed to your server as they happen, signed so you can check they came from Proteus._
+
+> Events are informational: the Arc chain is the record. Read balances from the [seller API](https://app.proteus.co.in/docs/seller-api-reference) or the chain before you act on money.
+
+### Set up
+
+1. **Add your URL.** Sell → [Developers](https://app.proteus.co.in/app/sell/developers#webhooks) → Webhooks. It must be https, with no credentials in it, and its host must resolve to a public address ([notify.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/notify.ts)).
+2. **Copy the signing secret.** Your first URL gets a secret (`whsec_` and 48 hex characters), shown once and stored encrypted. Changing the URL keeps the secret; removing the URL deletes it.
+3. **Send a test.** Send test POSTs one signed `test` event right away, records it in the delivery log and shows the HTTP status and latency. It is tried once, with no retries.
+
+### Events
+
+| Event | When | Fields in data |
+|---|---|---|
+| `deal_funded` | A buyer funded a deal | deal, amountUsdc (the deposit), txHash, explorer, link |
+| `usage_settled` | Delivered usage was settled to you | deal, amountUsdc (paid to you), txHash, explorer, link |
+| `refund_issued` | Unused balance was refunded to a buyer | deal, amountUsdc (refunded), txHash, explorer, link |
+| `dispute_opened` | A buyer opened a dispute | deal, txHash, explorer, link |
+| `dispute_resolved` | A dispute was resolved | deal, toSellerUsdc, toBuyerUsdc, txHash, explorer, link |
+| `approval_required` | An offer needs your approval | product, tier, units, amountUsdc, link |
+| `order_details` | A buyer sent order details | deal, product, link |
+| `whatsapp_human` | A WhatsApp buyer asked for a person | channel, link |
+
+Amounts in events are USDC with six decimals as a string (`"6.600000"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up.
+
+### Payload
+
+```http
+POST /your/webhook HTTP/1.1
+Content-Type: application/json
+User-Agent: ProteusAI-Webhooks/1
+X-Proteus-Signature: t=1795122246,v1=5f2c…
+
+{
+  "id": "ntf_…",
+  "event": "usage_settled",
+  "createdAt": "2026-11-20T10:00:00.000Z",
+  "data": { "deal": "d_…", "amountUsdc": "6.600000", "txHash": "0x…", "explorer": "https://explorer.arc.io/tx/0x…", "link": "https://app.proteus.co.in/app/sell/deals/deal_…" }
+}
+```
+
+A test event has the same envelope with `"event": "test"`, `"test": true` and an id starting `evt_test_`.
+
+### Verify the signature
+
+`X-Proteus-Signature` is `t=<unix seconds>,v1=<hex>`, where the hex is HMAC-SHA256 of `<t>.<raw body>` with your signing secret. Check it against the body exactly as received, before parsing, and reject old timestamps:
+
+```ts
+import { createHmac, timingSafeEqual } from "node:crypto";
+
+// header: the X-Proteus-Signature value, "t=<unix>,v1=<hex>"; rawBody: the request body exactly as received.
+export function verifyProteus(header: string, rawBody: string, secret: string, toleranceSec = 300) {
+  const parts = Object.fromEntries(header.split(",").map((p) => p.split("=") as [string, string]));
+  const t = Number(parts.t);
+  if (!t || Math.abs(Date.now() / 1000 - t) > toleranceSec) return false;
+  const expected = createHmac("sha256", secret).update(`${t}.${rawBody}`).digest("hex");
+  return parts.v1?.length === expected.length && timingSafeEqual(Buffer.from(parts.v1), Buffer.from(expected));
+}
+```
+
+Regenerating the secret takes effect at once, with no overlap: update your receiver right after.
+
+### Delivery and retries
+
+- **Success is any 2xx.** Within 5 seconds. Redirects are not followed and the response body is ignored.
+- **Retries.** A failed event is tried again on the next delivery runs, up to 5 attempts in all. If your email or Telegram fails, the webhook can receive the event again too: deduplicate on `id`.
+- **Checked at send time.** The host is resolved and refused if it points at a private, loopback, link-local or metadata address.
+- **Delivery log.** The Developers page lists your last 50 attempts, newest first: time, event, result, HTTP status, latency and error.
 
 ## Deal lifecycle
 
@@ -660,6 +1125,7 @@ _What sellers and buyers get, and where each is proven._
 | Front desk and inbox | Customers chat or speak with your AI assistant on a link or your website; every request lands in an inbox ([Front desk](https://app.proteus.co.in/docs/front-desk)). | Live · local test |
 | Real AI work | Proteus-run services on Claude, model per job ([The AI behind it](https://app.proteus.co.in/docs/ai-models)). | Live · local test |
 | Approvals and alerts | Email, Telegram, signed webhooks ([notify.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/notify.ts)). | Testnet |
+| Seller API and webhooks | Scoped test and live keys for deals, usage, payments, prices and deliveries; signed webhooks with a delivery log ([Seller API](https://app.proteus.co.in/docs/seller-api)). | Local test |
 | Accounting export | CSV in the shape QuickBooks and Xero import, each row linked to Arc. | Testnet |
 | Onboarding from your wallet | You own the account and the payouts. | Mainnet |
 
@@ -847,6 +1313,7 @@ _One real business live on mainnet, with its first customer order paid out and r
 ## Links
 
 - [API reference](https://app.proteus.co.in/docs/api): calling a service, billing, settlement, the seller endpoint
+- [Seller API](https://app.proteus.co.in/docs/seller-api): keys, quickstart, every /api/v1/seller endpoint and webhooks
 - [Agent skill](https://app.proteus.co.in/api/public/agents/skill.md): discover, negotiate, fund and settle over HTTP
 - [Docs as Markdown](https://app.proteus.co.in/docs.md)
 - [Facts as JSON](https://app.proteus.co.in/docs/facts.json)

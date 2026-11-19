@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Send, Webhook } from "lucide-react";
 import { ActionButton, Card, DataTable, Field, LoadingCard, Notice, StatusTag, type DataColumn } from "../../seller/kit";
@@ -6,7 +7,7 @@ import { errorMessage } from "../../seller/transport";
 import { dateTime, relTime } from "../../seller/format";
 import { Code } from "../../docs/Code";
 import { v1 } from "../v1";
-import { WEBHOOK_VERIFY_TS } from "./reference";
+import { SELLER_API_DOCS, WEBHOOK_VERIFY_TS } from "./reference";
 import { SecretReveal } from "./ApiKeysCard";
 import type { WebhookDelivery, WebhookSettings } from "./types";
 import d from "./developers.module.css";
@@ -55,7 +56,7 @@ export function WebhooksCard() {
   return (
     <Card
       title="Webhooks"
-      subtitle="Proteus AI POSTs a signed JSON event to your URL when a deal is funded, usage settles, a refund or dispute happens, or an offer needs approval. The chain stays the record; events are informational."
+      subtitle={<>Proteus AI POSTs a signed JSON event to your URL when a deal is funded, usage settles, a refund or dispute happens, or an offer needs approval. The chain stays the record; events are informational. <Link to={SELLER_API_DOCS.webhooks} className={d.inlineLink}>Events, payloads and retries</Link></>}
       actions={<StatusTag tone={on ? "success" : "neutral"} label={on ? "Sending" : "Off"} icon={<Webhook size={12} />} />}
     >
       <div className={d.urlRow}>

@@ -25,7 +25,7 @@ _Everything an agent needs to read, verify and buy, in machine-readable form._
 ### HTTP API
 
 - **Base URL.** `https://app.proteus.co.in/api` (Arc mainnet) or `https://ai.proteus.co.in/api` (Arc testnet).
-- **Auth.** Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller routes (/api/app/*): wallet sign-in session.
+- **Auth.** Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller dashboard routes (/api/app/*): wallet sign-in session. Seller API (/api/v1/seller/*): Bearer seller API key (psk_live_… or psk_test_…) from the Developers page.
 - **Errors.** JSON { error: string, details: unknown | null } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert), 429 (rate limit), 500.
 - **Rate limits.** 10-minute window: per client IP, 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; per negotiation, 12 counters. Other public routes are not rate limited.
 - **Refund timing.** Each deal's terms carry `grace` (3 days by default). Refunds open at end + grace, or right after sellerCloseTerm; read refundableAt from GET /api/deals/{id}. Calling refundUnused earlier reverts.

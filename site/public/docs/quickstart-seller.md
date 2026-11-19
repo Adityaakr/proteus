@@ -32,3 +32,5 @@ _Agent policies: the rules each product's agent must obey, and catalog sync from
 
 ![The deal agent embedded on a seller's website, showing three offers](https://app.proteus.co.in/docs/embed.jpg)
 _A sample shop page with a seller's agent embedded (the Kitbox demo seller), answering a real request. (Arc testnet)_
+
+> Run it from your own systems: the [seller API](https://app.proteus.co.in/docs/seller-api) reads deals, usage and payments, updates prices and reports deliveries, and [webhooks](https://app.proteus.co.in/docs/seller-webhooks) push deal events to your server.

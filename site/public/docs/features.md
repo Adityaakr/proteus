@@ -19,6 +19,7 @@ _What sellers and buyers get, and where each is proven._
 | Front desk and inbox | Customers chat or speak with your AI assistant on a link or your website; every request lands in an inbox ([Front desk](https://app.proteus.co.in/docs/front-desk)). | Live · local test |
 | Real AI work | Proteus-run services on Claude, model per job ([The AI behind it](https://app.proteus.co.in/docs/ai-models)). | Live · local test |
 | Approvals and alerts | Email, Telegram, signed webhooks ([notify.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/notify.ts)). | Testnet |
+| Seller API and webhooks | Scoped test and live keys for deals, usage, payments, prices and deliveries; signed webhooks with a delivery log ([Seller API](https://app.proteus.co.in/docs/seller-api)). | Local test |
 | Accounting export | CSV in the shape QuickBooks and Xero import, each row linked to Arc. | Testnet |
 | Onboarding from your wallet | You own the account and the payouts. | Mainnet |
 

@@ -25,6 +25,12 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 - [Buy: from a question to a refund](https://app.proteus.co.in/docs/quickstart-buyer.md): Ask, review, sign once, pay only for what you countersign.
 - [Buy with an AI agent (MCP)](https://app.proteus.co.in/docs/quickstart-agent.md): Give any MCP client the full buying loop, within a limit you set.
 
+## Developers
+
+- [Seller API: keys and quickstart](https://app.proteus.co.in/docs/seller-api.md): Read your deals, usage and payments and report deliveries from your own systems, with a key that can do only what you allow.
+- [Seller API reference](https://app.proteus.co.in/docs/seller-api-reference.md): Every /api/v1/seller endpoint, the permission it needs, and a curl and TypeScript example.
+- [Webhooks](https://app.proteus.co.in/docs/seller-webhooks.md): Deal events POSTed to your server as they happen, signed so you can check they came from Proteus.
+
 ## Concepts
 
 - [Deal lifecycle](https://app.proteus.co.in/docs/lifecycle.md): Eight states, and who moves a deal between them.

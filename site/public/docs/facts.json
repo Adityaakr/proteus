@@ -63,6 +63,30 @@
         "markdown": "https://app.proteus.co.in/docs/quickstart-agent.md"
       },
       {
+        "id": "seller-api",
+        "group": "Developers",
+        "title": "Seller API: keys and quickstart",
+        "summary": "Read your deals, usage and payments and report deliveries from your own systems, with a key that can do only what you allow.",
+        "html": "https://app.proteus.co.in/docs/seller-api",
+        "markdown": "https://app.proteus.co.in/docs/seller-api.md"
+      },
+      {
+        "id": "seller-api-reference",
+        "group": "Developers",
+        "title": "Seller API reference",
+        "summary": "Every /api/v1/seller endpoint, the permission it needs, and a curl and TypeScript example.",
+        "html": "https://app.proteus.co.in/docs/seller-api-reference",
+        "markdown": "https://app.proteus.co.in/docs/seller-api-reference.md"
+      },
+      {
+        "id": "seller-webhooks",
+        "group": "Developers",
+        "title": "Webhooks",
+        "summary": "Deal events POSTed to your server as they happen, signed so you can check they came from Proteus.",
+        "html": "https://app.proteus.co.in/docs/seller-webhooks",
+        "markdown": "https://app.proteus.co.in/docs/seller-webhooks.md"
+      },
+      {
         "id": "lifecycle",
         "group": "Concepts",
         "title": "Deal lifecycle",
@@ -257,7 +281,7 @@
       "mainnet": "https://app.proteus.co.in/api",
       "testnet": "https://ai.proteus.co.in/api"
     },
-    "auth": "Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller routes (/api/app/*): wallet sign-in session.",
+    "auth": "Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller dashboard routes (/api/app/*): wallet sign-in session. Seller API (/api/v1/seller/*): Bearer seller API key (psk_live_… or psk_test_…) from the Developers page.",
     "errors": "JSON { error: string, details: unknown | null } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert), 429 (rate limit), 500.",
     "rateLimits": "10-minute window: per client IP, 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; per negotiation, 12 counters. Other public routes are not rate limited.",
     "endpoints": [
@@ -437,6 +461,183 @@
       "product": "event-merch-box",
       "skill": "https://app.proteus.co.in/api/public/sellers/shoonya-store-t4e/products/event-merch-box/skill.md",
       "openapi": "https://app.proteus.co.in/api/public/sellers/shoonya-store-t4e/products/event-merch-box/openapi.json"
+    }
+  },
+  "sellerApi": {
+    "docs": {
+      "guide": "https://app.proteus.co.in/docs/seller-api",
+      "reference": "https://app.proteus.co.in/docs/seller-api-reference",
+      "webhooks": "https://app.proteus.co.in/docs/seller-webhooks"
+    },
+    "base": {
+      "mainnet": "https://app.proteus.co.in/api/v1/seller",
+      "testnet": "https://ai.proteus.co.in/api/v1/seller"
+    },
+    "auth": "Authorization: Bearer psk_live_… (Arc mainnet) or psk_test_… (Arc testnet), created on the seller's Developers page (/app/sell/developers); shown once, stored as a SHA-256 hash",
+    "keys": {
+      "regenerateOverlapHours": {
+        "default": 24,
+        "max": 72,
+        "cutOffNow": 0
+      },
+      "maxWorkingKeys": 20,
+      "revoke": "immediate"
+    },
+    "scopes": [
+      {
+        "id": "deals:read",
+        "label": "Read deals",
+        "description": "List deals and read one deal's terms, balances and status."
+      },
+      {
+        "id": "usage:read",
+        "label": "Read usage",
+        "description": "Metered requests, delivered units and receipts."
+      },
+      {
+        "id": "payments:read",
+        "label": "Read payments",
+        "description": "Funded, settled, refunded and held totals."
+      },
+      {
+        "id": "products:write",
+        "label": "Write products and prices",
+        "description": "Change public price tiers and list or unlist a product."
+      },
+      {
+        "id": "deliveries:write",
+        "label": "Write delivery reports",
+        "description": "Record delivered units with proof and post order updates."
+      }
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/api/v1/seller/me",
+        "scope": null,
+        "does": "The key's seller, name, environment and permissions"
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/seller/products",
+        "scope": null,
+        "does": "Your products with public tiers, endpoint and docs links"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/v1/seller/products/:id/tiers",
+        "scope": "products:write",
+        "does": "Replace a product's public price tiers"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/v1/seller/products/:id/listing",
+        "scope": "products:write",
+        "does": "List or unlist a product in the market"
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/seller/deals",
+        "scope": "deals:read",
+        "does": "Your deals, newest first, with balances"
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/seller/deals/:id",
+        "scope": "deals:read",
+        "does": "One deal: terms, balances, usage and transactions"
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/seller/deals/:id/deliveries",
+        "scope": "deliveries:write",
+        "does": "Record delivered units with proof (a signed receipt)"
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/seller/deals/:id/order-updates",
+        "scope": "deliveries:write",
+        "does": "Post an order status update the buyer sees"
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/seller/usage",
+        "scope": "usage:read",
+        "does": "Metered requests and delivery totals"
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/seller/payments",
+        "scope": "payments:read",
+        "does": "Funded, settled, refunded and held totals"
+      }
+    ],
+    "errors": [
+      {
+        "status": "401",
+        "meaning": "Missing, unknown, revoked or expired key, or a key from the other environment (test keys only work on testnet, live keys only on mainnet)."
+      },
+      {
+        "status": "403",
+        "meaning": "The key lacks the permission this endpoint needs. The body names it in details.required."
+      },
+      {
+        "status": "404",
+        "meaning": "The deal or product is not yours, or does not exist."
+      },
+      {
+        "status": "400 / 409",
+        "meaning": "The request was refused; the error field says why in plain words."
+      }
+    ],
+    "money": "micro-USDC as decimal strings (6600000 = $6.60)",
+    "rateLimit": "none today",
+    "webhooks": {
+      "signature": "X-Proteus-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of \"<t>.<raw body>\" with the signing secret>",
+      "envelope": "{ id, event, createdAt, data }; a test event adds test: true",
+      "events": [
+        {
+          "event": "deal_funded",
+          "title": "A buyer funded a deal",
+          "data": "deal, amountUsdc (the deposit), txHash, explorer, link"
+        },
+        {
+          "event": "usage_settled",
+          "title": "Delivered usage was settled to you",
+          "data": "deal, amountUsdc (paid to you), txHash, explorer, link"
+        },
+        {
+          "event": "refund_issued",
+          "title": "Unused balance was refunded to a buyer",
+          "data": "deal, amountUsdc (refunded), txHash, explorer, link"
+        },
+        {
+          "event": "dispute_opened",
+          "title": "A buyer opened a dispute",
+          "data": "deal, txHash, explorer, link"
+        },
+        {
+          "event": "dispute_resolved",
+          "title": "A dispute was resolved",
+          "data": "deal, toSellerUsdc, toBuyerUsdc, txHash, explorer, link"
+        },
+        {
+          "event": "approval_required",
+          "title": "An offer needs your approval",
+          "data": "product, tier, units, amountUsdc, link"
+        },
+        {
+          "event": "order_details",
+          "title": "A buyer sent order details",
+          "data": "deal, product, link"
+        },
+        {
+          "event": "whatsapp_human",
+          "title": "A WhatsApp buyer asked for a person",
+          "data": "channel, link"
+        }
+      ],
+      "delivery": "https only, public addresses only, no redirects, 5 s timeout, any 2xx is success; up to 5 attempts; deduplicate on id; last 50 attempts in the delivery log"
     }
   },
   "trust": [

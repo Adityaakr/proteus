@@ -8,6 +8,7 @@
  * Transactions were each checked with eth_getTransactionReceipt (status 1), contracts on Sourcify (exact match).
  */
 import { compare } from "../../content/proteus";
+import { ERRORS_REFERENCE, KEY_RULES, SCOPES_REFERENCE, SELLER_API_REFERENCE, WEBHOOK_EVENTS_REFERENCE, WEBHOOK_VERIFY_TS, endpointExamples, quickstartSnippets } from "../sell/developers/reference";
 
 export type Block =
   | { kind: "p"; text: string }
@@ -71,6 +72,10 @@ export const CONTRACTS = {
   usdc: "0x3600000000000000000000000000000000000000",
 };
 const ESCROW = CONTRACTS.dealEscrow;
+/** The seller API (keys from the Developers page), with examples from the same source the Developers page uses. */
+export const SELLER_API_BASE = { mainnet: `${NETWORKS.mainnet.api}/v1/seller`, testnet: `${NETWORKS.testnet.api}/v1/seller` };
+const SELLER_QUICKSTART = quickstartSnippets(SELLER_API_BASE.testnet, "test");
+const SELLER_EXAMPLES = endpointExamples(SELLER_API_BASE.testnet);
 const SHOONYA = "https://app.proteus.co.in/app/market/shoonya-store-t4e";
 export const EVIDENCE = `${GH}/docs/evidence/2026-10-23-claude-mcp-kitbox.md`;
 
@@ -136,7 +141,7 @@ const evidenceCell = (c: (typeof CLAIMS)[number]) => (c.evidence.length ? c.evid
 
 /** Public HTTP API (base: NETWORKS.*.api). Buyer routes need no account; the invite gate is off on both deployments. */
 export const API = {
-  auth: "Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller routes (/api/app/*): wallet sign-in session.",
+  auth: "Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller dashboard routes (/api/app/*): wallet sign-in session. Seller API (/api/v1/seller/*): Bearer seller API key (psk_live_… or psk_test_…) from the Developers page.",
   errors: "JSON { error: string, details: unknown | null } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert), 429 (rate limit), 500.",
   rateLimits: "10-minute window: per client IP, 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; per negotiation, 12 counters. Other public routes are not rate limited.",
   endpoints: [
@@ -404,6 +409,7 @@ export const SECTIONS: DocSection[] = [
         { title: "You choose the sites", text: "Limit who may embed it with CSP `frame-ancestors`." },
       ] },
       { kind: "figure", src: "/docs/embed.jpg", alt: "The deal agent embedded on a seller's website, showing three offers", caption: "A sample shop page with a seller's agent embedded (the Kitbox demo seller), answering a real request.", network: "Arc testnet" },
+      { kind: "callout", text: "Run it from your own systems: the [seller API](/docs/seller-api) reads deals, usage and payments, updates prices and reports deliveries, and [webhooks](/docs/seller-webhooks) push deal events to your server." },
     ],
   },
   {
@@ -443,6 +449,119 @@ export const SECTIONS: DocSection[] = [
         { title: "Private negotiation", text: "`proteus_negotiate` returns a negotiationKey; the MCP server keeps it and sends it on every later call, so no one else can read the conversation." },
       ] },
       { kind: "callout", text: "Proven on Arc testnet: Claude, with only these tools and a 13 USDC mandate, refused to buy when a delivery date did not fit, bought a sample once it did, checked the seller's receipt and settled. [Transcript](" + EVIDENCE + ") · [funding](" + txUrl("testnet", TX.kitboxFund) + ") · [settlement](" + txUrl("testnet", TX.kitboxSettle) + ")" },
+    ],
+  },
+
+  /* -------------------------------------------------------------- Developers */
+  {
+    id: "seller-api",
+    group: "Developers",
+    title: "Seller API: keys and quickstart",
+    summary: "Read your deals, usage and payments and report deliveries from your own systems, with a key that can do only what you allow.",
+    blocks: [
+      { kind: "callout", text: "Keys, the webhook and this quickstart live on the [Developers](/app/sell/developers) page of the seller console. The full endpoint list is in the [reference](/docs/seller-api-reference); events pushed to your server are in [Webhooks](/docs/seller-webhooks)." },
+      { kind: "points", items: [
+        { title: "Base URL", text: "`" + SELLER_API_BASE.mainnet + "` (Arc mainnet, live keys) or `" + SELLER_API_BASE.testnet + "` (Arc testnet, test keys). The Developers page shows the one for the app you are signed in to." },
+        { title: "JSON in and out", text: "Money is micro-USDC as a string: `6600000` is $6.60. Every response covers your own seller only ([developers.ts](" + code("server/src/routes/developers.ts") + "))." },
+        { title: "Separate from buyer service keys", text: "A seller API key acts for your seller. The key a buyer gets when a deal is funded calls that deal's service at `/api/services/{product}/execute` ([API reference](/docs/api))." },
+      ] },
+      { kind: "h3", id: "seller-api-key", text: "Get a key" },
+      { kind: "steps", items: [
+        { title: "Open Developers", text: "In the seller console, Sell → [Developers](/app/sell/developers) → API keys. Only the signed-in owner of the seller account can manage keys; the shared example seller cannot." },
+        { title: "Name it and choose permissions", text: "A name of 1 to " + KEY_RULES.nameMaxChars + " characters, such as \"Order sync\", and at least one permission." },
+        { title: "Copy it once", text: "The full key is shown once, in the create response. Proteus stores only its SHA-256 hash; after that the page shows a masked key (`psk_test_AbCd••••••••wXyZ`), when it was created and when it was last used ([api-keys.ts](" + code("server/src/services/api-keys.ts") + "))." },
+        { title: "Keep it on your server", text: "Send it from your backend only. It is a bearer key: anyone who has it can do what its permissions allow until you revoke it." },
+      ] },
+      { kind: "h3", id: "seller-api-envs", text: "Test and live keys" },
+      { kind: "table", head: ["Key", "Starts with", "Works on", "Data"], rows: [
+        ["Test", "`psk_test_`", "Arc testnet ([ai.proteus.co.in](https://ai.proteus.co.in))", "Testnet deals, test USDC"],
+        ["Live", "`psk_live_`", "Arc mainnet ([app.proteus.co.in](https://app.proteus.co.in))", "Mainnet deals, real USDC"],
+      ], note: "Each app creates keys for its own network: create a test key on the testnet app and a live key on the mainnet app. A key sent to the other network is refused with 401 and a message saying which one it belongs to." },
+      { kind: "h3", id: "seller-api-scopes", text: "Permissions" },
+      { kind: "table", head: ["Permission", "Shown as", "Allows"], rows: SCOPES_REFERENCE.map((x) => ["`" + x.id + "`", x.label, x.description]) },
+      { kind: "p", text: "`GET /me` and `GET /products` work with any valid key. Every other endpoint needs the permission listed for it in the [reference](/docs/seller-api-reference); without it the answer is 403 and `details.required` names the missing permission. A key's permissions are fixed: to add one, create a new key." },
+      { kind: "h3", id: "seller-api-auth", text: "Authenticate" },
+      { kind: "code", lang: "text", text: "Authorization: Bearer psk_test_<43 characters>" },
+      { kind: "p", text: "A key is `psk_test_` or `psk_live_` followed by 43 base64url characters (256 random bits). Each authenticated call updates the key's last-used time." },
+      { kind: "h3", id: "seller-api-rotate", text: "Regenerate and revoke" },
+      { kind: "points", items: [
+        { title: "Regenerate with overlap", text: "Makes a new key with the same name, environment and permissions. The old key keeps working for an overlap you choose, " + KEY_RULES.overlapDefaultHours + " hours by default and at most " + KEY_RULES.overlapMaxHours + ", so a running integration can switch without downtime." },
+        { title: "Regenerate and cut off", text: "An overlap of 0 stops the old key at once. Use it when a key may have leaked." },
+        { title: "Revoke", text: "Stops a key immediately, including an old key still inside its overlap." },
+        { title: "Limits", text: "Up to " + KEY_RULES.maxWorkingKeys + " working keys per seller (active, or still inside an overlap). A key already replaced, expired or revoked cannot be regenerated: regenerate its replacement, or create a new key." },
+      ] },
+      { kind: "h3", id: "seller-api-quickstart", text: "Quickstart" },
+      { kind: "p", text: "The same four steps as on the Developers page, against Arc testnet with a test key. Put your key in `PROTEUS_SELLER_KEY`; never commit it." },
+      ...SELLER_QUICKSTART.flatMap((st): Block[] => [
+        { kind: "p", text: st.title + ". " + st.body },
+        { kind: "code", lang: "bash", text: st.bash },
+        { kind: "code", lang: "ts", text: st.ts },
+      ]),
+      { kind: "h3", id: "seller-api-errors", text: "Errors and limits" },
+      { kind: "p", text: "Errors are JSON `{ \"error\": string, \"details\": unknown | null }`. The error text says what to fix in plain words." },
+      { kind: "table", head: ["Status", "Meaning"], rows: [
+        ...ERRORS_REFERENCE.map((e) => [e.status, e.meaning]),
+        ["500", "Something failed on our side; the message is generic and the detail stays in our logs. Retry later."],
+      ] },
+      { kind: "code", lang: "json", text: "{\n  \"error\": \"This key does not have the deals:read permission (read deals). Add it by creating a key with that permission.\",\n  \"details\": { \"required\": \"deals:read\", \"granted\": [\"products:write\"] }\n}" },
+      { kind: "list", items: [
+        "The seller API has no request rate limit today.",
+        "`GET /deals` returns your newest 200 deals and `GET /usage` your newest 300 requests; there is no pagination yet.",
+        "Delivery reports are idempotent on `requestId`: retrying with the same id returns the first receipt instead of recording twice.",
+      ] },
+    ],
+  },
+  {
+    id: "seller-api-reference",
+    group: "Developers",
+    title: "Seller API reference",
+    summary: "Every /api/v1/seller endpoint, the permission it needs, and a curl and TypeScript example.",
+    blocks: [
+      { kind: "p", text: "Paths are relative to the base URL, `" + SELLER_API_BASE.mainnet + "` on Arc mainnet or `" + SELLER_API_BASE.testnet + "` on Arc testnet. The TypeScript examples use `base` and `headers` from [quickstart step 1](/docs/seller-api#seller-api-quickstart). `:id` is the `id` field of a product or deal (`prd_…`, `deal_…`), not its public id or slug." },
+      { kind: "table", head: ["Method", "Path", "Permission", "What it does"], rows: SELLER_API_REFERENCE.map((r) => ["`" + r.method + "`", "`" + r.path.replace("/v1/seller", "") + "`", r.scope ? "`" + r.scope + "`" : "Any key", r.summary]) },
+      ...SELLER_EXAMPLES.flatMap((ex): Block[] => {
+        const route = SELLER_API_REFERENCE.find((r) => r.method === ex.method && r.path === ex.path)!;
+        const p = ex.path.replace("/v1/seller", "");
+        return [
+          { kind: "h3", id: "seller-api-" + (ex.method + p).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-$/, ""), text: ex.method + " " + p },
+          { kind: "p", text: route.summary + ". Needs " + (route.scope ? "`" + route.scope + "`" : "any valid key") + "." + (ex.body ? " Body: " + ex.body : "") },
+          { kind: "code", lang: "bash", text: ex.bash },
+          { kind: "code", lang: "ts", text: ex.ts },
+          { kind: "code", lang: "json", text: ex.response },
+        ];
+      }),
+    ],
+  },
+  {
+    id: "seller-webhooks",
+    group: "Developers",
+    title: "Webhooks",
+    summary: "Deal events POSTed to your server as they happen, signed so you can check they came from Proteus.",
+    blocks: [
+      { kind: "callout", text: "Events are informational: the Arc chain is the record. Read balances from the [seller API](/docs/seller-api-reference) or the chain before you act on money." },
+      { kind: "h3", id: "webhooks-setup", text: "Set up" },
+      { kind: "steps", items: [
+        { title: "Add your URL", text: "Sell → [Developers](/app/sell/developers#webhooks) → Webhooks. It must be https, with no credentials in it, and its host must resolve to a public address ([notify.ts](" + code("server/src/services/notify.ts") + "))." },
+        { title: "Copy the signing secret", text: "Your first URL gets a secret (`whsec_` and 48 hex characters), shown once and stored encrypted. Changing the URL keeps the secret; removing the URL deletes it." },
+        { title: "Send a test", text: "Send test POSTs one signed `test` event right away, records it in the delivery log and shows the HTTP status and latency. It is tried once, with no retries." },
+      ] },
+      { kind: "h3", id: "webhooks-events", text: "Events" },
+      { kind: "table", head: ["Event", "When", "Fields in data"], rows: WEBHOOK_EVENTS_REFERENCE.map((e) => ["`" + e.event + "`", e.title, e.data]) },
+      { kind: "p", text: "Amounts in events are USDC with six decimals as a string (`\"6.600000\"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up." },
+      { kind: "h3", id: "webhooks-payload", text: "Payload" },
+      { kind: "code", lang: "http", text: "POST /your/webhook HTTP/1.1\nContent-Type: application/json\nUser-Agent: ProteusAI-Webhooks/1\nX-Proteus-Signature: t=1795122246,v1=5f2c…\n\n{\n  \"id\": \"ntf_…\",\n  \"event\": \"usage_settled\",\n  \"createdAt\": \"2026-11-20T10:00:00.000Z\",\n  \"data\": { \"deal\": \"d_…\", \"amountUsdc\": \"6.600000\", \"txHash\": \"0x…\", \"explorer\": \"https://explorer.arc.io/tx/0x…\", \"link\": \"https://app.proteus.co.in/app/sell/deals/deal_…\" }\n}" },
+      { kind: "p", text: "A test event has the same envelope with `\"event\": \"test\"`, `\"test\": true` and an id starting `evt_test_`." },
+      { kind: "h3", id: "webhooks-verify", text: "Verify the signature" },
+      { kind: "p", text: "`X-Proteus-Signature` is `t=<unix seconds>,v1=<hex>`, where the hex is HMAC-SHA256 of `<t>.<raw body>` with your signing secret. Check it against the body exactly as received, before parsing, and reject old timestamps:" },
+      { kind: "code", lang: "ts", text: WEBHOOK_VERIFY_TS },
+      { kind: "p", text: "Regenerating the secret takes effect at once, with no overlap: update your receiver right after." },
+      { kind: "h3", id: "webhooks-delivery", text: "Delivery and retries" },
+      { kind: "points", items: [
+        { title: "Success is any 2xx", text: "Within 5 seconds. Redirects are not followed and the response body is ignored." },
+        { title: "Retries", text: "A failed event is tried again on the next delivery runs, up to 5 attempts in all. If your email or Telegram fails, the webhook can receive the event again too: deduplicate on `id`." },
+        { title: "Checked at send time", text: "The host is resolved and refused if it points at a private, loopback, link-local or metadata address." },
+        { title: "Delivery log", text: "The Developers page lists your last 50 attempts, newest first: time, event, result, HTTP status, latency and error." },
+      ] },
     ],
   },
 
@@ -722,6 +841,7 @@ export const SECTIONS: DocSection[] = [
         ["Front desk and inbox", "Customers chat or speak with your AI assistant on a link or your website; every request lands in an inbox ([Front desk](/docs/front-desk)).", "Live · local test"],
         ["Real AI work", "Proteus-run services on Claude, model per job ([The AI behind it](/docs/ai-models)).", "Live · local test"],
         ["Approvals and alerts", "Email, Telegram, signed webhooks ([notify.ts](" + code("server/src/services/notify.ts") + ")).", "Testnet"],
+        ["Seller API and webhooks", "Scoped test and live keys for deals, usage, payments, prices and deliveries; signed webhooks with a delivery log ([Seller API](/docs/seller-api)).", "Local test"],
         ["Accounting export", "CSV in the shape QuickBooks and Xero import, each row linked to Arc.", "Testnet"],
         ["Onboarding from your wallet", "You own the account and the payouts.", "Mainnet"],
       ] },
@@ -923,6 +1043,7 @@ export const SECTIONS: DocSection[] = [
     blocks: [
       { kind: "links", items: [
         { label: "API reference", href: "/docs/api", note: "calling a service, billing, settlement, the seller endpoint" },
+        { label: "Seller API", href: "/docs/seller-api", note: "keys, quickstart, every /api/v1/seller endpoint and webhooks" },
         { label: "Agent skill", href: "/api/public/agents/skill.md", note: "discover, negotiate, fund and settle over HTTP" },
         { label: "Docs as Markdown", href: "/docs.md" },
         { label: "Facts as JSON", href: "/docs/facts.json" },

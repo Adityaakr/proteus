@@ -10,7 +10,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { POSTS } from "../src/app/blog/posts";
-import { API, CLAIMS, CONTRACTS, DOC_LEDE, DOC_TITLE, EVIDENCE, FACTS_AS_OF, GRACE, LIMITS, MCP_TOOLS, NETWORKS, SECTIONS, TRUST, compareRows, docsMarkdown, FEES, MODELS } from "../src/app/docs/docsContent";
+import { SELLER_API_REFERENCE, SCOPES_REFERENCE, KEY_RULES, WEBHOOK_EVENTS_REFERENCE, ERRORS_REFERENCE } from "../src/app/sell/developers/reference";
+import { API, CLAIMS, CONTRACTS, DOC_LEDE, DOC_TITLE, EVIDENCE, FACTS_AS_OF, GRACE, LIMITS, MCP_TOOLS, NETWORKS, SECTIONS, TRUST, compareRows, docsMarkdown, FEES, MODELS, SELLER_API_BASE } from "../src/app/docs/docsContent";
 
 const ORIGIN = "https://app.proteus.co.in";
 const pub = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
@@ -56,6 +57,23 @@ const facts = {
   networks: NETWORKS,
   contracts: CONTRACTS,
   api: { base: { mainnet: NETWORKS.mainnet.api, testnet: NETWORKS.testnet.api }, auth: API.auth, errors: API.errors, rateLimits: API.rateLimits, endpoints: API.endpoints.map(([method, path, does]) => ({ method, path, does })), example: API.example },
+  sellerApi: {
+    docs: { guide: `${ORIGIN}/docs/seller-api`, reference: `${ORIGIN}/docs/seller-api-reference`, webhooks: `${ORIGIN}/docs/seller-webhooks` },
+    base: SELLER_API_BASE,
+    auth: "Authorization: Bearer psk_live_… (Arc mainnet) or psk_test_… (Arc testnet), created on the seller's Developers page (/app/sell/developers); shown once, stored as a SHA-256 hash",
+    keys: { regenerateOverlapHours: { default: KEY_RULES.overlapDefaultHours, max: KEY_RULES.overlapMaxHours, cutOffNow: 0 }, maxWorkingKeys: KEY_RULES.maxWorkingKeys, revoke: "immediate" },
+    scopes: SCOPES_REFERENCE,
+    endpoints: SELLER_API_REFERENCE.map((r) => ({ method: r.method, path: `/api${r.path}`, scope: r.scope, does: r.summary })),
+    errors: ERRORS_REFERENCE,
+    money: "micro-USDC as decimal strings (6600000 = $6.60)",
+    rateLimit: "none today",
+    webhooks: {
+      signature: "X-Proteus-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of \"<t>.<raw body>\" with the signing secret>",
+      envelope: "{ id, event, createdAt, data }; a test event adds test: true",
+      events: WEBHOOK_EVENTS_REFERENCE,
+      delivery: "https only, public addresses only, no redirects, 5 s timeout, any 2xx is success; up to 5 attempts; deduplicate on id; last 50 attempts in the delivery log",
+    },
+  },
   trust: TRUST,
   refunds: GRACE,
   agents: {
