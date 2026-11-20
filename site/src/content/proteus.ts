@@ -39,7 +39,7 @@ export const nav = {
 };
 
 export const hero = {
-  tag: "AI negotiation and escrow for custom orders, built on",
+  tag: "The deal network for businesses and AI agents, built on",
   /** Network name shown with its mark after the tag; empty hides it. */
   tagNetwork: "Arc",
   headline: "Win the order in minutes. Get paid when it's delivered.",
@@ -270,7 +270,7 @@ export const landingCompare = {
   ],
   proteus: {
     name: "Proteus AI",
-    description: "AI negotiation and escrow for custom orders, built on Arc.",
+    description: "The deal network for businesses and AI agents, built on Arc.",
     href: "/app",
     logo: "/assets/proteus-ai-wordmark.png",
     logoHeight: 18,
@@ -421,7 +421,7 @@ export const faq = {
   heading: "Frequently asked questions",
   description: "What it does, what it costs, how you get paid, what happens when something goes wrong, and what is live today.",
   items: [
-    { q: "What is Proteus AI?", a: "AI negotiation and escrow for businesses that sell custom orders. Your deal agent answers buyers and negotiates inside your prices and limits, the buyer pays into escrow before you start, and the money is released to you when they confirm delivery." },
+    { q: "What is Proteus AI?", a: "The deal network for businesses and AI agents on Arc, starting with businesses that sell custom orders. Your deal agent answers buyers and negotiates inside your prices and limits, the buyer pays into escrow before you start, and the money is released to you when they confirm delivery." },
     { q: "How is this different from a payment link or an escrow service?", a: "A payment link gets you paid but leaves the quoting to you and gives the buyer no protection. An escrow service protects both sides but charges a fee on each deal, and you still quote by hand. Proteus quotes, negotiates and holds the payment in one flow, with no fee on your orders." },
     { q: "What does the AI actually decide?", a: "It reads each request, decides which offers to make, sizes them to the buyer's budget and explains the terms. It does not set prices, which are computed in code from your rules, and it never moves money: only the buyer's and the seller's signatures do. A reply that states a number your rules did not produce is replaced before the buyer sees it." },
     { q: "Can the AI agree to a bad deal?", a: "No. Prices are calculated from your tiers, costs and limits, not by the AI. It cannot go below your margin floor or past your discount limit, and orders above your approval limit wait for you." },
@@ -446,7 +446,7 @@ export const footer = {
   line: "Set your prices and limits once. Proteus answers every buyer, collects payment upfront and releases it to you when they confirm delivery.",
   cta: { label: "Start free", href: links.sell },
   brand: "Proteus AI",
-  tagline: "AI negotiation and escrow for custom orders, built on Arc.",
+  tagline: "The deal network for businesses and AI agents, built on Arc.",
   columnTitle: "Product",
   columns: [
     { label: "How it works", href: "/#how-it-works" },
