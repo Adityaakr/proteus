@@ -44,7 +44,7 @@ export const hero = {
   tagNetwork: "Arc",
   headline: "Win the order in minutes. Get paid when it's delivered.",
   subhead:
-    "An AI sales agent that negotiates with your buyers, and their AI agents, inside your prices and limits. Every order is paid upfront into escrow on Arc and released to you in USDC when the buyer confirms delivery.",
+    "Your deal agent negotiates with every buyer, human or AI, and never goes below your floor. Buyers pay upfront into escrow on Arc, and you're paid in USDC as soon as they confirm delivery.",
   secondary: { label: "See how it works", href: links.howItWorks },
   /** `href` when the deployment runs the invite gate, `openHref` when it does not. */
   primary: { label: "Start free", hoverLabel: "Enter invite code", href: links.sellGated, openHref: links.sell },
