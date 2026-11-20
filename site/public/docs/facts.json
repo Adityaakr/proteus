@@ -1,7 +1,7 @@
 {
   "product": "Proteus AI",
   "summary": "A deal agent for anything sold by quote, volume or usage. It negotiates with buyers and their AI agents inside the seller's rules, both sides sign the same terms, and USDC waits on Arc until delivery: the seller is paid for what was delivered, the rest is refundable.",
-  "asOf": "2026-11-14",
+  "asOf": "2026-11-20",
   "docs": {
     "html": "https://app.proteus.co.in/docs",
     "markdown": "https://app.proteus.co.in/docs.md",
@@ -289,9 +289,10 @@
       "mainnet": "https://app.proteus.co.in/api",
       "testnet": "https://ai.proteus.co.in/api"
     },
-    "auth": "Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller dashboard routes (/api/app/*): wallet sign-in session. Seller API (/api/v1/seller/*): Bearer seller API key (psk_live_… or psk_test_…) from the Developers page.",
-    "errors": "JSON { error: string, details: unknown | null } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert), 429 (rate limit), 500.",
-    "rateLimits": "Per client IP in a 10-minute window: 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; 12 counters per negotiation. Front desk chat: 40 messages per IP per 10 minutes and 400 per customer link per day. Sign-in routes are limited too. Other public routes are not rate limited.",
+    "auth": "Buyer routes need no account: deal ids are unguessable capabilities. Exceptions: every /negotiations/{id} call needs the X-Negotiation-Key returned when the negotiation started; routes marked buyer only need the signed-in owner of the buyer wallet or the deal's service key. Service calls: Bearer API key shown once when a deal is provisioned. Seller dashboard routes (/api/app/*): wallet sign-in session. Seller API (/api/v1/seller/*): Bearer seller API key (psk_live_… or psk_test_…) from the Developers page.",
+    "errors": "JSON { error: string, details?: unknown } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert, with the revert reason), 429 (rate limit; details.retryAfterSeconds says when to retry) or 500 (a generic message; the detail stays in server logs).",
+    "units": "Amounts are micro-USDC as integer strings (\"6600000\" is $6.60): offers, terms, balances and counteroffer targetTotal. Seller webhooks are the exception: they send USDC with six decimals (\"6.600000\").",
+    "rateLimits": "Per client IP in a 10-minute window: 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; 12 counters per negotiation per 10 minutes. Front desk chat: 40 messages per IP per 10 minutes and 400 per customer link per day. Sign-in routes and the Solana RPC proxy (300 per IP per 10 minutes) are limited too. Other public routes are not rate limited. Limits are kept in memory on each server.",
     "endpoints": [
       {
         "method": "GET",
@@ -634,7 +635,7 @@
             "in": "body",
             "type": "string",
             "required": true,
-            "description": "Dollars per unit, more than 0, up to 6 decimals: `\"6.60\"`."
+            "description": "Dollars per unit, more than 0: up to 7 digits before the point and 6 after, e.g. `\"6.60\"`."
           },
           {
             "name": "tiers[].includes",
@@ -869,7 +870,7 @@
             "in": "body",
             "type": "string",
             "required": false,
-            "description": "Up to 1000 characters. Required for `delayed` (why, and the new date) and for `note`."
+            "description": "Up to 1000 characters; anything longer is cut. Required, at least 2 characters, for `delayed` (why, and the new date) and for `note`."
           },
           {
             "name": "trackingUrl",
@@ -1041,7 +1042,7 @@
     {
       "role": "seller signer",
       "holder": "a per-seller key generated and held by Proteus, AES-256-GCM encrypted; on chain it is the deal's seller address",
-      "power": "countersigns terms, deliveries and policy commitments; can end a term early (sellerCloseTerm, which opens refunds); receives pay-per-call (x402) payments until the seller sweeps them to its payee; cannot change the payee, which is pinned to the owner's wallet; revoking it stops new signatures, while deals it already signed keep accepting it until they close"
+      "power": "countersigns terms, deliveries and policy commitments; can end a term early (sellerCloseTerm, which opens refunds) and open a dispute on its deals; receives pay-per-call (x402) payments until the seller sweeps them to its payee; cannot change the payee, which is pinned to the owner's wallet; revoking it stops Proteus using it for new terms, while on deals it already signed it stays the seller on chain until they close"
     },
     {
       "role": "owner",
@@ -1151,10 +1152,16 @@
         "why": "talks to customers; asks one question at a time"
       },
       {
-        "job": "Invoice processing, screening checks, inference",
+        "job": "Invoice processing, screening checks",
         "model": "Claude Sonnet 5.5",
-        "effort": "medium or low",
+        "effort": "medium",
         "why": "reads PDFs and images directly"
+      },
+      {
+        "job": "Inference service",
+        "model": "Claude Sonnet 5.5",
+        "effort": "low",
+        "why": "answers within the buyer's request"
       },
       {
         "job": "Vendor evaluations, operator tasks",
@@ -1258,30 +1265,34 @@
       ]
     },
     {
-      "claim": "Pricing policies committed on chain (4 Shoonya products, version 1)",
+      "claim": "Pricing policies committed on chain (4 Shoonya products at version 1, then version 2 of the tees policy used for the first order)",
       "network": "mainnet",
       "status": "proven",
       "evidence": [
         {
-          "label": "commit 1",
+          "label": "v1 commit 1",
           "url": "https://explorer.arc.io/tx/0x59065079ffdc03ddc1e7ab3d257210ff743076e6522d1013e67b0bf901cdd165"
         },
         {
-          "label": "commit 2",
+          "label": "v1 commit 2",
           "url": "https://explorer.arc.io/tx/0x525f8578c6f8c039aaf5ad32cd16b91f5d176d966e54e29050ff0c735ee0c977"
         },
         {
-          "label": "commit 3",
+          "label": "v1 commit 3",
           "url": "https://explorer.arc.io/tx/0xe88e372b98cd6a8532b5c8294d9e6a03953821c4a543054cf1102960fe591947"
         },
         {
-          "label": "commit 4",
+          "label": "v1 commit 4",
           "url": "https://explorer.arc.io/tx/0xece7b7615eabe2605eba03127341da4749c06f2bc775bec22278aa2f26c4ff8f"
+        },
+        {
+          "label": "v2 commit",
+          "url": "https://explorer.arc.io/tx/0xf9f566e326231199de683c3b0082a0ba37c4ab36ba76e8bb6c22fe76e7430386"
         }
       ]
     },
     {
-      "claim": "A real customer's order, end to end: Shoonya Store customer negotiates 1 tee ($6.60), funds gaslessly, Shoonya delivers, the customer countersigns and DealEscrow pays Shoonya 6.60 USDC",
+      "claim": "A Shoonya Store customer order, end to end: 1 tee negotiated at $6.60, funded gaslessly with a USDC permit, delivered, countersigned, and 6.60 USDC paid to Shoonya by DealEscrow (the buyer wallet was later found linked to a Shoonya team account in Proteus)",
       "network": "mainnet",
       "status": "proven",
       "evidence": [
@@ -1307,7 +1318,22 @@
       ]
     },
     {
-      "claim": "Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction)",
+      "claim": "Website embed: a seller's deal agent on a third-party site, with signing and payment in a Proteus tab",
+      "network": "testnet",
+      "status": "proven",
+      "evidence": [
+        {
+          "label": "embed.js",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/site/public/embed.js"
+        },
+        {
+          "label": "embed.ts",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/embed.ts"
+        }
+      ]
+    },
+    {
+      "claim": "Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction; also used for the Shoonya order on mainnet)",
       "network": "testnet",
       "status": "proven",
       "evidence": [
@@ -1553,7 +1579,7 @@
       ],
       [
         "Fund a deal with approve",
-        "The buyer"
+        "The buyer pays for the approve; Proteus (relayer) for createAndFundDeal"
       ],
       [
         "Settle delivered units",
@@ -1565,7 +1591,7 @@
       ],
       [
         "Open a dispute",
-        "The buyer's wallet"
+        "The buyer's wallet (or the seller signer, which can open one too)"
       ],
       [
         "Rate the seller (ERC-8004 giveFeedback)",
@@ -1580,84 +1606,113 @@
         "The seller signer key (it keeps 0.05 USDC back for gas)"
       ]
     ],
-    "other": "Model calls for negotiation, hosting and the relayer's gas are paid by Proteus. Circle Gateway, wallets and exchanges may charge their own fees; those are theirs, not Proteus's."
+    "other": "Model calls, hosting and the relayer's gas are paid by Proteus. Circle Gateway, wallets and exchanges may charge their own fees; those are theirs, not Proteus's."
   },
   "limits": [
     {
       "title": "No audit yet",
-      "detail": "DealEscrow is source-verified and tested, not independently audited."
+      "detail": "DealEscrow is source-verified and tested, not independently audited.",
+      "group": "Escrow and disputes"
     },
     {
-      "title": "One arbiter key",
-      "detail": "Disputes are resolved by a single Proteus-operated key, with no timeout yet."
+      "title": "Proteus can open and decide a dispute",
+      "detail": "The seller signer is the deal's seller on chain and Proteus holds it, so it can open a dispute; the arbiter key, also Proteus's, then splits the unspent balance. Settled funds are out of reach. There is one arbiter key and no dispute timeout yet.",
+      "group": "Escrow and disputes"
     },
     {
       "title": "Settle before end + grace",
-      "detail": "Settlement reverts after the term plus grace; usage not countersigned by then can no longer be paid from escrow."
+      "detail": "Settlement reverts after the term plus grace; usage not countersigned by then can no longer be paid from escrow.",
+      "group": "Escrow and disputes"
     },
     {
       "title": "Refunds need a call",
-      "detail": "`refundUnused` after the term plus grace or after the seller closes; one click on the deal page, or anyone."
+      "detail": "`refundUnused` after the term plus grace or after the seller closes; one click on the deal page, or anyone.",
+      "group": "Escrow and disputes"
     },
     {
       "title": "Dates live in the chat",
-      "detail": "Delivery dates are agreed in the conversation, not in the signed terms."
+      "detail": "Delivery dates are agreed in the conversation, not in the signed terms.",
+      "group": "Escrow and disputes"
     },
     {
       "title": "Delivery is seller-confirmed",
-      "detail": "Proteus does not verify physical delivery; the buyer countersigns or disputes."
+      "detail": "Proteus does not verify physical delivery; the buyer countersigns or disputes.",
+      "group": "Escrow and disputes"
     },
     {
-      "title": "Pay per call has no escrow",
-      "detail": "x402 calls are paid when made, with no refund path."
-    },
-    {
-      "title": "Listing check",
-      "detail": "The import flow lists after Arc registration by step order; the listing endpoint itself does not check it (catalog sync does)."
+      "title": "Pay per call is outside escrow",
+      "detail": "x402 calls are paid when made, with no refund path. With the exact scheme the payment lands in the seller's Proteus-held signer key until the seller sweeps it to its payee; Gateway batching pays the payee directly.",
+      "group": "Escrow and disputes"
     },
     {
       "title": "Figure check",
-      "detail": "A model reply is discarded if it carries a dollar amount or a number of four or more digits that is not in the offers. Smaller bare numbers (\"20%\", \"500 units\") and numbers written in words are not caught; the price never comes from the reply."
+      "detail": "A model reply is discarded if it carries a dollar amount or a number of four or more digits that is not in the offers. Smaller bare numbers (\"20%\", \"500 units\") and numbers written in words are not caught; the price never comes from the reply.",
+      "group": "Pricing and AI"
     },
     {
-      "title": "Unregistered sellers are not checked on chain",
-      "detail": "For a seller not registered on Arc, the MCP server has no identity or policy to check and signs without refusing."
+      "title": "Counter limit is per window",
+      "detail": "Counteroffers are limited to 12 per negotiation and 40 per IP in each 10-minute window, not in total; one public reason for all price rules is what slows a search for the floor.",
+      "group": "Pricing and AI"
     },
     {
       "title": "Front desk details reach the model",
-      "detail": "Contact redaction runs on the deal-desk chat only. A front desk customer's name and phone go to Claude and to the business's alerts, because the business needs them."
+      "detail": "Contact redaction runs on the deal-desk chat only. A front desk customer's name and phone go to Claude and to the business's alerts, because the business needs them.",
+      "group": "Pricing and AI"
     },
     {
-      "title": "Pay per call is held by the signer",
-      "detail": "With the x402 exact scheme, payments land in the seller's Proteus-held signer key until the seller sweeps them to its payee; Gateway batching pays the payee directly."
+      "title": "Listing check",
+      "detail": "The import flow lists after Arc registration by step order; the listing endpoint itself does not check it (catalog sync does).",
+      "group": "Pricing and AI"
+    },
+    {
+      "title": "Unregistered sellers are not checked on chain",
+      "detail": "For a seller not registered on Arc, the MCP server has no identity or policy to check and signs without refusing.",
+      "group": "Agents and APIs"
+    },
+    {
+      "title": "Rate limits are per server",
+      "detail": "Limits are counted in memory on each server instance and reset when it restarts.",
+      "group": "Agents and APIs"
+    },
+    {
+      "title": "No pagination yet",
+      "detail": "The seller API returns the newest 200 deals and 300 usage records; the inbox API the newest 200 requests.",
+      "group": "Agents and APIs"
     },
     {
       "title": "Buyer alerts are best effort",
-      "detail": "Alerts to buyers are sent with two tries and no delivery log; the seller's webhooks use the outbox with retries."
+      "detail": "Alerts to buyers go out at once with two tries and no delivery log. Signed webhooks work today; Telegram and email need their keys on the server. Sellers' deal webhooks use an outbox with retries.",
+      "group": "Channels"
     },
     {
       "title": "No phone line yet",
-      "detail": "The front desk answers chat and browser voice on a link or website embed, not phone calls."
+      "detail": "The front desk answers chat and browser voice on a link or website embed, not phone calls.",
+      "group": "Channels"
     },
     {
       "title": "Calendar booking is off",
-      "detail": "Google Calendar booking is built but not switched on; bookings arrive as requests for the business to confirm."
+      "detail": "Google Calendar booking is built but not switched on; bookings arrive as requests for the business to confirm.",
+      "group": "Channels"
     },
     {
       "title": "Voice depends on the browser",
-      "detail": "Speech uses the browser's engine: Chrome, Edge and Safari work; browsers that block it (Brave, Arc) fall back to typing."
+      "detail": "Speech uses the browser's engine: Chrome, Edge and Safari work; browsers that block it (Brave, Arc) fall back to typing.",
+      "group": "Channels"
     },
     {
-      "title": "Buyer alerts by webhook today",
-      "detail": "Telegram and email alerts need their keys on the server; signed webhooks work now."
+      "title": "WhatsApp is in testing",
+      "detail": "The channel is deployed and a number is connected, but no real customer conversation has happened yet.",
+      "group": "Channels"
     },
     {
       "title": "One rating predates the checks",
-      "detail": "Shoonya's first rating (Nov 11) counts although its buyer wallet is linked to a Shoonya team account in Proteus; it is listed as counted_before_checks. Every rating since Nov 12 must pass the checks."
+      "detail": "Shoonya's first rating (Nov 11) counts although its buyer wallet is linked to a Shoonya team account in Proteus; it is listed as counted_before_checks. Every rating since Nov 12 must pass the checks.",
+      "group": "Ratings"
     },
     {
       "title": "Ratings are cost-to-fake, not proof",
-      "detail": "A seller that funds a second wallet from an exchange leaves no link on Arc and can still rate itself; one vote per buyer and the neutral prior limit the effect. Flags are not yet written on chain."
+      "detail": "A seller that funds a second wallet from an exchange leaves no link on Arc and can still rate itself; one vote per buyer and the neutral prior limit the effect. Flags are not yet written on chain.",
+      "group": "Ratings"
     }
   ],
   "comparison": {

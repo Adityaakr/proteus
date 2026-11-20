@@ -1,8 +1,6 @@
 # Webhooks · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/seller-webhooks> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
-
-
+Source: <https://app.proteus.co.in/docs/seller-webhooks> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Deal events POSTed to your server as they happen, signed so you can prove they came from Proteus._
 
@@ -14,11 +12,15 @@ A deal event (funded, settled, refunded, dispute, approval needed, order details
 
 > Events tell you something happened; the Arc chain is the record. Read balances from the [seller API](https://app.proteus.co.in/docs/seller-api-reference) or the chain before you act on money.
 
+<a id="webhooks-setup"></a>
+
 ### Set up
 
 1. **Add your URL.** Sell → [Developers](https://app.proteus.co.in/app/sell/developers#webhooks) → Webhooks. It must be https, with no credentials in it, and resolve to a public address ([notify.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/notify.ts)).
 2. **Copy the signing secret.** Your first URL gets a secret, `whsec_` and 48 hex characters, shown once and stored encrypted. Changing the URL keeps it; removing the URL deletes it.
 3. **Send a test.** Send test POSTs one signed `test` event at once, logs it and shows the HTTP status and latency. It is tried once, with no retries.
+
+<a id="webhooks-events"></a>
 
 ### Events
 
@@ -34,6 +36,8 @@ A deal event (funded, settled, refunded, dispute, approval needed, order details
 | `whatsapp_human` | A WhatsApp buyer asked for a person | channel, link |
 
 Amounts in events are USDC with six decimals, as a string (`"6.600000"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up.
+
+<a id="webhooks-payload"></a>
 
 ### Payload
 
@@ -59,6 +63,8 @@ X-Proteus-Signature: t=1795122246,v1=5f2c…
 
 A test event has the same envelope with `"event": "test"`, `"test": true` and an id starting `evt_test_`.
 
+<a id="webhooks-verify"></a>
+
 ### Verify the signature
 
 1. **Read the header.** `X-Proteus-Signature` is `t=<unix seconds>,v1=<hex>`.
@@ -78,14 +84,17 @@ export function verifyProteus(header: string, rawBody: string, secret: string, t
 }
 ```
 
-> **Warning:** Regenerating the secret takes effect at once, with no overlap. Update your receiver right after.
+> **Warning.** Regenerating the secret takes effect at once, with no overlap. Update your receiver right after.
+
+<a id="webhooks-delivery"></a>
 
 ### Delivery and retries
 
 | Rule | Behaviour |
 |---|---|
 | Success | Any 2xx within 5 seconds. Redirects are not followed and the response body is ignored. |
-| Retries | A failed event is tried again on later delivery runs, up to 5 attempts in all. |
-| Duplicates | If your email or Telegram fails, the webhook can receive the same event again. Deduplicate on `id`. |
+| Retries | A failed event is tried again after each reconciler run (every 10 seconds by default), up to 5 attempts in all, then marked failed. Each run sends at most 20 events. |
+| Outages | Five attempts span about a minute, so an outage longer than that can lose an event. Reconcile from `GET /deals` and `GET /payments` after downtime. |
+| Duplicates | If any channel (webhook, email or Telegram) fails, the event is sent again on every channel, so your webhook can receive the same event twice. Deduplicate on `id`. |
 | Address check | The host is resolved at send time and refused if it points at a private, loopback, link-local or metadata address. |
 | Delivery log | The Developers page lists your last 50 attempts, newest first: time, event, result, HTTP status, latency and error. |

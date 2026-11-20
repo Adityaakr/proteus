@@ -148,11 +148,11 @@ export const DIAGRAMS: Record<DiagramName, SketchSpec> = {
   apiAuth: {
     w: 780,
     h: 360,
-    alt: "Seller API authentication: your server sends a bearer key. Proteus looks up the key's SHA-256 hash (missing, unknown, revoked or expired: 401), checks its environment against the network (a test key on mainnet or a live key on testnet: 401), checks the route's permission (missing: 403 naming it), then answers with your seller's data only (another seller's deal or product: 404). The public sandbox key goes to /api/v1/sandbox/seller instead, which answers from fixed demo data and runs writes as dry runs.",
+    alt: "Seller API authentication: your server sends a bearer key. Proteus checks its environment against the network (a test key on mainnet or a live key on testnet: 401), looks up the key's SHA-256 hash (missing, unknown, revoked or expired: 401), checks the route's permission (missing: 403 naming it), then answers with your seller's data only (another seller's deal or product: 404). The public sandbox key goes to /api/v1/sandbox/seller instead, which answers from fixed demo data and runs writes as dry runs.",
     nodes: [
       { id: "you", x: 8, y: 40, w: 124, h: 64, title: "Your server", sub: "Bearer psk_…", tone: "blue" },
-      { id: "key", x: 170, y: 40, w: 124, h: 64, title: "Key", sub: "SHA-256 lookup", tone: "gray" },
-      { id: "env", x: 332, y: 40, w: 124, h: 64, title: "Environment", sub: "test ↔ testnet", tone: "gray" },
+      { id: "key", x: 170, y: 40, w: 124, h: 64, title: "Environment", sub: "test ↔ testnet", tone: "gray" },
+      { id: "env", x: 332, y: 40, w: 124, h: 64, title: "Key", sub: "SHA-256 lookup", tone: "gray" },
       { id: "scope", x: 494, y: 40, w: 124, h: 64, title: "Permission", sub: "scope for route", tone: "gray" },
       { id: "data", x: 656, y: 40, w: 116, h: 64, title: "Your data", sub: "your seller only", tone: "green" },
       { id: "e401", x: 232, y: 176, w: 162, h: 56, title: "401", sub: "unknown, revoked, other env", tone: "rose" },
@@ -412,6 +412,26 @@ export const DIAGRAMS: Record<DiagramName, SketchSpec> = {
       { from: "proteus", to: "agent" },
       { from: "proteus", to: "web", label: "30-minute link", labelAt: 0.5 },
       { from: "proteus", to: "team", dashed: true, label: "HUMAN", labelAt: 0.5 },
+    ],
+  },
+  trust: {
+    w: 780,
+    h: 340,
+    alt: "Trust boundaries: the buyer's wallet signs the terms, permit and acceptances and funds DealEscrow. Proteus holds three keys: the relayer submits transactions and pays gas but cannot move funds without signatures; the seller signer countersigns terms and deliveries, can end a term early and can open a dispute; the arbiter, which is also the owner, splits only the unspent balance of a disputed deal and can pause new deals. DealEscrow pays only the deal's payee (the seller's own wallet) and the buyer.",
+    nodes: [
+      { id: "buyer", x: 16, y: 40, w: 180, h: 64, title: "Buyer wallet", sub: "funds; signs and accepts", tone: "blue" },
+      { id: "payee", x: 16, y: 236, w: 180, h: 64, title: "Seller wallet", sub: "payee: gets settlements", tone: "green" },
+      { id: "escrow", x: 262, y: 136, w: 180, h: 72, title: "DealEscrow", sub: "checks every signature", tone: "green" },
+      { id: "relayer", x: 590, y: 20, w: 176, h: 64, title: "Relayer", sub: "Proteus: submits, pays gas", tone: "amber" },
+      { id: "signer", x: 590, y: 140, w: 176, h: 64, title: "Seller signer", sub: "Proteus: signs, can dispute", tone: "amber" },
+      { id: "arbiter", x: 590, y: 260, w: 176, h: 64, title: "Arbiter and owner", sub: "Proteus: disputes, pause", tone: "rose" },
+    ],
+    edges: [
+      { from: "buyer", to: "escrow" },
+      { from: "escrow", to: "payee" },
+      { from: "relayer", to: "escrow", dashed: true, label: "submits", labelAt: 0.45 },
+      { from: "signer", to: "escrow" },
+      { from: "arbiter", to: "escrow", dashed: true, label: "splits the rest", labelAt: 0.45 },
     ],
   },
 };

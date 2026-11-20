@@ -1,8 +1,6 @@
 # Buy with an AI agent (MCP) · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/quickstart-agent> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
-
-
+Source: <https://app.proteus.co.in/docs/quickstart-agent> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Give Claude or any MCP client the full buying loop, within a limit you set._
 
@@ -12,12 +10,16 @@ _Diagram: The MCP server runs on your machine; your key never leaves it._
 
 You set the mandate (the largest prepaid amount per deal) in the MCP server's environment. Your MCP client, such as Claude, calls the Proteus MCP server's tools. The server runs on your machine: it talks to the Proteus API to negotiate, quote and fund, reads Arc directly to verify the seller's ERC-8004 identity and policy commitment, and signs with your buyer key or returns typed data for a Circle Agent Wallet to sign. The relayer submits the funding and settlement to DealEscrow on Arc.
 
+<a id="mcp-setup"></a>
+
 ### Set up
 
 1. **Clone the repository.** The server runs from a clone of [the Proteus repository](https://github.com/Adityaakr/proteus) (`packages/mcp`); it is not published to npm. Run `pnpm install` once.
 2. **Add it to your client.** Paste the config below into your MCP client (Claude Desktop, Claude Code, or any client that runs stdio servers), with the path to your clone.
 3. **Set the mandate.** `PROTEUS_MAX_PREPAID_USDC` is the most the agent may prepay in one deal.
-4. **Ask for something.** "Find a merch seller and get 20 boxes under $300." The agent lists services, negotiates and asks before it signs.
+4. **Ask for something.** "Find a merch seller and get 20 boxes under $300." The agent lists services and negotiates; it signs and funds only within the mandate, and your MCP client may ask you to approve each tool call.
+
+**MCP client config:**
 
 ```json
 {
@@ -35,6 +37,8 @@ You set the mandate (the largest prepaid amount per deal) in the MCP server's en
 }
 ```
 
+<a id="mcp-env"></a>
+
 ### Settings
 
 | Variable | Default | What it does |
@@ -42,6 +46,8 @@ You set the mandate (the largest prepaid amount per deal) in the MCP server's en
 | `PROTEUS_API_URL` | `https://ai.proteus.co.in` | Arc testnet (`5042002`, test USDC). Set `https://app.proteus.co.in` for Arc mainnet (`5042`) and real USDC. |
 | `PROTEUS_MAX_PREPAID_USDC` | `5` | The mandate: the largest prepaid amount per deal, in USDC. |
 | `PROTEUS_BUYER_PRIVATE_KEY` | none | Optional. With a key, the agent signs and funds itself. Without one, signing tools return the EIP-712 typed data to sign elsewhere, such as a Circle Agent Wallet. |
+
+<a id="mcp-tools"></a>
 
 ### Tools
 
@@ -57,6 +63,8 @@ You set the mandate (the largest prepaid amount per deal) in the MCP server's en
 | `proteus_settle_usage` | Checks the amount is no more than delivered units × the agreed price, signs the acceptance; the relayer settles. |
 | `proteus_deal_status` | Deposit, used, settled and remaining, read from the escrow. |
 
+<a id="mcp-guards"></a>
+
 ### What the agent checks, and what it leaves to you
 
 | Check | Done by the MCP server |
@@ -70,10 +78,13 @@ You set the mandate (the largest prepaid amount per deal) in the MCP server's en
 | Unit price, number of deals, which service | No: the mandate caps the prepaid amount per deal only. |
 
 - **Testnet by default.** The config points at Arc testnet. MCP buying is proven on testnet only.
-- **Funding.** Default is a gasless USDC permit (proven on testnet). The mainnet loop so far was funded by approve; pass `gasless: false` to approve instead (it needs the buyer key).
+- **Funding.** Default is a gasless USDC permit; pass `gasless: false` to approve instead (it needs the buyer key).
+- **Check the addresses.** The server takes the escrow and USDC addresses from the API's `GET /api/health`. Compare them once with [Verify it yourself](https://app.proteus.co.in/docs/verify).
 - **Private negotiation.** `proteus_negotiate` returns a negotiationKey; the MCP server keeps it and sends it on every later call, so no one else can read the conversation. After a restart, pass it back.
 - **The service key stays local.** After funding, the service's API key is kept in the MCP process's memory and used by `proteus_call_service`.
 
-> **Warning:** It is enforced in the MCP process on your machine, not on chain. It does not cap the unit price, how many deals the agent makes, or which service it picks.
+> **Warning: The mandate is local.** It is enforced in the MCP process on your machine, not on chain. It does not cap the unit price, how many deals the agent makes, or which service it picks.
+
+> **Warning: Guard the key.** `PROTEUS_BUYER_PRIVATE_KEY` sits in plain text in your client's config file. Use a wallet funded only with what the agent may spend, or leave it out and sign with a Circle Agent Wallet.
 
 > **Proven on Arc testnet:** Claude, with only these tools and a 13 USDC mandate, refused to buy when a delivery date did not fit, bought a sample once it did, checked the seller's receipt and settled. [Transcript](https://github.com/Adityaakr/proteus/blob/main/docs/evidence/2026-10-23-claude-mcp-kitbox.md) · [funding](https://explorer.testnet.arc.io/tx/0x280207802e1d34e8e8731abaab31fd31333ff3d8559867f6776eae04af1f3c73) · [settlement](https://explorer.testnet.arc.io/tx/0x63aeb139848a1067eedb1961ed0721ef00024e44b4e9ec1e46cc2cdbb7eb8b45)

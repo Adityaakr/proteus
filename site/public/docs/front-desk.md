@@ -1,8 +1,6 @@
 # Front desk, orders and inbox · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/front-desk> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
-
-
+Source: <https://app.proteus.co.in/docs/front-desk> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
 _What a business and its customers see after the deal: a front desk customers can talk to, order tracking, an inbox, and alerts._
 
@@ -11,6 +9,8 @@ For businesses running a scheduling service on Proteus (receptionist, after-hour
 _Diagram: A customer's request, from the first message to the business's inbox._
 
 A customer chats or speaks on the business's customer link or website embed. The AI assistant answers from the business profile and asks for one missing detail at a time; follow-up questions are never billed. When the request is complete it is metered once as one unit on the business's deal. The customer sees only the reply meant for them; the full note goes to the business's inbox, and an alert goes out by webhook, Telegram or email, flagged urgent for emergencies.
+
+<a id="front-desk-how"></a>
 
 ### A front desk your customers can talk to
 
@@ -30,13 +30,17 @@ For scheduling services, the business creates a customer link on its deal page a
 | Control | The business can replace the link (the old one stops at once) or turn it off. |
 | Privacy | The customer's details go to the business, and to Claude to understand the request. The link token is random; only its hash is used for lookup. |
 
+**Website embed:**
+
 ```html
 <iframe src="https://app.proteus.co.in/embed/talk/<token>" title="Talk to us"
   style="width:100%;max-width:440px;height:620px;border:0;border-radius:16px"
   allow="microphone"></iframe>
 ```
 
-The customer page at `/embed/talk/<token>` may be framed by any site. The API behind it is `GET /api/public/talk/{token}` and `POST /api/public/talk/{token}/messages`.
+On testnet the page lives at `https://ai.proteus.co.in/embed/talk/<token>`. The customer page may be framed by any site. The API behind it is `GET /api/public/talk/{token}` and `POST /api/public/talk/{token}/messages`.
+
+<a id="front-desk-profile"></a>
 
 ### Business profile, calendar and voice
 
@@ -44,9 +48,13 @@ The customer page at `/embed/talk/<token>` may be framed by any site. The API be
 - **Google Calendar.** Built: the assistant checks free and busy times and books on the business's own calendar, and the server re-checks the slot before writing ([calendar.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/calendar.ts)). Not switched on yet: until it is, bookings arrive as requests to confirm.
 - **Voice.** Customers can speak instead of typing, and replies can be read aloud. Speech runs in the browser: Chrome and Edge use Google's speech service, Safari the device. Proteus receives only the transcript. No phone number yet.
 
+<a id="front-desk-inbox"></a>
+
 ### The inbox
 
 Every request on the deal, from customers and from the business itself, newest first, with the full note. The business marks each one confirmed, done or cancelled (`POST /api/deals/{id}/requests/{requestId}/status`). Requests the assistant could not finish are labelled and were not charged. Through the API, `GET /api/services/{product}/inbox` returns the newest 200, for scheduling services only.
+
+<a id="front-desk-orders"></a>
 
 ### Order tracking for goods
 
@@ -59,6 +67,8 @@ For goods and work the seller delivers, the buyer's deal page is an order tracke
 | Delivered | The seller's signed delivery record |
 | Seller paid | The settlement transaction on Arc, after the buyer countersigns |
 
+<a id="front-desk-alerts"></a>
+
 ### Alerts
 
 Each deal chooses where its buyer hears about it: a signed webhook, Telegram, or email (`PUT /api/deals/{id}/notifications`, [buyer-notify.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/buyer-notify.ts)). A shopper hears about each order update the seller posts; a business hears about each new customer request. A webhook into Zapier or Make reaches Slack, Sheets, a calendar or a CRM.
@@ -69,8 +79,23 @@ Each deal chooses where its buyer hears about it: a signed webhook, Telegram, or
 | `customer_request` | A front desk request is complete |
 | `customer_urgent` | A request mentions an emergency, or needs a person |
 
-```text
+**A buyer alert webhook:**
+
+```http
+POST /your/webhook HTTP/1.1
+Content-Type: application/json
 X-Proteus-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of "<t>.<raw body>" with your secret>
+
+{
+  "event": "customer_request",
+  "subject": "New request from a customer",
+  "product": "ai-receptionist",
+  "note": "…",
+  "url": "https://app.proteus.co.in/app/deals/…",
+  "at": "2026-11-20T10:00:00.000Z"
+}
 ```
 
-> **Warning:** Buyer alerts are sent at once with two tries and no delivery log; nothing is retried later. Signed webhooks work today; Telegram and email need their keys on the server. Sellers' own deal events use [webhooks](https://app.proteus.co.in/docs/seller-webhooks) with an outbox and retries.
+Buyer alerts carry no event id, unlike [seller webhooks](https://app.proteus.co.in/docs/seller-webhooks): use `at` and the content if you need to spot a repeat. Verify the signature the same way as a seller webhook.
+
+> **Warning: Best effort.** Buyer alerts are sent at once with two tries and no delivery log; nothing is retried later. Signed webhooks work today; Telegram and email need their keys on the server. Sellers' own deal events use [webhooks](https://app.proteus.co.in/docs/seller-webhooks) with an outbox and retries.

@@ -1,8 +1,6 @@
 # Ways to use Proteus AI · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/ways-to-use> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
-
-
+Source: <https://app.proteus.co.in/docs/ways-to-use> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
 _One deal agent, many ways in: the web, a seller's website, WhatsApp, Claude and other MCP clients, your own agent, and your own systems._
 
@@ -14,23 +12,31 @@ Buyers reach the same deal agent from the web app, a seller's website embed, the
 
 > **Same rules everywhere:** A channel changes where the conversation happens, never the price rules, the terms or where the money goes. Signing and paying always happen on a Proteus page or with the buyer's own key, never inside a chat or a third-party frame.
 
+<a id="ways-status"></a>
+
 ### What the status means
 
 | Status | Meaning |
 |---|---|
-| Live | In production on Arc mainnet and used there with real USDC. |
+| Live | In production and in use. Where money moves, used on Arc mainnet with real USDC. |
 | Testnet | Proven end to end on Arc testnet. It also runs against mainnet, but has not been proven there yet. |
 | In testing | Built and deployed, checked in tests, but not yet used end to end by a real customer. |
 | Coming soon | Not built yet. |
 
+<a id="ways-talk"></a>
+
 ### Talk to a seller's deal agent
+
+<a id="ways-web"></a>
 
 #### Web app · Live
 
 - **For:** Buyers who want to talk to a seller directly, and sellers running their store.
 - **Does:** Store pages where one agent answers for every product, offer review with the terms hash checked in your browser, gasless funding, and deal pages with balances, refunds and disputes. Sellers set products and rules in the console.
-- **Proof:** A real customer order on Arc mainnet: Shoonya Store, [funded](https://explorer.arc.io/tx/0x9145fb235f7c00e625ccb91e3a8a817dcf3cd0b1ee4265fd5697cf79cb1b62a7) and [settled](https://explorer.arc.io/tx/0x852725276799255fa7425be9aafcd2296828a0a9553e3e2b9394104fcbad5542).
+- **Proof:** A Shoonya Store order on Arc mainnet, [funded](https://explorer.arc.io/tx/0x9145fb235f7c00e625ccb91e3a8a817dcf3cd0b1ee4265fd5697cf79cb1b62a7) gaslessly and [settled](https://explorer.arc.io/tx/0x852725276799255fa7425be9aafcd2296828a0a9553e3e2b9394104fcbad5542). Its buyer wallet was later found linked to a Shoonya team account ([why](https://app.proteus.co.in/docs/ratings#ratings-before-checks)).
 - **Start:** [Buyer quickstart](https://app.proteus.co.in/docs/quickstart-buyer)
+
+<a id="ways-embed"></a>
 
 #### Website embed · Testnet
 
@@ -39,12 +45,16 @@ Buyers reach the same deal agent from the web app, a seller's website embed, the
 - **Proof:** Tested from a third-party site on Arc testnet. The script is served by both apps.
 - **Start:** [Add it to your site](https://app.proteus.co.in/docs/quickstart-seller)
 
+<a id="ways-whatsapp"></a>
+
 #### WhatsApp agent · In testing
 
 - **For:** Sellers whose customers already buy over WhatsApp.
 - **Does:** The same deal agent answers on the seller's own WhatsApp Business number through Meta's Cloud API. Offers arrive as reply buttons; paying always happens on the web through a 30-minute link. HUMAN reaches the team, STOP ends messages.
 - **Proof:** Deployed on both networks; a number is connected and Meta's signed webhook is verified. No real customer conversation yet.
 - **Start:** [How it works](https://app.proteus.co.in/docs/ways-to-use#ways-whatsapp-how)
+
+<a id="ways-phone"></a>
 
 #### Phone app · Coming soon
 
@@ -53,7 +63,11 @@ Buyers reach the same deal agent from the web app, a seller's website embed, the
 - **Proof:** None yet.
 - **Start:** [Open the web app](https://app.proteus.co.in)
 
+<a id="ways-agents"></a>
+
 ### Let an AI agent buy
+
+<a id="ways-mcp"></a>
 
 #### MCP server · Testnet
 
@@ -62,12 +76,16 @@ Buyers reach the same deal agent from the web app, a seller's website embed, the
 - **Proof:** Claude bought and settled within a 13 USDC mandate on Arc testnet ([transcript](https://github.com/Adityaakr/proteus/blob/main/docs/evidence/2026-10-23-claude-mcp-kitbox.md)). Not yet run on mainnet.
 - **Start:** [Agent quickstart](https://app.proteus.co.in/docs/quickstart-agent)
 
+<a id="ways-own-agent"></a>
+
 #### Your own agent (HTTP) · Testnet
 
 - **For:** Teams with an agent of their own, in any language or framework.
 - **Does:** The [agent skill](https://app.proteus.co.in/api/public/agents/skill.md) walks through discovering, negotiating, signing, funding and settling over plain HTTP; each service also has its own `skill.md` and `openapi.json`. Small one-off calls can be paid per call with x402. Any EIP-712 signer works, including a Circle Agent Wallet.
 - **Proof:** x402 pay per call [on Arc testnet](https://explorer.testnet.arc.io/tx/0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8). An agent buying on mainnet is not proven yet.
 - **Start:** [For AI agents](https://app.proteus.co.in/docs/for-agents)
+
+<a id="ways-agent-docs"></a>
 
 #### Docs for agents · Live
 
@@ -76,7 +94,11 @@ Buyers reach the same deal agent from the web app, a seller's website embed, the
 - **Proof:** Generated from the same source as these pages at every build, so they cannot drift from them.
 - **Start:** [Read llms.txt](https://app.proteus.co.in/llms.txt)
 
+<a id="ways-business"></a>
+
 ### Connect your business
+
+<a id="ways-seller-api"></a>
 
 #### Seller API and webhooks · In testing
 
@@ -85,6 +107,8 @@ Buyers reach the same deal agent from the web app, a seller's website embed, the
 - **Proof:** Deployed on both networks and covered by tests; the sandbox runs on Arc testnet.
 - **Start:** [Seller API](https://app.proteus.co.in/docs/seller-api)
 
+<a id="ways-front-desk"></a>
+
 #### Front desk link · In testing
 
 - **For:** Businesses running a scheduling service: receptionist, after-hours answering or callback booking.
@@ -92,12 +116,16 @@ Buyers reach the same deal agent from the web app, a seller's website embed, the
 - **Proof:** Covered by tests off chain ([customer-link.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/customer-link.ts)).
 - **Start:** [Front desk](https://app.proteus.co.in/docs/front-desk)
 
+<a id="ways-alerts"></a>
+
 #### Alerts · In testing
 
 - **For:** Sellers and buyers who want to hear about a deal without opening the app.
-- **Does:** Signed webhooks, Telegram or email. A webhook into Zapier or Make reaches Slack, Sheets, a calendar or a CRM with no further integration.
+- **Does:** Signed webhooks, Telegram or email; sellers also get approval requests this way. A webhook into Zapier or Make reaches Slack, Sheets, a calendar or a CRM with no further integration.
 - **Proof:** Signed webhooks work today; Telegram and email need their keys on the server.
 - **Start:** [Alerts](https://app.proteus.co.in/docs/front-desk#front-desk-alerts)
+
+<a id="ways-whatsapp-how"></a>
 
 ### WhatsApp in detail
 
@@ -109,8 +137,10 @@ The buyer messages the seller's own WhatsApp Business number. Meta's Cloud API s
 - **Says it is an AI.** Every chat opens by saying the buyer is talking to the seller's AI sales agent, that prices come from the seller's rules, and how to reach a person.
 - **Commands.** HUMAN asks the seller's team to reply (for 24 hours, or until AGENT); STOP ends messages and START resumes. STOP is never rate limited.
 - **Private by default.** A buyer is known by a one-way pseudonym of Meta's user id. Chat text never carries wallet addresses or deal ids; pay links are opaque and expire after 30 minutes ([Privacy](https://app.proteus.co.in/docs/privacy)).
-- **Limits.** Each buyer has a message limit per seller, and each seller an hourly cap on agent replies; over the limit the agent stays silent rather than spend the seller's messages.
+- **Limits.** 30 messages per buyer per seller in 10 minutes; over that the agent stays silent rather than spend the seller's messages. 600 agent replies per seller per hour; over that the buyer is told the agent is busy and can reply HUMAN.
 - **What Meta sees.** WhatsApp Business chats are not end-to-end encrypted to the seller: Meta's Cloud API decrypts them and keeps messages for up to 30 days.
+
+<a id="ways-choose"></a>
 
 ### Which one to pick
 

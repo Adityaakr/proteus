@@ -1,8 +1,6 @@
 # How Proteus AI compares · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/competitors> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
-
-
+Source: <https://app.proteus.co.in/docs/competitors> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Others help you quote, negotiate or bill. Proteus takes a deal from the first message to the final transaction._
 
@@ -19,3 +17,5 @@ For buyers and sellers comparing tools. Each capability against products that qu
 | Designed for small AI and internet businesses | Yes | Not core focus | Not core focus | Partial (SaaS scale-ups) | Partial (Startups and scale-ups) | Partial (Self-serve starter plan) |
 
 _Assessed from each vendor's public product pages in October 2026. Names and logos belong to their owners and are shown for identification only. Proteus AI marks reflect what is implemented today. USDC settlement runs on Arc mainnet and testnet._
+
+> **Reading the marks:** A note under a mark narrows it. Pactum AI negotiates autonomously, but for enterprise buyers with their suppliers, not for a seller with its customers. Each vendor name links to its site; marks were assessed from the vendors' public product pages.

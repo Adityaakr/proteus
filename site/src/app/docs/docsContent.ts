@@ -40,11 +40,11 @@ export type Block =
   /** One card per way to use Proteus AI, with an honest status (CHANNEL_STATUS says what each means). */
   | { kind: "channels"; items: Channel[] };
 
-export type DiagramName = "system" | "lifecycle" | "money" | "signers" | "apiAuth" | "webhooks" | "pricing" | "aiStack" | "frontDesk" | "channels" | "mcp" | "whatsapp";
+export type DiagramName = "system" | "lifecycle" | "money" | "signers" | "apiAuth" | "webhooks" | "pricing" | "aiStack" | "frontDesk" | "channels" | "mcp" | "whatsapp" | "trust";
 
 /** What a channel's status badge means. Never mark a channel Live unless it has been used on Arc mainnet. */
 export const CHANNEL_STATUS = {
-  Live: "In production on Arc mainnet and used there with real USDC.",
+  Live: "In production and in use. Where money moves, used on Arc mainnet with real USDC.",
   Testnet: "Proven end to end on Arc testnet. It also runs against mainnet, but has not been proven there yet.",
   "In testing": "Built and deployed, checked in tests, but not yet used end to end by a real customer.",
   "Coming soon": "Not built yet.",
@@ -72,7 +72,7 @@ export interface DocSection {
 export const DOC_TITLE = "The deal desk for internet businesses.";
 export const DOC_LEDE =
   "A deal agent for anything sold by quote, volume or usage. It negotiates with buyers and their AI agents inside the seller's rules, both sides sign the same terms, and USDC waits on Arc until delivery: the seller is paid for what was delivered, the rest is refundable.";
-export const FACTS_AS_OF = "2026-11-14";
+export const FACTS_AS_OF = "2026-11-20";
 
 /* Links and evidence, shared with the generator for /docs/facts.json. */
 export const GH = "https://github.com/Adityaakr/proteus/blob/main";
@@ -144,11 +144,12 @@ export const CLAIMS: { claim: string; network: "mainnet" | "testnet" | "offchain
   { claim: "Full escrow loop: approve, fund, settle, close, refund (team funds, 0.60 USDC)", network: "mainnet", status: "proven", evidence: [
     { label: "fund", url: txUrl("mainnet", TX.mainFund) }, { label: "settle", url: txUrl("mainnet", TX.mainSettle) }, { label: "refund", url: txUrl("mainnet", TX.mainRefund) } ] },
   { claim: "A real business registers its agent from its own wallet (Shoonya Store, ERC-8004 Agent #2695)", network: "mainnet", status: "proven", evidence: [{ label: "register", url: txUrl("mainnet", TX.shoonyaRegister) }] },
-  { claim: "Pricing policies committed on chain (4 Shoonya products, version 1)", network: "mainnet", status: "proven", evidence: TX.shoonyaPolicies.map((h, i) => ({ label: `commit ${i + 1}`, url: txUrl("mainnet", h) })) },
-  { claim: "A real customer's order, end to end: Shoonya Store customer negotiates 1 tee ($6.60), funds gaslessly, Shoonya delivers, the customer countersigns and DealEscrow pays Shoonya 6.60 USDC", network: "mainnet", status: "proven", evidence: [
+  { claim: "Pricing policies committed on chain (4 Shoonya products at version 1, then version 2 of the tees policy used for the first order)", network: "mainnet", status: "proven", evidence: [...TX.shoonyaPolicies.map((h, i) => ({ label: `v1 commit ${i + 1}`, url: txUrl("mainnet", h) })), { label: "v2 commit", url: txUrl("mainnet", TX.shoonyaPolicyV2) }] },
+  { claim: "A Shoonya Store customer order, end to end: 1 tee negotiated at $6.60, funded gaslessly with a USDC permit, delivered, countersigned, and 6.60 USDC paid to Shoonya by DealEscrow (the buyer wallet was later found linked to a Shoonya team account in Proteus)", network: "mainnet", status: "proven", evidence: [
     { label: "fund", url: txUrl("mainnet", TX.shoonyaFund) }, { label: "settle", url: txUrl("mainnet", TX.shoonyaSettle) } ] },
   { claim: "The customer rates the seller 5 stars on the ERC-8004 ReputationRegistry from its own wallet, bound to the deal's terms hash", network: "mainnet", status: "proven", evidence: [{ label: "rating", url: txUrl("mainnet", TX.shoonyaRating) }] },
-  { claim: "Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction)", network: "testnet", status: "proven", evidence: [
+  { claim: "Website embed: a seller's deal agent on a third-party site, with signing and payment in a Proteus tab", network: "testnet", status: "proven", evidence: [{ label: "embed.js", url: code("site/public/embed.js") }, { label: "embed.ts", url: code("server/src/services/embed.ts") }] },
+  { claim: "Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction; also used for the Shoonya order on mainnet)", network: "testnet", status: "proven", evidence: [
     { label: "fund", url: txUrl("testnet", TX.gaslessFund) }, { label: "settle", url: txUrl("testnet", TX.gaslessSettle) } ] },
   { claim: "Seller-confirmed delivery, then settlement", network: "testnet", status: "proven", evidence: [
     { label: "fund", url: txUrl("testnet", TX.kitboxFund) }, { label: "settle", url: txUrl("testnet", TX.kitboxSettle) } ] },
@@ -168,14 +169,16 @@ export const CLAIMS: { claim: string; network: "mainnet" | "testnet" | "offchain
   { claim: "A Proteus AI phone app", network: "offchain", status: "not-yet", evidence: [] },
 ];
 
-const statusCell = (c: (typeof CLAIMS)[number]) => (c.status === "proven" ? (c.network === "mainnet" ? "✓ Arc mainnet" : "✓ Arc testnet") : c.status === "not-yet" ? "Not yet" : "Off-chain test");
-const evidenceCell = (c: (typeof CLAIMS)[number]) => (c.evidence.length ? c.evidence.map((e) => `[${e.label}](${e.url})`).join(" · ") : "Not yet.");
+/** The status words used everywhere in the docs (CHANNEL_STATUS), plus "Not yet" for a capability not shown anywhere. */
+const statusCell = (c: (typeof CLAIMS)[number]) => (c.status === "proven" ? (c.network === "mainnet" ? "Live (Arc mainnet)" : "Testnet") : c.status === "not-yet" ? "Not yet" : "In testing");
+const evidenceCell = (c: (typeof CLAIMS)[number]) => (c.evidence.length ? c.evidence.map((e) => `[${e.label}](${e.url})`).join(" · ") : "—");
 
 /** Public HTTP API (base: NETWORKS.*.api). Buyer routes need no account; the invite gate is off on both deployments. */
 export const API = {
-  auth: "Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller dashboard routes (/api/app/*): wallet sign-in session. Seller API (/api/v1/seller/*): Bearer seller API key (psk_live_… or psk_test_…) from the Developers page.",
-  errors: "JSON { error: string, details: unknown | null } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert), 429 (rate limit), 500.",
-  rateLimits: "Per client IP in a 10-minute window: 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; 12 counters per negotiation. Front desk chat: 40 messages per IP per 10 minutes and 400 per customer link per day. Sign-in routes are limited too. Other public routes are not rate limited.",
+  auth: "Buyer routes need no account: deal ids are unguessable capabilities. Exceptions: every /negotiations/{id} call needs the X-Negotiation-Key returned when the negotiation started; routes marked buyer only need the signed-in owner of the buyer wallet or the deal's service key. Service calls: Bearer API key shown once when a deal is provisioned. Seller dashboard routes (/api/app/*): wallet sign-in session. Seller API (/api/v1/seller/*): Bearer seller API key (psk_live_… or psk_test_…) from the Developers page.",
+  errors: "JSON { error: string, details?: unknown } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert, with the revert reason), 429 (rate limit; details.retryAfterSeconds says when to retry) or 500 (a generic message; the detail stays in server logs).",
+  units: "Amounts are micro-USDC as integer strings (\"6600000\" is $6.60): offers, terms, balances and counteroffer targetTotal. Seller webhooks are the exception: they send USDC with six decimals (\"6.600000\").",
+  rateLimits: "Per client IP in a 10-minute window: 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; 12 counters per negotiation per 10 minutes. Front desk chat: 40 messages per IP per 10 minutes and 400 per customer link per day. Sign-in routes and the Solana RPC proxy (300 per IP per 10 minutes) are limited too. Other public routes are not rate limited. Limits are kept in memory on each server.",
   endpoints: [
     ["GET", "/health", "network, chain id, escrow and USDC addresses, and which features are switched on"],
     ["GET", "/market", "every listed service"],
@@ -228,7 +231,7 @@ export const API = {
 export const TRUST = [
   { role: "arbiter", holder: "Proteus deployer key 0x86448dad5B26285379fc7CeE260362A5F4F174D5 (also the DealEscrow owner)", power: "splits only the unspent balance of a disputed deal; no dispute timeout yet" },
   { role: "relayer", holder: "Proteus key 0x3DA21FF376d5E4e8F0f78787e77b803D72CA8E42", power: "submits transactions and pays gas; cannot move funds without the buyer's and seller's signatures" },
-  { role: "seller signer", holder: "a per-seller key generated and held by Proteus, AES-256-GCM encrypted; on chain it is the deal's seller address", power: "countersigns terms, deliveries and policy commitments; can end a term early (sellerCloseTerm, which opens refunds); receives pay-per-call (x402) payments until the seller sweeps them to its payee; cannot change the payee, which is pinned to the owner's wallet; revoking it stops new signatures, while deals it already signed keep accepting it until they close" },
+  { role: "seller signer", holder: "a per-seller key generated and held by Proteus, AES-256-GCM encrypted; on chain it is the deal's seller address", power: "countersigns terms, deliveries and policy commitments; can end a term early (sellerCloseTerm, which opens refunds) and open a dispute on its deals; receives pay-per-call (x402) payments until the seller sweeps them to its payee; cannot change the payee, which is pinned to the owner's wallet; revoking it stops Proteus using it for new terms, while on deals it already signed it stays the seller on chain until they close" },
   { role: "owner", holder: "same as the arbiter", power: "can pause new deals (never settlement or refunds) and set the arbiter; DealEscrow is not upgradeable (no proxy)" },
   { role: "MCP mandate", holder: "the buyer's local MCP process", power: "caps the prepaid amount per deal only; the unit price, which service, and the receipts behind a settlement are for the agent to check" },
 ] as const;
@@ -242,15 +245,15 @@ export const FEES = {
     ["Register the seller's agent on Arc (ERC-8004)", "The seller's wallet, once"],
     ["Commit pricing policies", "Proteus (relayer)"],
     ["Fund a deal with a permit (gasless)", "Proteus (relayer)"],
-    ["Fund a deal with approve", "The buyer"],
+    ["Fund a deal with approve", "The buyer pays for the approve; Proteus (relayer) for createAndFundDeal"],
     ["Settle delivered units", "Proteus (relayer)"],
     ["Refund the unspent balance", "Proteus (relayer) for the one-click refund on the deal page; anyone else who calls refundUnused pays their own gas"],
-    ["Open a dispute", "The buyer's wallet"],
+    ["Open a dispute", "The buyer's wallet (or the seller signer, which can open one too)"],
     ["Rate the seller (ERC-8004 giveFeedback)", "The buyer's wallet"],
     ["End a term early (sellerCloseTerm)", "The seller signer key"],
     ["Sweep pay-per-call payments to the payee", "The seller signer key (it keeps 0.05 USDC back for gas)"],
   ] as [string, string][],
-  other: "Model calls for negotiation, hosting and the relayer's gas are paid by Proteus. Circle Gateway, wallets and exchanges may charge their own fees; those are theirs, not Proteus's.",
+  other: "Model calls, hosting and the relayer's gas are paid by Proteus. Circle Gateway, wallets and exchanges may charge their own fees; those are theirs, not Proteus's.",
 } as const;
 
 export const GRACE = { defaultSeconds: 259200, note: "Each deal's terms carry `grace` (3 days by default). Refunds open at end + grace, or right after sellerCloseTerm; read refundableAt from GET /api/deals/{id}. Calling refundUnused earlier reverts." };
@@ -261,7 +264,8 @@ export const MODELS = [
   ["Writing the deal desk's replies", "Claude Sonnet 5.5", "low", "only figures from the engine's offers; any other figure falls back to the fixed reply"],
   ["Callback booking, after-hours answering", "Claude Haiku 5.5", "low", "fast, well-specified records"],
   ["AI receptionist service", "Claude Sonnet 5.5", "low", "talks to customers; asks one question at a time"],
-  ["Invoice processing, screening checks, inference", "Claude Sonnet 5.5", "medium or low", "reads PDFs and images directly"],
+  ["Invoice processing, screening checks", "Claude Sonnet 5.5", "medium", "reads PDFs and images directly"],
+  ["Inference service", "Claude Sonnet 5.5", "low", "answers within the buyer's request"],
   ["Vendor evaluations, operator tasks", "Claude Opus 5.5", "medium", "multi-step judgement"],
   ["Embeddings service", "OpenRouter (text-embedding-3-small)", "n/a", "Anthropic has no embeddings endpoint"],
 ] as const;
@@ -278,26 +282,29 @@ export const MCP_TOOLS = [
   ["proteus_deal_status", "Deposit, used, settled and remaining, read from the escrow."],
 ] as const;
 
+/** Known gaps: [title, detail, group]. The page groups them; facts.json lists title and detail. */
 export const LIMITS = [
-  ["No audit yet", "DealEscrow is source-verified and tested, not independently audited."],
-  ["One arbiter key", "Disputes are resolved by a single Proteus-operated key, with no timeout yet."],
-  ["Settle before end + grace", "Settlement reverts after the term plus grace; usage not countersigned by then can no longer be paid from escrow."],
-  ["Refunds need a call", "`refundUnused` after the term plus grace or after the seller closes; one click on the deal page, or anyone."],
-  ["Dates live in the chat", "Delivery dates are agreed in the conversation, not in the signed terms."],
-  ["Delivery is seller-confirmed", "Proteus does not verify physical delivery; the buyer countersigns or disputes."],
-  ["Pay per call has no escrow", "x402 calls are paid when made, with no refund path."],
-  ["Listing check", "The import flow lists after Arc registration by step order; the listing endpoint itself does not check it (catalog sync does)."],
-  ["Figure check", "A model reply is discarded if it carries a dollar amount or a number of four or more digits that is not in the offers. Smaller bare numbers (\"20%\", \"500 units\") and numbers written in words are not caught; the price never comes from the reply."],
-  ["Unregistered sellers are not checked on chain", "For a seller not registered on Arc, the MCP server has no identity or policy to check and signs without refusing."],
-  ["Front desk details reach the model", "Contact redaction runs on the deal-desk chat only. A front desk customer's name and phone go to Claude and to the business's alerts, because the business needs them."],
-  ["Pay per call is held by the signer", "With the x402 exact scheme, payments land in the seller's Proteus-held signer key until the seller sweeps them to its payee; Gateway batching pays the payee directly."],
-  ["Buyer alerts are best effort", "Alerts to buyers are sent with two tries and no delivery log; the seller's webhooks use the outbox with retries."],
-  ["No phone line yet", "The front desk answers chat and browser voice on a link or website embed, not phone calls."],
-  ["Calendar booking is off", "Google Calendar booking is built but not switched on; bookings arrive as requests for the business to confirm."],
-  ["Voice depends on the browser", "Speech uses the browser's engine: Chrome, Edge and Safari work; browsers that block it (Brave, Arc) fall back to typing."],
-  ["Buyer alerts by webhook today", "Telegram and email alerts need their keys on the server; signed webhooks work now."],
-  ["One rating predates the checks", "Shoonya's first rating (Nov 11) counts although its buyer wallet is linked to a Shoonya team account in Proteus; it is listed as counted_before_checks. Every rating since Nov 12 must pass the checks."],
-  ["Ratings are cost-to-fake, not proof", "A seller that funds a second wallet from an exchange leaves no link on Arc and can still rate itself; one vote per buyer and the neutral prior limit the effect. Flags are not yet written on chain."],
+  ["No audit yet", "DealEscrow is source-verified and tested, not independently audited.", "Escrow and disputes"],
+  ["Proteus can open and decide a dispute", "The seller signer is the deal's seller on chain and Proteus holds it, so it can open a dispute; the arbiter key, also Proteus's, then splits the unspent balance. Settled funds are out of reach. There is one arbiter key and no dispute timeout yet.", "Escrow and disputes"],
+  ["Settle before end + grace", "Settlement reverts after the term plus grace; usage not countersigned by then can no longer be paid from escrow.", "Escrow and disputes"],
+  ["Refunds need a call", "`refundUnused` after the term plus grace or after the seller closes; one click on the deal page, or anyone.", "Escrow and disputes"],
+  ["Dates live in the chat", "Delivery dates are agreed in the conversation, not in the signed terms.", "Escrow and disputes"],
+  ["Delivery is seller-confirmed", "Proteus does not verify physical delivery; the buyer countersigns or disputes.", "Escrow and disputes"],
+  ["Pay per call is outside escrow", "x402 calls are paid when made, with no refund path. With the exact scheme the payment lands in the seller's Proteus-held signer key until the seller sweeps it to its payee; Gateway batching pays the payee directly.", "Escrow and disputes"],
+  ["Figure check", "A model reply is discarded if it carries a dollar amount or a number of four or more digits that is not in the offers. Smaller bare numbers (\"20%\", \"500 units\") and numbers written in words are not caught; the price never comes from the reply.", "Pricing and AI"],
+  ["Counter limit is per window", "Counteroffers are limited to 12 per negotiation and 40 per IP in each 10-minute window, not in total; one public reason for all price rules is what slows a search for the floor.", "Pricing and AI"],
+  ["Front desk details reach the model", "Contact redaction runs on the deal-desk chat only. A front desk customer's name and phone go to Claude and to the business's alerts, because the business needs them.", "Pricing and AI"],
+  ["Listing check", "The import flow lists after Arc registration by step order; the listing endpoint itself does not check it (catalog sync does).", "Pricing and AI"],
+  ["Unregistered sellers are not checked on chain", "For a seller not registered on Arc, the MCP server has no identity or policy to check and signs without refusing.", "Agents and APIs"],
+  ["Rate limits are per server", "Limits are counted in memory on each server instance and reset when it restarts.", "Agents and APIs"],
+  ["No pagination yet", "The seller API returns the newest 200 deals and 300 usage records; the inbox API the newest 200 requests.", "Agents and APIs"],
+  ["Buyer alerts are best effort", "Alerts to buyers go out at once with two tries and no delivery log. Signed webhooks work today; Telegram and email need their keys on the server. Sellers' deal webhooks use an outbox with retries.", "Channels"],
+  ["No phone line yet", "The front desk answers chat and browser voice on a link or website embed, not phone calls.", "Channels"],
+  ["Calendar booking is off", "Google Calendar booking is built but not switched on; bookings arrive as requests for the business to confirm.", "Channels"],
+  ["Voice depends on the browser", "Speech uses the browser's engine: Chrome, Edge and Safari work; browsers that block it (Brave, Arc) fall back to typing.", "Channels"],
+  ["WhatsApp is in testing", "The channel is deployed and a number is connected, but no real customer conversation has happened yet.", "Channels"],
+  ["One rating predates the checks", "Shoonya's first rating (Nov 11) counts although its buyer wallet is linked to a Shoonya team account in Proteus; it is listed as counted_before_checks. Every rating since Nov 12 must pass the checks.", "Ratings"],
+  ["Ratings are cost-to-fake, not proof", "A seller that funds a second wallet from an exchange leaves no link on Arc and can still rate itself; one vote per buyer and the neutral prior limit the effect. Flags are not yet written on chain.", "Ratings"],
 ] as const;
 
 export const SECTIONS: DocSection[] = [
@@ -319,7 +326,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "points", items: [
         { title: "The seller sets the rules", text: "Cost, margin floor, maximum discount, minimum order, capacity, and the order size it approves itself." },
         { title: "An agent does the selling", text: "It answers buyers and their AI agents in seconds; every offer is computed in code from those rules ([How offers are priced](/docs/pricing))." },
-        { title: "Both sides sign identical terms", text: "EIP-712 terms, checked on chain by [DealEscrow](" + code("contracts/src/DealEscrow.sol") + ")." },
+        { title: "Both parties sign identical terms", text: "The buyer's wallet and the seller's signer (a key Proteus holds for the seller) sign the same EIP-712 terms, checked on chain by [DealEscrow](" + code("contracts/src/DealEscrow.sol") + ")." },
         { title: "Money waits in escrow on Arc", text: "USDC moves only against the signatures in the agreement ([The money path](/docs/money-path))." },
         { title: "Paid per delivered unit", text: "The seller is paid for each unit the buyer countersigns; the rest becomes refundable." },
         { title: "Verifiable by anyone", text: "The seller's identity is an ERC-8004 agent on Arc and its pricing policy is committed to [ProteusPolicyRegistry](" + code("contracts/src/ProteusPolicyRegistry.sol") + "); every payment is an Arc transaction." },
@@ -340,7 +347,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "steps", items: [
         { title: "A buyer asks", text: "\"20 merch boxes with our logo, delivered by Oct 31. Best price per box?\"" },
         { title: "The agent offers", text: "Inside the seller's rules: a price per box, a term and a refund window. It never quotes below the margin floor." },
-        { title: "Both sign", text: "Buyer and seller sign the same EIP-712 terms: units, unit price, term, payee." },
+        { title: "Both sign", text: "The buyer and the seller's signer sign the same EIP-712 terms: units, unit price, term, payee." },
         { title: "The buyer funds", text: "USDC goes into DealEscrow on Arc, not to the seller. With a permit, the relayer pays the gas." },
         { title: "The seller delivers", text: "It records what was delivered; the buyer countersigns the units it received." },
         { title: "The money settles", text: "The seller is paid for countersigned units. The rest is refundable to the buyer after the term plus a grace period (3 days by default)." },
@@ -349,13 +356,13 @@ export const SECTIONS: DocSection[] = [
       { kind: "table", head: ["Proteus AI does", "Proteus AI does not"], rows: [
         ["Negotiate inside rules the seller wrote", "Let the model invent a price below the seller's floor"],
         ["Hold deal payments in a contract on Arc until delivery is countersigned", "Hold escrowed funds in a Proteus account"],
-        ["Pay the seller's own wallet, published in its Arc identity", "Let anyone change where a seller is paid"],
+        ["Pay the seller's own wallet, published in its Arc identity", "Let Proteus or anyone else redirect a seller's payouts"],
         ["Make unspent money refundable after the term", "Refund automatically: the buyer (or anyone) calls the refund"],
-        ["Resolve disputes through an arbiter key, today held by Proteus", "Offer a dispute timeout yet ([limits](/docs/limits))"],
+        ["Resolve disputes through an arbiter key, today held by Proteus", "Offer a dispute timeout or an independent arbiter yet ([limits](/docs/limits))"],
       ], note: "Pay per call (x402) is outside escrow and works differently: see [The money path](/docs/money-path#money-x402)." },
       { kind: "h3", id: "where-runs", text: "Where it runs" },
       { kind: "table", head: ["Network", "App", "Chain id", "What is real"], rows: [
-        ["Arc mainnet", "[app.proteus.co.in](https://app.proteus.co.in)", "`5042`", "Real USDC. One real business listed: [Shoonya Store](" + SHOONYA + ")."],
+        ["Arc mainnet", "[app.proteus.co.in](https://app.proteus.co.in)", "`5042`", "Real USDC. One real business listed, [Shoonya Store](" + SHOONYA + "), with its first order paid out."],
         ["Arc testnet", "[ai.proteus.co.in](https://ai.proteus.co.in)", "`5042002`", "Testnet USDC with no value. Example sellers and a demo merch seller."],
       ], note: "DealEscrow is at the same address on both networks: `" + ESCROW + "`." },
       { kind: "figure", src: "/docs/market.jpg", alt: "The Proteus AI market on Arc mainnet, with Shoonya Store listed first", caption: "The market: each seller with its Arc identity, links and services priced from the cheapest pack.", network: "Arc mainnet" },
@@ -382,7 +389,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "table", head: ["Status", "Meaning"], rows: Object.entries(CHANNEL_STATUS).map(([k, v]) => [k, v]) },
       { kind: "h3", id: "ways-talk", text: "Talk to a seller's deal agent" },
       { kind: "channels", items: [
-        { id: "ways-web", title: "Web app", status: "Live", who: "Buyers who want to talk to a seller directly, and sellers running their store.", does: "Store pages where one agent answers for every product, offer review with the terms hash checked in your browser, gasless funding, and deal pages with balances, refunds and disputes. Sellers set products and rules in the console.", proof: "A real customer order on Arc mainnet: Shoonya Store, [funded](" + txUrl("mainnet", TX.shoonyaFund) + ") and [settled](" + txUrl("mainnet", TX.shoonyaSettle) + ").", start: { label: "Buyer quickstart", href: "/docs/quickstart-buyer" } },
+        { id: "ways-web", title: "Web app", status: "Live", who: "Buyers who want to talk to a seller directly, and sellers running their store.", does: "Store pages where one agent answers for every product, offer review with the terms hash checked in your browser, gasless funding, and deal pages with balances, refunds and disputes. Sellers set products and rules in the console.", proof: "A Shoonya Store order on Arc mainnet, [funded](" + txUrl("mainnet", TX.shoonyaFund) + ") gaslessly and [settled](" + txUrl("mainnet", TX.shoonyaSettle) + "). Its buyer wallet was later found linked to a Shoonya team account ([why](/docs/ratings#ratings-before-checks)).", start: { label: "Buyer quickstart", href: "/docs/quickstart-buyer" } },
         { id: "ways-embed", title: "Website embed", status: "Testnet", who: "Sellers who want quotes on their own website.", does: "One script tag adds the deal agent as a floating \"Get a quote\" button or an inline panel. It runs in a Proteus frame; signing and payment open Proteus in a new tab.", proof: "Tested from a third-party site on Arc testnet. The script is served by both apps.", start: { label: "Add it to your site", href: "/docs/quickstart-seller" } },
         { id: "ways-whatsapp", title: "WhatsApp agent", status: "In testing", who: "Sellers whose customers already buy over WhatsApp.", does: "The same deal agent answers on the seller's own WhatsApp Business number through Meta's Cloud API. Offers arrive as reply buttons; paying always happens on the web through a 30-minute link. HUMAN reaches the team, STOP ends messages.", proof: "Deployed on both networks; a number is connected and Meta's signed webhook is verified. No real customer conversation yet.", start: { label: "How it works", href: "/docs/ways-to-use#ways-whatsapp-how" } },
         { id: "ways-phone", title: "Phone app", status: "Coming soon", who: "Sellers and buyers who want Proteus AI as an app on their phone.", does: "Not built yet. Today the web app works in a phone browser, with a tab bar on small screens.", proof: "None yet.", start: { label: "Open the web app", href: "https://app.proteus.co.in" } },
@@ -397,7 +404,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "channels", items: [
         { id: "ways-seller-api", title: "Seller API and webhooks", status: "In testing", who: "Sellers who want their own systems, or their own AI agent, to run the store.", does: "Scoped keys to read deals, usage and payments, change prices and report deliveries. Signed webhooks push deal events to your server. A public sandbox answers with demo data, no sign-in needed.", proof: "Deployed on both networks and covered by tests; the sandbox runs on Arc testnet.", start: { label: "Seller API", href: "/docs/seller-api" } },
         { id: "ways-front-desk", title: "Front desk link", status: "In testing", who: "Businesses running a scheduling service: receptionist, after-hours answering or callback booking.", does: "A customer link and an iframe where the business's own customers type or speak to its AI assistant. Each finished request lands in the inbox and is billed once. No phone number yet.", proof: "Covered by tests off chain ([customer-link.ts](" + code("server/src/services/customer-link.ts") + ")).", start: { label: "Front desk", href: "/docs/front-desk" } },
-        { id: "ways-alerts", title: "Alerts", status: "In testing", who: "Sellers and buyers who want to hear about a deal without opening the app.", does: "Signed webhooks, Telegram or email. A webhook into Zapier or Make reaches Slack, Sheets, a calendar or a CRM with no further integration.", proof: "Signed webhooks work today; Telegram and email need their keys on the server.", start: { label: "Alerts", href: "/docs/front-desk#front-desk-alerts" } },
+        { id: "ways-alerts", title: "Alerts", status: "In testing", who: "Sellers and buyers who want to hear about a deal without opening the app.", does: "Signed webhooks, Telegram or email; sellers also get approval requests this way. A webhook into Zapier or Make reaches Slack, Sheets, a calendar or a CRM with no further integration.", proof: "Signed webhooks work today; Telegram and email need their keys on the server.", start: { label: "Alerts", href: "/docs/front-desk#front-desk-alerts" } },
       ] },
       { kind: "h3", id: "ways-whatsapp-how", text: "WhatsApp in detail" },
       { kind: "diagram", name: "whatsapp", caption: "The chat negotiates; the money moves only on the web.", describe: "The buyer messages the seller's own WhatsApp Business number. Meta's Cloud API sends a signed webhook to Proteus, which checks the signature, keys the buyer by a pseudonym and runs the same deal agent and pricing rules. Offers go back through Meta as reply buttons. To sign and pay, the buyer gets an opaque link that works for 30 minutes and opens the offer on the web; nothing about money happens inside the chat. HUMAN hands the chat to the seller's team, STOP ends messages." },
@@ -406,7 +413,7 @@ export const SECTIONS: DocSection[] = [
         { title: "Says it is an AI", text: "Every chat opens by saying the buyer is talking to the seller's AI sales agent, that prices come from the seller's rules, and how to reach a person." },
         { title: "Commands", text: "HUMAN asks the seller's team to reply (for 24 hours, or until AGENT); STOP ends messages and START resumes. STOP is never rate limited." },
         { title: "Private by default", text: "A buyer is known by a one-way pseudonym of Meta's user id. Chat text never carries wallet addresses or deal ids; pay links are opaque and expire after 30 minutes ([Privacy](/docs/privacy))." },
-        { title: "Limits", text: "Each buyer has a message limit per seller, and each seller an hourly cap on agent replies; over the limit the agent stays silent rather than spend the seller's messages." },
+        { title: "Limits", text: "30 messages per buyer per seller in 10 minutes; over that the agent stays silent rather than spend the seller's messages. 600 agent replies per seller per hour; over that the buyer is told the agent is busy and can reply HUMAN." },
         { title: "What Meta sees", text: "WhatsApp Business chats are not end-to-end encrypted to the seller: Meta's Cloud API decrypts them and keeps messages for up to 30 days." },
       ] },
       { kind: "h3", id: "ways-choose", text: "Which one to pick" },
@@ -440,6 +447,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "points", items: [
         { title: "Base URL", text: "`https://app.proteus.co.in/api` (Arc mainnet) or `https://ai.proteus.co.in/api` (Arc testnet)." },
         { title: "Auth", text: API.auth },
+        { title: "Money", text: API.units },
         { title: "Errors", text: API.errors },
         { title: "Rate limits", text: API.rateLimits },
         { title: "Refund timing", text: GRACE.note },
@@ -458,6 +466,12 @@ export const SECTIONS: DocSection[] = [
         "For goods, read the order timeline (`GET /api/deals/{id}/timeline`) before you countersign a delivery: it shows the seller's updates, tracking and the delivery record.",
         "Read a seller's rating with the number of buyers behind it, from `GET /api/public/sellers/{seller}/ratings`; a single rating is a weak signal, and you can check it on chain with ERC-8004 `getSummary`.",
       ] },
+      { kind: "h3", id: "agent-buy-http", text: "Buy over HTTP, step by step" },
+      { kind: "p", text: "The same loop the [agent skill](/api/public/agents/skill.md) describes, on Arc testnet. Sign with the buyer wallet in your own code (EIP-712 for the terms, EIP-2612 for the permit); nothing here needs an account." },
+      { kind: "code", lang: "bash", title: "Negotiate, sign and fund", text: "API=https://ai.proteus.co.in/api\n\n# 1. Open a negotiation; keep id and buyerKey\ncurl -s -X POST $API/negotiations -H 'content-type: application/json' \\\n  -d '{\"sellerSlug\":\"<seller>\",\"productSlug\":\"<product>\",\"buyerAddress\":\"0xYOU\"}'\n\n# 2. Ask; the reply lists offers[] with candidateId and prepaidTotal (micro-USDC)\ncurl -s -X POST $API/negotiations/$NEG/messages -H \"X-Negotiation-Key: $KEY\" \\\n  -H 'content-type: application/json' -d '{\"content\":\"20 units, budget 300 USDC\"}'\n\n# 3. Quote an offer, then fetch the EIP-712 typed data to sign\ncurl -s -X POST $API/negotiations/$NEG/quotes -H \"X-Negotiation-Key: $KEY\" \\\n  -H 'content-type: application/json' -d '{\"candidateId\":\"<candidateId>\"}'\ncurl -s \"$API/quotes/$QUOTE?buyer=0xYOU\"\n\n# 4. Accept with your signature over typedData; returns the deal\ncurl -s -X POST $API/quotes/$QUOTE/accept -H 'content-type: application/json' \\\n  -d '{\"buyerAddress\":\"0xYOU\",\"buyerSignature\":\"0x…\"}'\n\n# 5. Gasless funding: sign the permit, the relayer submits\ncurl -s $API/deals/$DEAL/permit\ncurl -s -X POST $API/deals/$DEAL/fund-gasless -H 'content-type: application/json' \\\n  -d '{\"deadline\":\"<from permit>\",\"signature\":\"0x…\"}'" },
+      { kind: "p", text: "Then poll `GET /api/deals/{id}` until `status` is `funded` or `active`: the first such answer carries the service key once. Call the service, settle with `GET /api/deals/{id}/usage` and `POST /api/deals/{id}/usage-acknowledgments`, and refund with `POST /api/deals/{id}/refund-request` after `refundableAt`." },
+      { kind: "h3", id: "agent-summary", text: "Summary as JSON" },
+      { kind: "p", text: "The key facts in one object; [facts.json](/docs/facts.json) has the full set." },
       { kind: "code", lang: "json", title: "Summary", text: JSON.stringify({ product: "Proteus AI", api: { mainnet: NETWORKS.mainnet.api, testnet: NETWORKS.testnet.api }, chainId: { mainnet: 5042, testnet: 5042002 }, contracts: CONTRACTS, mcpTools: MCP_TOOLS.length, refundGraceSecondsDefault: GRACE.defaultSeconds, facts: "/docs/facts.json", markdown: "/docs.md" }, null, 2) },
     ],
   },
@@ -466,7 +480,7 @@ export const SECTIONS: DocSection[] = [
     group: "Start",
     title: "What is live today",
     summary: "Each capability, the network it is proven on, and the transaction that shows it.",
-    intro: "For anyone deciding what to rely on today. Each row is one capability, where it is proven, and the transaction or code that shows it. \"Off-chain test\" means covered by tests but not yet shown on a network.",
+    intro: "For anyone deciding what to rely on today. Each row is one capability, its status and the transaction or code that shows it. Live (Arc mainnet), Testnet and In testing mean what they mean on [Ways to use](/docs/ways-to-use#ways-status); Not yet means not shown anywhere.",
     blocks: [
       { kind: "table", head: ["Capability", "Proven on", "Evidence"], rows: CLAIMS.map((c) => [c.claim, statusCell(c), evidenceCell(c)]) },
       { kind: "callout", tone: "note", text: "The same list is in [facts.json](/docs/facts.json) under `claims`, with what is not proven yet under `notProven`." },
@@ -510,13 +524,13 @@ export const SECTIONS: DocSection[] = [
     summary: "From your own wallet to a listed product and your first payout.",
     intro: "For sellers setting up for the first time. You will sign in, publish products and the rules your agent must keep, register on Arc, and learn how orders, deliveries and payouts work. It takes about 5 minutes.",
     blocks: [
-      { kind: "callout", tone: "tip", title: "Try it on testnet first", text: "[ai.proteus.co.in](https://ai.proteus.co.in) runs the same app on Arc testnet with test USDC. Use [app.proteus.co.in](https://app.proteus.co.in) when you are ready for real USDC." },
+      { kind: "callout", tone: "tip", title: "Try it on testnet first", text: "[ai.proteus.co.in](https://ai.proteus.co.in) runs the same app on Arc testnet with test USDC from [Circle's faucet](https://faucet.circle.com). Use [app.proteus.co.in](https://app.proteus.co.in) when you are ready for real USDC. Your wallet needs a little USDC on Arc either way: gas on Arc is paid in USDC, and registering your agent is one transaction." },
       { kind: "h3", id: "seller-steps", text: "Steps" },
       { kind: "steps", items: [
         { title: "Sign in with your wallet", text: "At [app.proteus.co.in](https://app.proteus.co.in). It owns the account and receives payouts." },
         { title: "Publish products and rules", text: "Tiers and list prices, plus private rules: cost, floor, discount cap, minimum, capacity, approval threshold." },
         { title: "Register on Arc", text: "One transaction from your wallet registers your agent in Arc's ERC-8004 IdentityRegistry ([code](" + code("server/src/services/agent-registry.ts", 90) + "))." },
-        { title: "Policies are committed", text: "Proteus checks owner, payee and signer on chain, then commits each policy to ProteusPolicyRegistry." },
+        { title: "Policies are committed", text: "Proteus creates your seller signer, a key it holds encrypted to countersign offers for you; your registration publishes it and your payee. Proteus checks owner, payee and signer on chain, then commits each policy to ProteusPolicyRegistry." },
         { title: "Take orders", text: "On your store page, on your website, or from buyers' AI agents. Offers above your approval threshold wait for you." },
         { title: "Keep the buyer posted", text: "For goods: Order accepted, In production, Shipped with a tracking link, Out for delivery. The buyer sees each update on its order page and in its alerts." },
         { title: "Deliver and get paid", text: "API calls are metered; goods are confirmed per batch by you, not verified by Proteus. Escrow pays what the buyer countersigns." },
@@ -535,7 +549,8 @@ export const SECTIONS: DocSection[] = [
       ] },
       { kind: "figure", src: "/docs/policies.jpg", alt: "Agent policies page with the catalog sync card", caption: "Agent policies: the rules each product's agent must obey, and catalog sync from your own endpoint.", network: "Arc testnet" },
       { kind: "h3", id: "seller-embed", text: "Put the agent on your website" },
-      { kind: "code", lang: "html", text: "<script src=\"https://app.proteus.co.in/embed.js\" data-seller=\"your-slug\" async></script>\n<!-- options: data-mode=\"inline\", data-product=\"<product-slug>\", data-label=\"Get a quote\",\n     data-color=\"#1b4dff\", data-height=\"640\" (inline mode) -->" },
+      { kind: "code", lang: "html", text: "<script src=\"https://app.proteus.co.in/embed.js\" data-seller=\"your-slug\" async></script>\n<!-- options: data-mode=\"inline\", data-product=\"<product-slug>\", data-label=\"Get a quote\",\n     data-color=\"#1b4dff\", data-height=\"620\" (inline mode; 620 is the default) -->" },
+      { kind: "p", text: "The script opens the agent from the app it was loaded from: use `https://ai.proteus.co.in/embed.js` for a testnet seller." },
       { kind: "points", items: [
         { title: "Runs in a Proteus frame", text: "Signing and payment always open Proteus in a new tab, never inside the frame ([embed.js](" + code("site/public/embed.js") + "))." },
         { title: "You choose the sites", text: "In Settings, list up to 10 https sites that may embed your agent; Proteus sends them as the page's CSP `frame-ancestors`. With no list, any site may embed it ([embed.ts](" + code("server/src/services/embed.ts") + "))." },
@@ -558,15 +573,16 @@ export const SECTIONS: DocSection[] = [
     summary: "Ask, review, sign once, and pay only for what you countersign.",
     intro: "For buyers, people or teams, using the web app. You will negotiate with a seller's agent, check and sign the offer, fund it without gas, follow delivery, and get back anything not delivered.",
     blocks: [
+      { kind: "callout", tone: "note", title: "You need USDC on Arc", text: "On testnet, take test USDC from [Circle's faucet](https://faucet.circle.com) at [ai.proteus.co.in](https://ai.proteus.co.in). On mainnet, deposit USDC on Arc to your wallet, or bridge it from another chain with CCTP inside the app." },
       { kind: "h3", id: "buyer-steps", text: "Steps" },
       { kind: "steps", items: [
         { title: "Ask the seller's agent", text: "Quantity, date, budget. One conversation covers the whole store." },
         { title: "Review the offer", text: "Units, price, term, inclusions; the terms hash is recomputed in your browser." },
-        { title: "Sign and fund", text: "Sign the terms and a USDC permit; the relayer submits and pays gas. Funds go to escrow." },
+        { title: "Sign and fund", text: "Sign the terms (the seller's signer has already countersigned) and a USDC permit; the relayer submits and pays gas. Funds go to escrow." },
         { title: "Use or receive", text: "Use the service on the deal page, or track your order to payout: accepted, in production, shipped with tracking, delivered. Failed calls and handoffs are never billed." },
         { title: "Get updates", text: "Choose a webhook, Telegram or email on the deal page." },
         { title: "Countersign", text: "Sign delivered usage; escrow pays the seller exactly that." },
-        { title: "Refund the rest", text: "After the term plus grace (3 days by default), or once the seller closes the term: one click on the deal page, or anyone can call `refundUnused`." },
+        { title: "Refund the rest", text: "From `refundableAt` (the term's end plus grace, 3 days by default, or at once if the seller closes the term): one click on the deal page, or anyone can call `refundUnused`." },
       ] },
       { kind: "callout", tone: "warning", title: "Countersign only what you received", text: "Your Acceptance releases USDC to the seller and cannot be undone. If goods never arrive, do not countersign: open a dispute from your wallet, which freezes the deal for the arbiter." },
       { kind: "h3", id: "buyer-check", text: "What to check before you sign" },
@@ -596,7 +612,7 @@ export const SECTIONS: DocSection[] = [
         { title: "Clone the repository", text: "The server runs from a clone of [the Proteus repository](https://github.com/Adityaakr/proteus) (`packages/mcp`); it is not published to npm. Run `pnpm install` once." },
         { title: "Add it to your client", text: "Paste the config below into your MCP client (Claude Desktop, Claude Code, or any client that runs stdio servers), with the path to your clone." },
         { title: "Set the mandate", text: "`PROTEUS_MAX_PREPAID_USDC` is the most the agent may prepay in one deal." },
-        { title: "Ask for something", text: "\"Find a merch seller and get 20 boxes under $300.\" The agent lists services, negotiates and asks before it signs." },
+        { title: "Ask for something", text: "\"Find a merch seller and get 20 boxes under $300.\" The agent lists services and negotiates; it signs and funds only within the mandate, and your MCP client may ask you to approve each tool call." },
       ] },
       { kind: "code", lang: "json", title: "MCP client config", text: "{\n  \"mcpServers\": {\n    \"proteus\": {\n      \"command\": \"pnpm\",\n      \"args\": [\"--dir\", \"/path/to/proteus/packages/mcp\", \"exec\", \"tsx\", \"src/index.ts\"],\n      \"env\": {\n        \"PROTEUS_API_URL\": \"https://ai.proteus.co.in\",\n        \"PROTEUS_MAX_PREPAID_USDC\": \"5\",\n        \"PROTEUS_BUYER_PRIVATE_KEY\": \"<optional: a testnet key>\"\n      }\n    }\n  }\n}" },
       { kind: "h3", id: "mcp-env", text: "Settings" },
@@ -619,11 +635,13 @@ export const SECTIONS: DocSection[] = [
       ] },
       { kind: "points", items: [
         { title: "Testnet by default", text: "The config points at Arc testnet. MCP buying is proven on testnet only." },
-        { title: "Funding", text: "Default is a gasless USDC permit (proven on testnet). The mainnet loop so far was funded by approve; pass `gasless: false` to approve instead (it needs the buyer key)." },
+        { title: "Funding", text: "Default is a gasless USDC permit; pass `gasless: false` to approve instead (it needs the buyer key)." },
+        { title: "Check the addresses", text: "The server takes the escrow and USDC addresses from the API's `GET /api/health`. Compare them once with [Verify it yourself](/docs/verify)." },
         { title: "Private negotiation", text: "`proteus_negotiate` returns a negotiationKey; the MCP server keeps it and sends it on every later call, so no one else can read the conversation. After a restart, pass it back." },
         { title: "The service key stays local", text: "After funding, the service's API key is kept in the MCP process's memory and used by `proteus_call_service`." },
       ] },
       { kind: "callout", tone: "warning", title: "The mandate is local", text: "It is enforced in the MCP process on your machine, not on chain. It does not cap the unit price, how many deals the agent makes, or which service it picks." },
+      { kind: "callout", tone: "warning", title: "Guard the key", text: "`PROTEUS_BUYER_PRIVATE_KEY` sits in plain text in your client's config file. Use a wallet funded only with what the agent may spend, or leave it out and sign with a Circle Agent Wallet." },
       { kind: "callout", tone: "note", title: "Proven on Arc testnet", text: "Claude, with only these tools and a 13 USDC mandate, refused to buy when a delivery date did not fit, bought a sample once it did, checked the seller's receipt and settled. [Transcript](" + EVIDENCE + ") · [funding](" + txUrl("testnet", TX.kitboxFund) + ") · [settlement](" + txUrl("testnet", TX.kitboxSettle) + ")" },
     ],
   },
@@ -652,11 +670,11 @@ export const SECTIONS: DocSection[] = [
       { kind: "h3", id: "seller-api-auth", text: "Authentication" },
       { kind: "p", text: "Send your key as a bearer token on every request. Each authenticated call updates the key's last-used time." },
       { kind: "code", lang: "http", text: "Authorization: Bearer psk_live_<43 characters>" },
-      { kind: "diagram", name: "apiAuth", caption: "Every request is checked in this order; each answer covers your own seller only.", describe: "Your server sends Authorization: Bearer psk_live_… (or psk_test_…) to /api/v1/seller. Proteus hashes the key with SHA-256 and looks it up: missing, unknown, revoked or expired keys get 401. The key's environment must match the deployment (test keys on Arc testnet, live keys on Arc mainnet), else 401. The route's permission must be on the key, else 403 naming it. Then the handler reads or writes only that key's seller (another seller's deal or product is 404). The public sandbox key is a separate path: /api/v1/sandbox/seller answers from fixed demo data, and its writes are dry runs." },
+      { kind: "diagram", name: "apiAuth", caption: "Every request is checked in this order; each answer covers your own seller only.", describe: "Your server sends Authorization: Bearer psk_live_… (or psk_test_…) to /api/v1/seller. Proteus first checks the key's environment against the deployment (test keys on Arc testnet, live keys on Arc mainnet), else 401 naming the right network. It then hashes the key with SHA-256 and looks it up: unknown, revoked or expired keys get 401. The route's permission must be on the key, else 403 naming it. Then the handler reads or writes only that key's seller (another seller's deal or product is 404). The public sandbox key is a separate path: /api/v1/sandbox/seller answers from fixed demo data, and its writes are dry runs." },
       { kind: "h3", id: "seller-api-first-request", text: "Make your first request" },
       { kind: "p", text: "The sandbox key is public, so this works as is. It returns the demo seller's key details:" },
       { kind: "code", lang: "bash", text: "curl " + SANDBOX.baseUrl + "/me \\\n  -H \"Authorization: Bearer " + SANDBOX.key + "\"" },
-      { kind: "callout", tone: "note", title: "Sandbox", text: "Reads return the same fields as the real API, from fixed demo records. Writes run the API's own checks and answer `{ \"dryRun\": true, \"wouldReturn\": …, \"wouldHappen\": [...] }`: nothing is stored, signed, paid or sent. It runs on the Arc testnet deployment and never touches a real seller, the chain or a webhook." },
+      { kind: "callout", tone: "note", title: "Sandbox", text: "Reads return the same fields as the real API, from fixed demo records. Writes run the API's own checks and answer `{ \"dryRun\": true, \"persisted\": false, \"status\": …, \"wouldReturn\": …, \"wouldHappen\": [...] }`: nothing is stored, signed, paid or sent. It runs on the Arc testnet deployment and never touches a real seller, the chain or a webhook." },
       { kind: "h3", id: "seller-api-quickstart", text: "Quickstart" },
       { kind: "p", text: "The same four steps as on the [Developers](/app/sell/developers#quickstart) page, against Arc testnet with a test key. Keep the key in an environment variable on your server. Never commit it or embed it in client-side code you ship; testing it from the console on your own Developers page is fine." },
       ...SELLER_QUICKSTART.flatMap((st): Block[] => [
@@ -693,6 +711,7 @@ export const SECTIONS: DocSection[] = [
         "`GET /deals` returns your newest 200 deals and `GET /usage` your newest 300 requests. There is no pagination yet.",
         "Delivery reports are idempotent on `requestId`: retrying with the same id returns the first receipt instead of recording twice.",
       ] },
+      { kind: "h3", id: "seller-api-next", text: "Next" },
       { kind: "links", items: [
         { label: "API reference", href: "/docs/seller-api-reference", note: "every endpoint, with a Send button" },
         { label: "Webhooks", href: "/docs/seller-webhooks", note: "deal events pushed to your server" },
@@ -750,8 +769,9 @@ export const SECTIONS: DocSection[] = [
       { kind: "h3", id: "webhooks-delivery", text: "Delivery and retries" },
       { kind: "table", head: ["Rule", "Behaviour"], rows: [
         ["Success", "Any 2xx within 5 seconds. Redirects are not followed and the response body is ignored."],
-        ["Retries", "A failed event is tried again on later delivery runs, up to 5 attempts in all."],
-        ["Duplicates", "If your email or Telegram fails, the webhook can receive the same event again. Deduplicate on `id`."],
+        ["Retries", "A failed event is tried again after each reconciler run (every 10 seconds by default), up to 5 attempts in all, then marked failed. Each run sends at most 20 events."],
+        ["Outages", "Five attempts span about a minute, so an outage longer than that can lose an event. Reconcile from `GET /deals` and `GET /payments` after downtime."],
+        ["Duplicates", "If any channel (webhook, email or Telegram) fails, the event is sent again on every channel, so your webhook can receive the same event twice. Deduplicate on `id`."],
         ["Address check", "The host is resolved at send time and refused if it points at a private, loopback, link-local or metadata address."],
         ["Delivery log", "The Developers page lists your last 50 attempts, newest first: time, event, result, HTTP status, latency and error."],
       ] },
@@ -770,27 +790,27 @@ export const SECTIONS: DocSection[] = [
       { kind: "h3", id: "lifecycle-before", text: "Before funding" },
       { kind: "p", text: "Nothing is on chain yet. These states live on Proteus; the API returns them as `status` on the negotiation, the quote and the deal." },
       { kind: "table", head: ["State", "Status value", "What it means", "Who acts"], rows: [
-        ["Negotiating", "negotiation `open`, then `quoted`", "The buyer talks to the deal agent; `quoted` once at least one offer passes the seller's rules.", "Buyer, deal agent"],
-        ["Quote", "quote `draft`", "The buyer picked an offer; Proteus built the EIP-712 terms. Valid for the seller's quote validity.", "Buyer"],
-        ["Approval required", "quote `approval_required`, then `approved`", "The prepaid total is above the seller's approval threshold. The seller approves or declines in the console.", "Seller"],
+        ["Negotiating", "negotiation `open`, then `quoted`", "The buyer talks to the deal agent; `quoted` once at least one offer passes the seller's rules. It becomes `accepted` when the buyer signs a quote.", "Buyer, deal agent"],
+        ["Quoted", "quote `draft`", "The buyer picked an offer; Proteus built the EIP-712 terms. The quote is `expired` once the seller's quote validity passes, and `accepted` when the buyer signs.", "Buyer"],
+        ["Approval required", "quote `approval_required`, then `approved` or `declined`", "The prepaid total is above the seller's approval threshold. The seller approves or declines in the console.", "Seller"],
         ["Awaiting funding", "deal `awaiting_funding`", "The buyer signed the terms and the seller signer countersigned.", "Buyer, seller signer"],
         ["Funding pending", "deal `funding_pending`", "The funding transaction was submitted and is waiting for Arc.", "Relayer"],
       ] },
       { kind: "h3", id: "lifecycle-after", text: "After funding" },
       { kind: "p", text: "From here DealEscrow is the record. Proteus reconciles each deal's status from the contract (`getDeal`), which knows four states: `None`, `Funded`, `Disputed`, `Closed`." },
       { kind: "table", head: ["State", "Status value", "What it means", "Who acts"], rows: [
-        ["Active", "deal `funded`, then `active`; on chain `Funded`", "USDC is in escrow. Usage is settled in steps, each with the buyer's Acceptance and the seller signer's Delivery.", "Buyer, seller signer; the relayer submits"],
+        ["Active", "deal `funded` (the funding event was seen), then `active` (reconciled from the contract, service provisioned); on chain `Funded`", "USDC is in escrow. Usage is settled in steps, each with the buyer's Acceptance and the seller signer's Delivery.", "Buyer, seller signer; the relayer submits"],
         ["Disputed", "`disputed`; on chain `Disputed`", "`openDispute` froze the deal; settlement and refund revert until the arbiter decides.", "The buyer (on chain, also the seller signer), then the arbiter"],
         ["Closed", "`closed`; on chain `Closed`", "`refundUnused` returned the unspent balance, or a dispute split paid out everything left.", "Anyone, or the arbiter"],
-      ], note: "A deal whose deposit is fully settled has nothing to refund and stays Active. A partial dispute split returns the deal to Active. [State machine](" + GH + "/README.md#a-deals-states)." },
+      ], note: "A deal whose deposit is fully settled has nothing to refund and stays Active on chain; the seller console and seller API show it as `settled`. A partial dispute split returns the deal to Active. [State machine](" + GH + "/README.md#a-deals-states)." },
       { kind: "h3", id: "lifecycle-time", text: "Time limits" },
       { kind: "table", head: ["Limit", "Rule"], rows: [
         ["Quote", "The terms carry an `expiry` from the seller's quote validity. Funding after it reverts (`Expired`)."],
-        ["Settlement", "Each Acceptance has its own expiry. No settlement after the term's end plus grace."],
+        ["Settlement", "Each Acceptance expires 1 hour after Proteus prepares it; fetch a fresh one from `GET /api/deals/{id}/usage`. No settlement after the term's end plus grace."],
         ["Refund", "`refundUnused` opens at end + grace (3 days by default), or at once after `sellerCloseTerm`; earlier calls revert (`TooEarly`). Read `refundableAt` from `GET /api/deals/{id}`."],
         ["Dispute", "Open while the deal is Funded. There is no dispute timeout yet."],
       ] },
-      { kind: "callout", tone: "warning", title: "Countersign before end + grace", text: "After that, settlement reverts: usage not countersigned by then can no longer be paid from escrow, and the balance can only go back to the buyer as a refund." },
+      { kind: "callout", tone: "warning", title: "Countersign before end + grace", text: "After end + grace, settlement reverts: usage not countersigned by then can no longer be paid from escrow, and the balance can only go back to the buyer as a refund." },
     ],
   },
   {
@@ -804,7 +824,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "h3", id: "money-moments", text: "Where the money is" },
       { kind: "table", head: ["Moment", "Where the USDC is", "What releases it"], rows: [
         ["Before funding", "Buyer's wallet", "The buyer's permit (or approval) for exactly the prepaid amount"],
-        ["Funded", "DealEscrow, per deal", "Nothing without signatures; no owner withdrawal"],
+        ["Funded", "DealEscrow, per deal", "Only the paths below; there is no owner withdrawal"],
         ["Settlement", "Escrow → seller's payee", "Buyer's Acceptance + seller signer's Delivery"],
         ["Refund", "Escrow → buyer", "`refundUnused`, by anyone, after term plus grace or a seller close"],
         ["Dispute", "Escrow, frozen", "The arbiter splits only the unspent balance"],
@@ -823,7 +843,8 @@ export const SECTIONS: DocSection[] = [
       { kind: "points", items: [
         { title: "Refunds go to the buyer only", text: "`refundUnused` sends the unspent balance to the deal's buyer, whoever calls it. The deal page offers it as one click, with Proteus paying the gas." },
         { title: "Not pausable", text: "The owner can pause new deals; settlement and refunds keep working." },
-        { title: "Disputes freeze, then split", text: "The arbiter can send the unspent balance to the seller's payee, the buyer, or both. It cannot touch settled funds. A partial split returns the deal to Active." },
+        { title: "Disputes freeze, then split", text: "The buyer, or the seller signer, opens a dispute. The arbiter can then send the unspent balance to the seller's payee, the buyer, or both. It cannot touch settled funds. A partial split returns the deal to Active." },
+        { title: "What Proteus could do", text: "Proteus holds the seller signer and the arbiter key. It could end a term early (refunds then open to the buyer) or open a dispute and split the unspent balance. It cannot settle without the buyer's Acceptance, or send money anywhere but the deal's payee and buyer." },
       ] },
       { kind: "h3", id: "money-x402", text: "Pay per call (x402)" },
       { kind: "p", text: "For one-off calls an agent can pay per call over HTTP instead of opening a deal: `POST /api/pay/{seller}/{product}/execute` answers 402 with payment options, the agent signs a USDC authorization (EIP-3009), and the service runs. The payment is settled only if the call is billable, so a failed call is not charged. There is no escrow and no refund path ([x402.ts](" + code("server/src/services/x402.ts", 102) + "))." },
@@ -851,7 +872,7 @@ export const SECTIONS: DocSection[] = [
         ["Terms (EIP-712, domain `ProteusDealEscrow` v1): deal id, buyer, seller, payee, USDC, product, unit price, max units, prepaid, start, end, grace, public terms hash, nonce, expiry", "Buyer wallet + seller signer", "DealEscrow `createAndFundDeal`"],
         ["USDC permit (EIP-2612): exactly the prepaid amount, spender DealEscrow", "Buyer wallet", "Arc USDC"],
         ["Receipt per delivered unit or batch (EIP-191 personal message)", "Seller signer", "The buyer or its agent, off chain, before countersigning"],
-        ["Acceptance (EIP-712): cumulative units and amount, receipts root, nonce, expiry", "Buyer wallet", "`settleAcceptedUsage`"],
+        ["Acceptance (EIP-712): deal id, terms hash, cumulative units and amount, receipts root, nonce, expiry (1 hour after Proteus prepares it)", "Buyer wallet", "`settleAcceptedUsage`"],
         ["Delivery (EIP-712): cumulative units and receipts root, no amount", "Seller signer", "`settleAcceptedUsage`, which requires both to match the Acceptance"],
         ["Policy commitment (`commitBySig`)", "Seller signer", "ProteusPolicyRegistry"],
         ["ERC-8004 registration (a transaction)", "Seller's own wallet", "Arc IdentityRegistry"],
@@ -860,7 +881,10 @@ export const SECTIONS: DocSection[] = [
         ["x402 seller proof", "Seller signer", "Circle's facilitator"],
         ["Service key rotation (address and time)", "Buyer wallet", "Proteus server"],
       ] },
-      { kind: "callout", tone: "note", title: "The seller signer", text: "A per-seller key Proteus holds, AES-256-GCM encrypted ([signer.ts](" + code("server/src/chain/signer.ts") + ")). It countersigns offers so sellers need not approve each one, and on chain it is the deal's seller address. It cannot move escrowed funds or change the payee, which is pinned to the owner's wallet. It can end a term early (`sellerCloseTerm`), and it collects x402 payments until the seller sweeps them. Revoking it stops new signatures; deals it already signed keep accepting it until they close." },
+      { kind: "h3", id: "signatures-example", text: "Example: the terms to sign" },
+      { kind: "p", text: "`GET /api/quotes/{id}?buyer=0x…` returns this shape as `typedData`; sign it with `eth_signTypedData_v4`. Values are illustrative; amounts are micro-USDC." },
+      { kind: "code", lang: "json", title: "Terms typed data", text: JSON.stringify({ domain: { name: "ProteusDealEscrow", version: "1", chainId: 5042, verifyingContract: ESCROW }, primaryType: "Terms", types: { Terms: [["dealId", "uint256"], ["buyer", "address"], ["seller", "address"], ["payee", "address"], ["usdc", "address"], ["productId", "bytes32"], ["unitNum", "uint256"], ["unitDen", "uint256"], ["maxUnits", "uint256"], ["prepaid", "uint256"], ["start", "uint64"], ["end", "uint64"], ["grace", "uint64"], ["publicTermsHash", "bytes32"], ["nonce", "uint256"], ["expiry", "uint64"]].map(([name, type]) => ({ name, type })) }, message: { dealId: "<on-chain deal id>", buyer: "<your wallet>", seller: "<seller signer>", payee: "<seller payee>", usdc: CONTRACTS.usdc, productId: "<keccak256 of the product slug>", unitNum: "6600000", unitDen: "1", maxUnits: "1", prepaid: "6600000", start: "<unix seconds>", end: "<start + term>", grace: "259200", publicTermsHash: "<hash of publicTerms>", nonce: "<nonce>", expiry: "<quote expiry>" } }, null, 2) },
+      { kind: "callout", tone: "note", title: "The seller signer", text: "A per-seller key Proteus holds, AES-256-GCM encrypted ([signer.ts](" + code("server/src/chain/signer.ts") + ")). It countersigns offers so sellers need not approve each one, and on chain it is the deal's seller address. It cannot move escrowed funds or change the payee, which is pinned to the owner's wallet. It can end a term early (`sellerCloseTerm`), open a dispute on its deals, and it collects x402 payments until the seller sweeps them. Revoking it stops Proteus using it for new terms; on deals it already signed it stays the seller on chain until they close." },
     ],
   },
   {
@@ -891,7 +915,16 @@ export const SECTIONS: DocSection[] = [
         ["Integrations", "A requested integration is not supported", "Offered, with it excluded from the terms"],
       ], note: "The price rules (floor, contribution, discount, minimum) share one public reason, so a buyer cannot tell which private limit it hit ([pricing.ts](" + code("packages/domain/src/pricing.ts", 196) + "))." },
       { kind: "h3", id: "pricing-counter", text: "Counteroffers" },
-      { kind: "p", text: "A buyer can propose a total for the same units, or more units for the same total (`POST /api/negotiations/{id}/counter`). The engine evaluates it like any candidate: within the rules, the agent agrees and the offer can be accepted at once; above the approval threshold, it goes to the seller; otherwise it is refused with the public reason and, when one exists, the most the budget buys. A negotiation allows 12 counters, and each IP 40 per 10 minutes." },
+      { kind: "p", text: "A buyer can propose a total for the same units, or more units for the same total (`POST /api/negotiations/{id}/counter`). The engine evaluates it like any candidate: within the rules, the agent agrees and the offer can be accepted at once; above the approval threshold, it goes to the seller; otherwise it is refused with the public reason and, when one exists, the most the budget buys. Each negotiation allows 12 counters and each IP 40 in every 10-minute window. That slows a search for the seller's floor rather than stopping it; the single public reason for all price rules is what hides which limit was hit." },
+      { kind: "h3", id: "pricing-example", text: "A worked example" },
+      { kind: "p", text: "A tee seller lists Starter (from 1 tee at $6.60) and Bulk (from 100 tees at $6.50). Its private rules: cost $3.00 per tee, margin floor 35%, discount cap 5%, minimum prepaid $5, approval above $500. A buyer writes \"40 tees, budget $250\"." },
+      { kind: "table", head: ["Candidate", "Units × price", "Prepaid", "Result"], rows: [
+        ["The 40 tees asked for (Starter, the largest tier 40 qualifies for)", "40 × $6.60", "$264.00", "Offer, listed first"],
+        ["Budget fit: Bulk needs 100 tees, so Starter: $250 buys 37", "37 × $6.60", "$244.20", "Offer"],
+        ["Starter tier as listed", "1 × $6.60", "$6.60", "Offer"],
+        ["Bulk tier as listed", "100 × $6.50", "$650.00", "Waits for the seller (above $500)"],
+      ], note: "Every offer clears the 35% floor: at $6.60 a tee the margin is ($6.60 − $3.00) / $6.60 = 54.5%." },
+      { kind: "p", text: "The buyer then counters \"40 tees for $230\", $5.75 a tee. That is 12.9% below the list price, over the 5% cap, so the agent refuses with the shared reason (\"That price is outside what the seller can offer for this package.\") and offers what $230 buys at list price: 34 tees for $224.40." },
       { kind: "h3", id: "pricing-model", text: "What the model may do" },
       { kind: "points", items: [
         { title: "Read the request", text: "Claude Haiku turns the conversation into fields: units, budget, integrations, open questions." },
@@ -917,7 +950,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "table", head: ["Party", "Sees", "Never sees"], rows: [
         ["Buyer", "Its own offers, totals, public reasons and order", "The seller's costs, margin floor, policy or other buyers"],
         ["Seller", "Its buyers' chats and order details, its own economics", "Other sellers' data"],
-        ["AI model provider (Anthropic)", "Deal desk: the conversation with emails, phone and card numbers removed, plus the public offers. Front desk: the customer's messages as written, name and phone included", "Costs, margin floors, policy"],
+        ["AI model provider (Anthropic; OpenRouter only as a fallback, and for the embeddings service)", "Deal desk: the conversation with emails, phone and card numbers removed, plus the public offers. Front desk: the customer's messages as written, name and phone included. Services: the request the buyer sends", "Costs, margin floors, policy"],
         ["Meta (WhatsApp chats only)", "Message text, phone number and profile name, as for any WhatsApp Business chat", "Costs, policy, wallet addresses, deal ids"],
         ["Google (voice in Chrome and Edge)", "The audio, when a customer speaks to a front desk in Chrome or Edge (Safari recognises speech on the device)", "Anything typed"],
         ["Arc (public chain)", "Wallet addresses, amounts and a terms hash for funded deals", "Names, phone numbers, chats, order details"],
@@ -968,7 +1001,7 @@ export const SECTIONS: DocSection[] = [
         ["Privacy", "The customer's details go to the business, and to Claude to understand the request. The link token is random; only its hash is used for lookup."],
       ] },
       { kind: "code", lang: "html", title: "Website embed", text: "<iframe src=\"https://app.proteus.co.in/embed/talk/<token>\" title=\"Talk to us\"\n  style=\"width:100%;max-width:440px;height:620px;border:0;border-radius:16px\"\n  allow=\"microphone\"></iframe>" },
-      { kind: "p", text: "The customer page at `/embed/talk/<token>` may be framed by any site. The API behind it is `GET /api/public/talk/{token}` and `POST /api/public/talk/{token}/messages`." },
+      { kind: "p", text: "On testnet the page lives at `https://ai.proteus.co.in/embed/talk/<token>`. The customer page may be framed by any site. The API behind it is `GET /api/public/talk/{token}` and `POST /api/public/talk/{token}/messages`." },
       { kind: "h3", id: "front-desk-profile", text: "Business profile, calendar and voice" },
       { kind: "points", items: [
         { title: "Business profile", text: "Name, timezone, hours, services, prices, emergency line and appointment length (`PUT /api/services/{product}/profile`). The assistant answers from these facts and says the team will confirm anything not covered." },
@@ -992,7 +1025,8 @@ export const SECTIONS: DocSection[] = [
         ["`customer_request`", "A front desk request is complete"],
         ["`customer_urgent`", "A request mentions an emergency, or needs a person"],
       ] },
-      { kind: "code", lang: "text", title: "Verify the webhook", text: "X-Proteus-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of \"<t>.<raw body>\" with your secret>" },
+      { kind: "code", lang: "http", title: "A buyer alert webhook", text: "POST /your/webhook HTTP/1.1\nContent-Type: application/json\nX-Proteus-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of \"<t>.<raw body>\" with your secret>\n\n{\n  \"event\": \"customer_request\",\n  \"subject\": \"New request from a customer\",\n  \"product\": \"ai-receptionist\",\n  \"note\": \"…\",\n  \"url\": \"https://app.proteus.co.in/app/deals/…\",\n  \"at\": \"2026-11-20T10:00:00.000Z\"\n}" },
+      { kind: "p", text: "Buyer alerts carry no event id, unlike [seller webhooks](/docs/seller-webhooks): use `at` and the content if you need to spot a repeat. Verify the signature the same way as a seller webhook." },
       { kind: "callout", tone: "warning", title: "Best effort", text: "Buyer alerts are sent at once with two tries and no delivery log; nothing is retried later. Signed webhooks work today; Telegram and email need their keys on the server. Sellers' own deal events use [webhooks](/docs/seller-webhooks) with an outbox and retries." },
     ],
   },
@@ -1006,7 +1040,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "diagram", name: "aiStack", caption: "Two places Claude works: the deal desk, where code sets every price, and the services Proteus runs.", describe: "Deal desk: buyer text from any channel has emails, phone and card numbers removed, Claude Haiku reads it into fields, the pricing engine (code) computes the offers, Claude Sonnet writes the words, and a figure check falls back to a fixed reply if the words carry an unlisted figure. Services Proteus runs: a request goes to a service agent on the Claude model chosen for that job (Haiku, Sonnet or Opus); a delivered result is one billed unit with a signed receipt; a refusal, failure, cut-off or handoff to a person is never billed." },
       { kind: "h3", id: "ai-models-jobs", text: "Model per job" },
       { kind: "table", head: ["Job", "Model", "Effort", "Why"], rows: MODELS.map(([job, model, effort, why]) => [job, model, effort, why]) },
-      { kind: "p", text: "Both live deployments run on Claude (`agentAdapter` in [/api/health](https://app.proteus.co.in/api/health)). Without an Anthropic key, a deployment falls back to OpenRouter, or to fixed rule-based replies with no model; on the OpenRouter fallback a cut-off reply is not detected as cut off." },
+      { kind: "p", text: "Both live deployments run on Claude (`agentAdapter` in [/api/health](https://app.proteus.co.in/api/health)). Without an Anthropic key, a deployment falls back to OpenRouter (`anthropic/claude-sonnet-4.5` by default), which then receives the same redacted conversation, or to fixed rule-based replies with no model. On the OpenRouter fallback a cut-off reply is not detected as cut off." },
       { kind: "h3", id: "ai-models-rules", text: "Rules the models work under" },
       { kind: "points", items: [
         { title: "Prices never come from the model", text: "Offers are computed in code from the seller's rules; the model only writes the words, and a reply with an unlisted dollar amount or number of four or more digits is replaced by the fixed one ([How offers are priced](/docs/pricing#pricing-model))." },
@@ -1025,7 +1059,7 @@ export const SECTIONS: DocSection[] = [
     summary: "Who can rate a seller, how a rating is checked, how the score is computed, and how to verify it on Arc.",
     intro: "For buyers and agents judging a seller, and sellers who want to understand their score. You will learn who can rate, how a rating is checked for links to the seller, how the score is computed, and how to verify it on Arc yourself.",
     blocks: [
-      { kind: "callout", text: "A rating counts only if it comes from a real, paid order, from a buyer with no link to the seller. Each buyer is one vote, and the number of buyers is always shown next to the stars." },
+      { kind: "callout", text: "A rating counts only if it comes from a paid order, from a buyer with no link to the seller. Each buyer is one vote, and the number of buyers is always shown next to the stars." },
       { kind: "h3", id: "ratings-how", text: "How a rating is made" },
       { kind: "steps", items: [
         { title: "The deal settles", text: "Ratings open once USDC has been paid out of DealEscrow for that deal. No settlement, no rating. Example sellers, and sellers not registered on Arc, cannot be rated." },
@@ -1033,6 +1067,13 @@ export const SECTIONS: DocSection[] = [
         { title: "Proteus verifies the transaction", text: "It reads the `NewFeedback` event from the chain: right seller agent, this deal's tag, sent by this deal's buyer, a whole number of stars ([ratings.ts](" + code("server/src/services/ratings.ts") + "))." },
         { title: "The link check runs", text: "Proteus looks for links between buyer and seller (below). Until it finishes the rating shows as being checked and does not count." },
         { title: "The score updates", text: "Clear ratings count, one vote per buyer. Linked ratings stay listed with the reason, and do not count." },
+      ] },
+      { kind: "h3", id: "ratings-statuses", text: "Rating statuses" },
+      { kind: "table", head: ["Status", "Counts", "Meaning"], rows: [
+        ["`counted`", "Yes", "Passed the link check."],
+        ["`counted_before_checks`", "Yes, disclosed", "Given before the checks went live (Nov 12, 2026, 20:00 UTC) and later found linked; the reason is shown and the buyer is not a trusted reviewer."],
+        ["`linked_to_seller`", "No", "The buyer is tied to the seller; the reason is shown."],
+        ["`checking`", "Not yet", "The link check is still scanning Arc (it can take minutes)."],
       ] },
       { kind: "h3", id: "ratings-checks", text: "What is checked" },
       { kind: "table", head: ["Check", "Catches", "Result"], rows: [
@@ -1063,13 +1104,6 @@ export const SECTIONS: DocSection[] = [
       { kind: "p", text: "`GET /api/public/sellers/{seller}/ratings` returns every rating with its status and transaction, the method, and `trustedReviewers`: the buyers whose ratings count. Pass them to ERC-8004 `getSummary` on Arc to read the same feedback straight from the chain. An empty list reverts, as the standard requires." },
       { kind: "code", lang: "bash", text: "curl -s https://app.proteus.co.in/api/public/sellers/shoonya-store-t4e/ratings\n\n# Then, on Arc mainnet (chain 5042), ReputationRegistry " + CONTRACTS.reputationRegistryMainnet + ":\n# getSummary(uint256 agentId, address[] clientAddresses, string tag1, string tag2)\n#   returns (uint64 count, int128 summaryValue, uint8 summaryValueDecimals)\ncast call " + CONTRACTS.reputationRegistryMainnet + " \\\n  'getSummary(uint256,address[],string,string)(uint64,int128,uint8)' \\\n  2695 '[0xF8b8eF05B9F820Addf7D85D165433e6C60221AF5]' proteus-deal '' \\\n  --rpc-url https://rpc.mainnet.arc.io\n# → 1, 5, 0   (one rating, 5 stars)" },
       { kind: "p", text: "The chain returns the plain count and average for the buyers you pass. This example passes Shoonya's one buyer to show the call; for the score, pass `trustedReviewers`, which is empty for Shoonya today (so that call would revert). Proteus's score adds one vote per buyer, the verified-buyer weight and the neutral prior on top." },
-      { kind: "h3", id: "ratings-statuses", text: "Rating statuses" },
-      { kind: "table", head: ["Status", "Counts", "Meaning"], rows: [
-        ["`counted`", "Yes", "Passed the link check."],
-        ["`counted_before_checks`", "Yes, disclosed", "Given before the checks went live (Nov 12, 2026, 20:00 UTC) and later found linked; the reason is shown and the buyer is not a trusted reviewer."],
-        ["`linked_to_seller`", "No", "The buyer is tied to the seller; the reason is shown."],
-        ["`checking`", "Not yet", "The link check is still scanning Arc (it can take minutes)."],
-      ] },
       { kind: "h3", id: "ratings-agents", text: "For AI agents" },
       { kind: "list", items: [
         "Read `summary.count` before `summary.average`: one buyer is a weak signal. Compare sellers by `summary.score`, which starts at a neutral 3.5.",
@@ -1103,7 +1137,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "callout", tone: "note", text: "This page is about what Proteus charges. How the seller's agent prices its offers is [a separate page](/docs/pricing)." },
       { kind: "h3", id: "fees-gas", text: "Who pays gas" },
       { kind: "p", text: "Gas on Arc is paid in USDC." },
-      { kind: "table", head: ["Action", "Paid by"], rows: FEES.gas.map(([a, b]) => [a, b]), note: "Gasless funding is proven on Arc testnet; the mainnet loop so far was funded with approve." },
+      { kind: "table", head: ["Action", "Paid by"], rows: FEES.gas.map(([a, b]) => [a, b]), note: "Gasless funding is proven on both networks: the Shoonya order on Arc mainnet was funded with a permit." },
       { kind: "callout", text: FEES.other },
     ],
   },
@@ -1114,32 +1148,35 @@ export const SECTIONS: DocSection[] = [
     summary: "What sellers and buyers get, and where each is proven.",
     intro: "For sellers and buyers comparing what Proteus can do today. Each feature has one line and where it is proven: on Arc mainnet, on Arc testnet, or in local tests only.",
     blocks: [
+      { kind: "callout", tone: "note", text: "Status words mean the same as on [Ways to use](/docs/ways-to-use#ways-status): Live (used on Arc mainnet), Testnet (proven on Arc testnet), In testing (built and deployed or covered by tests, not yet used end to end by a real customer)." },
       { kind: "h3", id: "for-sellers", text: "For sellers" },
-      { kind: "table", head: ["Feature", "In one line", "Proven on"], rows: [
-        ["Agent policies", "Cost, floor, discount cap, minimum, capacity, approval threshold, per product ([rules](/docs/pricing#pricing-rules)).", "Mainnet · testnet"],
-        ["Store and one deal desk", "One conversation across every product ([storefront.ts](" + code("server/src/services/storefront.ts", 19) + ")).", "Mainnet · testnet"],
+      { kind: "table", head: ["Feature", "In one line", "Status"], rows: [
+        ["Agent policies", "Cost, floor, discount cap, minimum, capacity, approval threshold, per product ([rules](/docs/pricing#pricing-rules)).", "Live"],
+        ["Store and one deal desk", "One conversation across every product ([storefront.ts](" + code("server/src/services/storefront.ts", 19) + ")).", "Live"],
+        ["Seller-confirmed delivery", "Record batches with proof; escrow pays what is countersigned.", "Live"],
+        ["Onboarding from your wallet", "You own the account and the payouts.", "Live"],
         ["Agent on your website", "One script tag; payment opens in a new tab ([quickstart](/docs/quickstart-seller#seller-embed)).", "Testnet"],
-        ["WhatsApp agent", "The same agent on your own WhatsApp Business number; paying stays on the web ([details](/docs/ways-to-use#ways-whatsapp-how)).", "Deployed, in testing"],
-        ["Catalog sync", "Your endpoint keeps stock, cost and rules current; list prices are never synced.", "Local test"],
-        ["Seller-confirmed delivery", "Record batches with proof; escrow pays what is countersigned.", "Mainnet · testnet"],
-        ["Order updates", "Accepted, in production, shipped with tracking; the buyer sees each one ([orders.ts](" + code("server/src/services/orders.ts") + ")).", "Deployed · local test"],
-        ["Front desk and inbox", "Customers chat or speak with your AI assistant on a link or your website; every request lands in an inbox ([Front desk](/docs/front-desk)).", "Deployed · local test"],
-        ["Real AI work", "Proteus-run services on Claude, model per job ([The AI behind it](/docs/ai-models)).", "Deployed · local test"],
-        ["Approvals and alerts", "Email, Telegram, signed webhooks ([notify.ts](" + code("server/src/services/notify.ts") + ")).", "Testnet"],
-        ["Seller API and webhooks", "Scoped test and live keys for deals, usage, payments, prices and deliveries; signed webhooks with a delivery log ([Seller API](/docs/seller-api)).", "Local test · sandbox on testnet"],
+        ["Approvals", "Offers above your threshold wait for you in the console.", "Testnet"],
         ["Accounting export", "CSV in the shape QuickBooks and Xero import, each row linked to Arc.", "Testnet"],
-        ["Onboarding from your wallet", "You own the account and the payouts.", "Mainnet"],
-      ], note: "\"Deployed\" means running on both apps but not yet shown on chain end to end; \"Local test\" means covered by tests only." },
+        ["WhatsApp agent", "The same agent on your own WhatsApp Business number; paying stays on the web ([details](/docs/ways-to-use#ways-whatsapp-how)).", "In testing"],
+        ["Seller API and webhooks", "Scoped test and live keys for deals, usage, payments, prices and deliveries; signed webhooks with a delivery log; a public sandbox ([Seller API](/docs/seller-api)).", "In testing"],
+        ["Alerts", "Email, Telegram, signed webhooks ([notify.ts](" + code("server/src/services/notify.ts") + ")).", "In testing"],
+        ["Order updates", "Accepted, in production, shipped with tracking; the buyer sees each one ([orders.ts](" + code("server/src/services/orders.ts") + ")).", "In testing"],
+        ["Front desk and inbox", "Customers chat or speak with your AI assistant on a link or your website; every request lands in an inbox ([Front desk](/docs/front-desk)).", "In testing"],
+        ["Real AI work", "Proteus-run services on Claude, model per job ([The AI behind it](/docs/ai-models)).", "In testing"],
+        ["Catalog sync", "Your endpoint keeps stock, cost and rules current; list prices are never synced.", "In testing"],
+      ] },
       { kind: "figure", src: "/docs/seller-usage.jpg", alt: "Seller usage and delivery page with a signed, delivered receipt", caption: "Usage and delivery: each billable unit with its outcome and signed receipt.", network: "Arc testnet" },
       { kind: "h3", id: "for-buyers", text: "For buyers and their agents" },
-      { kind: "table", head: ["Feature", "In one line", "Proven on"], rows: [
-        ["Negotiation", "Quantities, budgets, counteroffers within the seller's rules.", "Mainnet · testnet"],
-        ["Gasless funding", "Sign a permit; the relayer pays gas ([gasless.ts](" + code("server/src/services/gasless.ts", 5) + ")).", "Testnet"],
+      { kind: "table", head: ["Feature", "In one line", "Status"], rows: [
+        ["Negotiation", "Quantities, budgets, counteroffers within the seller's rules.", "Live"],
+        ["Gasless funding", "Sign a permit; the relayer pays gas ([gasless.ts](" + code("server/src/services/gasless.ts", 5) + ")).", "Live"],
+        ["Refunds", "Refund the unspent balance after the term ([mainnet refund](" + txUrl("mainnet", TX.mainRefund) + ")).", "Live"],
+        ["Fund from other chains", "CCTP via Circle Bridge Kit ([bridge.ts](" + code("site/src/app/lib/bridge.ts") + ")).", "Live"],
         ["Pay per call", "x402: one payment per call, or Circle Gateway batching; outside escrow ([x402.ts](" + code("server/src/services/x402.ts", 102) + ")).", "Testnet"],
         ["MCP server", "Nine tools within a per-deal mandate ([quickstart](/docs/quickstart-agent)).", "Testnet"],
-        ["Refunds and disputes", "Refund the unspent balance; dispute from your wallet.", "Refund: both · dispute: scripted"],
-        ["Fund from other chains", "CCTP via Circle Bridge Kit ([bridge.ts](" + code("site/src/app/lib/bridge.ts") + ")).", "Mainnet"],
-        ["Order tracking and alerts", "Progress to payout, tracking, and updates by webhook, Telegram or email.", "Deployed · local test"],
+        ["Disputes", "Open from your wallet; the arbiter splits the unspent balance ([disputes.ts](" + code("server/src/services/disputes.ts") + ")).", "In testing"],
+        ["Order tracking and alerts", "Progress to payout, tracking, and updates by webhook, Telegram or email.", "In testing"],
       ] },
     ],
   },
@@ -1155,14 +1192,16 @@ export const SECTIONS: DocSection[] = [
     blocks: [
       { kind: "callout", tone: "warning", title: "Not audited yet", text: "DealEscrow is not independently audited yet. It is source-verified (Sourcify exact match) on both networks and covered by Foundry unit and invariant tests; the invariant handler does not exercise disputes." },
       { kind: "h3", id: "security-boundaries", text: "Trust boundaries" },
+      { kind: "diagram", name: "trust", caption: "Three keys are Proteus's; every payout still needs the contract's checks.", describe: "The buyer's wallet signs the terms, permit and acceptances and funds DealEscrow. Proteus holds three keys: the relayer submits transactions and pays gas but cannot move funds without signatures; the seller signer countersigns terms and deliveries, can end a term early and can open a dispute; the arbiter, which is also the owner, splits only the unspent balance of a disputed deal and can pause new deals. DealEscrow pays only the deal's payee (the seller's own wallet) and the buyer." },
       { kind: "table", head: ["Component", "Controlled by", "Can", "Cannot"], rows: [
         ["DealEscrow", "Code; the owner can pause new deals only", "Release USDC against signatures; settlement and refunds keep working while paused", "Let anyone, the owner included, withdraw buyer funds; it is not upgradeable"],
         ["Arbiter", "Proteus deployer key (also the owner)", "Split the unspent balance of a disputed deal", "Touch settled funds; there is no timeout yet"],
         ["Relayer", "Proteus key", "Submit transactions, pay gas", "Move funds without both parties' signatures"],
-        ["Seller signer", "Per-seller key, encrypted, held by Proteus", "Countersign terms, deliveries and policies; end a term early; hold pay-per-call payments until swept", "Redirect payouts; once revoked, sign anything new"],
+        ["Seller signer", "Per-seller key, encrypted, held by Proteus", "Countersign terms, deliveries and policies; end a term early; open a dispute; hold pay-per-call payments until swept", "Redirect payouts. Revoking it stops new terms, but on deals it already signed it stays the seller on chain until they close"],
         ["Pricing engine", "Proteus's server", "Enforce the seller's rules", "Be proven by the commitment alone"],
         ["Delivery", "Seller confirms, buyer countersigns", "Trigger payment once countersigned", "Be verified by Proteus"],
       ] },
+      { kind: "callout", tone: "warning", title: "Proteus can freeze and split a deal", text: "Because Proteus holds both the seller signer and the arbiter key, it could open a dispute on any funded deal and split its unspent balance between the payee and the buyer. It cannot touch settled funds or pay anyone else. An independent arbiter and a dispute timeout are not built yet." },
       { kind: "h3", id: "security-practices", text: "How Proteus protects the rest" },
       { kind: "points", items: [
         { title: "Prompt injection", text: "Buyer text is data; prices come from code. Known override attempts are logged and evaluated normally." },
@@ -1170,6 +1209,8 @@ export const SECTIONS: DocSection[] = [
         { title: "Secrets", text: "Signer keys, webhook secrets and endpoint secrets are encrypted at rest; each seller's chats and pricing basis use the seller's own data key. API keys are stored as SHA-256 hashes and shown once." },
         { title: "Framing", text: "Only `/embed/*` may be framed: a seller's deal agent by the sites it lists (any site when it lists none), a front desk page by any site. Every other page refuses." },
         { title: "Errors", text: "Unexpected errors return a generic message; the detail stays in server logs." },
+        { title: "Model providers", text: "Anthropic runs the models; OpenRouter only as a fallback without an Anthropic key, and for embeddings. Neither sees costs, floors or policy ([Privacy](/docs/privacy))." },
+        { title: "Agents trust the API's addresses", text: "The MCP server reads the escrow and USDC addresses from `GET /api/health`; an agent should compare them with [Verify it yourself](/docs/verify)." },
         { title: "Threat model", text: "The full threat model is in the repository: [threat-model.md](" + GH + "/docs/threat-model.md)." },
       ] },
     ],
@@ -1180,7 +1221,10 @@ export const SECTIONS: DocSection[] = [
     title: "Limits and known gaps",
     summary: "What is not done yet. We would rather you read it here.",
     intro: "For anyone relying on Proteus. These are the gaps we know about today, stated plainly, so you can plan around them. Each one also appears in facts.json under `limits`.",
-    blocks: [{ kind: "points", items: LIMITS.map(([title, text]) => ({ title, text })) }],
+    blocks: Array.from(new Set(LIMITS.map((l) => l[2]))).flatMap((g): Block[] => [
+      { kind: "h3", id: "limits-" + g.toLowerCase().replace(/[^a-z]+/g, "-"), text: g },
+      { kind: "points", items: LIMITS.filter((l) => l[2] === g).map(([title, text]) => ({ title, text })) },
+    ]),
   },
   {
     id: "verify",
@@ -1209,6 +1253,14 @@ export const SECTIONS: DocSection[] = [
         ["`sellerCloseTerm`", tm(TX.mainClose)],
         ["`refundUnused` (0.30 back)", tm(TX.mainRefund)],
       ] },
+      { kind: "h3", id: "verify-shoonya", text: "The first Shoonya order on mainnet" },
+      { kind: "table", head: ["Step", "Transaction (Arc mainnet)"], rows: [
+        ["Shoonya registers ERC-8004 agent #2695 from its own wallet", tm(TX.shoonyaRegister)],
+        ["Tees policy version 2 committed", tm(TX.shoonyaPolicyV2)],
+        ["The buyer funds 1 tee (6.60 USDC) with a permit, gasless", tm(TX.shoonyaFund)],
+        ["Delivery countersigned; DealEscrow pays Shoonya 6.60 USDC", tm(TX.shoonyaSettle)],
+        ["The buyer rates Shoonya on the ReputationRegistry", tm(TX.shoonyaRating)],
+      ], note: "The buyer wallet was later found linked to a Shoonya team account in Proteus ([why](/docs/ratings#ratings-before-checks))." },
       { kind: "h3", id: "testnet-proofs", text: "Testnet proofs" },
       { kind: "table", head: ["What", "Transaction (Arc testnet)"], rows: [
         ["Permit + `createAndFundDeal` in one Multicall3 transaction", tt(TX.gaslessFund)],
@@ -1219,11 +1271,18 @@ export const SECTIONS: DocSection[] = [
       ] },
       { kind: "h3", id: "verify-read-deal", text: "Read a deal on chain" },
       { kind: "steps", items: [
-        { title: "Find the on-chain id", text: "The deal page and `GET /api/deals/{id}` show the deal's on-chain id." },
+        { title: "Find the on-chain id", text: "It is `dealIdOnchain` in `GET /api/deals/{id}` and on the deal's public record, `GET /api/review/{publicId}`." },
         { title: "Open DealEscrow", text: "On the explorer's read tab for `" + ESCROW + "`, or with any RPC client." },
         { title: "Call the views", text: "`getDeal(dealId)` for the full record, `balances(dealId)` for deposit, settled, refunded and remaining, `refundableAt(dealId)` for when a refund opens." },
       ] },
-      { kind: "code", lang: "bash", text: "cast call " + ESCROW + " \\\n  'balances(uint256)(uint256,uint256,uint256,uint256)' <dealId> \\\n  --rpc-url https://rpc.mainnet.arc.io" },
+      { kind: "code", lang: "bash", title: "Read balances", text: "# deposit, settled, refunded, remaining (micro-USDC)\ncast call " + ESCROW + " \\\n  'balances(uint256)(uint256,uint256,uint256,uint256)' <dealIdOnchain> \\\n  --rpc-url https://rpc.mainnet.arc.io   # testnet: https://rpc.testnet.arc.io" },
+      { kind: "h3", id: "verify-seller", text: "Check a seller's identity and policy" },
+      { kind: "steps", items: [
+        { title: "Find the agent", text: "`publicTerms.sellerAgent` in a quote names the IdentityRegistry and `agentId`; `GET /api/public/sellers/{seller}` shows it too." },
+        { title: "Read signer and payee", text: "`getMetadata(agentId, \"proteus.signer\")` must equal the terms' `seller`, and `getMetadata(agentId, \"proteus.payee\")` the terms' `payee` (20 raw address bytes each)." },
+        { title: "Read the policy commitment", text: "`policyOf(agentId, keccak256(productSlug), version).commitment` on ProteusPolicyRegistry must equal `publicTerms.policy.commitment`. `GET /api/public/sellers/{seller}/policies` lists every version with its transaction." },
+        { title: "Check the terms hash", text: "`publicTermsHash` in the terms must equal keccak256 of the canonical JSON (sorted keys) of `publicTerms`; `hashTerms(terms)` on DealEscrow gives the digest both parties sign." },
+      ] },
     ],
   },
 
@@ -1233,7 +1292,7 @@ export const SECTIONS: DocSection[] = [
     group: "Context",
     title: "Why now",
     summary: "Agents can pay; businesses already use stablecoins; the rails are on Arc.",
-    intro: "For partners, investors and curious sellers. Three reasons this is possible now, each linked to its source.",
+    intro: "For partners, investors and curious sellers. Three reasons this is possible now; market figures link their publishers.",
     blocks: [
       { kind: "points", items: [
         { title: "Agents are starting to buy", text: "[Stripe's Agentic Commerce Protocol](https://stripe.com/newsroom/news/stripe-openai-instant-checkout) and [x402](https://decrypt.co/318467/coinbase-breathes-new-lift-into-long-forgotten-web-payment-code) pay a known price; neither negotiates terms or holds funds until delivery." },
@@ -1252,7 +1311,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "stats", items: [
         { value: "$3–5T", label: "Global agentic commerce by 2030 (McKinsey range)", source: { name: "McKinsey", url: "https://www.mckinsey.com/industries/retail/our-insights/the-agentic-commerce-opportunity-how-ai-agents-are-ushering-in-a-new-era-for-consumers-and-merchants" } },
         { value: "$226B", label: "B2B stablecoin payments in 2025", source: { name: "McKinsey and Artemis", url: "https://www.mckinsey.com/featured-insights/week-in-charts/stablecoins-find-their-niche" } },
-        { value: "0.02%", label: "Stablecoins' share of global payments in 2025: early", source: { name: "McKinsey and Artemis", url: "https://www.mckinsey.com/featured-insights/week-in-charts/stablecoins-find-their-niche" } },
+        { value: "0.02%", label: "Stablecoins' share of global payments in 2025: still very early", source: { name: "McKinsey and Artemis", url: "https://www.mckinsey.com/featured-insights/week-in-charts/stablecoins-find-their-niche" } },
         { value: "$26.8B", label: "US promotional products in 2024, our first seller's category", source: { name: "PPAI", url: "https://www.ppai.org/news/ppai-sales-volume-estimate-modest-growth-in-2024-but-reasons-for-optimism-remain" } },
       ] },
       { kind: "h3", id: "market-focus", text: "Where we start" },
@@ -1268,7 +1327,10 @@ export const SECTIONS: DocSection[] = [
     title: "How Proteus AI compares",
     summary: "Others help you quote, negotiate or bill. Proteus takes a deal from the first message to the final transaction.",
     intro: "For buyers and sellers comparing tools. Each capability against products that quote, negotiate or bill; marks come from each vendor's public pages, and Proteus marks only what is implemented.",
-    blocks: [{ kind: "compare" }],
+    blocks: [
+      { kind: "compare" },
+      { kind: "callout", tone: "note", title: "Reading the marks", text: "A note under a mark narrows it. Pactum AI negotiates autonomously, but for enterprise buyers with their suppliers, not for a seller with its customers. Each vendor name links to its site; marks were assessed from the vendors' public product pages." },
+    ],
   },
   {
     id: "traction",
@@ -1286,9 +1348,9 @@ export const SECTIONS: DocSection[] = [
       ] },
       { kind: "h3", id: "traction-detail", text: "The detail" },
       { kind: "points", items: [
-        { title: "Shoonya Store", text: "Custom merch studio ([shoonyastore.com](https://www.shoonyastore.com)); reports its clients already pay in USDC; live quote: $15 per event merch box with delivery and taxes." },
-        { title: "Design partners", text: "PolyBaskets (prediction-market data) and Peal (privacy infrastructure for agents) agreed to pilot and are onboarding." },
-        { title: "First customer order", text: "Nov 7: a Shoonya customer bridged USDC from Solana, negotiated 1 custom tee at $6.60 inside Shoonya's committed policy v2 and [funded it gaslessly](" + txUrl("mainnet", TX.shoonyaFund) + "). Nov 11: Shoonya delivered, the customer countersigned, DealEscrow [paid Shoonya](" + txUrl("mainnet", TX.shoonyaSettle) + "), and the customer [rated it 5 stars](" + txUrl("mainnet", TX.shoonyaRating) + ")." },
+        { title: "Shoonya Store", text: "Custom merch studio ([shoonyastore.com](https://www.shoonyastore.com)). It reports that its clients already pay in USDC (Shoonya's statement, not verified on chain); its event merch box is listed at $15 with delivery and taxes ([store](" + SHOONYA + "))." },
+        { title: "Design partners", text: "PolyBaskets (prediction-market data) and Peal (privacy infrastructure for agents) agreed to pilot and are onboarding. Not on chain yet." },
+        { title: "First customer order", text: "Nov 7: a Shoonya customer bridged USDC from Solana, negotiated 1 custom tee at $6.60 inside Shoonya's [committed policy v2](" + txUrl("mainnet", TX.shoonyaPolicyV2) + ") and [funded it gaslessly](" + txUrl("mainnet", TX.shoonyaFund) + "). Nov 11: Shoonya delivered, the customer countersigned, DealEscrow [paid Shoonya](" + txUrl("mainnet", TX.shoonyaSettle) + "), and the customer [rated it 5 stars](" + txUrl("mainnet", TX.shoonyaRating) + "). The link check later found the buyer wallet linked to a Shoonya team account in Proteus, so this order proves the mechanism more than independent demand." },
         { title: "Next", text: "Larger Shoonya orders and a second seller, a connected catalog endpoint, dates in the signed terms, a dispute timeout and an audit." },
       ] },
     ],
@@ -1307,7 +1369,7 @@ export const SECTIONS: DocSection[] = [
         { title: "Does Proteus hold my money?", text: "Not for escrowed deals: USDC sits in DealEscrow. Pay per call is different: with the x402 exact scheme it lands in the seller's Proteus-held signer key until the seller sweeps it to its payee. Proteus also holds the arbiter key. [The money path](/docs/money-path)." },
         { title: "Can the AI agree to a bad price?", text: "No. Prices come from the engine and the seller's rules; the model only writes the words. [How offers are priced](/docs/pricing)." },
         { title: "How do refunds work?", text: "After the term plus grace (3 days by default), or once the seller closes the term: one click on the deal page, or anyone can call `refundUnused`. [Deal lifecycle](/docs/lifecycle#lifecycle-time)." },
-        { title: "What if goods never arrive?", text: "Do not countersign. Open a dispute from your wallet; the deal freezes until the arbiter splits the unspent balance." },
+        { title: "What if goods never arrive?", text: "Do not countersign. Open a dispute from your wallet; the deal freezes until the arbiter splits the unspent balance. [The money path](/docs/money-path#money-refund)." },
         { title: "Who pays gas?", text: "The relayer, with gasless funding and one-click refunds. Gas on Arc is paid in USDC. [Who pays gas](/docs/fees#fees-gas)." },
         { title: "Is the contract audited?", text: "Not yet. Source-verified and tested; an audit is planned. [Security](/docs/security)." },
       ] },
@@ -1317,7 +1379,7 @@ export const SECTIONS: DocSection[] = [
         { title: "Is it on mainnet?", text: "Yes: the escrow, a real business, its policies and a real customer order. Most other feature proofs are on testnet. [What is live today](/docs/status)." },
         { title: "Can my agent buy alone?", text: "Yes, through MCP, within a per-deal limit you set; proven on testnet. [Agent quickstart](/docs/quickstart-agent)." },
         { title: "Can my customers talk to it?", text: "Yes, for scheduling services: share your customer link or embed it on your site, and customers chat or speak with your AI assistant. No phone number yet. [Front desk](/docs/front-desk)." },
-        { title: "How do I track my order?", text: "Open the deal: it shows paid, accepted, in production, shipped with tracking, delivered and seller paid, each with its proof. Add a webhook, Telegram or email for alerts." },
+        { title: "How do I track my order?", text: "Open the deal: it shows paid, accepted, in production, shipped with tracking, delivered and seller paid, each with its proof. Add a webhook, Telegram or email for alerts. [Order tracking](/docs/front-desk#front-desk-orders)." },
         { title: "Which AI does the work?", text: "Claude: Haiku 5.5, Sonnet 5.5 or Opus 5.5, depending on the job. Prices still come only from the seller's rules. [The AI behind it](/docs/ai-models)." },
         { title: "Can a seller fake its own rating?", text: "Not from its own wallet, not without a paid order, and not with a wallet it funded on Arc: those are rejected or flagged. A wallet funded from an exchange can still get through, as one vote among the buyers shown. [How ratings work](/docs/ratings)." },
       ] },
@@ -1336,9 +1398,13 @@ export const SECTIONS: DocSection[] = [
         ["Acceptance", "The buyer's signature over the cumulative delivered units and amount, and the receipts root."],
         ["Delivery", "The seller signer's signature over the cumulative delivered units and the receipts root (not the amount)."],
         ["Receipt", "The seller signer's signed record (EIP-191) of one delivered unit or batch; the buyer checks receipts before countersigning."],
-        ["Payee", "Where the seller is paid, published in its ERC-8004 identity."],
+        ["Payee", "Where the seller is paid: its own wallet, published in its ERC-8004 identity."],
+        ["Terms hash", "The EIP-712 digest of the terms both parties sign; DealEscrow stores it per deal. `publicTermsHash` inside the terms is the hash of the human-readable public terms."],
+        ["Receipts root", "One hash over the seller's receipts for delivered units, carried by the Acceptance and the Delivery."],
+        ["Permit", "An EIP-2612 USDC signature that lets DealEscrow take exactly the prepaid amount, so the buyer sends no transaction."],
+        ["Refundable at", "When `refundUnused` opens for a deal: end + grace, or at once after the seller closes the term (`refundableAt`)."],
         ["Grace", "Extra time after the term ends (3 days by default, in each deal's terms) when settlement is still possible; refunds open after it."],
-        ["micro-USDC", "USDC's 6-decimal base unit; 1 USDC = 1,000,000. The seller API returns money in micro-USDC strings."],
+        ["micro-USDC", "USDC's 6-decimal base unit; 1 USDC = 1,000,000. The public API and the seller API use micro-USDC integer strings (\"6600000\"); seller webhooks send USDC with six decimals (\"6.600000\")."],
         ["x402", "Pay per call over HTTP: the server answers 402 with payment options and the client pays with a signed USDC authorization (EIP-3009)."],
         ["Sweep", "Moving pay-per-call payments from the seller signer key to the seller's payee."],
       ] },
@@ -1346,10 +1412,12 @@ export const SECTIONS: DocSection[] = [
       { kind: "table", head: ["Term", "Meaning"], rows: [
         ["Seller signer", "A per-seller key held by Proteus that countersigns; on chain it is the deal's seller address."],
         ["Relayer", "The Proteus key that submits transactions and pays gas."],
-        ["Arbiter", "The key that resolves disputes over the unspent balance."],
+        ["Arbiter", "The key, held by Proteus, that resolves disputes over the unspent balance; it is also DealEscrow's owner."],
         ["Mandate", "The largest prepaid amount an AI agent may commit per deal."],
         ["Policy commitment", "A salted hash of a pricing policy on ProteusPolicyRegistry."],
-        ["ERC-8004", "Arc's agent identity standard: owner, payee and signer, plus a reputation registry for feedback."],
+        ["ERC-8004", "An Ethereum standard for agent identity and reputation (Trustless Agents), deployed on Arc. Proteus publishes each seller's payee and signer as metadata on its identity."],
+        ["Seller API key", "A bearer key (`psk_live_…` or `psk_test_…`) from the Developers page, with permissions such as `deals:read`."],
+        ["Sandbox", "A public demo seller on Arc testnet for trying the seller API: fixed data for reads, dry runs for writes."],
       ] },
       { kind: "h3", id: "glossary-product", text: "Product" },
       { kind: "table", head: ["Term", "Meaning"], rows: [
@@ -1359,6 +1427,10 @@ export const SECTIONS: DocSection[] = [
         ["Customer link", "The business's link to its front desk; replacing it stops the old one at once."],
         ["Inbox", "Every request on a deal with its full note, marked confirmed, done or cancelled by the business."],
         ["Order update", "A status the seller posts for goods: accepted, in production, shipped (with tracking), out for delivery, delayed, or a message."],
+        ["Order timeline", "The buyer's view of a goods order, from paid to seller paid (`GET /api/deals/{id}/timeline`)."],
+        ["Outbox", "The queue that holds a seller's deal events until they are delivered, with up to 5 attempts."],
+        ["Deal ids", "`deal_…` is a deal's id in the API and console; `d_…` is its public id on public records and in webhooks; `dealIdOnchain` is its id in DealEscrow."],
+        ["Status words", "Live, Testnet, In testing and Coming soon: see [Ways to use](/docs/ways-to-use#ways-status)."],
         ["Business profile", "Hours, services, prices, timezone and emergency line the front desk answers from."],
       ] },
       { kind: "h3", id: "glossary-ratings", text: "Ratings" },
@@ -1380,7 +1452,8 @@ export const SECTIONS: DocSection[] = [
       { kind: "links", items: [
         { label: "Seller API", href: "/docs/seller-api", note: "keys, quickstart and a sandbox you can call now" },
         { label: "Seller API reference", href: "/docs/seller-api-reference", note: "every /api/v1/seller endpoint, with a Send button" },
-        { label: "Buyer HTTP API", href: "/docs/api", note: "calling a service, billing, settlement" },
+        { label: "Buyer HTTP API", href: "/docs/api", note: "calling a service, billing, settlement (HTML only)" },
+        { label: "Seller webhooks", href: "/docs/seller-webhooks", note: "events, payload, signature" },
         { label: "Public endpoints", href: "/docs/for-agents#agent-api", note: "negotiate, quote, fund, settle, rate" },
         { label: "Health", href: "/api/health", note: "network, contract addresses, features switched on" },
       ] },
@@ -1388,12 +1461,15 @@ export const SECTIONS: DocSection[] = [
       { kind: "links", items: [
         { label: "Agent skill", href: "/api/public/agents/skill.md", note: "discover, negotiate, fund and settle over HTTP" },
         { label: "MCP server", href: "/docs/quickstart-agent", note: "nine tools within a mandate" },
+        { label: "Example service OpenAPI", href: API.example.openapi, note: "Shoonya Store's event merch box" },
         { label: "Docs as Markdown", href: "/docs.md" },
         { label: "Facts as JSON", href: "/docs/facts.json" },
         { label: "llms.txt", href: "/llms.txt" },
       ] },
       { kind: "h3", id: "links-evidence", text: "Evidence and source" },
       { kind: "links", items: [
+        { label: "What is live today", href: "/docs/status", note: "every capability with its evidence" },
+        { label: "Verify it yourself", href: "/docs/verify", note: "contracts and transactions" },
         { label: "Evidence: Claude buys through MCP", href: EVIDENCE, note: "Arc testnet" },
         { label: "Threat model", href: `${GH}/docs/threat-model.md` },
         { label: "Source code", href: "https://github.com/Adityaakr/proteus" },
@@ -1437,28 +1513,30 @@ export function docsMarkdown(origin: string, only?: string): string {
   };
   const absText = (t: string) => t.replace(/\]\((\/[^)]*)\)/g, (_m, p: string) => `](${origin}${p})`).replace(/\]\(#([a-z0-9-]+)\)/g, (_m, id: string) => `](${anchorUrl(id)})`);
   const page = only ? SECTIONS.find((x) => x.id === only) : undefined;
+  // A bold lead-in ends with one punctuation mark: "Who pays gas?" stays as is, "Base URL" becomes "Base URL.".
+  const lead = (t: string) => (/[.?!:]$/.test(t) ? t : `${t}.`);
   const out: string[] = page
     ? [`# ${page.title} · Proteus AI docs`, "", `Source: <${origin}/docs/${page.id}> · facts as of ${FACTS_AS_OF} · all docs: <${origin}/docs.md>`, ""]
     : [`# Proteus AI: ${DOC_TITLE}`, "", DOC_LEDE, "", `Facts as of ${FACTS_AS_OF}. Machine-readable facts: <${origin}/docs/facts.json>`, ""];
   for (const s of page ? [page] : SECTIONS) {
-    out.push(page ? "" : `## ${s.title}`, "");
+    if (!page) out.push(`## ${s.title}`, "");
     if (s.summary) out.push(`_${s.summary}_`, "");
     out.push(absText(s.intro), "");
     for (const b of s.blocks) {
       if (b.kind === "p") out.push(absText(b.text), "");
-      else if (b.kind === "callout") out.push(`> ${b.tone === "warning" ? "**Warning:** " : b.title ? `**${b.title}:** ` : ""}${absText(b.text)}`, "");
-      else if (b.kind === "h3") out.push(`### ${b.text}`, "");
+      else if (b.kind === "callout") out.push(`> ${b.tone === "warning" ? `**Warning${b.title ? `: ${b.title}` : ""}.** ` : b.title ? `**${b.title}:** ` : ""}${absText(b.text)}`, "");
+      else if (b.kind === "h3") out.push(`<a id="${b.id}"></a>`, "", `### ${b.text}`, "");
       else if (b.kind === "h4") out.push(`#### ${b.text}`, "");
       else if (b.kind === "codetabs") for (const t of b.tabs) out.push("```" + t.lang, t.text, "```", "");
       else if (b.kind === "endpoint") out.push(...endpointMarkdown(b.method, b.path).map(absText), "");
       else if (b.kind === "list") out.push(...b.items.map((i) => `- ${absText(i)}`), "");
-      else if (b.kind === "points") out.push(...b.items.map((i) => `- **${i.title}.** ${absText(i.text)}`), "");
-      else if (b.kind === "steps") out.push(...b.items.map((i, n) => `${n + 1}. **${i.title}.** ${absText(i.text)}`), "");
+      else if (b.kind === "points") out.push(...b.items.map((i) => `- **${lead(i.title)}** ${absText(i.text)}`), "");
+      else if (b.kind === "steps") out.push(...b.items.map((i, n) => `${n + 1}. **${lead(i.title)}** ${absText(i.text)}`), "");
       else if (b.kind === "stats") out.push(...b.items.map((i) => `- **${i.value}**: ${absText(i.label)}${i.source ? ` ([${i.source.name}](${i.source.url}))` : ""}`), "");
       else if (b.kind === "entry") out.push(...b.items.map((i) => `- **${i.title}.** ${absText(i.text)} [${i.cta}](${abs(i.href)})`), "");
       else if (b.kind === "links") out.push(...b.items.map((i) => `- [${i.label}](${abs(i.href)})${i.note ? `: ${i.note}` : ""}`), "");
       else if (b.kind === "figure") out.push(`![${b.alt}](${abs(b.src)})`, `_${absText(b.caption)} (${b.network})_`, "");
-      else if (b.kind === "code") out.push("```" + b.lang, b.text, "```", "");
+      else if (b.kind === "code") out.push(...(b.title ? [`**${b.title}:**`, ""] : []), "```" + b.lang, b.text, "```", "");
       else if (b.kind === "table") {
         out.push(`| ${b.head.join(" | ")} |`, `|${b.head.map(() => "---").join("|")}|`, ...b.rows.map((r) => `| ${r.map(absText).join(" | ")} |`));
         if (b.note) out.push("", `_${absText(b.note)}_`);
@@ -1467,7 +1545,7 @@ export function docsMarkdown(origin: string, only?: string): string {
         out.push(`_Diagram: ${b.caption}_`, "", b.describe, "");
       } else if (b.kind === "channels") {
         for (const ch of b.items) {
-          out.push(`#### ${ch.title} · ${ch.status}`, "", `- **For:** ${absText(ch.who)}`, `- **Does:** ${absText(ch.does)}`, `- **Proof:** ${absText(ch.proof)}`, `- **Start:** [${ch.start.label}](${abs(ch.start.href)})`, "");
+          out.push(`<a id="${ch.id}"></a>`, "", `#### ${ch.title} · ${ch.status}`, "", `- **For:** ${absText(ch.who)}`, `- **Does:** ${absText(ch.does)}`, `- **Proof:** ${absText(ch.proof)}`, `- **Start:** [${ch.start.label}](${abs(ch.start.href)})`, "");
         }
       } else if (b.kind === "compare") {
         const c = compareRows();

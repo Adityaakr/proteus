@@ -1,8 +1,6 @@
 # The AI behind it · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/ai-models> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
-
-
+Source: <https://app.proteus.co.in/docs/ai-models> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Which Claude model does which job, and the rules that keep it inside the seller's terms._
 
@@ -12,6 +10,8 @@ _Diagram: Two places Claude works: the deal desk, where code sets every price, a
 
 Deal desk: buyer text from any channel has emails, phone and card numbers removed, Claude Haiku reads it into fields, the pricing engine (code) computes the offers, Claude Sonnet writes the words, and a figure check falls back to a fixed reply if the words carry an unlisted figure. Services Proteus runs: a request goes to a service agent on the Claude model chosen for that job (Haiku, Sonnet or Opus); a delivered result is one billed unit with a signed receipt; a refusal, failure, cut-off or handoff to a person is never billed.
 
+<a id="ai-models-jobs"></a>
+
 ### Model per job
 
 | Job | Model | Effort | Why |
@@ -20,11 +20,14 @@ Deal desk: buyer text from any channel has emails, phone and card numbers remove
 | Writing the deal desk's replies | Claude Sonnet 5.5 | low | only figures from the engine's offers; any other figure falls back to the fixed reply |
 | Callback booking, after-hours answering | Claude Haiku 5.5 | low | fast, well-specified records |
 | AI receptionist service | Claude Sonnet 5.5 | low | talks to customers; asks one question at a time |
-| Invoice processing, screening checks, inference | Claude Sonnet 5.5 | medium or low | reads PDFs and images directly |
+| Invoice processing, screening checks | Claude Sonnet 5.5 | medium | reads PDFs and images directly |
+| Inference service | Claude Sonnet 5.5 | low | answers within the buyer's request |
 | Vendor evaluations, operator tasks | Claude Opus 5.5 | medium | multi-step judgement |
 | Embeddings service | OpenRouter (text-embedding-3-small) | n/a | Anthropic has no embeddings endpoint |
 
-Both live deployments run on Claude (`agentAdapter` in [/api/health](https://app.proteus.co.in/api/health)). Without an Anthropic key, a deployment falls back to OpenRouter, or to fixed rule-based replies with no model; on the OpenRouter fallback a cut-off reply is not detected as cut off.
+Both live deployments run on Claude (`agentAdapter` in [/api/health](https://app.proteus.co.in/api/health)). Without an Anthropic key, a deployment falls back to OpenRouter (`anthropic/claude-sonnet-4.5` by default), which then receives the same redacted conversation, or to fixed rule-based replies with no model. On the OpenRouter fallback a cut-off reply is not detected as cut off.
+
+<a id="ai-models-rules"></a>
 
 ### Rules the models work under
 

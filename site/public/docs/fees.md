@@ -1,8 +1,6 @@
 # What Proteus costs · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/fees> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
-
-
+Source: <https://app.proteus.co.in/docs/fees> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Nothing during the pilot. The seller keeps 100% of every deal._
 
@@ -17,6 +15,8 @@ For sellers and buyers budgeting a deal. You will learn what Proteus charges (no
 
 > This page is about what Proteus charges. How the seller's agent prices its offers is [a separate page](https://app.proteus.co.in/docs/pricing).
 
+<a id="fees-gas"></a>
+
 ### Who pays gas
 
 Gas on Arc is paid in USDC.
@@ -26,14 +26,14 @@ Gas on Arc is paid in USDC.
 | Register the seller's agent on Arc (ERC-8004) | The seller's wallet, once |
 | Commit pricing policies | Proteus (relayer) |
 | Fund a deal with a permit (gasless) | Proteus (relayer) |
-| Fund a deal with approve | The buyer |
+| Fund a deal with approve | The buyer pays for the approve; Proteus (relayer) for createAndFundDeal |
 | Settle delivered units | Proteus (relayer) |
 | Refund the unspent balance | Proteus (relayer) for the one-click refund on the deal page; anyone else who calls refundUnused pays their own gas |
-| Open a dispute | The buyer's wallet |
+| Open a dispute | The buyer's wallet (or the seller signer, which can open one too) |
 | Rate the seller (ERC-8004 giveFeedback) | The buyer's wallet |
 | End a term early (sellerCloseTerm) | The seller signer key |
 | Sweep pay-per-call payments to the payee | The seller signer key (it keeps 0.05 USDC back for gas) |
 
-_Gasless funding is proven on Arc testnet; the mainnet loop so far was funded with approve._
+_Gasless funding is proven on both networks: the Shoonya order on Arc mainnet was funded with a permit._
 
-> Model calls for negotiation, hosting and the relayer's gas are paid by Proteus. Circle Gateway, wallets and exchanges may charge their own fees; those are theirs, not Proteus's.
+> Model calls, hosting and the relayer's gas are paid by Proteus. Circle Gateway, wallets and exchanges may charge their own fees; those are theirs, not Proteus's.

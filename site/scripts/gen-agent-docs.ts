@@ -56,7 +56,7 @@ const facts = {
   docs: { html: `${ORIGIN}/docs`, markdown: `${ORIGIN}/docs.md`, pages: SECTIONS.map((x) => ({ id: x.id, group: x.group, title: x.title, summary: x.summary ?? null, html: `${ORIGIN}/docs/${x.id}`, markdown: `${ORIGIN}/docs/${x.id}.md` })) },
   networks: NETWORKS,
   contracts: CONTRACTS,
-  api: { base: { mainnet: NETWORKS.mainnet.api, testnet: NETWORKS.testnet.api }, auth: API.auth, errors: API.errors, rateLimits: API.rateLimits, endpoints: API.endpoints.map(([method, path, does]) => ({ method, path, does })), example: API.example },
+  api: { base: { mainnet: NETWORKS.mainnet.api, testnet: NETWORKS.testnet.api }, auth: API.auth, errors: API.errors, units: API.units, rateLimits: API.rateLimits, endpoints: API.endpoints.map(([method, path, does]) => ({ method, path, does })), example: API.example },
   sellerApi: {
     docs: { guide: `${ORIGIN}/docs/seller-api`, reference: `${ORIGIN}/docs/seller-api-reference`, webhooks: `${ORIGIN}/docs/seller-webhooks` },
     base: SELLER_API_BASE,
@@ -119,7 +119,7 @@ const facts = {
   claims: CLAIMS,
   notProven: CLAIMS.filter((c) => c.status !== "proven").map((c) => ({ claim: c.claim, status: c.status })),
   fees: FEES,
-  limits: LIMITS.map(([title, detail]) => ({ title, detail })),
+  limits: LIMITS.map(([title, detail, group]) => ({ title, detail, group })),
   comparison: compareRows(),
 };
 writeFileSync(join(pub, "docs", "facts.json"), JSON.stringify(facts, null, 2) + "\n");

@@ -1,8 +1,6 @@
 # Seller API reference · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/seller-api-reference> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
-
-
+Source: <https://app.proteus.co.in/docs/seller-api-reference> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Every /api/v1/seller endpoint: what it needs, what it takes, what it returns. Each one has a Send button that calls the sandbox._
 
@@ -22,6 +20,8 @@ Paths are relative to the [base URL](https://app.proteus.co.in/docs/seller-api#s
 | `POST` | [`/deals/:id/order-updates`](https://app.proteus.co.in/docs/seller-api-reference#seller-api-post-deals-id-order-updates) | `deliveries:write` | Post an order status update the buyer sees |
 | `GET` | [`/usage`](https://app.proteus.co.in/docs/seller-api-reference#seller-api-get-usage) | `usage:read` | Metered requests and delivery totals |
 | `GET` | [`/payments`](https://app.proteus.co.in/docs/seller-api-reference#seller-api-get-payments) | `payments:read` | Funded, settled, refunded and held totals |
+
+<a id="seller-api-get-me"></a>
 
 ### Retrieve the key
 
@@ -57,6 +57,8 @@ Response `200`:
 | Status | When |
 |---|---|
 | `401` | The key is missing, unknown, revoked, expired or from the other environment. |
+
+<a id="seller-api-get-products"></a>
 
 ### List products
 
@@ -103,6 +105,8 @@ Response `200`:
 |---|---|
 | `401` | The key is missing, unknown, revoked, expired or from the other environment. |
 
+<a id="seller-api-patch-products-id-tiers"></a>
+
 ### Replace price tiers
 
 `PATCH /products/:id/tiers` · Permission: `products:write` · Returns `200`
@@ -115,7 +119,7 @@ Replaces every public price tier of a product and returns the product. New quote
 | `tiers` | body | array | Yes | 1 to 6 tiers. They are sorted by `includedUnits`. |
 | `tiers[].name` | body | string | Yes | Shown to buyers; up to 40 characters are kept. |
 | `tiers[].includedUnits` | body | string | Yes | A whole number from 1, at most the product's units per deal. Each tier needs its own quantity. |
-| `tiers[].unitPriceUsd` | body | string | Yes | Dollars per unit, more than 0, up to 6 decimals: `"6.60"`. |
+| `tiers[].unitPriceUsd` | body | string | Yes | Dollars per unit, more than 0: up to 7 digits before the point and 6 after, e.g. `"6.60"`. |
 | `tiers[].includes` | body | string[] | No | Up to 8 short lines (60 characters each) listing what the tier includes. |
 
 ```bash
@@ -181,6 +185,8 @@ Response `200`:
 | `403` | The key lacks `products:write`. |
 | `404` | No product with this id belongs to your seller. |
 
+<a id="seller-api-patch-products-id-listing"></a>
+
 ### List or unlist a product
 
 `PATCH /products/:id/listing` · Permission: `products:write` · Returns `200`
@@ -224,11 +230,13 @@ Response `200`:
 | `403` | The key lacks `products:write`. |
 | `404` | No product with this id belongs to your seller. |
 
+<a id="seller-api-get-deals"></a>
+
 ### List deals
 
 `GET /deals` · Permission: `deals:read` · Returns `200`
 
-Your newest 200 deals with their balances in micro-USDC. `status` is what the console shows (`settled` once the whole deposit is paid out); `chainStatus` is the escrow contract's.
+Your newest 200 deals with their balances in micro-USDC. `chainStatus` is the deal's status as Proteus last reconciled it from the escrow contract (`awaiting_funding`, `funding_pending`, `funded`, `active`, `disputed` or `closed`); `status` is the same, except `settled` once the whole deposit is paid out.
 
 ```bash
 curl https://ai.proteus.co.in/api/v1/seller/deals \
@@ -265,6 +273,8 @@ Response `200`:
 |---|---|
 | `401` | The key is missing, unknown, revoked, expired or from the other environment. |
 | `403` | The key lacks `deals:read`. |
+
+<a id="seller-api-get-deals-id"></a>
 
 ### Retrieve a deal
 
@@ -319,6 +329,8 @@ Response `200`:
 | `401` | The key is missing, unknown, revoked, expired or from the other environment. |
 | `403` | The key lacks `deals:read`. |
 | `404` | No deal with this id belongs to your seller. |
+
+<a id="seller-api-post-deals-id-deliveries"></a>
 
 ### Record a delivery
 
@@ -389,6 +401,8 @@ Response `201`:
 | `404` | No deal with this id belongs to your seller. |
 | `409` | The deal is not funded or active, or the units would exceed the agreement or the prepaid balance. |
 
+<a id="seller-api-post-deals-id-order-updates"></a>
+
 ### Post an order update
 
 `POST /deals/:id/order-updates` · Permission: `deliveries:write` · Returns `201`
@@ -399,7 +413,7 @@ Posts a status to the buyer's order page and alerts the buyer on the channels th
 |---|---|---|---|---|
 | `id` | path | string | Yes | The deal's `id` (`deal_…`) from `GET /deals`, not its public id (`d_…`). |
 | `status` | body | string | Yes | One of `accepted`, `in_production`, `shipped`, `out_for_delivery`, `delayed` or `note`. |
-| `note` | body | string | No | Up to 1000 characters. Required for `delayed` (why, and the new date) and for `note`. |
+| `note` | body | string | No | Up to 1000 characters; anything longer is cut. Required, at least 2 characters, for `delayed` (why, and the new date) and for `note`. |
 | `trackingUrl` | body | string | No | An https tracking link. |
 
 ```bash
@@ -438,6 +452,8 @@ Response `201`:
 | `403` | The key lacks `deliveries:write`. |
 | `404` | No deal with this id belongs to your seller. |
 | `409` | The deal is not funded or active. |
+
+<a id="seller-api-get-usage"></a>
 
 ### List usage
 
@@ -487,6 +503,8 @@ Response `200`:
 |---|---|
 | `401` | The key is missing, unknown, revoked, expired or from the other environment. |
 | `403` | The key lacks `usage:read`. |
+
+<a id="seller-api-get-payments"></a>
 
 ### Retrieve payments
 

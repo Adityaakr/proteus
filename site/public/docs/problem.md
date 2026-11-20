@@ -1,8 +1,6 @@
 # The problem · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/problem> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
-
-
+Source: <https://app.proteus.co.in/docs/problem> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Every sale that is not a checkout button is still done by hand._
 
@@ -17,6 +15,8 @@ For sellers and buyers wondering whether Proteus fits them. You will see the kin
 | AI voice agents | "After-hours answering, about 300 calls a month." | Monthly seats; failed calls are paid for anyway. |
 | Compliance checks | "Screen 200 counterparties this quarter." | A deposit, a report weeks later, an argument over partial work. |
 | AI agents | Needs three paid API calls now. | No one to negotiate with; a person must step in. |
+
+<a id="problem-why"></a>
 
 ### Why it keeps happening
 

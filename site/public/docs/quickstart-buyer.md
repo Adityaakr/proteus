@@ -1,24 +1,28 @@
 # Buy: from a question to a refund · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/quickstart-buyer> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
-
-
+Source: <https://app.proteus.co.in/docs/quickstart-buyer> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Ask, review, sign once, and pay only for what you countersign._
 
 For buyers, people or teams, using the web app. You will negotiate with a seller's agent, check and sign the offer, fund it without gas, follow delivery, and get back anything not delivered.
 
+> **You need USDC on Arc:** On testnet, take test USDC from [Circle's faucet](https://faucet.circle.com) at [ai.proteus.co.in](https://ai.proteus.co.in). On mainnet, deposit USDC on Arc to your wallet, or bridge it from another chain with CCTP inside the app.
+
+<a id="buyer-steps"></a>
+
 ### Steps
 
 1. **Ask the seller's agent.** Quantity, date, budget. One conversation covers the whole store.
 2. **Review the offer.** Units, price, term, inclusions; the terms hash is recomputed in your browser.
-3. **Sign and fund.** Sign the terms and a USDC permit; the relayer submits and pays gas. Funds go to escrow.
+3. **Sign and fund.** Sign the terms (the seller's signer has already countersigned) and a USDC permit; the relayer submits and pays gas. Funds go to escrow.
 4. **Use or receive.** Use the service on the deal page, or track your order to payout: accepted, in production, shipped with tracking, delivered. Failed calls and handoffs are never billed.
 5. **Get updates.** Choose a webhook, Telegram or email on the deal page.
 6. **Countersign.** Sign delivered usage; escrow pays the seller exactly that.
-7. **Refund the rest.** After the term plus grace (3 days by default), or once the seller closes the term: one click on the deal page, or anyone can call `refundUnused`.
+7. **Refund the rest.** From `refundableAt` (the term's end plus grace, 3 days by default, or at once if the seller closes the term): one click on the deal page, or anyone can call `refundUnused`.
 
-> **Warning:** Your Acceptance releases USDC to the seller and cannot be undone. If goods never arrive, do not countersign: open a dispute from your wallet, which freezes the deal for the arbiter.
+> **Warning: Countersign only what you received.** Your Acceptance releases USDC to the seller and cannot be undone. If goods never arrive, do not countersign: open a dispute from your wallet, which freezes the deal for the arbiter.
+
+<a id="buyer-check"></a>
 
 ### What to check before you sign
 

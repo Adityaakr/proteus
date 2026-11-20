@@ -257,7 +257,7 @@ export function endpointExamples(base: string): EndpointExample[] {
         { name: "tiers", in: "body", type: "array", required: true, description: "1 to 6 tiers. They are sorted by `includedUnits`." },
         { name: "tiers[].name", in: "body", type: "string", required: true, description: "Shown to buyers; up to 40 characters are kept." },
         { name: "tiers[].includedUnits", in: "body", type: "string", required: true, description: "A whole number from 1, at most the product's units per deal. Each tier needs its own quantity." },
-        { name: "tiers[].unitPriceUsd", in: "body", type: "string", required: true, description: "Dollars per unit, more than 0, up to 6 decimals: `\"6.60\"`." },
+        { name: "tiers[].unitPriceUsd", in: "body", type: "string", required: true, description: "Dollars per unit, more than 0: up to 7 digits before the point and 6 after, e.g. `\"6.60\"`." },
         { name: "tiers[].includes", in: "body", type: "string[]", required: false, description: "Up to 8 short lines (60 characters each) listing what the tier includes." },
       ],
       errors: [{ status: "400", when: "A tier breaks a rule above; the message names the tier and the rule." }, E401, e403("products:write"), { status: "404", when: "No product with this id belongs to your seller." }],
@@ -274,7 +274,7 @@ export function endpointExamples(base: string): EndpointExample[] {
     },
     {
       method: "GET", path: "/v1/seller/deals", title: "List deals", status: 200, example: null, params: [],
-      description: "Your newest 200 deals with their balances in micro-USDC. `status` is what the console shows (`settled` once the whole deposit is paid out); `chainStatus` is the escrow contract's.",
+      description: "Your newest 200 deals with their balances in micro-USDC. `chainStatus` is the deal's status as Proteus last reconciled it from the escrow contract (`awaiting_funding`, `funding_pending`, `funded`, `active`, `disputed` or `closed`); `status` is the same, except `settled` once the whole deposit is paid out.",
       errors: [E401, e403("deals:read")],
       ...get("/deals", "{ deals }"),
       response: `{\n  "deals": [{\n    "id": "deal_…",\n    "publicId": "d_…",\n    "status": "active",\n    "chainStatus": "active",\n    "buyerAddress": "0x…",\n    "deposit": "6600000",\n    "settled": "0",\n    "refunded": "0",\n    "remaining": "6600000",\n    "balancesSource": "chain",\n    "fundingTxHash": "0x…",\n    "createdAt": "2026-11-20T10:00:00.000Z"\n  }]\n}`,
@@ -306,7 +306,7 @@ export function endpointExamples(base: string): EndpointExample[] {
       params: [
         ID_DEAL,
         { name: "status", in: "body", type: "string", required: true, description: "One of `accepted`, `in_production`, `shipped`, `out_for_delivery`, `delayed` or `note`." },
-        { name: "note", in: "body", type: "string", required: false, description: "Up to 1000 characters. Required for `delayed` (why, and the new date) and for `note`." },
+        { name: "note", in: "body", type: "string", required: false, description: "Up to 1000 characters; anything longer is cut. Required, at least 2 characters, for `delayed` (why, and the new date) and for `note`." },
         { name: "trackingUrl", in: "body", type: "string", required: false, description: "An https tracking link." },
       ],
       errors: [{ status: "400", when: "Unknown status, a missing note, or a tracking link that is not https." }, E401, e403("deliveries:write"), { status: "404", when: "No deal with this id belongs to your seller." }, { status: "409", when: "The deal is not funded or active." }],
