@@ -64,7 +64,7 @@ export const hero = {
 };
 
 export const logos = {
-  line: "For studios and suppliers who quote every order: custom merch and apparel, print and packaging, gifting, event supply, creative services and wholesale. The chat above is illustrative; real offers come from each seller's own prices and rules.",
+  line: "Built for the businesses behind every custom order: merch and apparel studios, print and packaging shops, gifting companies, event suppliers, creative studios and wholesalers. The conversation above is an example; every real offer is priced from the seller's own rules.",
 };
 
 /** How it works: three plain steps (HowItWorks component, id "how-it-works"). The third card shows an order paying out. */
