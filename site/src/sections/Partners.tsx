@@ -25,17 +25,25 @@ function useHeaderGap(): number {
   return gap;
 }
 
-export function Partners() {
+/** The numbered-list data; the landing page renders it twice (seller types, and the ERC-8183 lifecycle). */
+export interface PartnersData {
+  tag: string;
+  heading: string;
+  description: string;
+  steps: { number: string; title: string }[];
+}
+
+export function Partners({ data = partners, id = "partners" }: { data?: PartnersData; id?: string }) {
   const gap = useHeaderGap();
   return (
-    <section id="partners" className={s.section}>
+    <section id={id} className={s.section}>
       <div className={s.container}>
         <div className={s.content}>
           <SectionHeader
-            tag={partners.tag}
+            tag={data.tag}
             icon={<Activity size={16} strokeWidth={2} />}
-            heading={partners.heading}
-            description={partners.description}
+            heading={data.heading}
+            description={data.description}
             align="left"
             gap={gap}
             textGap={16}
@@ -43,7 +51,7 @@ export function Partners() {
             descriptionMaxWidth={500}
           />
           <div className={s.metrics}>
-            {partners.steps.map((step) => (
+            {data.steps.map((step) => (
               <div className={s.metric} key={step.number}>
                 <h3 className="h3" style={{ width: "100%" }}>{step.number}</h3>
                 <p className={`body2 ${s.metricTitle}`}>{step.title}</p>

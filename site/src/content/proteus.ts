@@ -42,9 +42,9 @@ export const hero = {
   tag: "The AI sales agent with payment protection, built on",
   /** Network name shown with its mark after the tag; empty hides it. */
   tagNetwork: "Arc",
-  headline: "Quote in seconds. Get paid on delivery.",
+  headline: "Win the order in minutes. Get paid when it's delivered.",
   subhead:
-    "Proteus answers your buyers in seconds and negotiates inside the prices and limits you set. Buyers pay upfront into USDC escrow on Arc, and the money is released to you when they confirm delivery.",
+    "An AI sales agent that negotiates with your buyers, and their AI agents, inside your prices and limits. Every order is paid upfront into escrow on Arc and released to you in USDC when the buyer confirms delivery.",
   secondary: { label: "See how it works", href: links.howItWorks },
   /** `href` when the deployment runs the invite gate, `openHref` when it does not. */
   primary: { label: "Start free", hoverLabel: "Enter invite code", href: links.sellGated, openHref: links.sell },
@@ -192,6 +192,22 @@ export const partners = {
   ],
 };
 
+/** ERC-8183: how a Proteus order maps onto the draft agent job standard (Partners layout, id "erc-8183"). The interface is planned, not built. */
+export const erc8183 = {
+  tag: "ERC-8183",
+  heading: "Real orders, in the shape agents expect.",
+  description:
+    "ERC-8183 is a draft standard for paid jobs between agents: a client funds escrow, a provider delivers, and an evaluator approves before payment. A Proteus order follows the same lifecycle, with the buyer as evaluator, and adds what a real business needs around it. Today orders run on DealEscrow; an ERC-8183-compatible interface is planned.",
+  steps: [
+    { number: "01", title: "Budget: negotiated. The standard leaves how a price is agreed open; your deal agent negotiates it inside your rules." },
+    { number: "02", title: "Fund: paid upfront. The buyer funds the agreed amount into escrow before you start work." },
+    { number: "03", title: "Submit: delivered. You record each delivery against the order, with proof if you have it." },
+    { number: "04", title: "Complete: paid per unit. The buyer's signed acceptance is the evaluator, so 180 good tees out of 200 still pay out." },
+    { number: "05", title: "Reject or expire: refunded. Whatever the buyer doesn't accept is refundable to them after the term." },
+    { number: "06", title: "Beyond the standard: disputes (In testing) and ERC-8004 reviews only from settled orders." },
+  ],
+};
+
 /** Agent to agent: what the AI decides, buyers' agents, what they verify (Verification component, id "agents"). */
 export const verification = {
   tag: "Agent to agent",
@@ -228,7 +244,7 @@ export const comparison = {
   description:
     "Small negotiated orders are only worth escrowing when fees are in dollars and settlement is instant: on Arc, gas is paid in USDC and payments settle in under a second. Live: used on Arc mainnet. Testnet: proven on Arc testnet. In testing: built, not yet used by a real customer.",
   cards: [
-    { icon: "/assets/JXfbymshMLyfsl2323zgdqBGL4.svg", threshold: 0.46, title: "DealEscrow · Live", body: "Holds each order's USDC and pays out only against both sides' EIP-712 signatures. Source-verified, not upgradeable, no fee logic and fuzz-tested; not yet independently audited." },
+    { icon: "/assets/JXfbymshMLyfsl2323zgdqBGL4.svg", threshold: 0.46, title: "DealEscrow · Live", body: "Holds each order's USDC and pays out only against both sides' EIP-712 signatures. Source-verified, not upgradeable, no fee logic and fuzz-tested; not yet audited. An ERC-8183-compatible interface is planned." },
     { icon: "/assets/bD52TK3MrelH1Oc6avERVA1JXw4.svg", threshold: 0.46, title: "ERC-8004 identity and reviews · Live", body: "Each seller registers its agent from its own wallet, commits every price policy on chain, and earns reviews only from settled orders." },
     { icon: "/assets/oj7jXSrLMVYLxliKOyzXN6J1ZRs.svg", threshold: 0.46, title: "Circle Wallets, gasless funding · Live", body: "Signing in creates a Circle user-controlled wallet on Arc. Buyers fund with a USDC permit and Proteus pays the gas." },
     { icon: "/assets/GUrpYsrYM8fPXMf7BXBghK727Bs.svg", threshold: 0.71, title: "CCTP with Bridge Kit · Live", body: "Teams that already hold USDC, such as DAOs, hackathons and conferences, pay directly; others bring it from other chains inside the app." },
@@ -250,6 +266,7 @@ export const landingCompare = {
     "Refunds and a dispute path",
     "Reputation only from completed orders",
     "Works with buyers' AI agents",
+    "Follows the ERC-8183 job lifecycle",
   ],
   proteus: {
     name: "Proteus AI",
@@ -257,14 +274,14 @@ export const landingCompare = {
     href: "/app",
     logo: "/assets/proteus-ai-wordmark.png",
     logoHeight: 18,
-    marks: ["yes", "yes", "yes", "partial", "yes", "yes"],
-    notes: [undefined, "Live on Arc mainnet", undefined, "Refunds Live; disputes In testing", "ERC-8004, with link checks", "MCP and HTTP, Testnet"],
+    marks: ["yes", "yes", "yes", "partial", "yes", "yes", "planned"],
+    notes: [undefined, "Live on Arc mainnet", undefined, "Refunds Live; disputes In testing", "ERC-8004, with link checks", "MCP and HTTP, Testnet", "Same lifecycle; interface planned"],
   } as CompareVendor,
   vendors: [
-    { name: "Escrow services", description: "Escrow.com and similar: a third party holds the payment for a fee.", href: "https://www.escrow.com", marks: ["not-core", "yes", "yes", "yes", "not-core", "not-core"], notes: [undefined, undefined, "Buyer approves", undefined, undefined, undefined] },
-    { name: "Offer apps", description: "Shopify negotiation apps such as Flux and Bargain Buddy.", href: "https://apps.shopify.com/flux-ai-negotiation", marks: ["yes", "not-core", "not-core", "partial", "not-core", "not-core"], notes: ["Floor price, discount codes", undefined, undefined, "Store returns", undefined, undefined] },
-    { name: "Agent payment protocols", description: "x402, ACP and AP2: an agent pays a known price.", href: "https://docs.x402.org/schemes/overview", marks: ["not-core", "partial", "not-core", "partial", "not-core", "yes"], notes: ["Fixed price", "x402 auth-capture, Base only", undefined, "Void and refund, no arbiter", undefined, undefined] },
-    { name: "Agent job escrow", description: "ERC-8183 and Virtuals ACP: escrowed jobs between agents.", href: "https://eips.ethereum.org/EIPS/eip-8183", marks: ["partial", "yes", "partial", "partial", "partial", "yes"], notes: ["Budget proposals", undefined, "An evaluator decides", "ERC-8183 has no disputes", "Own registry", undefined] },
+    { name: "Escrow services", description: "Escrow.com and similar: a third party holds the payment for a fee.", href: "https://www.escrow.com", marks: ["not-core", "yes", "yes", "yes", "not-core", "not-core", "not-core"], notes: [undefined, undefined, "Buyer approves", undefined, undefined, undefined, undefined] },
+    { name: "Offer apps", description: "Shopify negotiation apps such as Flux and Bargain Buddy.", href: "https://apps.shopify.com/flux-ai-negotiation", marks: ["yes", "not-core", "not-core", "partial", "not-core", "not-core", "not-core"], notes: ["Floor price, discount codes", undefined, undefined, "Store returns", undefined, undefined, undefined] },
+    { name: "Agent payment protocols", description: "x402, ACP and AP2: an agent pays a known price.", href: "https://docs.x402.org/schemes/overview", marks: ["not-core", "partial", "not-core", "partial", "not-core", "yes", "not-core"], notes: ["Fixed price", "x402 auth-capture, Base only", undefined, "Void and refund, no arbiter", undefined, undefined, undefined] },
+    { name: "Agent job escrow", description: "ERC-8183 and Virtuals ACP: escrowed jobs between agents.", href: "https://eips.ethereum.org/EIPS/eip-8183", marks: ["partial", "yes", "partial", "partial", "partial", "yes", "yes"], notes: ["Budget proposals", undefined, "An evaluator decides", "ERC-8183 has no disputes", "Own registry", undefined, "ERC-8183 itself"] },
   ] as CompareVendor[],
   closing: "Others hold the money, haggle over the price, or pay a fixed amount. Proteus does all three, and leaves the release to the buyer.",
   footnote: "Assessed from each product's public pages and specifications in November 2026. Names belong to their owners. Proteus marks reflect what runs today, with statuses as in our docs.",
@@ -412,6 +429,7 @@ export const faq = {
     { q: "What does it cost?", a: "Every feature is free during the pilot. After it, Starter stays free and paid plans start at $29 a month (₹1,999 in India); you'll be told before anything is billed. Proteus never takes a cut of an order, and buyers never pay a fee." },
     { q: "How do I get paid?", a: "In USDC, a digital dollar issued by Circle, sent to the wallet you sign up with. You are paid for what the buyer confirms as delivered. Rules for receiving stablecoins differ by country, so check yours, including tax, before you start." },
     { q: "Why USDC and Arc?", a: "Because escrow has to be cheap and instant to make sense for a $1,500 order. On Arc, network fees are paid in USDC rather than a volatile token, payments settle in under a second, and the ERC-8004 identity and reputation registries are already live. Circle's tools let buyers sign in, fund without gas and bring USDC from other chains." },
+    { q: "How does Proteus relate to ERC-8183?", a: "ERC-8183 is a draft Ethereum standard for paid jobs between agents: the client funds escrow, the provider delivers, and an evaluator completes the job (paying the provider) or rejects it (refunding the client). A Proteus order follows that lifecycle with the buyer as evaluator, and adds the parts the standard leaves open: negotiating the price inside your rules, paying per accepted unit rather than all or nothing, a dispute path and reviews from settled orders. DealEscrow does not implement the ERC-8183 interface today; a compatible version is planned, so agents built for the standard can order from you directly." },
     { q: "What if a buyer never confirms delivery?", a: "Then the money is not released. You can open a dispute, which freezes the order for the arbiter; if nobody does, the unconfirmed amount becomes refundable to the buyer after the term and a 3-day grace period. Delivery dates agreed in chat are not part of the signed terms." },
     { q: "How are disputes settled?", a: "Either side can open a dispute, and the arbiter splits the money still in escrow between the two. Disputes are In testing: today Proteus holds the arbiter key and there is no deadline for a decision. An independent arbiter and a dispute timeout are Coming soon." },
     { q: "Do my buyers need crypto?", a: "They need USDC. Teams that already hold it pay directly; others can bring it from another network inside the app. Funding an order needs no network fee: the buyer signs and Proteus pays the gas." },
@@ -449,8 +467,8 @@ export const footer = {
 
 /** Mirrors the <title> and meta tags in site/index.html; keep the two in step. */
 export const meta = {
-  title: "Proteus AI | Quote in seconds, get paid on delivery",
-  description: "Proteus AI answers your buyers in seconds, negotiates inside the prices and limits you set, and collects payment upfront in USDC escrow on Arc. You are paid when the buyer confirms delivery. Free during the pilot.",
-  ogTitle: "Quote in seconds. Get paid on delivery.",
+  title: "Proteus AI | Win the order in minutes, get paid when it's delivered",
+  description: "Proteus is an AI sales agent for businesses that sell custom orders. It negotiates with your buyers and their AI agents inside your prices and limits, and every order is paid upfront into escrow on Arc and released to you in USDC when the buyer confirms delivery.",
+  ogTitle: "Win the order in minutes. Get paid when it's delivered.",
   ogDescription: "An AI sales agent that negotiates inside your rules, with every order paid upfront into USDC escrow on Arc and released when the buyer confirms delivery.",
 };
