@@ -29,27 +29,27 @@ export const nav = {
   items: [
     { label: "How it works", href: "/#how-it-works" },
     { label: "Payment protection", href: "/#protection" },
-    { label: "Who it's for", href: "/#partners" },
+    { label: "For agents", href: "/#agents" },
     { label: "Pricing", href: "/#pricing" },
     { label: "FAQ", href: "/#faqs" },
     { label: "Docs", href: links.docs },
   ],
-  secondary: { label: "Under the hood", href: "/#under-the-hood" },
+  secondary: { label: "Why Arc", href: "/#why-arc" },
   primary: { label: "Start free", href: links.sell },
 };
 
 export const hero = {
-  tag: "The AI sales agent with payment protection, for businesses that sell by quote",
-  /** Network name shown with its mark after the tag; empty keeps chain names below the fold. */
-  tagNetwork: "",
+  tag: "The AI sales agent with payment protection, built on",
+  /** Network name shown with its mark after the tag; empty hides it. */
+  tagNetwork: "Arc",
   headline: "Quote in seconds. Get paid on delivery.",
   subhead:
-    "Proteus answers your buyers in seconds and negotiates inside the prices and limits you set. Buyers pay upfront into escrow, and the money is released to you as soon as they confirm delivery.",
+    "Proteus answers your buyers in seconds and negotiates inside the prices and limits you set. Buyers pay upfront into USDC escrow on Arc, and the money is released to you when they confirm delivery.",
   secondary: { label: "See how it works", href: links.howItWorks },
   /** `href` when the deployment runs the invite gate, `openHref` when it does not. */
   primary: { label: "Start free", hoverLabel: "Enter invite code", href: links.sellGated, openHref: links.sell },
   /** The three short facts under the buttons. */
-  trust: ["Free during the pilot", "No card needed", "Set up in about 5 minutes"],
+  trust: ["Free during the pilot", "Live on Arc mainnet", "Set up in about 5 minutes"],
   chat: {
     user: "We're hosting a hackathon in Bengaluru and need 250 custom tees with our logo. Our budget is $1,500. Can you make it work?",
     status: ["Reading the request...", "Checking prices, margin and capacity", "Sizing offers to the budget"],
@@ -90,7 +90,7 @@ export const howItWorks = {
     },
     {
       title: "3. You're paid when they confirm delivery.",
-      body: "Both sides agree the same terms and the buyer pays into escrow before you start. When the buyer confirms delivery, the money is released to you.",
+      body: "Both sides sign the same terms and the buyer pays into escrow before you start. When the buyer confirms delivery, the contract releases the money to you, settled on Arc in under a second.",
     },
   ],
   agent: {
@@ -110,7 +110,7 @@ export const trust = {
   tag: "Payment protection",
   heading: "You never start work unpaid. They never pay for what didn't arrive.",
   description:
-    "Every order is paid upfront into escrow, held by a public contract rather than by Proteus, you or the buyer. It's the protection of an escrow service, built into every order, with no escrow fee.",
+    "Every order is paid upfront into escrow, held by a public contract rather than by Proteus, you or the buyer. The AI negotiates; the contract holds the money. What the model says is an input to the deal, never the thing that releases payment.",
   cards: [
     { title: "Paid before you start", body: "The buyer funds the full order when both sides agree the terms. You can see the money is there before you buy materials." },
     { title: "Released on delivery", body: "When the buyer confirms what was delivered, the contract pays you that amount. No invoices to chase." },
@@ -181,7 +181,7 @@ export const partners = {
   tag: "Who it's for",
   heading: "For businesses that answer \"it depends\" when asked the price.",
   description:
-    "If your customers ask for a quote before they buy, your deal agent can answer them. The first business live on Proteus is a merch and print studio.",
+    "If your customers, or their agents, ask for a quote before they buy, your deal agent can answer them. Live on Arc mainnet today: one merch and print studio, with every order public on chain.",
   steps: [
     { number: "01", title: "Custom merch and apparel. Quantity, sizes, print method and per-unit price." },
     { number: "02", title: "Corporate and event gifting. Box contents, branding and volume pricing." },
@@ -192,48 +192,82 @@ export const partners = {
   ],
 };
 
+/** Agent to agent: what the AI decides, buyers' agents, what they verify (Verification component, id "agents"). */
 export const verification = {
-  tag: "Transparency",
-  heading: "Your buyers can check everything except your costs.",
+  tag: "Agent to agent",
+  heading: "Your agent can sell to theirs.",
   description:
-    "Who you are, the rules behind your prices and where the money goes are public records a buyer can check before paying. Your costs, floor and limits stay private.",
+    "More orders will start with a buyer's AI agent that prices, pays and confirms outcomes on its own. Your deal agent negotiates with it under the same rules a person gets, and everything a careful agent should check is public on Arc.",
   counts: {
-    title: "Your costs stay private.",
-    body: "Buyers never see your costs, floor or limits. They see a public fingerprint of your rules, so they know a quote came from rules you set in advance.",
-    chips: ["Costs", "Margin floor", "Discount limit", "Minimum order", "Capacity", "Approval limit", "Quote validity"],
+    title: "What the AI decides, and what it can't.",
+    body: "It reads the request, chooses which offers to make and explains them. Code computes every price from your rules, and only signatures release money.",
+    chips: ["Reads the request", "Chooses the offer", "Explains the terms", "Price: your rules", "Floor: your rules", "Release: signatures", "Refund: the contract"],
   },
   pay: {
-    title: "Every order on the record.",
-    body: "Quotes, agreements, deliveries and payouts sit in your dashboard, and every payment is a public transaction you can show your accountant.",
+    title: "A buyer's agent with a budget it can't exceed.",
+    body: "Claude or any MCP client can negotiate, verify you on Arc, fund and settle within a per-deal mandate its owner sets. Proven on Arc testnet; a hosted buyer agent is Coming soon.",
   },
   real: {
-    title: "What a buyer can check before paying.",
-    body: "Your registered business identity, the rules your quote came from, the account that gets paid and your record of completed orders.",
-    signals: ["Identity", "Price rules", "Payout account", "Completed orders", "Reviews"],
+    title: "What a buyer's agent checks before it pays.",
+    body: "Your ERC-8004 identity, the policy commitment your quote came from, the wallet that gets paid and your record of settled orders.",
+    signals: ["Identity", "Price policy", "Payout wallet", "Settled orders", "Reviews"],
   },
   order: {
-    title: "The AI proposes. The contract pays.",
+    title: "The model proposes. The contract pays.",
     body: "Only signatures move money: both sides on the terms, then the buyer on what was delivered.",
-    waveA: "The AI proposes terms",
+    waveA: "The model proposes terms",
     waveB: "Signatures release the money",
-    chips: ["AI", "Contract"],
+    chips: ["Model", "Contract"],
   },
 };
 
-/** Under the hood: chain, protocol and channel detail with the docs' status for each (Comparison component, id "under-the-hood"). */
+/** Why Arc: the Arc and Circle pieces behind the product, each with its docs status (Comparison component, id "why-arc"). */
 export const comparison = {
-  tag: "Under the hood",
-  heading: "For your developer, your accountant and your buyer's AI agent.",
+  tag: "Built on Arc and Circle",
+  heading: "Why this runs on Arc.",
   description:
-    "The parts behind the promise, each with its status today. Live means used on Arc mainnet with real USDC; Testnet means proven on Arc testnet; In testing means built but not yet used by a real customer.",
+    "Small negotiated orders are only worth escrowing when fees are in dollars and settlement is instant: on Arc, gas is paid in USDC and payments settle in under a second. Live: used on Arc mainnet. Testnet: proven on Arc testnet. In testing: built, not yet used by a real customer.",
   cards: [
-    { icon: "/assets/JXfbymshMLyfsl2323zgdqBGL4.svg", threshold: 0.46, title: "Escrow contract · Live", body: "DealEscrow on Arc mainnet, source-verified, not upgradeable and with no fee logic. Covered by unit and invariant tests; not yet independently audited." },
-    { icon: "/assets/oj7jXSrLMVYLxliKOyzXN6J1ZRs.svg", threshold: 0.46, title: "USDC on Arc · Live", body: "Orders settle in USDC, Circle's digital dollar. Teams that already hold it, such as DAOs, hackathons and conferences, pay directly; others bridge it in the app." },
-    { icon: "/assets/bD52TK3MrelH1Oc6avERVA1JXw4.svg", threshold: 0.46, title: "Business identity · Live", body: "Each seller is an ERC-8004 agent on Arc with its payout wallet, and each price policy is committed on chain. Reviews go to Arc's ERC-8004 reputation registry." },
-    { icon: "/assets/GUrpYsrYM8fPXMf7BXBghK727Bs.svg", threshold: 0.71, title: "Where buyers reach you", body: "Web app: Live. Website embed: Testnet. WhatsApp on your own number: In testing. Paying always happens on a Proteus page." },
-    { icon: "/assets/vBsEOrQoXzW0ffeVyss7E7BMXc.svg", threshold: 0.42, title: "AI agents as buyers · Testnet", body: "An MCP server and a plain HTTP API, with x402 for one-off calls, let a buyer's agent negotiate and pay within a limit its owner sets. A hosted buyer agent is Coming soon." },
-    { icon: "/assets/fBC0zzbZpTAZaOtfiJwmWF4bgO4.svg", threshold: 0.28, title: "Seller API · In testing", body: "Scoped keys for deals, prices and deliveries, signed webhooks and a public sandbox. The code is open on GitHub." },
+    { icon: "/assets/JXfbymshMLyfsl2323zgdqBGL4.svg", threshold: 0.46, title: "DealEscrow · Live", body: "Holds each order's USDC and pays out only against both sides' EIP-712 signatures. Source-verified, not upgradeable, no fee logic and fuzz-tested; not yet independently audited." },
+    { icon: "/assets/bD52TK3MrelH1Oc6avERVA1JXw4.svg", threshold: 0.46, title: "ERC-8004 identity and reviews · Live", body: "Each seller registers its agent from its own wallet, commits every price policy on chain, and earns reviews only from settled orders." },
+    { icon: "/assets/oj7jXSrLMVYLxliKOyzXN6J1ZRs.svg", threshold: 0.46, title: "Circle Wallets, gasless funding · Live", body: "Signing in creates a Circle user-controlled wallet on Arc. Buyers fund with a USDC permit and Proteus pays the gas." },
+    { icon: "/assets/GUrpYsrYM8fPXMf7BXBghK727Bs.svg", threshold: 0.71, title: "CCTP with Bridge Kit · Live", body: "Teams that already hold USDC, such as DAOs, hackathons and conferences, pay directly; others bring it from other chains inside the app." },
+    { icon: "/assets/vBsEOrQoXzW0ffeVyss7E7BMXc.svg", threshold: 0.42, title: "MCP, HTTP and x402 · Testnet", body: "Buyers' agents negotiate and pay through MCP or plain HTTP within a mandate; one-off calls pay with x402 through Circle's facilitator or Gateway batching. Works with a Circle Agent Wallet." },
+    { icon: "/assets/fBC0zzbZpTAZaOtfiJwmWF4bgO4.svg", threshold: 0.28, title: "Your own channels", body: "Website embed: Testnet. WhatsApp on your own number: In testing. Seller API and webhooks: In testing. The code is open on GitHub." },
   ],
+};
+
+/** "How it's different": the landing page comparison, from the strategy report's sourced capability matrix and the competitor research (Nov 2026). */
+export const landingCompare = {
+  tag: "How it's different",
+  heading: "Negotiation, escrow and settlement in one flow.",
+  description:
+    "Escrow services hold the money but leave the quoting to you. Offer apps negotiate but don't hold the money. Agent payment protocols pay a fixed price. Proteus negotiates inside your rules, holds the payment and settles on the buyer's signature.",
+  capabilities: [
+    "Negotiates price inside the seller's rules",
+    "Holds payment until delivery is confirmed",
+    "Release decided by the buyer's signature, not a model",
+    "Refunds and a dispute path",
+    "Reputation only from completed orders",
+    "Works with buyers' AI agents",
+  ],
+  proteus: {
+    name: "Proteus AI",
+    description: "The AI sales agent with payment protection, built on Arc.",
+    href: "/app",
+    logo: "/assets/proteus-ai-wordmark.png",
+    logoHeight: 18,
+    marks: ["yes", "yes", "yes", "partial", "yes", "yes"],
+    notes: [undefined, "Live on Arc mainnet", undefined, "Refunds Live; disputes In testing", "ERC-8004, with link checks", "MCP and HTTP, Testnet"],
+  } as CompareVendor,
+  vendors: [
+    { name: "Escrow services", description: "Escrow.com and similar: a third party holds the payment for a fee.", href: "https://www.escrow.com", marks: ["not-core", "yes", "yes", "yes", "not-core", "not-core"], notes: [undefined, undefined, "Buyer approves", undefined, undefined, undefined] },
+    { name: "Offer apps", description: "Shopify negotiation apps such as Flux and Bargain Buddy.", href: "https://apps.shopify.com/flux-ai-negotiation", marks: ["yes", "not-core", "not-core", "partial", "not-core", "not-core"], notes: ["Floor price, discount codes", undefined, undefined, "Store returns", undefined, undefined] },
+    { name: "Agent payment protocols", description: "x402, ACP and AP2: an agent pays a known price.", href: "https://docs.x402.org/schemes/overview", marks: ["not-core", "partial", "not-core", "partial", "not-core", "yes"], notes: ["Fixed price", "x402 auth-capture, Base only", undefined, "Void and refund, no arbiter", undefined, undefined] },
+    { name: "Agent job escrow", description: "ERC-8183 and Virtuals ACP: escrowed jobs between agents.", href: "https://eips.ethereum.org/EIPS/eip-8183", marks: ["partial", "yes", "partial", "partial", "partial", "yes"], notes: ["Budget proposals", undefined, "An evaluator decides", "ERC-8183 has no disputes", "Own registry", undefined] },
+  ] as CompareVendor[],
+  closing: "Others hold the money, haggle over the price, or pay a fixed amount. Proteus does all three, and leaves the release to the buyer.",
+  footnote: "Assessed from each product's public pages and specifications in November 2026. Names belong to their owners. Proteus marks reflect what runs today, with statuses as in our docs.",
 };
 
 /** "How Proteus AI compares": assessed from each vendor's public product pages in October 2026. Not on the landing page; the docs render it. */
@@ -372,9 +406,12 @@ export const faq = {
   items: [
     { q: "What is Proteus AI?", a: "An AI sales agent with payment protection for small businesses that sell by quote. It answers buyers and negotiates inside your prices and limits, the buyer pays into escrow before you start, and the money is released to you when they confirm delivery." },
     { q: "How is this different from a payment link or an escrow service?", a: "A payment link gets you paid but leaves the quoting to you and gives the buyer no protection. An escrow service protects both sides but charges a fee on each deal, and you still quote by hand. Proteus quotes, negotiates and holds the payment in one flow, with no fee on your orders." },
+    { q: "What does the AI actually decide?", a: "It reads each request, decides which offers to make, sizes them to the buyer's budget and explains the terms. It does not set prices, which are computed in code from your rules, and it never moves money: only the buyer's and the seller's signatures do. A reply that states a number your rules did not produce is replaced before the buyer sees it." },
     { q: "Can the AI agree to a bad deal?", a: "No. Prices are calculated from your tiers, costs and limits, not by the AI. It cannot go below your margin floor or past your discount limit, and orders above your approval limit wait for you." },
+    { q: "Can my buyers' AI agents buy from me?", a: "Yes. A buyer's agent can negotiate, check your identity and price policy on Arc, and fund the order within a limit its owner sets, through MCP or plain HTTP. This is proven on Arc testnet, not yet on mainnet. A hosted buyer agent you can use in the browser is Coming soon." },
     { q: "What does it cost?", a: "Every feature is free during the pilot. After it, Starter stays free and paid plans start at $29 a month (₹1,999 in India); you'll be told before anything is billed. Proteus never takes a cut of an order, and buyers never pay a fee." },
     { q: "How do I get paid?", a: "In USDC, a digital dollar issued by Circle, sent to the wallet you sign up with. You are paid for what the buyer confirms as delivered. Rules for receiving stablecoins differ by country, so check yours, including tax, before you start." },
+    { q: "Why USDC and Arc?", a: "Because escrow has to be cheap and instant to make sense for a $1,500 order. On Arc, network fees are paid in USDC rather than a volatile token, payments settle in under a second, and the ERC-8004 identity and reputation registries are already live. Circle's tools let buyers sign in, fund without gas and bring USDC from other chains." },
     { q: "What if a buyer never confirms delivery?", a: "Then the money is not released. You can open a dispute, which freezes the order for the arbiter; if nobody does, the unconfirmed amount becomes refundable to the buyer after the term and a 3-day grace period. Delivery dates agreed in chat are not part of the signed terms." },
     { q: "How are disputes settled?", a: "Either side can open a dispute, and the arbiter splits the money still in escrow between the two. Disputes are In testing: today Proteus holds the arbiter key and there is no deadline for a decision. An independent arbiter and a dispute timeout are Coming soon." },
     { q: "Do my buyers need crypto?", a: "They need USDC. Teams that already hold it pay directly; others can bring it from another network inside the app. Funding an order needs no network fee: the buyer signs and Proteus pays the gas." },
@@ -391,13 +428,14 @@ export const footer = {
   line: "Set your prices and limits once. Proteus answers every buyer, collects payment upfront and releases it to you when they confirm delivery.",
   cta: { label: "Start free", href: links.sell },
   brand: "Proteus AI",
-  tagline: "The AI sales agent with payment protection, for businesses that sell by quote.",
+  tagline: "The AI sales agent with payment protection, built on Arc.",
   columnTitle: "Product",
   columns: [
     { label: "How it works", href: "/#how-it-works" },
     { label: "Payment protection", href: "/#protection" },
     { label: "Pricing", href: "/#pricing" },
-    { label: "Under the hood", href: "/#under-the-hood" },
+    { label: "For agents", href: "/#agents" },
+    { label: "Why Arc", href: "/#why-arc" },
     { label: "FAQ", href: "/#faqs" },
     { label: "Seller quickstart", href: links.sellerQuickstart },
     { label: "Security", href: links.security },
@@ -412,7 +450,7 @@ export const footer = {
 /** Mirrors the <title> and meta tags in site/index.html; keep the two in step. */
 export const meta = {
   title: "Proteus AI | Quote in seconds, get paid on delivery",
-  description: "Proteus AI answers your buyers in seconds, negotiates inside the prices and limits you set, and collects payment upfront in escrow. You are paid when the buyer confirms delivery. Free during the pilot.",
+  description: "Proteus AI answers your buyers in seconds, negotiates inside the prices and limits you set, and collects payment upfront in USDC escrow on Arc. You are paid when the buyer confirms delivery. Free during the pilot.",
   ogTitle: "Quote in seconds. Get paid on delivery.",
-  ogDescription: "An AI sales agent for businesses that sell by quote, with every order paid upfront into escrow and released when the buyer confirms delivery.",
+  ogDescription: "An AI sales agent that negotiates inside your rules, with every order paid upfront into USDC escrow on Arc and released when the buyer confirms delivery.",
 };

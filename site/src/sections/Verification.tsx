@@ -266,7 +266,7 @@ export function Verification() {
   const bp = useBreakpoint();
   const { counts, pay, real, order } = verification;
   return (
-    <section id="capabilities" className={s.section}>
+    <section id="agents" className={s.section}>
       <div className={s.container}>
         <div className={s.content}>
           <SectionHeader

@@ -7,17 +7,18 @@ import { Decisions } from "./sections/Decisions";
 import { Verification } from "./sections/Verification";
 import { Partners } from "./sections/Partners";
 import { Comparison } from "./sections/Comparison";
+import { Compare } from "./sections/Compare";
+import { landingCompare } from "./content/proteus";
 import { Pricing } from "./sections/Pricing";
-// Compare (the vendor table) is not on the landing page; the docs render its data.
 import { Trust } from "./sections/Trust";
 import { Faq } from "./sections/Faq";
 import { Footer } from "./sections/Footer";
 
 /**
- * Landing page order, business outcomes first and chain detail last: the promise (Hero), who it is
- * for (Logos line), how it works (HowItWorks), payment protection (Trust, id "protection"), margin
- * control (Decisions), seller types (Partners), what anyone can check (Verification), the no-fee
- * pilot (Pricing), under the hood with a status per part (Comparison, id "under-the-hood"), FAQ.
+ * Landing page order, business outcomes first: the promise (Hero), who it is for (Logos line), how
+ * it works (HowItWorks), payment protection (Trust, id "protection"), margin control (Decisions),
+ * agent to agent (Verification, id "agents"), seller types (Partners), how it differs (Compare with
+ * the landing data), why Arc with a status per part (Comparison, id "why-arc"), pricing, FAQ.
  */
 export default function App() {
   return (
@@ -29,10 +30,11 @@ export default function App() {
         <HowItWorks />
         <Trust />
         <Decisions />
-        <Partners />
         <Verification />
-        <Pricing />
+        <Partners />
+        <Compare data={landingCompare} />
         <Comparison />
+        <Pricing />
         <Faq />
       </main>
       <Footer />
