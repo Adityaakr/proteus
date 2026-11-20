@@ -9,13 +9,13 @@ import s from "./Pricing.module.css";
 /**
  * Pricing section (UMje28XpX, elementId "pricing").
  * Header (Tag "Pricing" + Heading 2 + Body 1, gap 32), then the "Pricing toggle + cards"
- * component: variant Desktop/annual (right, "Mainnet") shows ownerNow / partner / mainnet,
- * Desktop/maunal (left, "Testnet") swaps the third card for testnet. The slot counters
- * remount on every switch so the digits roll again, as the Framer variant swap does.
+ * component: the toggle switches all three plan cards between monthly (left) and yearly
+ * (right) prices. The slot counters remount on every switch so the digits roll again, as the
+ * Framer variant swap does.
  */
 export function Pricing() {
-  const [mode, setMode] = useState<"left" | "right">("right");
-  const third = mode === "right" ? pricing.mainnet : pricing.testnet;
+  const [mode, setMode] = useState<"left" | "right">("left");
+  const plans = mode === "right" ? pricing.yearly : pricing.monthly;
   return (
     <section id="pricing" className={s.section}>
       <div className={s.container}>
@@ -32,9 +32,9 @@ export function Pricing() {
           <div className={s.toggleCards}>
             <Toggle left={pricing.toggle.left} right={pricing.toggle.right} badge={pricing.toggle.badge} value={mode} onChange={setMode} />
             <div className={s.cards}>
-              <PricingCard className={s.card} plan={pricing.ownerNow} counterKey={mode} />
-              <PricingCard className={s.card} plan={pricing.partner} counterKey={mode} />
-              <PricingCard className={s.card} plan={third} counterKey={mode} />
+              {plans.map((plan) => (
+                <PricingCard key={plan.name} className={s.card} plan={plan} counterKey={mode} />
+              ))}
             </div>
           </div>
         </div>

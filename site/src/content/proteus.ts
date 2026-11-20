@@ -35,21 +35,21 @@ export const nav = {
     { label: "Docs", href: links.docs },
   ],
   secondary: { label: "Under the hood", href: "/#under-the-hood" },
-  primary: { label: "Start selling", href: links.sell },
+  primary: { label: "Start free", href: links.sell },
 };
 
 export const hero = {
   tag: "The AI sales agent with payment protection, for businesses that sell by quote",
   /** Network name shown with its mark after the tag; empty keeps chain names below the fold. */
   tagNetwork: "",
-  headline: "Answer every quote. Get paid for every order.",
+  headline: "Quote in seconds. Get paid on delivery.",
   subhead:
-    "Proteus AI quotes and negotiates with your buyers inside the prices and limits you set. The buyer pays before you start, the money is held in escrow, and it is released to you when they confirm delivery.",
+    "Proteus answers your buyers in seconds and negotiates inside the prices and limits you set. Buyers pay upfront into escrow, and the money is released to you as soon as they confirm delivery.",
   secondary: { label: "See how it works", href: links.howItWorks },
   /** `href` when the deployment runs the invite gate, `openHref` when it does not. */
-  primary: { label: "Start selling", hoverLabel: "Enter invite code", href: links.sellGated, openHref: links.sell },
+  primary: { label: "Start free", hoverLabel: "Enter invite code", href: links.sellGated, openHref: links.sell },
   /** The three short facts under the buttons. */
-  trust: ["No fee during the pilot", "Paid upfront, released on delivery", "Set up in about 5 minutes"],
+  trust: ["Free during the pilot", "No card needed", "Set up in about 5 minutes"],
   chat: {
     user: "We're hosting a hackathon in Bengaluru and need 250 custom tees with our logo. Our budget is $1,500. Can you make it work?",
     status: ["Reading the request...", "Checking prices, margin and capacity", "Sizing offers to the budget"],
@@ -64,15 +64,15 @@ export const hero = {
 };
 
 export const logos = {
-  line: "Built for businesses that sell by quote: custom merch and apparel, print and packaging, gifting, event supply, creative services and wholesale. The chat above is illustrative; real offers come from each seller's own prices and rules.",
+  line: "For studios and suppliers who quote every order: custom merch and apparel, print and packaging, gifting, event supply, creative services and wholesale. The chat above is illustrative; real offers come from each seller's own prices and rules.",
 };
 
 /** How it works: three plain steps (HowItWorks component, id "how-it-works"). The third card shows an order paying out. */
 export const howItWorks = {
   tag: "How it works",
-  heading: "From a buyer's question\nto money in your account.",
+  heading: "Set your rules once.\nProteus handles every quote.",
   description:
-    "Custom orders start with a quote, and quoting by hand loses the buyers who want an answer now. Proteus handles the back and forth and makes sure you are paid for what you deliver.",
+    "Buyers want a price now. Quoting each custom order by hand means late replies, lost orders and invoices to chase. Proteus answers for you and collects the money before you start.",
   mandates: [
     "250 tees with our logo, budget $1,500?",
     "Can you do a better price for 500?",
@@ -89,7 +89,7 @@ export const howItWorks = {
       body: "It builds offers from your price tiers and checks each one against your margin floor, discount limit and capacity. Big orders wait for your approval.",
     },
     {
-      title: "3. You are paid when they confirm delivery.",
+      title: "3. You're paid when they confirm delivery.",
       body: "Both sides agree the same terms and the buyer pays into escrow before you start. When the buyer confirms delivery, the money is released to you.",
     },
   ],
@@ -110,18 +110,18 @@ export const trust = {
   tag: "Payment protection",
   heading: "You never start work unpaid. They never pay for what didn't arrive.",
   description:
-    "Every order is paid upfront into escrow: an account held by a public contract, not by Proteus, the seller or the buyer. The AI negotiates; only signatures move the money.",
+    "Every order is paid upfront into escrow, held by a public contract rather than by Proteus, you or the buyer. It's the protection of an escrow service, built into every order, with no escrow fee.",
   cards: [
     { title: "Paid before you start", body: "The buyer funds the full order when both sides agree the terms. You can see the money is there before you buy materials." },
     { title: "Released on delivery", body: "When the buyer confirms what was delivered, the contract pays you that amount. No invoices to chase." },
-    { title: "Refunds for the rest", body: "Anything not delivered is refundable to the buyer after the agreed term, so they can order with confidence." },
+    { title: "Refunds for the rest", body: "Anything not delivered is refundable to the buyer after the agreed term, so new buyers can order with confidence." },
     { title: "Reviews from real orders only", body: "A buyer can review you only after an order has paid out, and reviews from people linked to the seller are flagged in public." },
   ],
 };
 
 export const decisions = {
   tag: "Protect your margins",
-  heading: "The AI talks.\nYour numbers decide.",
+  heading: "Your AI negotiates.\nIt never gives away your margin.",
   description:
     "A buyer can ask for 30% off, push back on every offer or try to talk the agent out of your limits. None of it changes what you allow.",
   tabs: [
@@ -179,7 +179,7 @@ export const decisions = {
 
 export const partners = {
   tag: "Who it's for",
-  heading: "For businesses whose price is a conversation.",
+  heading: "For businesses that answer \"it depends\" when asked the price.",
   description:
     "If your customers ask for a quote before they buy, your deal agent can answer them. The first business live on Proteus is a merch and print studio.",
   steps: [
@@ -194,9 +194,9 @@ export const partners = {
 
 export const verification = {
   tag: "Transparency",
-  heading: "Built to be checked, not just trusted.",
+  heading: "Your buyers can check everything except your costs.",
   description:
-    "Buyers do not have to take your word for it, or ours. Who you are, the rules behind your prices and where the money goes are public records anyone can check before paying.",
+    "Who you are, the rules behind your prices and where the money goes are public records a buyer can check before paying. Your costs, floor and limits stay private.",
   counts: {
     title: "Your costs stay private.",
     body: "Buyers never see your costs, floor or limits. They see a public fingerprint of your rules, so they know a quote came from rules you set in advance.",
@@ -223,9 +223,9 @@ export const verification = {
 /** Under the hood: chain, protocol and channel detail with the docs' status for each (Comparison component, id "under-the-hood"). */
 export const comparison = {
   tag: "Under the hood",
-  heading: "Open rails anyone can check.",
+  heading: "For your developer, your accountant and your buyer's AI agent.",
   description:
-    "For technical teams, buyers' AI agents and anyone who wants proof. Live means used on Arc mainnet with real USDC; Testnet means proven on Arc testnet; In testing means built but not yet used by a real customer.",
+    "The parts behind the promise, each with its status today. Live means used on Arc mainnet with real USDC; Testnet means proven on Arc testnet; In testing means built but not yet used by a real customer.",
   cards: [
     { icon: "/assets/JXfbymshMLyfsl2323zgdqBGL4.svg", threshold: 0.46, title: "Escrow contract · Live", body: "DealEscrow on Arc mainnet, source-verified, not upgradeable and with no fee logic. Covered by unit and invariant tests; not yet independently audited." },
     { icon: "/assets/oj7jXSrLMVYLxliKOyzXN6J1ZRs.svg", threshold: 0.46, title: "USDC on Arc · Live", body: "Orders settle in USDC, Circle's digital dollar. Teams that already hold it, such as DAOs, hackathons and conferences, pay directly; others bridge it in the app." },
@@ -295,47 +295,73 @@ export interface Plan {
   tag?: string;
 }
 
-/** Pricing: the no-fee pilot, stated as the docs state it (/docs/fees). The toggle swaps the third card. */
+/**
+ * Pricing: the plans proposed for after the pilot (amounts await the captain's approval, see
+ * copy-v3.md). Every feature is free during the pilot and there is no billing yet, so every CTA
+ * starts free. The toggle switches all three cards between monthly and yearly.
+ */
 export const pricing = {
   tag: "Pricing",
-  heading: "Free during the pilot.",
+  heading: "Start free. Upgrade when the orders do.",
   description:
-    "No subscription, no listing fee and no cut of your deals. The escrow contract has no fee logic, so the full agreed amount reaches you. Pilot sellers will be told before any fee applies.",
-  toggle: { left: "Try it", right: "Go live", badge: "" },
-  ownerNow: {
-    name: "Sellers",
-    tag: "Pilot",
-    value: 0,
-    period: "during the pilot",
-    description: "Everything you need to quote, negotiate and get paid.",
-    features: ["An AI deal agent for your whole catalogue", "Your price tiers, margin floor and discount limit", "Approval for orders above your limit", "Payment held in escrow until delivery", "The full agreed amount paid out to you"],
-    cta: { label: "Start selling", href: links.sell },
-    primary: true,
-  } as Plan,
-  partner: {
-    name: "Buyers",
-    value: 0,
-    period: "on top of the price",
-    description: "Buyers pay the agreed price and nothing more.",
-    features: ["Negotiate directly with the seller's agent", "Pay into escrow, not to a stranger", "Pay only for what is delivered", "Refund of anything not delivered after the term", "No network fee to fund an order"],
-    cta: { label: "Browse sellers", href: links.market },
-  } as Plan,
-  mainnet: {
-    name: "Live orders",
-    value: 0,
-    period: "Proteus fee",
-    description: "Real money on Arc mainnet. Wallets, bridges and exchanges may charge their own fees.",
-    features: ["One small network fee to register your business", "Proteus pays the network fees to fund, settle and refund", "A public record of every payment", "Refunds open 3 days after the term by default", "Fees and gas explained in the docs"],
-    cta: { label: "Read the fee details", href: links.fees },
-  } as Plan,
-  testnet: {
-    name: "Practice",
-    value: 0,
-    period: "test money",
-    description: "The same app on Arc testnet with free test USDC, so you can run a whole order before going live.",
-    features: ["Free test USDC from Circle's faucet", "The same agent, rules and escrow", "Nothing real is charged or paid", "Example sellers to try buying from", "Move to live orders when you are ready"],
-    cta: { label: "Seller quickstart", href: links.sellerQuickstart },
-  } as Plan,
+    "Every feature is free for pilot sellers. After the pilot, these are the plans, and you'll be told before anything is billed. Plans are a flat subscription billed separately: nothing is ever taken from an order, and buyers never pay a fee.",
+  toggle: { left: "Monthly", right: "Yearly", badge: "2 months free" },
+  monthly: [
+    {
+      name: "Starter",
+      value: 0,
+      period: "forever",
+      description: "For trying Proteus on your first orders. Up to 3 products and 10 paid orders a month.",
+      features: ["AI deal agent on your store page", "Price tiers, margin floor and discount limit", "Payment held in escrow on every order", "The full agreed amount paid out to you", "Practice with free test money first"],
+      cta: { label: "Start free", href: links.sell },
+    },
+    {
+      name: "Growth",
+      tag: "Recommended",
+      value: 29,
+      period: "/month",
+      description: "For a studio quoting every week. ₹1,999 a month in India. Up to 100 paid orders a month.",
+      features: ["Everything in Starter, unlimited products", "Agent on your own website", "Approval for big orders", "Alerts and accounting export", "WhatsApp agent (in testing)"],
+      cta: { label: "Try Growth free in the pilot", href: links.sell },
+      primary: true,
+    },
+    {
+      name: "Business",
+      value: 99,
+      period: "/month",
+      description: "For a business running its sales through Proteus. ₹6,999 a month in India. Unlimited orders.",
+      features: ["Everything in Growth", "Seller API and signed webhooks (in testing)", "Catalogue sync from your system (in testing)", "Team access for your staff (coming soon)", "Priority help with setup"],
+      cta: { label: "Try Business free in the pilot", href: links.sell },
+    },
+  ] as Plan[],
+  yearly: [
+    {
+      name: "Starter",
+      value: 0,
+      period: "forever",
+      description: "For trying Proteus on your first orders. Up to 3 products and 10 paid orders a month.",
+      features: ["AI deal agent on your store page", "Price tiers, margin floor and discount limit", "Payment held in escrow on every order", "The full agreed amount paid out to you", "Practice with free test money first"],
+      cta: { label: "Start free", href: links.sell },
+    },
+    {
+      name: "Growth",
+      tag: "Recommended",
+      value: 24,
+      period: "/month, billed yearly",
+      description: "$290 a year, or ₹19,990 in India. Up to 100 paid orders a month.",
+      features: ["Everything in Starter, unlimited products", "Agent on your own website", "Approval for big orders", "Alerts and accounting export", "WhatsApp agent (in testing)"],
+      cta: { label: "Try Growth free in the pilot", href: links.sell },
+      primary: true,
+    },
+    {
+      name: "Business",
+      value: 83,
+      period: "/month, billed yearly",
+      description: "$990 a year, or ₹69,990 in India. Unlimited orders.",
+      features: ["Everything in Growth", "Seller API and signed webhooks (in testing)", "Catalogue sync from your system (in testing)", "Team access for your staff (coming soon)", "Priority help with setup"],
+      cta: { label: "Try Business free in the pilot", href: links.sell },
+    },
+  ] as Plan[],
   includes: "INCLUDES",
 };
 
@@ -345,25 +371,25 @@ export const faq = {
   description: "What it does, what it costs, how you get paid, what happens when something goes wrong, and what is live today.",
   items: [
     { q: "What is Proteus AI?", a: "An AI sales agent with payment protection for small businesses that sell by quote. It answers buyers and negotiates inside your prices and limits, the buyer pays into escrow before you start, and the money is released to you when they confirm delivery." },
-    { q: "What kinds of businesses is it for?", a: "Businesses whose price depends on the order: custom merch and apparel, print and packaging, gifting, event supply, creative and freelance services, and wholesale. Buyers can be people or their own AI agents." },
-    { q: "What does it cost?", a: "Nothing during the pilot: no subscription, no listing fee and no cut of your deals. Proteus pays the network fees to fund, settle and refund orders; registering your business once costs a small network fee from your wallet. Pilot sellers will be told before any fee applies." },
+    { q: "How is this different from a payment link or an escrow service?", a: "A payment link gets you paid but leaves the quoting to you and gives the buyer no protection. An escrow service protects both sides but charges a fee on each deal, and you still quote by hand. Proteus quotes, negotiates and holds the payment in one flow, with no fee on your orders." },
     { q: "Can the AI agree to a bad deal?", a: "No. Prices are calculated from your tiers, costs and limits, not by the AI. It cannot go below your margin floor or past your discount limit, and orders above your approval limit wait for you." },
+    { q: "What does it cost?", a: "Every feature is free during the pilot. After it, Starter stays free and paid plans start at $29 a month (₹1,999 in India); you'll be told before anything is billed. Proteus never takes a cut of an order, and buyers never pay a fee." },
     { q: "How do I get paid?", a: "In USDC, a digital dollar issued by Circle, sent to the wallet you sign up with. You are paid for what the buyer confirms as delivered. Rules for receiving stablecoins differ by country, so check yours, including tax, before you start." },
-    { q: "What if a buyer never confirms delivery?", a: "Then the money is not released. You can open a dispute, which freezes the order for the arbiter; if nobody does, the unconfirmed amount becomes refundable to the buyer after the term and a 3-day grace period. Delivery dates agreed in chat are not part of the signed terms, so put anything that matters in the product's terms." },
+    { q: "What if a buyer never confirms delivery?", a: "Then the money is not released. You can open a dispute, which freezes the order for the arbiter; if nobody does, the unconfirmed amount becomes refundable to the buyer after the term and a 3-day grace period. Delivery dates agreed in chat are not part of the signed terms." },
     { q: "How are disputes settled?", a: "Either side can open a dispute, and the arbiter splits the money still in escrow between the two. Disputes are In testing: today Proteus holds the arbiter key and there is no deadline for a decision. An independent arbiter and a dispute timeout are Coming soon." },
     { q: "Do my buyers need crypto?", a: "They need USDC. Teams that already hold it pay directly; others can bring it from another network inside the app. Funding an order needs no network fee: the buyer signs and Proteus pays the gas." },
-    { q: "Who holds the money and the keys?", a: "Orders wait in the DealEscrow contract on Arc, never in a Proteus account. Your wallet owns your account and receives every payout. Proteus holds an encrypted key that countersigns offers on your behalf; it cannot send your payouts anywhere else." },
+    { q: "Who holds the money and the keys?", a: "Orders wait in the escrow contract, never in a Proteus account. Your wallet owns your account and receives every payout. Proteus holds an encrypted key that countersigns offers on your behalf; it cannot send your payouts anywhere else." },
     { q: "Is it safe?", a: "The escrow contract is public, source-verified, not upgradeable and covered by unit and invariant tests. It has not been independently audited yet. Every known gap is listed in the docs under Limits and known gaps." },
     { q: "Is Proteus AI live?", a: "Yes, on Arc mainnet. One real business is listed so far, Shoonya Store, a merch studio. Its first customer order, 6.60 USDC, paid out on 11 Nov 2026; the buyer wallet was later found linked to a Shoonya team account, and the public review says so. AI agents buying is proven on Arc testnet, not yet on mainnet." },
-    { q: "How do I start selling?", a: "Sign in with your wallet, add a product with its price tiers and private limits, and register your business on Arc in one step. It takes about 5 minutes, and you can practise on Arc testnet with free test money first." },
+    { q: "How do I start?", a: "Sign in with your wallet, add a product with its price tiers and private limits, and register your business in one step. It takes about 5 minutes, and you can practise with free test money first." },
     { q: "How do I get help?", a: "The docs cover setup, fees, security and limits. For questions or problems, open an issue on GitHub; the whole codebase is public there." },
   ],
 };
 
 export const footer = {
-  heading: "Quote faster. Get paid on delivery.",
-  line: "Give your business a sales agent that negotiates inside your limits, with every order paid upfront into escrow and released when the buyer confirms delivery.",
-  cta: { label: "Start selling", href: links.sell },
+  heading: "Your next custom order, quoted and paid.",
+  line: "Set your prices and limits once. Proteus answers every buyer, collects payment upfront and releases it to you when they confirm delivery.",
+  cta: { label: "Start free", href: links.sell },
   brand: "Proteus AI",
   tagline: "The AI sales agent with payment protection, for businesses that sell by quote.",
   columnTitle: "Product",
@@ -385,8 +411,8 @@ export const footer = {
 
 /** Mirrors the <title> and meta tags in site/index.html; keep the two in step. */
 export const meta = {
-  title: "Proteus AI | The AI sales agent with payment protection for small businesses",
-  description: "Proteus AI quotes and negotiates with your buyers inside the prices and limits you set. Buyers pay upfront into escrow, and the money is released to you when they confirm delivery. No fee during the pilot.",
-  ogTitle: "Answer every quote. Get paid for every order.",
-  ogDescription: "An AI sales agent that negotiates inside your limits, with every order paid upfront into escrow and released on delivery.",
+  title: "Proteus AI | Quote in seconds, get paid on delivery",
+  description: "Proteus AI answers your buyers in seconds, negotiates inside the prices and limits you set, and collects payment upfront in escrow. You are paid when the buyer confirms delivery. Free during the pilot.",
+  ogTitle: "Quote in seconds. Get paid on delivery.",
+  ogDescription: "An AI sales agent for businesses that sell by quote, with every order paid upfront into escrow and released when the buyer confirms delivery.",
 };
