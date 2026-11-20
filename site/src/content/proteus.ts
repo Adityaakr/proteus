@@ -202,11 +202,12 @@ export const partners = {
   description:
     "If your customers ask for a quote before they buy, your deal agent can answer them. The first seller live on Arc mainnet is a merch and print studio.",
   steps: [
-    { number: "01", title: "Custom merch and print. Quantity, sizes, print method and per-unit price." },
+    { number: "01", title: "Custom merch and apparel. Quantity, sizes, print method and per-unit price." },
     { number: "02", title: "Corporate and event gifting. Box contents, branding and volume pricing." },
     { number: "03", title: "Event supply. Swag, signage and kits for organisers with a budget and a deadline." },
     { number: "04", title: "Creative and freelance services. Design, video and content, priced per deliverable." },
     { number: "05", title: "Wholesale and small-batch makers. Minimum orders, price tiers and repeat buyers." },
+    { number: "06", title: "Print and packaging. Stickers, stationery and packaging, priced by run size." },
   ],
 };
 
