@@ -6,6 +6,8 @@ Source: <https://app.proteus.co.in/docs/seller-webhooks> · facts as of 2026-11-
 
 _Deal events POSTed to your server as they happen, signed so you can prove they came from Proteus._
 
+For developers who want deal events pushed to their server. You will set up a webhook, learn the events and their payload, verify the signature, and handle retries and duplicates.
+
 _Diagram: From a deal event to your server, and the check your server makes._
 
 A deal event (funded, settled, refunded, dispute, approval needed, order details, WhatsApp handoff) is queued once in the outbox. After each reconciler tick the outbox is drained: Proteus resolves your host (private, loopback, link-local and metadata addresses are refused), signs t.body with HMAC-SHA256 and your secret, and POSTs it with X-Proteus-Signature: t=…,v1=…. Any 2xx within 5 seconds is a success. A failure is tried again on later runs, up to 5 attempts. Your receiver checks the timestamp, recomputes the HMAC over the raw body and compares in constant time, then deduplicates on the event id.

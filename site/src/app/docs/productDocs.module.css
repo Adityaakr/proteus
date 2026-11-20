@@ -2,7 +2,8 @@
 .root { min-height: 100vh; background: radial-gradient(1200px 600px at 50% -200px, rgba(27, 77, 255, 0.06), transparent 70%), var(--c-bg, #fafafa); color: var(--c-dark); font-family: var(--font-body); }
 
 .top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px max(32px, calc((100% - 1328px) / 2)); background: color-mix(in srgb, var(--c-bg, #fafafa) 82%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--c-dark-10); }
-.brand { display: inline-flex; flex: none; align-items: center; color: inherit; }
+.brand { display: inline-flex; flex: none; align-items: center; min-height: 44px; border-radius: 8px; color: inherit; }
+.brand:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 4px; }
 .pills { display: flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--c-card, #fff); box-shadow: inset 0 0 0 1px var(--c-dark-10); overflow-x: auto; scrollbar-width: none; }
 .pills::-webkit-scrollbar { display: none; }
 .pill { flex: none; padding: 7px 14px; border-radius: 999px; font-size: 13.5px; color: var(--c-dark-60); white-space: nowrap; transition: background 140ms ease, color 140ms ease; }
@@ -125,6 +126,8 @@
 .h1Small { margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: 28px; line-height: 1.2; letter-spacing: -0.4px; }
 .summary { margin: 0; max-width: 680px; font-size: 18px; line-height: 1.55; color: var(--c-dark-60); }
 .body { display: flex; flex-direction: column; gap: 18px; }
+/* Who the page is for and what it covers: one quiet line under the summary. */
+.intro { margin: 0; max-width: 680px; font-size: 15px; line-height: 1.6; color: var(--c-dark-80); }
 .tocSub { padding-left: 10px; }
 
 /* Headline + one line: a quiet two-column grid of short cards. */
@@ -240,3 +243,21 @@ tbody tr:last-child .cmpUs { border-radius: 0 0 12px 12px; }
 @media (prefers-color-scheme: dark) { .root .netMain { color: #4ade80; background: rgba(74, 222, 128, 0.12); } }
 @media (max-width: 860px) { .scopeChip, .scopeAny { margin-left: 0; } }
 .gridWide .p, .gridWide .summary { max-width: 760px; }
+
+/* ---------- ways to use: one card per channel, with an honest status ---------- */
+.channels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.channel { display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 18px; border-radius: 12px; background: var(--c-card, #fff); box-shadow: inset 0 0 0 1px var(--c-dark-10); scroll-margin-top: 84px; }
+.channelHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; }
+.channelTitle { min-width: 0; font-family: var(--font-heading); font-weight: 500; font-size: 16.5px; line-height: 1.3; color: var(--c-dark); }
+.channelFacts { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 6px 10px; margin: 0; flex: 1; font-size: 14px; line-height: 1.55; }
+.channelFacts dt { font-size: 11.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; line-height: 2; color: var(--c-dark-60); }
+.channelFacts dd { margin: 0; min-width: 0; color: var(--c-dark-80); overflow-wrap: anywhere; }
+.channel .entryCta { margin-top: 0; }
+.status { --st: var(--c-dark-60); flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; white-space: nowrap; color: var(--st); background: color-mix(in srgb, var(--st) 11%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--st) 24%, transparent); }
+.status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.statusLive { --st: var(--docs-ok); }
+.statusTestnet { --st: var(--c-primary); }
+.statusIntesting { --st: var(--docs-warn); }
+.statusComingsoon { --st: var(--c-dark-60); }
+.statusComingsoon::before { background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; }
+@media (max-width: 860px) { .channels { grid-template-columns: minmax(0, 1fr); } }

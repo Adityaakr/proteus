@@ -1,4 +1,6 @@
 import { createHmac } from "node:crypto";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { serviceOpenApi, serviceSkill } from "../src/services/agentdocs";
 import { publicProduct, unitPriceUsd } from "../src/services/catalog";
@@ -109,5 +111,87 @@ describe("generated docs", async () => {
       expect(d.describe.length).toBeGreaterThan(80);
       expect(md).toContain(d.describe);
     }
+  });
+
+  it("every page says who it is for and what it covers, in the page and in its Markdown", () => {
+    for (const sec of SECTIONS) {
+      expect(sec.intro.length, sec.id).toBeGreaterThan(60);
+      expect(docsMarkdown("https://app.example", sec.id), sec.id).toContain(sec.intro.replace(/\]\(\//g, "](https://app.example/"));
+    }
+  });
+
+  it("headings have unique anchors, and every internal docs link points at a real page and heading", () => {
+    const anchors = SECTIONS.flatMap((s) => s.blocks.filter((b) => b.kind === "h3").map((b) => (b as { id: string }).id));
+    expect(new Set(anchors).size).toBe(anchors.length);
+    const channelIds = SECTIONS.flatMap((s) => s.blocks.flatMap((b) => (b.kind === "channels" ? b.items.map((c) => c.id) : [])));
+    const pageIds = new Set(SECTIONS.map((s) => s.id));
+    const known = new Set([...anchors, ...channelIds, ...pageIds]);
+    for (const [, page, hash] of md.matchAll(/https:\/\/app\.example\/docs\/([a-z0-9-]+)(?:#([a-z0-9-]+))?\)/g)) {
+      if (page === "api") continue; // the buyer HTTP API page (ApiDocs.tsx)
+      expect(pageIds.has(page!) || page!.endsWith(".md"), `/docs/${page}`).toBe(true);
+      if (hash) expect(known.has(hash), `/docs/${page}#${hash}`).toBe(true);
+    }
+  });
+
+  it("ways to use: every channel has an honest status, and only proven channels are Live", async () => {
+    const { CHANNEL_STATUS, CLAIMS } = await import("../../site/src/app/docs/docsContent");
+    const ways = SECTIONS.find((s) => s.id === "ways-to-use")!;
+    expect(ways.group).toBe("Start");
+    const channels = ways.blocks.flatMap((b) => (b.kind === "channels" ? b.items : []));
+    const status = Object.fromEntries(channels.map((c) => [c.id, c.status]));
+    for (const id of ["ways-web", "ways-embed", "ways-whatsapp", "ways-phone", "ways-mcp", "ways-own-agent", "ways-seller-api", "ways-front-desk"]) expect(status, id).toHaveProperty(id);
+    expect(status["ways-phone"]).toBe("Coming soon");
+    expect(channels.filter((c) => c.status === "Live").map((c) => c.id).sort()).toEqual(["ways-agent-docs", "ways-web"]);
+    // Agents buying through MCP on mainnet and the WhatsApp channel are not proven: they must not be marked Live.
+    expect(CLAIMS.find((c) => c.claim.startsWith("An AI agent buying through MCP on Arc mainnet"))?.status).toBe("not-yet");
+    expect(status["ways-mcp"]).not.toBe("Live");
+    expect(status["ways-whatsapp"]).not.toBe("Live");
+    for (const c of channels) {
+      expect(Object.keys(CHANNEL_STATUS)).toContain(c.status);
+      expect(md).toContain(`#### ${c.title} · ${c.status}`);
+    }
+    // The docs home points to it.
+    expect(JSON.stringify(SECTIONS.find((s) => s.id === "overview"))).toContain("/docs/ways-to-use");
+  });
+});
+
+describe("docs match the code", async () => {
+  const { API, MCP_TOOLS, docsMarkdown } = await import("../../site/src/app/docs/docsContent");
+  const md = docsMarkdown("https://app.example");
+  const root = join(__dirname, "..", "..");
+  const read = (p: string) => readFileSync(join(root, p), "utf8");
+  const routes = readdirSync(join(root, "server/src/routes")).map((f) => read(`server/src/routes/${f}`)).join("\n") + read("server/src/index.ts");
+
+  it("every public HTTP endpoint in the docs exists in the server's routes", () => {
+    for (const [method, path] of API.endpoints) {
+      const clean = path.split("?")[0]!;
+      const pattern = clean.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\{[a-zA-Z]+\}/g, ":[A-Za-z]+");
+      const re = new RegExp(`\\.${method.toLowerCase()}\\("(?:/api)?${pattern}"`);
+      expect(re.test(routes), `${method} ${path}`).toBe(true);
+    }
+  });
+
+  it("the MCP tool table lists exactly the tools the MCP server registers", () => {
+    const src = read("packages/mcp/src/index.ts");
+    const registered = [...src.matchAll(/registerTool\(\s*"([a-z_]+)"/g)].map((m) => m[1]);
+    expect(MCP_TOOLS.map(([name]) => name)).toEqual(registered);
+  });
+
+  it("the Delivery signature carries units and the receipts root, not the amount", () => {
+    expect(read("contracts/src/DealEscrow.sol")).toContain('"Delivery(uint256 dealId,bytes32 receiptsRoot,uint256 cumulativeUnits)"');
+    expect(md).toContain("Delivery (EIP-712): cumulative units and receipts root, no amount");
+  });
+
+  it("front desk limits in the docs match the code", () => {
+    const src = read("server/src/services/customer-link.ts");
+    expect(src).toContain("const MAX_TURNS = 14;");
+    expect(src).toContain("limit(`talk-ip:${ip}`, 40);");
+    expect(src).toContain("limit(`talk-link:${sha256(token)}`, 400, 24 * 3600_000);");
+    expect(API.rateLimits).toContain("40 messages per IP per 10 minutes and 400 per customer link per day");
+  });
+
+  it("the x402 exact scheme pays the seller's signer key, as the money path says", () => {
+    expect(read("server/src/services/x402.ts")).toMatch(/payTo: collector/);
+    expect(md).toContain("The seller's Proteus-held signer key");
   });
 });

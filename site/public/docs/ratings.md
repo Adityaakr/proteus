@@ -6,11 +6,13 @@ Source: <https://app.proteus.co.in/docs/ratings> · facts as of 2026-11-14 · al
 
 _Who can rate a seller, how a rating is checked, how the score is computed, and how to verify it on Arc._
 
+For buyers and agents judging a seller, and sellers who want to understand their score. You will learn who can rate, how a rating is checked for links to the seller, how the score is computed, and how to verify it on Arc yourself.
+
 > A rating counts only if it comes from a real, paid order, from a buyer with no link to the seller. Each buyer is one vote, and the number of buyers is always shown next to the stars.
 
 ### How a rating is made
 
-1. **The deal settles.** Ratings open once USDC has been paid out of DealEscrow for that deal. No settlement, no rating.
+1. **The deal settles.** Ratings open once USDC has been paid out of DealEscrow for that deal. No settlement, no rating. Example sellers, and sellers not registered on Arc, cannot be rated.
 2. **The buyer rates from its own wallet.** `giveFeedback` on Arc's ERC-8004 ReputationRegistry, 1 to 5 stars, tagged `proteus-deal` and the on-chain deal id, with the deal's terms hash as `feedbackHash`. Proteus never posts ratings.
 3. **Proteus verifies the transaction.** It reads the `NewFeedback` event from the chain: right seller agent, this deal's tag, sent by this deal's buyer, a whole number of stars ([ratings.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/ratings.ts)).
 4. **The link check runs.** Proteus looks for links between buyer and seller (below). Until it finishes the rating shows as being checked and does not count.
@@ -64,7 +66,7 @@ cast call 0x8004BAa17C55a88189AE136b182e5fdA19dE9b63 \
 # → 1, 5, 0   (one rating, 5 stars)
 ```
 
-The chain returns the plain count and average for those buyers. Proteus's score adds one vote per buyer, the verified-buyer weight and the neutral prior on top.
+The chain returns the plain count and average for the buyers you pass. This example passes Shoonya's one buyer to show the call; for the score, pass `trustedReviewers`, which is empty for Shoonya today (so that call would revert). Proteus's score adds one vote per buyer, the verified-buyer weight and the neutral prior on top.
 
 ### Rating statuses
 

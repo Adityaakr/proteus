@@ -6,6 +6,8 @@ Source: <https://app.proteus.co.in/docs/competitors> Â· facts as of 2026-11-14 Â
 
 _Others help you quote, negotiate or bill. Proteus takes a deal from the first message to the final transaction._
 
+For buyers and sellers comparing tools. Each capability against products that quote, negotiate or bill; marks come from each vendor's public pages, and Proteus marks only what is implemented.
+
 | Capability | Proteus AI | DealHub | Pactum AI | Nue | Sequence | Metronome |
 |---|---|---|---|---|---|---|
 | Autonomous customer-facing negotiations | Yes | Not core focus | Yes (Supplier side, for buyers) | Not core focus | Not core focus | Not core focus |

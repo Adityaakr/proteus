@@ -6,6 +6,8 @@ Source: <https://app.proteus.co.in/docs/seller-api> · facts as of 2026-11-14 ·
 
 _Run your store from your own systems: read deals, usage and payments, change prices and report deliveries, with keys that can do only what you allow._
 
+For sellers' developers connecting their own systems or agents. You will learn the environments, how keys and permissions work, how to make a first request against the sandbox, and the errors and limits to plan for.
+
 ### Environments
 
 | Environment | Base URL | Data |

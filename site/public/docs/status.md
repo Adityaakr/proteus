@@ -6,6 +6,8 @@ Source: <https://app.proteus.co.in/docs/status> · facts as of 2026-11-14 · all
 
 _Each capability, the network it is proven on, and the transaction that shows it._
 
+For anyone deciding what to rely on today. Each row is one capability, where it is proven, and the transaction or code that shows it. "Off-chain test" means covered by tests but not yet shown on a network.
+
 | Capability | Proven on | Evidence |
 |---|---|---|
 | Full escrow loop: approve, fund, settle, close, refund (team funds, 0.60 USDC) | ✓ Arc mainnet | [fund](https://explorer.arc.io/tx/0xe527f3c4d6d5d2bebeb25dbd67dcc429b99827deac6349a81f7a88c3f75efe9d) · [settle](https://explorer.arc.io/tx/0xce2caa88fa3a2b136a85771573f2b5ce269be2ea2182da91f78cd9a2243153b0) · [refund](https://explorer.arc.io/tx/0x70d68aa16db7588b90f172ccb68d20bb4f95ca099650a2755ee1a3436481c94d) |
@@ -26,3 +28,8 @@ _Each capability, the network it is proven on, and the transaction that shows it
 | An AI agent buying through MCP on Arc mainnet | Not yet | Not yet. |
 | Disputes (open from the wallet, arbiter splits the unspent balance) | Off-chain test | [disputes.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/disputes.ts) |
 | Catalog sync from the seller's own endpoint (tested against a local sample feed) | Off-chain test | [catalog-sync.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/catalog-sync.ts) |
+| WhatsApp channel: the deal agent on a seller's own WhatsApp Business number (deployed on both networks, a number connected and Meta's signed webhook verified; no real customer conversation yet) | Off-chain test | [whatsapp.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/whatsapp.ts) · [whatsapp-e2e.ts](https://github.com/Adityaakr/proteus/blob/main/server/scripts/whatsapp-e2e.ts) |
+| Seller API and webhooks: scoped keys for both networks and a public sandbox on Arc testnet | Off-chain test | [developers.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/routes/developers.ts) · [sandbox.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/sandbox.ts) |
+| A Proteus AI phone app | Not yet | Not yet. |
+
+> The same list is in [facts.json](https://app.proteus.co.in/docs/facts.json) under `claims`, with what is not proven yet under `notProven`.

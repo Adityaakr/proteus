@@ -15,15 +15,16 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 ## Start
 
 - [What Proteus AI is](https://app.proteus.co.in/docs/overview.md): A deal desk for anything sold by quote, volume or usage.
+- [Ways to use Proteus AI](https://app.proteus.co.in/docs/ways-to-use.md): One deal agent, many ways in: the web, a seller's website, WhatsApp, Claude and other MCP clients, your own agent, and your own systems.
 - [For AI agents](https://app.proteus.co.in/docs/for-agents.md): Everything an agent needs to read, verify and buy, in machine-readable form.
 - [What is live today](https://app.proteus.co.in/docs/status.md): Each capability, the network it is proven on, and the transaction that shows it.
 - [The problem](https://app.proteus.co.in/docs/problem.md): Every sale that is not a checkout button is still done by hand.
 
 ## Quickstarts
 
-- [Sell: from wallet to a listed product](https://app.proteus.co.in/docs/quickstart-seller.md): Seven steps from your own wallet to getting paid.
-- [Buy: from a question to a refund](https://app.proteus.co.in/docs/quickstart-buyer.md): Ask, review, sign once, pay only for what you countersign.
-- [Buy with an AI agent (MCP)](https://app.proteus.co.in/docs/quickstart-agent.md): Give any MCP client the full buying loop, within a limit you set.
+- [Sell: from wallet to a listed product](https://app.proteus.co.in/docs/quickstart-seller.md): From your own wallet to a listed product and your first payout.
+- [Buy: from a question to a refund](https://app.proteus.co.in/docs/quickstart-buyer.md): Ask, review, sign once, and pay only for what you countersign.
+- [Buy with an AI agent (MCP)](https://app.proteus.co.in/docs/quickstart-agent.md): Give Claude or any MCP client the full buying loop, within a limit you set.
 
 ## Developers
 
@@ -33,11 +34,11 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 
 ## Concepts
 
-- [Deal lifecycle](https://app.proteus.co.in/docs/lifecycle.md): Eight states, and who moves a deal between them.
+- [Deal lifecycle](https://app.proteus.co.in/docs/lifecycle.md): Every state a deal goes through, and who moves it between them.
 - [The money path](https://app.proteus.co.in/docs/money-path.md): Where the USDC is at every moment, and what releases it.
-- [What is signed, and by whom](https://app.proteus.co.in/docs/signatures.md): Eight messages; the contract checks each one.
+- [What is signed, and by whom](https://app.proteus.co.in/docs/signatures.md): Every message that moves money or identity, who signs it, and who checks it.
 - [How offers are priced](https://app.proteus.co.in/docs/pricing.md): Code decides the price; the model only writes the words.
-- [Privacy](https://app.proteus.co.in/docs/privacy.md): What each party can see when a buyer talks to a seller's agent, on the web or on WhatsApp.
+- [Privacy](https://app.proteus.co.in/docs/privacy.md): What each party can see when a buyer talks to a seller's agent, on the web, on WhatsApp or at a front desk.
 - [Front desk, orders and inbox](https://app.proteus.co.in/docs/front-desk.md): What a business and its customers see after the deal: a front desk customers can talk to, order tracking, an inbox, and alerts.
 - [The AI behind it](https://app.proteus.co.in/docs/ai-models.md): Which Claude model does which job, and the rules that keep it inside the seller's terms.
 - [Ratings and reputation](https://app.proteus.co.in/docs/ratings.md): Who can rate a seller, how a rating is checked, how the score is computed, and how to verify it on Arc.
@@ -62,9 +63,9 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 
 ## Reference
 
-- [FAQ](https://app.proteus.co.in/docs/faq.md)
-- [Glossary](https://app.proteus.co.in/docs/glossary.md)
-- [Links](https://app.proteus.co.in/docs/links.md)
+- [FAQ](https://app.proteus.co.in/docs/faq.md): Short answers to the questions people ask most, each linking to the detail.
+- [Glossary](https://app.proteus.co.in/docs/glossary.md): The terms these docs use, in one line each.
+- [Links](https://app.proteus.co.in/docs/links.md): Every API, machine-readable file and source in one place.
 
 ## Blog
 

@@ -6,6 +6,8 @@ Source: <https://app.proteus.co.in/docs/seller-api-reference> · facts as of 202
 
 _Every /api/v1/seller endpoint: what it needs, what it takes, what it returns. Each one has a Send button that calls the sandbox._
 
+For developers calling the seller API. Each endpoint lists its permission, parameters, an example request and response, and its errors. Money is micro-USDC as a string (`6600000` is $6.60).
+
 Paths are relative to the [base URL](https://app.proteus.co.in/docs/seller-api#seller-api-envs). Examples use `base` and `headers` from [quickstart step 1](https://app.proteus.co.in/docs/seller-api#seller-api-quickstart). Try it sends the request from your browser to the sandbox with its public key: reads return demo data, writes are dry runs.
 
 | Method | Path | Permission | What it does |

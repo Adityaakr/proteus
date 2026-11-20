@@ -6,14 +6,20 @@ Source: <https://app.proteus.co.in/docs/fees> · facts as of 2026-11-14 · all d
 
 _Nothing during the pilot. The seller keeps 100% of every deal._
 
+For sellers and buyers budgeting a deal. You will learn what Proteus charges (nothing during the pilot), why the escrow contract cannot take a cut, and who pays gas for each action.
+
 - **No Proteus fee in the pilot.** No Proteus fee during the pilot: no subscription, no listing fee, no cut of deals or per-call payments.
-- **The seller keeps 100%.** Settle pays the full accepted amount to the seller's payee ([DealEscrow.sol](https://github.com/Adityaakr/proteus/blob/main/contracts/src/DealEscrow.sol#L247)).
+- **The seller keeps 100%.** Settlement pays the full accepted amount to the seller's payee ([DealEscrow.sol](https://github.com/Adityaakr/proteus/blob/main/contracts/src/DealEscrow.sol#L248)).
 - **No fee hidden in the contract.** DealEscrow has no fee logic and no proxy; a fee could not be added to it later.
-- **Proteus pays the running costs.** Model calls, hosting and the relayer's gas for funding, settling and policy commits.
+- **Pay per call has no fee either.** The full x402 price goes to the seller's signer key or payee ([The money path](https://app.proteus.co.in/docs/money-path#money-x402)).
+- **Proteus pays the running costs.** Model calls, hosting and the relayer's gas for funding, settling, one-click refunds and policy commits.
 - **After the pilot.** Not set yet. Pilot sellers will be told before any fee applies; a fee could not touch deals on the current DealEscrow.
-- **Not to be confused with offer pricing.** How the seller's agent prices its offers is [a separate page](https://app.proteus.co.in/docs/pricing).
+
+> This page is about what Proteus charges. How the seller's agent prices its offers is [a separate page](https://app.proteus.co.in/docs/pricing).
 
 ### Who pays gas
+
+Gas on Arc is paid in USDC.
 
 | Action | Paid by |
 |---|---|
@@ -22,7 +28,11 @@ _Nothing during the pilot. The seller keeps 100% of every deal._
 | Fund a deal with a permit (gasless) | Proteus (relayer) |
 | Fund a deal with approve | The buyer |
 | Settle delivered units | Proteus (relayer) |
-| Refund the unspent balance | Whoever calls refundUnused |
+| Refund the unspent balance | Proteus (relayer) for the one-click refund on the deal page; anyone else who calls refundUnused pays their own gas |
+| Open a dispute | The buyer's wallet |
+| Rate the seller (ERC-8004 giveFeedback) | The buyer's wallet |
+| End a term early (sellerCloseTerm) | The seller signer key |
+| Sweep pay-per-call payments to the payee | The seller signer key (it keeps 0.05 USDC back for gas) |
 
 _Gasless funding is proven on Arc testnet; the mainnet loop so far was funded with approve._
 

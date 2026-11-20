@@ -6,6 +6,8 @@ Source: <https://app.proteus.co.in/docs/problem> · facts as of 2026-11-14 · al
 
 _Every sale that is not a checkout button is still done by hand._
 
+For sellers and buyers wondering whether Proteus fits them. You will see the kinds of sales it is for and what goes wrong with them today.
+
 | Business | The buyer asks | What happens today |
 |---|---|---|
 | Custom merch | "20 boxes with our logo, Mumbai by Oct 31, price per box?" | Priced by hand, answered hours later, prepaid on trust. |
@@ -16,9 +18,13 @@ _Every sale that is not a checkout button is still done by hand._
 | Compliance checks | "Screen 200 counterparties this quarter." | A deposit, a report weeks later, an argument over partial work. |
 | AI agents | Needs three paid API calls now. | No one to negotiate with; a person must step in. |
 
+### Why it keeps happening
+
 - **Slow replies lose orders.** The buyer asks several sellers; the first credible answer wins.
 - **Quotes by hand.** Sellers underprice to win, or spend hours per request.
 - **One-way trust.** Either the buyer prepays and hopes, or the seller delivers and chases.
 - **Paying for capacity, not delivery.** Seats and credits are bought upfront; failed work is billed anyway.
 - **Refunds by goodwill.** Unused credits expire; cancellations become support threads.
 - **No shared record.** Price in a chat, delivery in a screenshot, payment in a bank statement.
+
+> **Next:** See [what Proteus does about it](https://app.proteus.co.in/docs/overview#how-it-works), or go straight to the [seller quickstart](https://app.proteus.co.in/docs/quickstart-seller).
