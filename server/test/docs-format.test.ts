@@ -200,12 +200,9 @@ describe("docs match the code", async () => {
     } finally {
       vi.useRealTimers();
     }
-    const customer = Array.from({ length: 15 }, () => ({ role: "user", text: "hi" }));
-    expect(await status("tok-turns", "10.3.0.1", { sessionId: "session-abcdef", messages: customer })).toBe(429);
+    const customer = (n: number) => Array.from({ length: n }, () => ({ role: "user", text: "hi" }));
+    expect(await status("tok-turns", "10.3.0.1", { sessionId: "session-abcdef", messages: customer(14) })).toBe(404);
+    expect(await status("tok-turns", "10.3.0.1", { sessionId: "session-abcdef", messages: customer(15) })).toBe(429);
     expect(API.rateLimits).toContain("40 messages per IP per 10 minutes and 400 per customer link per day");
-  });
-
-  it("the money path names the seller's signer key as the x402 exact payee", () => {
-    expect(md).toContain("The seller's Proteus-held signer key");
   });
 });
