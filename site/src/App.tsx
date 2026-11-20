@@ -7,17 +7,17 @@ import { Decisions } from "./sections/Decisions";
 import { Verification } from "./sections/Verification";
 import { Partners } from "./sections/Partners";
 import { Comparison } from "./sections/Comparison";
-// import { Pricing } from "./sections/Pricing"; // unrendered, see content/proteus.ts
+import { Pricing } from "./sections/Pricing";
 // Compare (the vendor table) is not on the landing page; the docs render its data.
 import { Trust } from "./sections/Trust";
 import { Faq } from "./sections/Faq";
 import { Footer } from "./sections/Footer";
 
 /**
- * Landing page order: the promise (Hero), who it is for (Logos line), the four-step flow (Trust,
- * id "how-it-works"), the seller's deal agent (HowItWorks, id "agent"), seller control (Decisions),
- * what buyers can check (Verification), the seller types (Partners), buyers and their agents with
- * a status per channel (Comparison, id "agents"), then the FAQ.
+ * Landing page order, business outcomes first and chain detail last: the promise (Hero), who it is
+ * for (Logos line), how it works (HowItWorks), payment protection (Trust, id "protection"), margin
+ * control (Decisions), seller types (Partners), what anyone can check (Verification), the no-fee
+ * pilot (Pricing), under the hood with a status per part (Comparison, id "under-the-hood"), FAQ.
  */
 export default function App() {
   return (
@@ -26,13 +26,13 @@ export default function App() {
       <main>
         <Hero />
         <Logos />
-        <Trust />
         <HowItWorks />
+        <Trust />
         <Decisions />
-        <Verification />
         <Partners />
+        <Verification />
+        <Pricing />
         <Comparison />
-        {/* <Pricing /> : no pricing copy in the current doc; re-add when there is */}
         <Faq />
       </main>
       <Footer />

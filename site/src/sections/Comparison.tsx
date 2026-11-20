@@ -6,7 +6,7 @@ import DottedIcon from "../fx/DottedIcon";
 import s from "./Comparison.module.css";
 
 /**
- * "Industries" section (Framer node viN7yKCMO), rendered as "Buyers and agents" (id "agents").
+ * "Industries" section (Framer node viN7yKCMO), rendered as "Under the hood" (id "under-the-hood").
  * Dark container, centered white header, 3x2 grid (2 columns on tablet, 1 on phone) of
  * Industry cards: Dotted Icon code component (pixels, gradient, density 18, pixel size 1,
  * threshold per card), Heading 5 in White and Body 2 in White 60%.
@@ -74,7 +74,7 @@ function IndustryCard({ icon, threshold, title, body }: { icon: string; threshol
 export function Comparison() {
   const gap = useHeaderGap();
   return (
-    <section id="agents" className={s.section}>
+    <section id="under-the-hood" className={s.section}>
       <div className={s.container}>
         <div className={s.content}>
           <SectionHeader

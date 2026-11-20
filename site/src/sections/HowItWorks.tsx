@@ -138,7 +138,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <section id="agent" className={styles.section}>
+    <section id="how-it-works" className={styles.section}>
       <div className={styles.container}>
         <div className={styles.content}>
           <Appear preset="pop" className={styles.header} style={{ width: "100%" }}>

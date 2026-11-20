@@ -4,13 +4,13 @@ import { SectionHeader } from "../ui/SectionHeader";
 import s from "./Trust.module.css";
 
 /**
- * Dark section (WYSe0v1Nz), rendered as "How it works" (id "how-it-works"): Tag +
+ * Dark section (WYSe0v1Nz), rendered as "Payment protection" (id "protection"): Tag +
  * Heading 2 white (gap 32), the dotted-key "Image" frame (max 700, ratio 2.82), then the
- * "Security info container" row of four cards, the four steps (Heading 6 white + Body 3 White/80%).
+ * "Security info container" row of four cards (Heading 6 white + Body 3 White/80%).
  */
 export function Trust() {
   return (
-    <section id="how-it-works" className={s.section}>
+    <section id="protection" className={s.section}>
       <div className={s.container}>
         <div className={s.content}>
           <SectionHeader
