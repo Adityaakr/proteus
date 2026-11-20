@@ -1323,22 +1323,6 @@
       "label": "Live (Arc mainnet)"
     },
     {
-      "claim": "Website embed: a seller's deal agent on a third-party site, with signing and payment in a Proteus tab",
-      "network": "testnet",
-      "status": "proven",
-      "evidence": [
-        {
-          "label": "embed.js",
-          "url": "https://github.com/Adityaakr/proteus/blob/main/site/public/embed.js"
-        },
-        {
-          "label": "embed.ts",
-          "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/embed.ts"
-        }
-      ],
-      "label": "Testnet"
-    },
-    {
       "claim": "Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction), first on testnet, then for the Shoonya order on mainnet",
       "network": "mainnet",
       "status": "proven",
@@ -1357,6 +1341,22 @@
         }
       ],
       "label": "Live (Arc mainnet)"
+    },
+    {
+      "claim": "Website embed: a seller's deal agent on a third-party site, with signing and payment in a Proteus tab",
+      "network": "testnet",
+      "status": "proven",
+      "evidence": [
+        {
+          "label": "embed.js",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/site/public/embed.js"
+        },
+        {
+          "label": "embed.ts",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/embed.ts"
+        }
+      ],
+      "label": "Testnet"
     },
     {
       "claim": "Seller-confirmed delivery, then settlement",

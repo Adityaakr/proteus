@@ -148,10 +148,10 @@ export const CLAIMS: { claim: string; network: "mainnet" | "testnet" | "offchain
   { claim: "A Shoonya Store customer order, end to end: 1 tee negotiated at $6.60, funded gaslessly with a USDC permit, delivered, countersigned, and 6.60 USDC paid to Shoonya by DealEscrow (the buyer wallet was later found linked to a Shoonya team account in Proteus)", network: "mainnet", status: "proven", evidence: [
     { label: "fund", url: txUrl("mainnet", TX.shoonyaFund) }, { label: "settle", url: txUrl("mainnet", TX.shoonyaSettle) } ] },
   { claim: "The customer rates the seller 5 stars on the ERC-8004 ReputationRegistry from its own wallet, bound to the deal's terms hash", network: "mainnet", status: "proven", evidence: [{ label: "rating", url: txUrl("mainnet", TX.shoonyaRating) }] },
-  { claim: "Website embed: a seller's deal agent on a third-party site, with signing and payment in a Proteus tab", network: "testnet", status: "proven", evidence: [{ label: "embed.js", url: code("site/public/embed.js") }, { label: "embed.ts", url: code("server/src/services/embed.ts") }] },
   { claim: "Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction), first on testnet, then for the Shoonya order on mainnet", network: "mainnet", status: "proven", evidence: [
     { label: "mainnet fund", url: txUrl("mainnet", TX.shoonyaFund) },
     { label: "testnet fund", url: txUrl("testnet", TX.gaslessFund) }, { label: "testnet settle", url: txUrl("testnet", TX.gaslessSettle) } ] },
+  { claim: "Website embed: a seller's deal agent on a third-party site, with signing and payment in a Proteus tab", network: "testnet", status: "proven", evidence: [{ label: "embed.js", url: code("site/public/embed.js") }, { label: "embed.ts", url: code("server/src/services/embed.ts") }] },
   { claim: "Seller-confirmed delivery, then settlement", network: "testnet", status: "proven", evidence: [
     { label: "fund", url: txUrl("testnet", TX.kitboxFund) }, { label: "settle", url: txUrl("testnet", TX.kitboxSettle) } ] },
   { claim: "An AI agent (Claude) negotiates, funds and settles through MCP within a mandate", network: "testnet", status: "proven", evidence: [{ label: "transcript and transactions", url: EVIDENCE }] },
