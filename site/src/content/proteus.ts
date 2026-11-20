@@ -51,7 +51,7 @@ export const hero = {
   /** The three short facts under the buttons. */
   trust: ["Free during the pilot", "Live on Arc mainnet", "Set up in about 5 minutes"],
   chat: {
-    user: "We're hosting a hackathon in Bengaluru and need 250 custom tees with our logo. Our budget is $1,500. Can you make it work?",
+    user: "We're running a hackathon for 250 builders in Bengaluru on Dec 14. We need 250 black oversized tees, logo printed front and back, sizes S to XXL. Budget is $1,500 in USDC. Can you make it work?",
     status: ["Reading the request...", "Checking prices, margin and capacity", "Sizing offers to the budget"],
     done: "Two offers, both in policy.",
     reply:
