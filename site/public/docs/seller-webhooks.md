@@ -35,7 +35,7 @@ A deal event (funded, settled, refunded, dispute, approval needed, order details
 | `order_details` | A buyer sent order details | deal, product, link |
 | `whatsapp_human` | A WhatsApp buyer asked for a person | channel, link |
 
-Amounts in events are USDC with six decimals, as a string (`"6.600000"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up.
+Amounts in events are USDC with six decimals, as a string (`"6.600000"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up. `dispute_opened` fires for any dispute on the deal, including one the seller signer opened.
 
 <a id="webhooks-payload"></a>
 

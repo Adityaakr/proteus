@@ -14,7 +14,7 @@ For buyers, people or teams, using the web app. You will negotiate with a seller
 
 1. **Ask the seller's agent.** Quantity, date, budget. One conversation covers the whole store.
 2. **Review the offer.** Units, price, term, inclusions; the terms hash is recomputed in your browser.
-3. **Sign and fund.** Sign the terms (the seller's signer has already countersigned) and a USDC permit; the relayer submits and pays gas. Funds go to escrow.
+3. **Sign and fund.** Sign the terms (the seller's signer then countersigns) and a USDC permit; the relayer submits and pays gas. Funds go to escrow.
 4. **Use or receive.** Use the service on the deal page, or track your order to payout: accepted, in production, shipped with tracking, delivered. Failed calls and handoffs are never billed.
 5. **Get updates.** Choose a webhook, Telegram or email on the deal page.
 6. **Countersign.** Sign delivered usage; escrow pays the seller exactly that.

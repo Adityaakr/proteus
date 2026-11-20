@@ -285,6 +285,8 @@ For developers building agents that buy on Proteus, and for AI assistants readin
 - **Refund timing.** Each deal's terms carry `grace` (3 days by default). Refunds open at end + grace, or right after sellerCloseTerm; read refundableAt from GET /api/deals/{id}. Calling refundUnused earlier reverts.
 - **Example service.** [skill.md](https://app.proteus.co.in/api/public/sellers/shoonya-store-t4e/products/event-merch-box/skill.md) and [openapi.json](https://app.proteus.co.in/api/public/sellers/shoonya-store-t4e/products/event-merch-box/openapi.json) for Shoonya Store's event merch box.
 
+> **Invite codes:** If `GET /api/health` shows `features.inviteGate: true`, `POST /api/negotiations` needs an `X-Invite-Code` header from a caller without an account. Both live deployments have it off today.
+
 > **Warning: Check the addresses.** `GET /api/health` returns the escrow and USDC addresses the server uses; the MCP server takes them from there. Compare them with [Verify it yourself](https://app.proteus.co.in/docs/verify) before you sign a permit.
 
 | Method | Path (under /api) | Does |
@@ -329,7 +331,7 @@ For developers building agents that buy on Proteus, and for AI assistants readin
 | `POST` | `/services/{product}/connections/google` | Bearer key; start connecting Google Calendar (built, not switched on; DELETE disconnects) |
 | `GET` | `/public/talk/{token}` | a business's customer page (scheduling services): what to fill in |
 | `POST` | `/public/talk/{token}/messages` | a customer's request to the business's AI assistant; returns only the reply meant for the customer |
-| `GET` | `/deals/{id}/rating` | the giveFeedback arguments for this deal (buyer only, after USDC settles) and any rating already verified |
+| `GET` | `/deals/{id}/rating` | the giveFeedback arguments for this deal (ratable once USDC settles; only the buyer wallet can post them) and any rating already verified |
 | `POST` | `/deals/{id}/rating` | { txHash } after giveFeedback from the buyer wallet → verified rating, counted after the link check |
 | `POST` | `/pay/{seller}/{product}/execute` | x402: answers 402 with payment options, then the result |
 
@@ -424,7 +426,7 @@ _Each capability, the network it is proven on, and the transaction that shows it
 
 For anyone deciding what to rely on today. Each row is one capability, its status and the transaction or code that shows it. Live (Arc mainnet), Testnet and In testing mean what they mean on [Ways to use](https://app.proteus.co.in/docs/ways-to-use#ways-status); Not yet means not shown anywhere.
 
-| Capability | Proven on | Evidence |
+| Capability | Status | Evidence |
 |---|---|---|
 | Full escrow loop: approve, fund, settle, close, refund (team funds, 0.60 USDC) | Live (Arc mainnet) | [fund](https://explorer.arc.io/tx/0xe527f3c4d6d5d2bebeb25dbd67dcc429b99827deac6349a81f7a88c3f75efe9d) · [settle](https://explorer.arc.io/tx/0xce2caa88fa3a2b136a85771573f2b5ce269be2ea2182da91f78cd9a2243153b0) · [refund](https://explorer.arc.io/tx/0x70d68aa16db7588b90f172ccb68d20bb4f95ca099650a2755ee1a3436481c94d) |
 | A real business registers its agent from its own wallet (Shoonya Store, ERC-8004 Agent #2695) | Live (Arc mainnet) | [register](https://explorer.arc.io/tx/0x45921b0f981908b7d704b79119863781c21e71498c812965d90db1787bd24e55) |
@@ -432,7 +434,7 @@ For anyone deciding what to rely on today. Each row is one capability, its statu
 | A Shoonya Store customer order, end to end: 1 tee negotiated at $6.60, funded gaslessly with a USDC permit, delivered, countersigned, and 6.60 USDC paid to Shoonya by DealEscrow (the buyer wallet was later found linked to a Shoonya team account in Proteus) | Live (Arc mainnet) | [fund](https://explorer.arc.io/tx/0x9145fb235f7c00e625ccb91e3a8a817dcf3cd0b1ee4265fd5697cf79cb1b62a7) · [settle](https://explorer.arc.io/tx/0x852725276799255fa7425be9aafcd2296828a0a9553e3e2b9394104fcbad5542) |
 | The customer rates the seller 5 stars on the ERC-8004 ReputationRegistry from its own wallet, bound to the deal's terms hash | Live (Arc mainnet) | [rating](https://explorer.arc.io/tx/0x4689593d2dfa8accd71ba0c3d9867ca6cd2bfa382b44fa49014f4b53d3767605) |
 | Website embed: a seller's deal agent on a third-party site, with signing and payment in a Proteus tab | Testnet | [embed.js](https://github.com/Adityaakr/proteus/blob/main/site/public/embed.js) · [embed.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/embed.ts) |
-| Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction; also used for the Shoonya order on mainnet) | Testnet | [fund](https://explorer.testnet.arc.io/tx/0xcfc87ca9ab00adcafbd9468a17eb203d2e89e870b874f47d1e4e7610a7065d7d) · [settle](https://explorer.testnet.arc.io/tx/0x0601dc6e0ccf3bfbabe1dabbb2a57fef109c5b16ddf782f44a66fcbe126afac3) |
+| Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction), first on testnet, then for the Shoonya order on mainnet | Live (Arc mainnet) | [mainnet fund](https://explorer.arc.io/tx/0x9145fb235f7c00e625ccb91e3a8a817dcf3cd0b1ee4265fd5697cf79cb1b62a7) · [testnet fund](https://explorer.testnet.arc.io/tx/0xcfc87ca9ab00adcafbd9468a17eb203d2e89e870b874f47d1e4e7610a7065d7d) · [testnet settle](https://explorer.testnet.arc.io/tx/0x0601dc6e0ccf3bfbabe1dabbb2a57fef109c5b16ddf782f44a66fcbe126afac3) |
 | Seller-confirmed delivery, then settlement | Testnet | [fund](https://explorer.testnet.arc.io/tx/0x280207802e1d34e8e8731abaab31fd31333ff3d8559867f6776eae04af1f3c73) · [settle](https://explorer.testnet.arc.io/tx/0x63aeb139848a1067eedb1961ed0721ef00024e44b4e9ec1e46cc2cdbb7eb8b45) |
 | An AI agent (Claude) negotiates, funds and settles through MCP within a mandate | Testnet | [transcript and transactions](https://github.com/Adityaakr/proteus/blob/main/docs/evidence/2026-10-23-claude-mcp-kitbox.md) |
 | x402 pay per call (exact, through Circle's facilitator) | Testnet | [payment](https://explorer.testnet.arc.io/tx/0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8) |
@@ -563,7 +565,7 @@ For buyers, people or teams, using the web app. You will negotiate with a seller
 
 1. **Ask the seller's agent.** Quantity, date, budget. One conversation covers the whole store.
 2. **Review the offer.** Units, price, term, inclusions; the terms hash is recomputed in your browser.
-3. **Sign and fund.** Sign the terms (the seller's signer has already countersigned) and a USDC permit; the relayer submits and pays gas. Funds go to escrow.
+3. **Sign and fund.** Sign the terms (the seller's signer then countersigns) and a USDC permit; the relayer submits and pays gas. Funds go to escrow.
 4. **Use or receive.** Use the service on the deal page, or track your order to payout: accepted, in production, shipped with tracking, delivered. Failed calls and handoffs are never billed.
 5. **Get updates.** Choose a webhook, Telegram or email on the deal page.
 6. **Countersign.** Sign delivered usage; escrow pays the seller exactly that.
@@ -1498,7 +1500,7 @@ A deal event (funded, settled, refunded, dispute, approval needed, order details
 | `order_details` | A buyer sent order details | deal, product, link |
 | `whatsapp_human` | A WhatsApp buyer asked for a person | channel, link |
 
-Amounts in events are USDC with six decimals, as a string (`"6.600000"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up.
+Amounts in events are USDC with six decimals, as a string (`"6.600000"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up. `dispute_opened` fires for any dispute on the deal, including one the seller signer opened.
 
 <a id="webhooks-payload"></a>
 
@@ -2259,7 +2261,7 @@ _Gasless funding is proven on both networks: the Shoonya order on Arc mainnet wa
 
 _What sellers and buyers get, and where each is proven._
 
-For sellers and buyers comparing what Proteus can do today. Each feature has one line and where it is proven: on Arc mainnet, on Arc testnet, or in local tests only.
+For sellers and buyers comparing what Proteus can do today. Each feature has one line and a status.
 
 > Status words mean the same as on [Ways to use](https://app.proteus.co.in/docs/ways-to-use#ways-status): Live (used on Arc mainnet), Testnet (proven on Arc testnet), In testing (built and deployed or covered by tests, not yet used end to end by a real customer).
 
@@ -2517,7 +2519,7 @@ _Others help you quote, negotiate or bill. Proteus takes a deal from the first m
 
 For buyers and sellers comparing tools. Each capability against products that quote, negotiate or bill; marks come from each vendor's public pages, and Proteus marks only what is implemented.
 
-| Capability | Proteus AI | DealHub | Pactum AI | Nue | Sequence | Metronome |
+| Capability | Proteus AI | [DealHub](https://dealhub.io) | [Pactum AI](https://pactum.com) | [Nue](https://www.nue.io) | [Sequence](https://www.sequencehq.com) | [Metronome](https://metronome.com) |
 |---|---|---|---|---|---|---|
 | Autonomous customer-facing negotiations | Yes | Not core focus | Yes (Supplier side, for buyers) | Not core focus | Not core focus | Not core focus |
 | Cost-aware pricing and margin protection | Yes | Partial (Discount thresholds, approvals) | Partial (Negotiates to savings targets) | Not core focus | Not core focus | Not core focus |
@@ -2574,7 +2576,7 @@ For sellers, buyers and agent builders who want a quick answer. Each answer link
 ### Using Proteus
 
 - **Where can I use it?** The web app, a seller's website, WhatsApp (in testing), Claude and other MCP clients, your own agent over HTTP, and the seller API. A phone app is coming. [Ways to use Proteus AI](https://app.proteus.co.in/docs/ways-to-use).
-- **Is it on mainnet?** Yes: the escrow, a real business, its policies and a real customer order. Most other feature proofs are on testnet. [What is live today](https://app.proteus.co.in/docs/status).
+- **Is it on mainnet?** Yes: the escrow, a real business, its policies and a Shoonya order paid out (its buyer wallet was later found linked to a Shoonya team account). Most other feature proofs are on testnet. [What is live today](https://app.proteus.co.in/docs/status).
 - **Can my agent buy alone?** Yes, through MCP, within a per-deal limit you set; proven on testnet. [Agent quickstart](https://app.proteus.co.in/docs/quickstart-agent).
 - **Can my customers talk to it?** Yes, for scheduling services: share your customer link or embed it on your site, and customers chat or speak with your AI assistant. No phone number yet. [Front desk](https://app.proteus.co.in/docs/front-desk).
 - **How do I track my order?** Open the deal: it shows paid, accepted, in production, shipped with tracking, delivered and seller paid, each with its proof. Add a webhook, Telegram or email for alerts. [Order tracking](https://app.proteus.co.in/docs/front-desk#front-desk-orders).

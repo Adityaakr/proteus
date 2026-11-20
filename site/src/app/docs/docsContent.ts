@@ -149,8 +149,9 @@ export const CLAIMS: { claim: string; network: "mainnet" | "testnet" | "offchain
     { label: "fund", url: txUrl("mainnet", TX.shoonyaFund) }, { label: "settle", url: txUrl("mainnet", TX.shoonyaSettle) } ] },
   { claim: "The customer rates the seller 5 stars on the ERC-8004 ReputationRegistry from its own wallet, bound to the deal's terms hash", network: "mainnet", status: "proven", evidence: [{ label: "rating", url: txUrl("mainnet", TX.shoonyaRating) }] },
   { claim: "Website embed: a seller's deal agent on a third-party site, with signing and payment in a Proteus tab", network: "testnet", status: "proven", evidence: [{ label: "embed.js", url: code("site/public/embed.js") }, { label: "embed.ts", url: code("server/src/services/embed.ts") }] },
-  { claim: "Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction; also used for the Shoonya order on mainnet)", network: "testnet", status: "proven", evidence: [
-    { label: "fund", url: txUrl("testnet", TX.gaslessFund) }, { label: "settle", url: txUrl("testnet", TX.gaslessSettle) } ] },
+  { claim: "Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction), first on testnet, then for the Shoonya order on mainnet", network: "mainnet", status: "proven", evidence: [
+    { label: "mainnet fund", url: txUrl("mainnet", TX.shoonyaFund) },
+    { label: "testnet fund", url: txUrl("testnet", TX.gaslessFund) }, { label: "testnet settle", url: txUrl("testnet", TX.gaslessSettle) } ] },
   { claim: "Seller-confirmed delivery, then settlement", network: "testnet", status: "proven", evidence: [
     { label: "fund", url: txUrl("testnet", TX.kitboxFund) }, { label: "settle", url: txUrl("testnet", TX.kitboxSettle) } ] },
   { claim: "An AI agent (Claude) negotiates, funds and settles through MCP within a mandate", network: "testnet", status: "proven", evidence: [{ label: "transcript and transactions", url: EVIDENCE }] },
@@ -170,7 +171,7 @@ export const CLAIMS: { claim: string; network: "mainnet" | "testnet" | "offchain
 ];
 
 /** The status words used everywhere in the docs (CHANNEL_STATUS), plus "Not yet" for a capability not shown anywhere. */
-const statusCell = (c: (typeof CLAIMS)[number]) => (c.status === "proven" ? (c.network === "mainnet" ? "Live (Arc mainnet)" : "Testnet") : c.status === "not-yet" ? "Not yet" : "In testing");
+export const claimLabel = (c: (typeof CLAIMS)[number]) => (c.status === "proven" ? (c.network === "mainnet" ? "Live (Arc mainnet)" : "Testnet") : c.status === "not-yet" ? "Not yet" : "In testing");
 const evidenceCell = (c: (typeof CLAIMS)[number]) => (c.evidence.length ? c.evidence.map((e) => `[${e.label}](${e.url})`).join(" · ") : "—");
 
 /** Public HTTP API (base: NETWORKS.*.api). Buyer routes need no account; the invite gate is off on both deployments. */
@@ -220,7 +221,7 @@ export const API = {
     ["POST", "/services/{product}/connections/google", "Bearer key; start connecting Google Calendar (built, not switched on; DELETE disconnects)"],
     ["GET", "/public/talk/{token}", "a business's customer page (scheduling services): what to fill in"],
     ["POST", "/public/talk/{token}/messages", "a customer's request to the business's AI assistant; returns only the reply meant for the customer"],
-    ["GET", "/deals/{id}/rating", "the giveFeedback arguments for this deal (buyer only, after USDC settles) and any rating already verified"],
+    ["GET", "/deals/{id}/rating", "the giveFeedback arguments for this deal (ratable once USDC settles; only the buyer wallet can post them) and any rating already verified"],
     ["POST", "/deals/{id}/rating", "{ txHash } after giveFeedback from the buyer wallet → verified rating, counted after the link check"],
     ["POST", "/pay/{seller}/{product}/execute", "x402: answers 402 with payment options, then the result"],
   ] as const,
@@ -453,6 +454,7 @@ export const SECTIONS: DocSection[] = [
         { title: "Refund timing", text: GRACE.note },
         { title: "Example service", text: "[skill.md](" + API.example.skill + ") and [openapi.json](" + API.example.openapi + ") for Shoonya Store's event merch box." },
       ] },
+      { kind: "callout", tone: "note", title: "Invite codes", text: "If `GET /api/health` shows `features.inviteGate: true`, `POST /api/negotiations` needs an `X-Invite-Code` header from a caller without an account. Both live deployments have it off today." },
       { kind: "callout", tone: "warning", title: "Check the addresses", text: "`GET /api/health` returns the escrow and USDC addresses the server uses; the MCP server takes them from there. Compare them with [Verify it yourself](/docs/verify) before you sign a permit." },
       { kind: "table", head: ["Method", "Path (under /api)", "Does"], rows: API.endpoints.map(([m, path, d]) => ["`" + m + "`", "`" + path + "`", d]) },
       { kind: "h3", id: "agent-rules", text: "Rules an agent should follow" },
@@ -482,7 +484,7 @@ export const SECTIONS: DocSection[] = [
     summary: "Each capability, the network it is proven on, and the transaction that shows it.",
     intro: "For anyone deciding what to rely on today. Each row is one capability, its status and the transaction or code that shows it. Live (Arc mainnet), Testnet and In testing mean what they mean on [Ways to use](/docs/ways-to-use#ways-status); Not yet means not shown anywhere.",
     blocks: [
-      { kind: "table", head: ["Capability", "Proven on", "Evidence"], rows: CLAIMS.map((c) => [c.claim, statusCell(c), evidenceCell(c)]) },
+      { kind: "table", head: ["Capability", "Status", "Evidence"], rows: CLAIMS.map((c) => [c.claim, claimLabel(c), evidenceCell(c)]) },
       { kind: "callout", tone: "note", text: "The same list is in [facts.json](/docs/facts.json) under `claims`, with what is not proven yet under `notProven`." },
     ],
   },
@@ -578,7 +580,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "steps", items: [
         { title: "Ask the seller's agent", text: "Quantity, date, budget. One conversation covers the whole store." },
         { title: "Review the offer", text: "Units, price, term, inclusions; the terms hash is recomputed in your browser." },
-        { title: "Sign and fund", text: "Sign the terms (the seller's signer has already countersigned) and a USDC permit; the relayer submits and pays gas. Funds go to escrow." },
+        { title: "Sign and fund", text: "Sign the terms (the seller's signer then countersigns) and a USDC permit; the relayer submits and pays gas. Funds go to escrow." },
         { title: "Use or receive", text: "Use the service on the deal page, or track your order to payout: accepted, in production, shipped with tracking, delivered. Failed calls and handoffs are never billed." },
         { title: "Get updates", text: "Choose a webhook, Telegram or email on the deal page." },
         { title: "Countersign", text: "Sign delivered usage; escrow pays the seller exactly that." },
@@ -754,7 +756,7 @@ export const SECTIONS: DocSection[] = [
       ] },
       { kind: "h3", id: "webhooks-events", text: "Events" },
       { kind: "table", head: ["Event", "When", "Fields in data"], rows: WEBHOOK_EVENTS_REFERENCE.map((e) => ["`" + e.event + "`", e.title, e.data]) },
-      { kind: "p", text: "Amounts in events are USDC with six decimals, as a string (`\"6.600000\"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up." },
+      { kind: "p", text: "Amounts in events are USDC with six decimals, as a string (`\"6.600000\"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up. `dispute_opened` fires for any dispute on the deal, including one the seller signer opened." },
       { kind: "h3", id: "webhooks-payload", text: "Payload" },
       { kind: "code", lang: "http", text: "POST /your/webhook HTTP/1.1\nContent-Type: application/json\nUser-Agent: ProteusAI-Webhooks/1\nX-Proteus-Signature: t=1795122246,v1=5f2c…\n\n{\n  \"id\": \"ntf_…\",\n  \"event\": \"usage_settled\",\n  \"createdAt\": \"2026-11-20T10:00:00.000Z\",\n  \"data\": {\n    \"deal\": \"d_…\",\n    \"amountUsdc\": \"6.600000\",\n    \"txHash\": \"0x…\",\n    \"explorer\": \"https://explorer.arc.io/tx/0x…\",\n    \"link\": \"https://app.proteus.co.in/app/sell/deals/deal_…\"\n  }\n}" },
       { kind: "p", text: "A test event has the same envelope with `\"event\": \"test\"`, `\"test\": true` and an id starting `evt_test_`." },
@@ -1146,7 +1148,7 @@ export const SECTIONS: DocSection[] = [
     group: "Product",
     title: "Features",
     summary: "What sellers and buyers get, and where each is proven.",
-    intro: "For sellers and buyers comparing what Proteus can do today. Each feature has one line and where it is proven: on Arc mainnet, on Arc testnet, or in local tests only.",
+    intro: "For sellers and buyers comparing what Proteus can do today. Each feature has one line and a status.",
     blocks: [
       { kind: "callout", tone: "note", text: "Status words mean the same as on [Ways to use](/docs/ways-to-use#ways-status): Live (used on Arc mainnet), Testnet (proven on Arc testnet), In testing (built and deployed or covered by tests, not yet used end to end by a real customer)." },
       { kind: "h3", id: "for-sellers", text: "For sellers" },
@@ -1376,7 +1378,7 @@ export const SECTIONS: DocSection[] = [
       { kind: "h3", id: "faq-using", text: "Using Proteus" },
       { kind: "points", items: [
         { title: "Where can I use it?", text: "The web app, a seller's website, WhatsApp (in testing), Claude and other MCP clients, your own agent over HTTP, and the seller API. A phone app is coming. [Ways to use Proteus AI](/docs/ways-to-use)." },
-        { title: "Is it on mainnet?", text: "Yes: the escrow, a real business, its policies and a real customer order. Most other feature proofs are on testnet. [What is live today](/docs/status)." },
+        { title: "Is it on mainnet?", text: "Yes: the escrow, a real business, its policies and a Shoonya order paid out (its buyer wallet was later found linked to a Shoonya team account). Most other feature proofs are on testnet. [What is live today](/docs/status)." },
         { title: "Can my agent buy alone?", text: "Yes, through MCP, within a per-deal limit you set; proven on testnet. [Agent quickstart](/docs/quickstart-agent)." },
         { title: "Can my customers talk to it?", text: "Yes, for scheduling services: share your customer link or embed it on your site, and customers chat or speak with your AI assistant. No phone number yet. [Front desk](/docs/front-desk)." },
         { title: "How do I track my order?", text: "Open the deal: it shows paid, accepted, in production, shipped with tracking, delivered and seller paid, each with its proof. Add a webhook, Telegram or email for alerts. [Order tracking](/docs/front-desk#front-desk-orders)." },
@@ -1549,7 +1551,7 @@ export function docsMarkdown(origin: string, only?: string): string {
         }
       } else if (b.kind === "compare") {
         const c = compareRows();
-        out.push(`| Capability | ${c.vendors.map((v) => v.name).join(" | ")} |`, `|---|${c.vendors.map(() => "---").join("|")}|`);
+        out.push(`| Capability | ${c.vendors.map((v) => (v.url ? `[${v.name}](${v.url})` : v.name)).join(" | ")} |`, `|---|${c.vendors.map(() => "---").join("|")}|`);
         for (const row of c.capabilities) out.push(`| ${row.capability} | ${row.marks.map((m) => m.mark + (m.note ? ` (${m.note})` : "")).join(" | ")} |`);
         out.push("", `_${c.footnote}_`, "");
       }

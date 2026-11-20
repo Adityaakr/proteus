@@ -4,7 +4,7 @@ Source: <https://app.proteus.co.in/docs/features> · facts as of 2026-11-20 · a
 
 _What sellers and buyers get, and where each is proven._
 
-For sellers and buyers comparing what Proteus can do today. Each feature has one line and where it is proven: on Arc mainnet, on Arc testnet, or in local tests only.
+For sellers and buyers comparing what Proteus can do today. Each feature has one line and a status.
 
 > Status words mean the same as on [Ways to use](https://app.proteus.co.in/docs/ways-to-use#ways-status): Live (used on Arc mainnet), Testnet (proven on Arc testnet), In testing (built and deployed or covered by tests, not yet used end to end by a real customer).
 

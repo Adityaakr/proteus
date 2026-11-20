@@ -36,6 +36,8 @@ For developers building agents that buy on Proteus, and for AI assistants readin
 - **Refund timing.** Each deal's terms carry `grace` (3 days by default). Refunds open at end + grace, or right after sellerCloseTerm; read refundableAt from GET /api/deals/{id}. Calling refundUnused earlier reverts.
 - **Example service.** [skill.md](https://app.proteus.co.in/api/public/sellers/shoonya-store-t4e/products/event-merch-box/skill.md) and [openapi.json](https://app.proteus.co.in/api/public/sellers/shoonya-store-t4e/products/event-merch-box/openapi.json) for Shoonya Store's event merch box.
 
+> **Invite codes:** If `GET /api/health` shows `features.inviteGate: true`, `POST /api/negotiations` needs an `X-Invite-Code` header from a caller without an account. Both live deployments have it off today.
+
 > **Warning: Check the addresses.** `GET /api/health` returns the escrow and USDC addresses the server uses; the MCP server takes them from there. Compare them with [Verify it yourself](https://app.proteus.co.in/docs/verify) before you sign a permit.
 
 | Method | Path (under /api) | Does |
@@ -80,7 +82,7 @@ For developers building agents that buy on Proteus, and for AI assistants readin
 | `POST` | `/services/{product}/connections/google` | Bearer key; start connecting Google Calendar (built, not switched on; DELETE disconnects) |
 | `GET` | `/public/talk/{token}` | a business's customer page (scheduling services): what to fill in |
 | `POST` | `/public/talk/{token}/messages` | a customer's request to the business's AI assistant; returns only the reply meant for the customer |
-| `GET` | `/deals/{id}/rating` | the giveFeedback arguments for this deal (buyer only, after USDC settles) and any rating already verified |
+| `GET` | `/deals/{id}/rating` | the giveFeedback arguments for this deal (ratable once USDC settles; only the buyer wallet can post them) and any rating already verified |
 | `POST` | `/deals/{id}/rating` | { txHash } after giveFeedback from the buyer wallet → verified rating, counted after the link check |
 | `POST` | `/pay/{seller}/{product}/execute` | x402: answers 402 with payment options, then the result |
 

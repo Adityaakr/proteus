@@ -22,7 +22,7 @@ For sellers, buyers and agent builders who want a quick answer. Each answer link
 ### Using Proteus
 
 - **Where can I use it?** The web app, a seller's website, WhatsApp (in testing), Claude and other MCP clients, your own agent over HTTP, and the seller API. A phone app is coming. [Ways to use Proteus AI](https://app.proteus.co.in/docs/ways-to-use).
-- **Is it on mainnet?** Yes: the escrow, a real business, its policies and a real customer order. Most other feature proofs are on testnet. [What is live today](https://app.proteus.co.in/docs/status).
+- **Is it on mainnet?** Yes: the escrow, a real business, its policies and a Shoonya order paid out (its buyer wallet was later found linked to a Shoonya team account). Most other feature proofs are on testnet. [What is live today](https://app.proteus.co.in/docs/status).
 - **Can my agent buy alone?** Yes, through MCP, within a per-deal limit you set; proven on testnet. [Agent quickstart](https://app.proteus.co.in/docs/quickstart-agent).
 - **Can my customers talk to it?** Yes, for scheduling services: share your customer link or embed it on your site, and customers chat or speak with your AI assistant. No phone number yet. [Front desk](https://app.proteus.co.in/docs/front-desk).
 - **How do I track my order?** Open the deal: it shows paid, accepted, in production, shipped with tracking, delivered and seller paid, each with its proof. Add a webhook, Telegram or email for alerts. [Order tracking](https://app.proteus.co.in/docs/front-desk#front-desk-orders).

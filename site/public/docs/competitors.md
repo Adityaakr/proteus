@@ -6,7 +6,7 @@ _Others help you quote, negotiate or bill. Proteus takes a deal from the first m
 
 For buyers and sellers comparing tools. Each capability against products that quote, negotiate or bill; marks come from each vendor's public pages, and Proteus marks only what is implemented.
 
-| Capability | Proteus AI | DealHub | Pactum AI | Nue | Sequence | Metronome |
+| Capability | Proteus AI | [DealHub](https://dealhub.io) | [Pactum AI](https://pactum.com) | [Nue](https://www.nue.io) | [Sequence](https://www.sequencehq.com) | [Metronome](https://metronome.com) |
 |---|---|---|---|---|---|---|
 | Autonomous customer-facing negotiations | Yes | Not core focus | Yes (Supplier side, for buyers) | Not core focus | Not core focus | Not core focus |
 | Cost-aware pricing and margin protection | Yes | Partial (Discount thresholds, approvals) | Partial (Negotiates to savings targets) | Not core focus | Not core focus | Not core focus |
