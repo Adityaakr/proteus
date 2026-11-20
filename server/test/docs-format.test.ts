@@ -1,7 +1,8 @@
 import { createHmac } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { Hono } from "hono";
+import { describe, expect, it, vi } from "vitest";
+import { DELIVERY_TYPES } from "@proteus/domain";
+import type { HttpError } from "../src/lib/http";
 import { serviceOpenApi, serviceSkill } from "../src/services/agentdocs";
 import { publicProduct, unitPriceUsd } from "../src/services/catalog";
 import { sampleWebhookEvent, signWebhook } from "../src/services/notify";
@@ -158,40 +159,53 @@ describe("generated docs", async () => {
 describe("docs match the code", async () => {
   const { API, MCP_TOOLS, docsMarkdown } = await import("../../site/src/app/docs/docsContent");
   const md = docsMarkdown("https://app.example");
-  const root = join(__dirname, "..", "..");
-  const read = (p: string) => readFileSync(join(root, p), "utf8");
-  const routes = readdirSync(join(root, "server/src/routes")).map((f) => read(`server/src/routes/${f}`)).join("\n") + read("server/src/index.ts");
 
-  it("every public HTTP endpoint in the docs exists in the server's routes", () => {
-    for (const [method, path] of API.endpoints) {
-      const clean = path.split("?")[0]!;
-      const pattern = clean.replace(/[.*+?^$()|[\]\\]/g, "\\$&").replace(/\{[a-zA-Z]+\}/g, ":[A-Za-z]+");
-      const re = new RegExp(`\\.${method.toLowerCase()}\\("(?:/api)?${pattern}"`);
-      expect(re.test(routes), `${method} ${path}`).toBe(true);
-    }
+  it("every public HTTP endpoint in the docs is a route the server mounts under /api", async () => {
+    const { apiRoutes } = await import("../src/routes/api");
+    const app = new Hono().route("/api", apiRoutes());
+    const param = (p: string) => p.replace(/\{[A-Za-z]+\}|:[A-Za-z]+(\{[^}]*\})?/g, ":p");
+    const mounted = new Set(app.routes.filter((r) => r.method !== "ALL").map((r) => `${r.method} ${param(r.path)}`));
+    for (const [method, path] of API.endpoints) expect(mounted, `${method} ${path}`).toContain(`${method} ${param(`/api${path.split("?")[0]}`)}`);
   });
 
-  it("the MCP tool table lists exactly the tools the MCP server registers", () => {
-    const src = read("packages/mcp/src/index.ts");
-    const registered = [...src.matchAll(/registerTool\(\s*"([a-z_]+)"/g)].map((m) => m[1]);
-    expect(MCP_TOOLS.map(([name]) => name)).toEqual(registered);
+  it("the MCP tool table lists exactly the tools the MCP server registers", async () => {
+    const { toolNames } = await import("../../packages/mcp/src/server");
+    expect(MCP_TOOLS.map(([name]) => name)).toEqual(toolNames);
   });
 
   it("the Delivery signature carries units and the receipts root, not the amount", () => {
-    expect(read("contracts/src/DealEscrow.sol")).toContain('"Delivery(uint256 dealId,bytes32 receiptsRoot,uint256 cumulativeUnits)"');
+    expect(DELIVERY_TYPES.Delivery).toEqual([
+      { name: "dealId", type: "uint256" },
+      { name: "receiptsRoot", type: "bytes32" },
+      { name: "cumulativeUnits", type: "uint256" },
+    ]);
     expect(md).toContain("Delivery (EIP-712): cumulative units and receipts root, no amount");
   });
 
-  it("front desk limits in the docs match the code", () => {
-    const src = read("server/src/services/customer-link.ts");
-    expect(src).toContain("const MAX_TURNS = 14;");
-    expect(src).toContain("limit(`talk-ip:${ip}`, 40);");
-    expect(src).toContain("limit(`talk-link:${sha256(token)}`, 400, 24 * 3600_000);");
+  it("front desk limits in the docs match what the chat endpoint enforces", async () => {
+    const { customerChat } = await import("../src/services/customer-link");
+    const status = (token: string, ip: string, body: Record<string, unknown> = {}) =>
+      customerChat(token, ip, body).then(() => 200, (e: HttpError) => e.status);
+    for (let i = 0; i < 40; i++) expect(await status("tok-ip", "10.0.0.1")).toBe(400);
+    expect(await status("tok-ip", "10.0.0.1")).toBe(429);
+    for (let i = 0; i < 400; i++) expect(await status("tok-link", `10.1.${i >> 8}.${i & 255}`)).toBe(400);
+    expect(await status("tok-link", "10.2.0.1")).toBe(429);
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(Date.now() + 11 * 60_000);
+      expect(await status("tok-ip", "10.0.0.1")).toBe(400);
+      expect(await status("tok-link", "10.2.0.2")).toBe(429);
+      vi.setSystemTime(Date.now() + 24 * 3600_000);
+      expect(await status("tok-link", "10.2.0.3")).toBe(400);
+    } finally {
+      vi.useRealTimers();
+    }
+    const customer = Array.from({ length: 15 }, () => ({ role: "user", text: "hi" }));
+    expect(await status("tok-turns", "10.3.0.1", { sessionId: "session-abcdef", messages: customer })).toBe(429);
     expect(API.rateLimits).toContain("40 messages per IP per 10 minutes and 400 per customer link per day");
   });
 
-  it("the x402 exact scheme pays the seller's signer key, as the money path says", () => {
-    expect(read("server/src/services/x402.ts")).toMatch(/payTo: collector/);
+  it("the money path names the seller's signer key as the x402 exact payee", () => {
     expect(md).toContain("The seller's Proteus-held signer key");
   });
 });

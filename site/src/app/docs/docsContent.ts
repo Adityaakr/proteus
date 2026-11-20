@@ -283,7 +283,7 @@ export const MCP_TOOLS = [
   ["proteus_deal_status", "Deposit, used, settled and remaining, read from the escrow."],
 ] as const;
 
-/** Known gaps: [title, detail, group]. The page groups them; facts.json lists title and detail. */
+/** Known gaps: [title, detail, group]. The page groups them; facts.json lists each with its title, detail and group. */
 export const LIMITS = [
   ["No audit yet", "DealEscrow is source-verified and tested, not independently audited.", "Escrow and disputes"],
   ["Proteus can open and decide a dispute", "The seller signer is the deal's seller on chain and Proteus holds it, so it can open a dispute; the arbiter key, also Proteus's, then splits the unspent balance. Settled funds are out of reach. There is one arbiter key and no dispute timeout yet.", "Escrow and disputes"],

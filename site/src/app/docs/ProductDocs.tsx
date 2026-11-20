@@ -4,7 +4,7 @@
  * /docs/<page>.md for agents (generated at build). Unknown pages fall back to the first page.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, ArrowRight, ArrowUpRight, Check, Copy, FileText, Info, Lightbulb, Minus } from "lucide-react";
 import "../app.css";
 import { WordmarkImage } from "../layouts/Wordmark";
@@ -31,6 +31,7 @@ export default function ProductDocs() {
 
 function DocsPage({ sec }: { sec: DocSection }) {
   const [copied, setCopied] = useState(false);
+  const { hash } = useLocation();
   const index = SECTIONS.findIndex((x) => x.id === sec.id);
   const prev = SECTIONS[index - 1];
   const next = SECTIONS[index + 1];
@@ -44,10 +45,10 @@ function DocsPage({ sec }: { sec: DocSection }) {
   useEffect(() => {
     document.title = `${sec.title} · Proteus AI docs`;
     // A link to a heading on another page (/docs/page#heading) lands on that heading, not the top.
-    const target = window.location.hash ? document.getElementById(decodeURIComponent(window.location.hash.slice(1))) : null;
+    const target = hash ? document.getElementById(decodeURIComponent(hash.slice(1))) : null;
     if (target) requestAnimationFrame(() => target.scrollIntoView());
     else window.scrollTo({ top: 0 });
-  }, [sec]);
+  }, [sec, hash]);
 
   const copy = async () => {
     try {

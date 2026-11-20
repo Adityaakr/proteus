@@ -9,22 +9,10 @@ import { ZodError } from "zod";
 import { agentAdapterName } from "./agent";
 import { startReconciler } from "./chain/reconciler";
 import { relayerKind } from "./chain/relayer";
-import { sellerSignerAddress } from "./chain/client";
-import { env, features } from "./env";
-import { explorerBase } from "@proteus/domain";
+import { env } from "./env";
 import { HttpError, json } from "./lib/http";
-import { appRoutes } from "./routes/app";
-import { dealRoutes } from "./routes/deals";
-import { publicRoutes } from "./routes/public";
-import { meRoutes } from "./routes/me";
-import { payRoutes } from "./routes/pay";
-import { rpcRoutes } from "./routes/rpc";
-import { channelRoutes } from "./routes/channels";
-import { inviteRoutes } from "./routes/invites";
-import { circleAuthRoutes } from "./routes/circle-auth";
-import { consoleRoutes } from "./routes/console";
-import { developerRoutes, sellerApiRoutes } from "./routes/developers";
-import { sandboxCors, sandboxEnabled, sandboxRoutes } from "./routes/sandbox";
+import { apiRoutes } from "./routes/api";
+import { sandboxCors } from "./routes/sandbox";
 import { SANDBOX_PREFIX } from "./services/sandbox";
 import { embedAncestors } from "./services/embed";
 
@@ -51,38 +39,7 @@ app.use("*", async (c, next) => {
   }
 });
 
-app.get("/api/health", (c) =>
-  json(c, {
-    ok: true,
-    network: features.network,
-    chainId: env.CHAIN_ID,
-    explorer: explorerBase(env.CHAIN_ID),
-    peer: env.PEER_NETWORK_URL ? { network: features.network === "testnet" ? "mainnet" : "testnet", url: env.PEER_NETWORK_URL } : null,
-    escrowAddress: env.ESCROW_ADDRESS ?? null,
-    usdcAddress: env.USDC_ADDRESS,
-    agentAdapter: agentAdapterName(),
-    relayer: relayerKind(),
-    sellerSigner: sellerSignerAddress() ?? null,
-    auth: { provider: features.authProvider, privyAppId: env.PRIVY_APP_ID, circleAppId: features.circleAuth ? env.CIRCLE_APP_ID : null, circleEmail: features.circleEmail, circleChain: env.CHAIN_ID === 5042002 ? "ARC-TESTNET" : "ARC", devBypass: features.privyDevBypass },
-    features,
-    time: new Date().toISOString(),
-  }),
-);
-
-app.route("/api", inviteRoutes);
-app.route("/api", circleAuthRoutes);
-app.route("/api", publicRoutes);
-app.route("/api", dealRoutes);
-app.route("/api", meRoutes);
-app.route("/api", payRoutes);
-app.route("/api", appRoutes);
-app.route("/api", consoleRoutes);
-app.route("/api", developerRoutes());
-app.route("/api", sellerApiRoutes());
-// The sandbox serves fixed demo data only, and only on the testnet deployment.
-if (sandboxEnabled(features.network)) app.route("/api", sandboxRoutes());
-app.route("/api", rpcRoutes);
-app.route("/api", channelRoutes);
+app.route("/api", apiRoutes());
 
 // Hosted mode: the built site lives next to the API, so one service serves both from one origin.
 // Anything that is not /api and not a file in site/dist answers the SPA shell (client-side routing).
