@@ -5,9 +5,10 @@
  */
 import { useMemo } from "react";
 import s from "./productDocs.module.css";
+import type { DiagramName } from "./docsContent";
 
 type Tone = "blue" | "green" | "amber" | "rose" | "gray" | "ink";
-interface SketchNode { id: string; x: number; y: number; w: number; h: number; title: string; sub?: string; tone?: Tone }
+interface SketchNode { id: string; x: number; y: number; w: number; h: number; title: string; sub?: string; tone?: Tone; /** A dashed outline: something not built yet. */ dashed?: boolean }
 interface SketchEdge { from: string; to: string; label?: string; dashed?: boolean; bend?: number; labelAt?: number }
 export interface SketchSpec { w: number; h: number; nodes: SketchNode[]; edges: SketchEdge[]; alt: string }
 
@@ -106,7 +107,7 @@ export function Sketch({ spec, seed = 7 }: { spec: SketchSpec; seed?: number }) 
       {drawn.nodes.map(({ n, paths, tone }) => (
         <g key={n.id}>
           <rect x={n.x} y={n.y} width={n.w} height={n.h} rx={6} style={{ fill: tone.fill }} stroke="none" />
-          <g fill="none" style={{ stroke: tone.stroke }} strokeWidth={1.6} strokeLinecap="round">
+          <g fill="none" style={{ stroke: tone.stroke }} strokeWidth={1.6} strokeLinecap="round" strokeDasharray={n.dashed ? "7 6" : undefined}>
             {paths.map((d, k) => <path key={k} d={d} opacity={k < 4 ? 1 : 0.5} />)}
           </g>
           <text x={n.x + n.w / 2} y={n.y + n.h / 2 + (n.sub ? -4 : 5)} textAnchor="middle" className={s.sketchTitle}>{n.title}</text>
@@ -119,7 +120,7 @@ export function Sketch({ spec, seed = 7 }: { spec: SketchSpec; seed?: number }) 
 
 /* ---------------------------------------------------------------- the diagrams */
 
-export const DIAGRAMS: Record<string, SketchSpec> = {
+export const DIAGRAMS: Record<DiagramName, SketchSpec> = {
   system: {
     w: 780,
     h: 372,
@@ -147,11 +148,11 @@ export const DIAGRAMS: Record<string, SketchSpec> = {
   apiAuth: {
     w: 780,
     h: 360,
-    alt: "Seller API authentication: your server sends a bearer key. Proteus looks up the key's SHA-256 hash (missing, unknown, revoked or expired: 401), checks its environment against the network (a test key on mainnet or a live key on testnet: 401), checks the route's permission (missing: 403 naming it), then answers with your seller's data only (another seller's deal or product: 404). The public sandbox key goes to /api/v1/sandbox/seller instead, which answers from fixed demo data and runs writes as dry runs.",
+    alt: "Seller API authentication: your server sends a bearer key. Proteus checks its environment against the network (a test key on mainnet or a live key on testnet: 401), looks up the key's SHA-256 hash (missing, unknown, revoked or expired: 401), checks the route's permission (missing: 403 naming it), then answers with your seller's data only (another seller's deal or product: 404). The public sandbox key goes to /api/v1/sandbox/seller instead, which answers from fixed demo data and runs writes as dry runs.",
     nodes: [
       { id: "you", x: 8, y: 40, w: 124, h: 64, title: "Your server", sub: "Bearer psk_…", tone: "blue" },
-      { id: "key", x: 170, y: 40, w: 124, h: 64, title: "Key", sub: "SHA-256 lookup", tone: "gray" },
-      { id: "env", x: 332, y: 40, w: 124, h: 64, title: "Environment", sub: "test ↔ testnet", tone: "gray" },
+      { id: "key", x: 170, y: 40, w: 124, h: 64, title: "Environment", sub: "test ↔ testnet", tone: "gray" },
+      { id: "env", x: 332, y: 40, w: 124, h: 64, title: "Key", sub: "SHA-256 lookup", tone: "gray" },
       { id: "scope", x: 494, y: 40, w: 124, h: 64, title: "Permission", sub: "scope for route", tone: "gray" },
       { id: "data", x: 656, y: 40, w: 116, h: 64, title: "Your data", sub: "your seller only", tone: "green" },
       { id: "e401", x: 232, y: 176, w: 162, h: 56, title: "401", sub: "unknown, revoked, other env", tone: "rose" },
@@ -195,33 +196,38 @@ export const DIAGRAMS: Record<string, SketchSpec> = {
   },
   lifecycle: {
     w: 780,
-    h: 300,
-    alt: "Deal lifecycle: Negotiate, then Quote, then Sign (buyer and seller signer), then Fund (USDC into DealEscrow), then Deliver and settle (repeat). Above the approval threshold a quote waits for the seller's approval before signing. From an active deal, a dispute freezes funds for the arbiter; when the term ends (plus grace) or the seller closes, the unspent balance is refunded and the deal closes.",
+    h: 396,
+    alt: "Deal lifecycle: Negotiating, then Quoted (an engine-made offer), then Awaiting funding (buyer signed the terms, seller signer countersigned), then Funding pending (transaction submitted), then Active (USDC in DealEscrow). A quote above the seller's approval threshold waits for the seller before the buyer can sign. While Active, usage is settled any number of times. A dispute freezes the deal for the arbiter: a partial split returns it to Active, a full split closes it. refundUnused after end plus grace, or after the seller closes the term, refunds the rest and closes the deal.",
     nodes: [
-      { id: "neg", x: 16, y: 44, w: 128, h: 64, title: "Negotiate", sub: "buyer ⇄ agent", tone: "gray" },
-      { id: "quote", x: 172, y: 44, w: 128, h: 64, title: "Quote", sub: "engine-made offer", tone: "blue" },
-      { id: "sign", x: 328, y: 44, w: 128, h: 64, title: "Sign", sub: "both, EIP-712", tone: "blue" },
-      { id: "fund", x: 484, y: 44, w: 128, h: 64, title: "Fund", sub: "USDC → escrow", tone: "green" },
-      { id: "settle", x: 640, y: 44, w: 128, h: 64, title: "Deliver + settle", sub: "per countersigned unit", tone: "green" },
-      { id: "approve", x: 172, y: 196, w: 128, h: 60, title: "Seller approves", sub: "above threshold", tone: "amber" },
-      { id: "dispute", x: 484, y: 196, w: 128, h: 60, title: "Dispute", sub: "arbiter splits rest", tone: "rose" },
-      { id: "refund", x: 640, y: 196, w: 128, h: 60, title: "Refund + close", sub: "after term + grace", tone: "gray" },
+      { id: "neg", x: 16, y: 36, w: 160, h: 64, title: "Negotiating", sub: "buyer ⇄ deal agent", tone: "gray" },
+      { id: "quote", x: 216, y: 36, w: 160, h: 64, title: "Quoted", sub: "engine-made offer", tone: "blue" },
+      { id: "await", x: 416, y: 36, w: 160, h: 64, title: "Awaiting funding", sub: "both signed the terms", tone: "blue" },
+      { id: "pending", x: 616, y: 36, w: 160, h: 64, title: "Funding pending", sub: "transaction submitted", tone: "blue" },
+      { id: "approve", x: 216, y: 176, w: 160, h: 64, title: "Seller approves", sub: "above threshold", tone: "amber" },
+      { id: "settle", x: 396, y: 176, w: 150, h: 64, title: "Settle usage", sub: "repeat per delivery", tone: "green" },
+      { id: "active", x: 616, y: 176, w: 160, h: 64, title: "Active", sub: "Funded on chain", tone: "green" },
+      { id: "dispute", x: 216, y: 316, w: 180, h: 64, title: "Disputed", sub: "frozen for the arbiter", tone: "rose" },
+      { id: "closed", x: 616, y: 316, w: 160, h: 64, title: "Closed", sub: "refund or full split", tone: "gray" },
     ],
     edges: [
       { from: "neg", to: "quote" },
-      { from: "quote", to: "sign" },
-      { from: "sign", to: "fund" },
-      { from: "fund", to: "settle" },
+      { from: "quote", to: "await", label: "sign" },
+      { from: "await", to: "pending", label: "fund" },
+      { from: "pending", to: "active", label: "on chain" },
       { from: "quote", to: "approve", dashed: true, label: "large order" },
-      { from: "approve", to: "sign", dashed: true, bend: 18 },
-      { from: "settle", to: "dispute", dashed: true, label: "dispute", labelAt: 0.62 },
-      { from: "settle", to: "refund", label: "term ends", labelAt: 0.55 },
+      { from: "approve", to: "await", dashed: true, label: "approved", labelAt: 0.5 },
+      { from: "active", to: "settle", bend: 12 },
+      { from: "settle", to: "active", bend: 12 },
+      { from: "active", to: "dispute", dashed: true, bend: 30, label: "dispute", labelAt: 0.5 },
+      { from: "dispute", to: "active", dashed: true, bend: 30, label: "partial split", labelAt: 0.5 },
+      { from: "dispute", to: "closed", dashed: true, label: "full split" },
+      { from: "active", to: "closed", label: "refundUnused", labelAt: 0.5 },
     ],
   },
   money: {
     w: 780,
     h: 330,
-    alt: "Money path: the buyer's wallet signs the terms and a USDC permit; the relayer submits the transaction and pays gas; USDC moves into DealEscrow. DealEscrow pays the seller's payee only against the buyer's Acceptance and the seller's Delivery, refunds the remainder to the buyer after the term plus grace or a seller close, and in a dispute the arbiter can split only the unspent balance. Pay per call (x402) goes from buyer to seller directly, outside escrow.",
+    alt: "Money path: the buyer's wallet signs the terms and a USDC permit; the relayer submits the transaction and pays gas; USDC moves into DealEscrow. DealEscrow pays the seller's payee only against the buyer's Acceptance and the seller's Delivery, refunds the remainder to the buyer after the term plus grace or a seller close, and in a dispute the arbiter can split only the unspent balance. Pay per call (x402) is outside escrow.",
     nodes: [
       { id: "buyer", x: 16, y: 120, w: 150, h: 70, title: "Buyer wallet", sub: "signs terms + permit", tone: "blue" },
       { id: "relayer", x: 315, y: 12, w: 150, h: 56, title: "Relayer", sub: "submits, pays gas", tone: "gray" },
@@ -257,6 +263,175 @@ export const DIAGRAMS: Record<string, SketchSpec> = {
       { from: "ss", to: "esc", label: "terms, delivery", labelAt: 0.55 },
       { from: "ss", to: "pol", label: "commitBySig" },
       { from: "sw", to: "id", label: "register" },
+    ],
+  },
+  pricing: {
+    w: 780,
+    h: 372,
+    alt: "How an offer is made: the buyer's message is read by Claude Haiku into fields (units, budget, integrations). The pricing engine, which is code, builds candidates from the seller's tiers and checks each against the seller's rules. A candidate that passes is an offer; one above the approval threshold waits for the seller; one that breaks a rule is refused with a public reason. Claude Sonnet writes the reply from the offers only, and a figure check replaces any reply with an unlisted figure by a fixed reply before the buyer sees it.",
+    nodes: [
+      { id: "msg", x: 16, y: 34, w: 150, h: 64, title: "Buyer message", sub: "units, budget, dates", tone: "blue" },
+      { id: "read", x: 206, y: 34, w: 170, h: 64, title: "Read the request", sub: "Claude Haiku → fields", tone: "gray" },
+      { id: "engine", x: 416, y: 34, w: 170, h: 64, title: "Pricing engine", sub: "code: candidates", tone: "amber" },
+      { id: "rules", x: 626, y: 34, w: 140, h: 64, title: "Seller's rules", sub: "floor · cap · min · stock", tone: "amber" },
+      { id: "offer", x: 206, y: 170, w: 170, h: 64, title: "Offers", sub: "passed every rule", tone: "green" },
+      { id: "approve", x: 416, y: 170, w: 170, h: 64, title: "Seller approves", sub: "above threshold", tone: "amber" },
+      { id: "refused", x: 626, y: 170, w: 140, h: 64, title: "Refused", sub: "one public reason", tone: "rose" },
+      { id: "buyer", x: 16, y: 294, w: 150, h: 64, title: "Buyer sees", sub: "offers + reply", tone: "blue" },
+      { id: "guard", x: 206, y: 294, w: 170, h: 64, title: "Figure check", sub: "unlisted → fixed reply", tone: "gray" },
+      { id: "reply", x: 416, y: 294, w: 170, h: 64, title: "Write the reply", sub: "Claude Sonnet, words only", tone: "gray" },
+    ],
+    edges: [
+      { from: "msg", to: "read" },
+      { from: "read", to: "engine" },
+      { from: "engine", to: "rules" },
+      { from: "rules", to: "offer", label: "pass", labelAt: 0.3 },
+      { from: "rules", to: "approve", dashed: true, label: "large", labelAt: 0.45 },
+      { from: "rules", to: "refused", dashed: true },
+      { from: "offer", to: "reply" },
+      { from: "reply", to: "guard" },
+      { from: "guard", to: "buyer" },
+    ],
+  },
+  aiStack: {
+    w: 840,
+    h: 372,
+    alt: "Where Claude works. Deal desk: buyer text from any channel has emails, phone and card numbers removed, Claude Haiku reads it into fields, the pricing engine (code) computes the offers, Claude Sonnet writes the words, and a figure check falls back to a fixed reply if the words carry an unlisted figure. Services Proteus runs: a request goes to a service agent on the Claude model chosen for that job (Haiku, Sonnet or Opus); a delivered result is one billed unit with a signed receipt; a refusal, failure, cut-off or handoff to a person is never billed.",
+    nodes: [
+      { id: "text", x: 10, y: 40, w: 112, h: 64, title: "Buyer text", sub: "any channel", tone: "blue" },
+      { id: "redact", x: 152, y: 40, w: 112, h: 64, title: "Redact", sub: "contact details", tone: "gray" },
+      { id: "haiku", x: 294, y: 40, w: 112, h: 64, title: "Haiku reads", sub: "→ units, budget", tone: "amber" },
+      { id: "engine", x: 436, y: 40, w: 112, h: 64, title: "Engine prices", sub: "code, no model", tone: "green" },
+      { id: "sonnet", x: 578, y: 40, w: 112, h: 64, title: "Sonnet writes", sub: "words only", tone: "amber" },
+      { id: "check", x: 720, y: 40, w: 112, h: 64, title: "Figure check", sub: "or fixed reply", tone: "gray" },
+      { id: "req", x: 12, y: 236, w: 160, h: 64, title: "Service request", sub: "API call or chat", tone: "blue" },
+      { id: "worker", x: 232, y: 236, w: 210, h: 64, title: "Service agent", sub: "Haiku · Sonnet · Opus per job", tone: "amber" },
+      { id: "done", x: 592, y: 176, w: 220, h: 64, title: "Delivered: billed", sub: "1 unit, signed receipt", tone: "green" },
+      { id: "nobill", x: 592, y: 292, w: 220, h: 64, title: "Not billed", sub: "refused · failed · handoff", tone: "rose" },
+    ],
+    edges: [
+      { from: "text", to: "redact" },
+      { from: "redact", to: "haiku" },
+      { from: "haiku", to: "engine" },
+      { from: "engine", to: "sonnet" },
+      { from: "sonnet", to: "check" },
+      { from: "req", to: "worker" },
+      { from: "worker", to: "done" },
+      { from: "worker", to: "nobill", dashed: true },
+    ],
+  },
+  frontDesk: {
+    w: 780,
+    h: 380,
+    alt: "Front desk: a customer chats or speaks on the business's customer link or website embed. The AI assistant answers from the business profile and asks for one missing detail at a time; follow-up questions are never billed. When the request is complete it is metered once as one unit on the business's deal. The customer sees only the reply meant for them; the full note goes to the business's inbox, and an alert goes out by webhook, Telegram or email, flagged urgent for emergencies.",
+    nodes: [
+      { id: "cust", x: 16, y: 40, w: 130, h: 64, title: "Customer", sub: "types or speaks", tone: "blue" },
+      { id: "link", x: 226, y: 40, w: 150, h: 64, title: "Customer link", sub: "page or website embed", tone: "gray" },
+      { id: "asst", x: 456, y: 40, w: 150, h: 64, title: "AI assistant", sub: "one question at a time", tone: "amber" },
+      { id: "profile", x: 646, y: 40, w: 120, h: 64, title: "Profile", sub: "hours, services", tone: "gray" },
+      { id: "done", x: 456, y: 180, w: 150, h: 64, title: "Finished request", sub: "1 unit, billed once", tone: "green" },
+      { id: "inbox", x: 646, y: 180, w: 120, h: 64, title: "Inbox", sub: "the full note", tone: "gray" },
+      { id: "alerts", x: 646, y: 300, w: 120, h: 64, title: "Alerts", sub: "urgent flagged", tone: "gray" },
+    ],
+    edges: [
+      { from: "cust", to: "link" },
+      { from: "link", to: "asst" },
+      { from: "profile", to: "asst" },
+      { from: "asst", to: "done", label: "complete" },
+      { from: "done", to: "inbox" },
+      { from: "done", to: "alerts" },
+      { from: "done", to: "cust", label: "their reply only", labelAt: 0.55 },
+    ],
+  },
+  channels: {
+    w: 800,
+    h: 410,
+    alt: "Ways to use Proteus AI: buyers reach the same deal agent from the web app, a seller's website embed, the seller's WhatsApp number, an MCP client such as Claude, their own agent over HTTP, and later a phone app (coming soon). The deal agent prices only from the seller's rules. The seller sets those rules in the seller console and connects its own systems through the seller API and webhooks. Every channel ends in the same signed terms and the same DealEscrow contract on Arc.",
+    nodes: [
+      { id: "web", x: 12, y: 16, w: 124, h: 56, title: "Web app", sub: "store, deal pages", tone: "blue" },
+      { id: "embed", x: 142, y: 16, w: 124, h: 56, title: "Website embed", sub: "one script tag", tone: "blue" },
+      { id: "wa", x: 272, y: 16, w: 124, h: 56, title: "WhatsApp", sub: "seller's number", tone: "blue" },
+      { id: "mcp", x: 402, y: 16, w: 124, h: 56, title: "MCP client", sub: "Claude and others", tone: "blue" },
+      { id: "http", x: 532, y: 16, w: 124, h: 56, title: "Your agent", sub: "HTTP skill · x402", tone: "blue" },
+      { id: "phone", x: 662, y: 16, w: 124, h: 56, title: "Phone app", sub: "coming soon", tone: "gray", dashed: true },
+      { id: "agent", x: 290, y: 190, w: 200, h: 72, title: "Deal agent", sub: "prices only from the rules", tone: "amber" },
+      { id: "console", x: 600, y: 160, w: 186, h: 60, title: "Seller console", sub: "products and rules", tone: "green" },
+      { id: "api", x: 600, y: 246, w: 186, h: 60, title: "Seller API", sub: "keys · webhooks", tone: "gray" },
+      { id: "escrow", x: 290, y: 334, w: 200, h: 64, title: "DealEscrow on Arc", sub: "same terms, same escrow", tone: "green" },
+    ],
+    edges: [
+      { from: "web", to: "agent" },
+      { from: "embed", to: "agent" },
+      { from: "wa", to: "agent" },
+      { from: "mcp", to: "agent" },
+      { from: "http", to: "agent" },
+      { from: "phone", to: "agent", dashed: true },
+      { from: "console", to: "agent", label: "rules" },
+      { from: "api", to: "agent", label: "your systems", labelAt: 0.5 },
+      { from: "agent", to: "escrow", label: "signed terms" },
+    ],
+  },
+  mcp: {
+    w: 780,
+    h: 372,
+    alt: "Buying through MCP: you set the mandate (the largest prepaid amount per deal) in the MCP server's environment. Your MCP client, such as Claude, calls the Proteus MCP server's tools. The server runs on your machine: it talks to the Proteus API to negotiate, quote and fund, reads Arc directly to verify the seller's ERC-8004 identity and policy commitment, and signs with your buyer key or returns typed data for a Circle Agent Wallet to sign. The relayer submits the funding and settlement to DealEscrow on Arc.",
+    nodes: [
+      { id: "you", x: 16, y: 30, w: 176, h: 64, title: "You", sub: "set the mandate", tone: "blue" },
+      { id: "client", x: 16, y: 170, w: 176, h: 64, title: "MCP client", sub: "Claude or any MCP app", tone: "blue" },
+      { id: "server", x: 290, y: 170, w: 200, h: 64, title: "Proteus MCP server", sub: "on your machine · 9 tools", tone: "amber" },
+      { id: "api", x: 590, y: 50, w: 176, h: 64, title: "Proteus API", sub: "negotiate · quote · fund", tone: "gray" },
+      { id: "arc", x: 590, y: 280, w: 176, h: 64, title: "Arc", sub: "registries · DealEscrow", tone: "green" },
+      { id: "key", x: 290, y: 290, w: 200, h: 64, title: "Your key or Circle wallet", sub: "signs terms, permit, acceptance", tone: "gray" },
+    ],
+    edges: [
+      { from: "you", to: "server", dashed: true, label: "mandate", labelAt: 0.5 },
+      { from: "client", to: "server", label: "tool calls" },
+      { from: "server", to: "api", label: "HTTPS" },
+      { from: "server", to: "arc", label: "verify seller", labelAt: 0.5 },
+      { from: "server", to: "key", label: "sign" },
+      { from: "api", to: "arc", dashed: true, label: "relayer submits", labelAt: 0.5 },
+    ],
+  },
+  whatsapp: {
+    w: 780,
+    h: 300,
+    alt: "WhatsApp: the buyer messages the seller's own WhatsApp Business number. Meta's Cloud API sends a signed webhook to Proteus, which checks the signature, keys the buyer by a pseudonym and runs the same deal agent and pricing rules. Offers go back through Meta as reply buttons. To sign and pay, the buyer gets an opaque link that works for 30 minutes and opens the offer on the web; nothing about money happens inside the chat. HUMAN hands the chat to the seller's team, STOP ends messages.",
+    nodes: [
+      { id: "buyer", x: 16, y: 40, w: 130, h: 64, title: "Buyer", sub: "in WhatsApp", tone: "blue" },
+      { id: "meta", x: 236, y: 40, w: 150, h: 64, title: "Meta Cloud API", sub: "seller's own number", tone: "gray" },
+      { id: "proteus", x: 476, y: 40, w: 150, h: 64, title: "Proteus", sub: "checks signature", tone: "amber" },
+      { id: "agent", x: 656, y: 40, w: 110, h: 64, title: "Deal agent", sub: "same rules", tone: "amber" },
+      { id: "team", x: 236, y: 206, w: 150, h: 64, title: "Seller's team", sub: "after HUMAN", tone: "green" },
+      { id: "web", x: 476, y: 206, w: 150, h: 64, title: "Offer page", sub: "sign and pay on the web", tone: "green" },
+    ],
+    edges: [
+      { from: "buyer", to: "meta", bend: 16, label: "message" },
+      { from: "meta", to: "buyer", bend: 16, label: "offers" },
+      { from: "meta", to: "proteus", bend: 16, label: "webhook" },
+      { from: "proteus", to: "meta", bend: 16, label: "reply" },
+      { from: "proteus", to: "agent" },
+      { from: "proteus", to: "web", label: "30-minute link", labelAt: 0.5 },
+      { from: "proteus", to: "team", dashed: true, label: "HUMAN", labelAt: 0.5 },
+    ],
+  },
+  trust: {
+    w: 780,
+    h: 340,
+    alt: "Trust boundaries: the buyer's wallet signs the terms, permit and acceptances and funds DealEscrow. Proteus holds three keys: the relayer submits transactions and pays gas but cannot move funds without signatures; the seller signer countersigns terms and deliveries, can end a term early and can open a dispute; the arbiter, which is also the owner, splits only the unspent balance of a disputed deal and can pause new deals. DealEscrow pays only the deal's payee (the seller's own wallet) and the buyer.",
+    nodes: [
+      { id: "buyer", x: 16, y: 40, w: 180, h: 64, title: "Buyer wallet", sub: "funds; signs and accepts", tone: "blue" },
+      { id: "payee", x: 16, y: 236, w: 180, h: 64, title: "Seller wallet", sub: "payee: gets settlements", tone: "green" },
+      { id: "escrow", x: 262, y: 136, w: 180, h: 72, title: "DealEscrow", sub: "checks every signature", tone: "green" },
+      { id: "relayer", x: 590, y: 20, w: 176, h: 64, title: "Relayer", sub: "Proteus: submits, pays gas", tone: "amber" },
+      { id: "signer", x: 590, y: 140, w: 176, h: 64, title: "Seller signer", sub: "Proteus: signs, can dispute", tone: "amber" },
+      { id: "arbiter", x: 590, y: 260, w: 176, h: 64, title: "Arbiter and owner", sub: "Proteus: disputes, pause", tone: "rose" },
+    ],
+    edges: [
+      { from: "buyer", to: "escrow" },
+      { from: "escrow", to: "payee" },
+      { from: "relayer", to: "escrow", dashed: true, label: "submits", labelAt: 0.45 },
+      { from: "signer", to: "escrow" },
+      { from: "arbiter", to: "escrow", dashed: true, label: "splits the rest", labelAt: 0.45 },
     ],
   },
 };

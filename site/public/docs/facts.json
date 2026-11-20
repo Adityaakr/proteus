@@ -1,7 +1,7 @@
 {
   "product": "Proteus AI",
   "summary": "A deal agent for anything sold by quote, volume or usage. It negotiates with buyers and their AI agents inside the seller's rules, both sides sign the same terms, and USDC waits on Arc until delivery: the seller is paid for what was delivered, the rest is refundable.",
-  "asOf": "2026-11-14",
+  "asOf": "2026-11-20",
   "docs": {
     "html": "https://app.proteus.co.in/docs",
     "markdown": "https://app.proteus.co.in/docs.md",
@@ -13,6 +13,14 @@
         "summary": "A deal desk for anything sold by quote, volume or usage.",
         "html": "https://app.proteus.co.in/docs/overview",
         "markdown": "https://app.proteus.co.in/docs/overview.md"
+      },
+      {
+        "id": "ways-to-use",
+        "group": "Start",
+        "title": "Ways to use Proteus AI",
+        "summary": "One deal agent, many ways in: the web, a seller's website, WhatsApp, Claude and other MCP clients, your own agent, and your own systems.",
+        "html": "https://app.proteus.co.in/docs/ways-to-use",
+        "markdown": "https://app.proteus.co.in/docs/ways-to-use.md"
       },
       {
         "id": "for-agents",
@@ -42,7 +50,7 @@
         "id": "quickstart-seller",
         "group": "Quickstarts",
         "title": "Sell: from wallet to a listed product",
-        "summary": "Seven steps from your own wallet to getting paid.",
+        "summary": "From your own wallet to a listed product and your first payout.",
         "html": "https://app.proteus.co.in/docs/quickstart-seller",
         "markdown": "https://app.proteus.co.in/docs/quickstart-seller.md"
       },
@@ -50,7 +58,7 @@
         "id": "quickstart-buyer",
         "group": "Quickstarts",
         "title": "Buy: from a question to a refund",
-        "summary": "Ask, review, sign once, pay only for what you countersign.",
+        "summary": "Ask, review, sign once, and pay only for what you countersign.",
         "html": "https://app.proteus.co.in/docs/quickstart-buyer",
         "markdown": "https://app.proteus.co.in/docs/quickstart-buyer.md"
       },
@@ -58,7 +66,7 @@
         "id": "quickstart-agent",
         "group": "Quickstarts",
         "title": "Buy with an AI agent (MCP)",
-        "summary": "Give any MCP client the full buying loop, within a limit you set.",
+        "summary": "Give Claude or any MCP client the full buying loop, within a limit you set.",
         "html": "https://app.proteus.co.in/docs/quickstart-agent",
         "markdown": "https://app.proteus.co.in/docs/quickstart-agent.md"
       },
@@ -90,7 +98,7 @@
         "id": "lifecycle",
         "group": "Concepts",
         "title": "Deal lifecycle",
-        "summary": "Eight states, and who moves a deal between them.",
+        "summary": "Every state a deal goes through, and who moves it between them.",
         "html": "https://app.proteus.co.in/docs/lifecycle",
         "markdown": "https://app.proteus.co.in/docs/lifecycle.md"
       },
@@ -106,7 +114,7 @@
         "id": "signatures",
         "group": "Concepts",
         "title": "What is signed, and by whom",
-        "summary": "Eight messages; the contract checks each one.",
+        "summary": "Every message that moves money or identity, who signs it, and who checks it.",
         "html": "https://app.proteus.co.in/docs/signatures",
         "markdown": "https://app.proteus.co.in/docs/signatures.md"
       },
@@ -122,7 +130,7 @@
         "id": "privacy",
         "group": "Concepts",
         "title": "Privacy",
-        "summary": "What each party can see when a buyer talks to a seller's agent, on the web or on WhatsApp.",
+        "summary": "What each party can see when a buyer talks to a seller's agent, on the web, on WhatsApp or at a front desk.",
         "html": "https://app.proteus.co.in/docs/privacy",
         "markdown": "https://app.proteus.co.in/docs/privacy.md"
       },
@@ -226,7 +234,7 @@
         "id": "faq",
         "group": "Reference",
         "title": "FAQ",
-        "summary": null,
+        "summary": "Short answers to the questions people ask most, each linking to the detail.",
         "html": "https://app.proteus.co.in/docs/faq",
         "markdown": "https://app.proteus.co.in/docs/faq.md"
       },
@@ -234,7 +242,7 @@
         "id": "glossary",
         "group": "Reference",
         "title": "Glossary",
-        "summary": null,
+        "summary": "The terms these docs use, in one line each.",
         "html": "https://app.proteus.co.in/docs/glossary",
         "markdown": "https://app.proteus.co.in/docs/glossary.md"
       },
@@ -242,7 +250,7 @@
         "id": "links",
         "group": "Reference",
         "title": "Links",
-        "summary": null,
+        "summary": "Every API, machine-readable file and source in one place.",
         "html": "https://app.proteus.co.in/docs/links",
         "markdown": "https://app.proteus.co.in/docs/links.md"
       }
@@ -281,14 +289,25 @@
       "mainnet": "https://app.proteus.co.in/api",
       "testnet": "https://ai.proteus.co.in/api"
     },
-    "auth": "Buyer routes: none (deal ids are unguessable capabilities). Service calls: Bearer API key shown once when a deal is provisioned. Seller dashboard routes (/api/app/*): wallet sign-in session. Seller API (/api/v1/seller/*): Bearer seller API key (psk_live_… or psk_test_…) from the Developers page.",
-    "errors": "JSON { error: string, details: unknown | null } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert), 429 (rate limit), 500.",
-    "rateLimits": "10-minute window: per client IP, 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; per negotiation, 12 counters. Other public routes are not rate limited.",
+    "auth": "Buyer routes need no account: deal ids are unguessable capabilities. Exceptions: every /negotiations/{id} call needs the X-Negotiation-Key returned when the negotiation started; routes marked buyer only need the signed-in owner of the buyer wallet or the deal's service key. Service calls: Bearer API key shown once when a deal is provisioned. Seller dashboard routes (/api/app/*): wallet sign-in session. Seller API (/api/v1/seller/*): Bearer seller API key (psk_live_… or psk_test_…) from the Developers page.",
+    "errors": "JSON { error: string, details?: unknown } with HTTP 400 (invalid request), 401/403, 404, 409 (state conflict or an on-chain revert, with the revert reason), 429 (rate limit; details.retryAfterSeconds says when to retry) or 500 (a generic message; the detail stays in server logs).",
+    "units": "Amounts are micro-USDC as integer strings (\"6600000\" is $6.60): offers, terms, balances and counteroffer targetTotal. Seller webhooks are the exception: they send USDC with six decimals (\"6.600000\").",
+    "rateLimits": "Per client IP in a 10-minute window: 30 new negotiations, 60 negotiation messages, 40 counters and 120 store-routing calls; 12 counters per negotiation per 10 minutes. Front desk chat: 40 messages per IP per 10 minutes and 400 per customer link per day. Sign-in routes and the Solana RPC proxy (300 per IP per 10 minutes) are limited too. Other public routes are not rate limited. Limits are kept in memory on each server.",
     "endpoints": [
+      {
+        "method": "GET",
+        "path": "/health",
+        "does": "network, chain id, escrow and USDC addresses, and which features are switched on"
+      },
       {
         "method": "GET",
         "path": "/market",
         "does": "every listed service"
+      },
+      {
+        "method": "GET",
+        "path": "/market/sellers",
+        "does": "every listed seller"
       },
       {
         "method": "GET",
@@ -299,6 +318,21 @@
         "method": "GET",
         "path": "/public/sellers/{seller}/products/{product}",
         "does": "tiers, terms, request fields"
+      },
+      {
+        "method": "GET",
+        "path": "/public/sellers/{seller}/products/{product}/skill.md",
+        "does": "this service as an agent skill (also openapi.json)"
+      },
+      {
+        "method": "GET",
+        "path": "/public/sellers/{seller}/agent.json",
+        "does": "the seller's ERC-8004 registration file"
+      },
+      {
+        "method": "GET",
+        "path": "/public/sellers/{seller}/policies",
+        "does": "policy commitments per product and version, each with its ProteusPolicyRegistry transaction"
       },
       {
         "method": "GET",
@@ -314,6 +348,11 @@
         "method": "POST",
         "path": "/negotiations",
         "does": "{ sellerSlug, productSlug, buyerAddress? } → negotiation with buyerKey (send it as X-Negotiation-Key on every /negotiations/{id} call)"
+      },
+      {
+        "method": "GET",
+        "path": "/negotiations/{id}",
+        "does": "the conversation and current offers (X-Negotiation-Key, or the signed-in buyer)"
       },
       {
         "method": "POST",
@@ -343,7 +382,7 @@
       {
         "method": "GET",
         "path": "/deals/{id}",
-        "does": "status, balances read from chain, refundableAt"
+        "does": "status, balances as last reconciled from the chain (with their source), refundableAt"
       },
       {
         "method": "GET",
@@ -381,9 +420,19 @@
         "does": "relayer calls refundUnused once refundable"
       },
       {
+        "method": "GET",
+        "path": "/deals/{id}/dispute",
+        "does": "the dispute on this deal, if any"
+      },
+      {
         "method": "POST",
         "path": "/deals/{id}/dispute",
         "does": "{ txHash, reason } after openDispute from the wallet"
+      },
+      {
+        "method": "POST",
+        "path": "/deals/{id}/service/rotate-key",
+        "does": "{ address, ts, signature } from the buyer wallet → a new service key, shown once"
       },
       {
         "method": "GET",
@@ -408,7 +457,7 @@
       {
         "method": "GET",
         "path": "/services/{product}/inbox",
-        "does": "Bearer key; every request on the deal with its full note and mark, newest first"
+        "does": "Bearer key; scheduling services only: the newest 200 requests on the deal, each with its full note and mark"
       },
       {
         "method": "GET",
@@ -431,6 +480,11 @@
         "does": "Bearer key; business profile and Google Calendar status (tokens are never returned)"
       },
       {
+        "method": "POST",
+        "path": "/services/{product}/connections/google",
+        "does": "Bearer key; start connecting Google Calendar (built, not switched on; DELETE disconnects)"
+      },
+      {
         "method": "GET",
         "path": "/public/talk/{token}",
         "does": "a business's customer page (scheduling services): what to fill in"
@@ -443,7 +497,7 @@
       {
         "method": "GET",
         "path": "/deals/{id}/rating",
-        "does": "the giveFeedback arguments for this deal (buyer only, after USDC settles) and any rating already verified"
+        "does": "the giveFeedback arguments for this deal (ratable once USDC settles; only the buyer wallet can post them) and any rating already verified"
       },
       {
         "method": "POST",
@@ -581,7 +635,7 @@
             "in": "body",
             "type": "string",
             "required": true,
-            "description": "Dollars per unit, more than 0, up to 6 decimals: `\"6.60\"`."
+            "description": "Dollars per unit, more than 0: up to 7 digits before the point and 6 after, e.g. `\"6.60\"`."
           },
           {
             "name": "tiers[].includes",
@@ -816,7 +870,7 @@
             "in": "body",
             "type": "string",
             "required": false,
-            "description": "Up to 1000 characters. Required for `delayed` (why, and the new date) and for `note`."
+            "description": "Up to 1000 characters; anything longer is cut. Required, at least 2 characters, for `delayed` (why, and the new date) and for `note`."
           },
           {
             "name": "trackingUrl",
@@ -987,8 +1041,8 @@
     },
     {
       "role": "seller signer",
-      "holder": "a per-seller key generated and held by Proteus, AES-256-GCM encrypted",
-      "power": "countersigns terms, deliveries and policy commitments; cannot change the payee; revocable by the seller"
+      "holder": "a per-seller key generated and held by Proteus, AES-256-GCM encrypted; on chain it is the deal's seller address",
+      "power": "countersigns terms, deliveries and policy commitments; can end a term early (sellerCloseTerm, which opens refunds) and open a dispute on its deals; receives pay-per-call (x402) payments until the seller sweeps them to its payee; cannot change the payee, which is pinned to the owner's wallet; revoking it stops Proteus using it for new terms, while on deals it already signed it stays the seller on chain until they close"
     },
     {
       "role": "owner",
@@ -998,7 +1052,7 @@
     {
       "role": "MCP mandate",
       "holder": "the buyer's local MCP process",
-      "power": "caps the prepaid amount per deal only; the unit price and which service are for the agent to check"
+      "power": "caps the prepaid amount per deal only; the unit price, which service, and the receipts behind a settlement are for the agent to check"
     }
   ],
   "refunds": {
@@ -1030,11 +1084,11 @@
         },
         {
           "name": "proteus_verify_seller",
-          "description": "Checks the terms hash, the seller's ERC-8004 signer and payee, and the policy commitment on Arc."
+          "description": "Checks the terms hash and, for a seller registered on Arc, its ERC-8004 signer and payee and the policy commitment."
         },
         {
           "name": "proteus_accept_offer",
-          "description": "Creates the quote, enforces the mandate, verifies the seller, then signs the terms."
+          "description": "Creates the quote, enforces the mandate, refuses a registered seller whose on-chain checks fail, then signs the terms."
         },
         {
           "name": "proteus_fund_deal",
@@ -1046,7 +1100,7 @@
         },
         {
           "name": "proteus_settle_usage",
-          "description": "Checks delivered usage against receipts and price, signs the acceptance; the relayer settles."
+          "description": "Checks the amount is no more than delivered units × the agreed price, signs the acceptance; the relayer settles."
         },
         {
           "name": "proteus_deal_status",
@@ -1092,22 +1146,34 @@
         "why": "fast, well-specified records"
       },
       {
-        "job": "Receptionist (front desk)",
+        "job": "AI receptionist service",
         "model": "Claude Sonnet 5.5",
         "effort": "low",
         "why": "talks to customers; asks one question at a time"
       },
       {
-        "job": "Invoice processing, screening checks, inference",
+        "job": "Invoice processing, screening checks",
         "model": "Claude Sonnet 5.5",
-        "effort": "medium or low",
+        "effort": "medium",
         "why": "reads PDFs and images directly"
+      },
+      {
+        "job": "Inference service",
+        "model": "Claude Sonnet 5.5",
+        "effort": "low",
+        "why": "answers within the buyer's request"
       },
       {
         "job": "Vendor evaluations, operator tasks",
         "model": "Claude Opus 5.5",
         "effort": "medium",
         "why": "multi-step judgement"
+      },
+      {
+        "job": "Embeddings service",
+        "model": "OpenRouter (text-embedding-3-small)",
+        "effort": "n/a",
+        "why": "Anthropic has no embeddings endpoint"
       }
     ],
     "rule": "prices come only from the seller's rules; refused, cut-off or failed requests and live-chat follow-up questions are never billed"
@@ -1185,7 +1251,8 @@
           "label": "refund",
           "url": "https://explorer.arc.io/tx/0x70d68aa16db7588b90f172ccb68d20bb4f95ca099650a2755ee1a3436481c94d"
         }
-      ]
+      ],
+      "label": "Live (Arc mainnet)"
     },
     {
       "claim": "A real business registers its agent from its own wallet (Shoonya Store, ERC-8004 Agent #2695)",
@@ -1196,33 +1263,39 @@
           "label": "register",
           "url": "https://explorer.arc.io/tx/0x45921b0f981908b7d704b79119863781c21e71498c812965d90db1787bd24e55"
         }
-      ]
+      ],
+      "label": "Live (Arc mainnet)"
     },
     {
-      "claim": "Pricing policies committed on chain (4 Shoonya products, version 1)",
+      "claim": "Pricing policies committed on chain (4 Shoonya products at version 1, then version 2 of the tees policy used for the first order)",
       "network": "mainnet",
       "status": "proven",
       "evidence": [
         {
-          "label": "commit 1",
+          "label": "v1 commit 1",
           "url": "https://explorer.arc.io/tx/0x59065079ffdc03ddc1e7ab3d257210ff743076e6522d1013e67b0bf901cdd165"
         },
         {
-          "label": "commit 2",
+          "label": "v1 commit 2",
           "url": "https://explorer.arc.io/tx/0x525f8578c6f8c039aaf5ad32cd16b91f5d176d966e54e29050ff0c735ee0c977"
         },
         {
-          "label": "commit 3",
+          "label": "v1 commit 3",
           "url": "https://explorer.arc.io/tx/0xe88e372b98cd6a8532b5c8294d9e6a03953821c4a543054cf1102960fe591947"
         },
         {
-          "label": "commit 4",
+          "label": "v1 commit 4",
           "url": "https://explorer.arc.io/tx/0xece7b7615eabe2605eba03127341da4749c06f2bc775bec22278aa2f26c4ff8f"
+        },
+        {
+          "label": "v2 commit",
+          "url": "https://explorer.arc.io/tx/0xf9f566e326231199de683c3b0082a0ba37c4ab36ba76e8bb6c22fe76e7430386"
         }
-      ]
+      ],
+      "label": "Live (Arc mainnet)"
     },
     {
-      "claim": "A real customer's order, end to end: Shoonya Store customer negotiates 1 tee ($6.60), funds gaslessly, Shoonya delivers, the customer countersigns and DealEscrow pays Shoonya 6.60 USDC",
+      "claim": "A Shoonya Store customer order, end to end: 1 tee negotiated at $6.60, funded gaslessly with a USDC permit, delivered, countersigned, and 6.60 USDC paid to Shoonya by DealEscrow (the buyer wallet was later found linked to a Shoonya team account in Proteus)",
       "network": "mainnet",
       "status": "proven",
       "evidence": [
@@ -1234,7 +1307,8 @@
           "label": "settle",
           "url": "https://explorer.arc.io/tx/0x852725276799255fa7425be9aafcd2296828a0a9553e3e2b9394104fcbad5542"
         }
-      ]
+      ],
+      "label": "Live (Arc mainnet)"
     },
     {
       "claim": "The customer rates the seller 5 stars on the ERC-8004 ReputationRegistry from its own wallet, bound to the deal's terms hash",
@@ -1245,22 +1319,44 @@
           "label": "rating",
           "url": "https://explorer.arc.io/tx/0x4689593d2dfa8accd71ba0c3d9867ca6cd2bfa382b44fa49014f4b53d3767605"
         }
-      ]
+      ],
+      "label": "Live (Arc mainnet)"
     },
     {
-      "claim": "Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction)",
+      "claim": "Gasless funding with a USDC permit (permit and createAndFundDeal in one Multicall3 transaction), first on testnet, then for the Shoonya order on mainnet",
+      "network": "mainnet",
+      "status": "proven",
+      "evidence": [
+        {
+          "label": "mainnet fund",
+          "url": "https://explorer.arc.io/tx/0x9145fb235f7c00e625ccb91e3a8a817dcf3cd0b1ee4265fd5697cf79cb1b62a7"
+        },
+        {
+          "label": "testnet fund",
+          "url": "https://explorer.testnet.arc.io/tx/0xcfc87ca9ab00adcafbd9468a17eb203d2e89e870b874f47d1e4e7610a7065d7d"
+        },
+        {
+          "label": "testnet settle",
+          "url": "https://explorer.testnet.arc.io/tx/0x0601dc6e0ccf3bfbabe1dabbb2a57fef109c5b16ddf782f44a66fcbe126afac3"
+        }
+      ],
+      "label": "Live (Arc mainnet)"
+    },
+    {
+      "claim": "Website embed: a seller's deal agent on a third-party site, with signing and payment in a Proteus tab",
       "network": "testnet",
       "status": "proven",
       "evidence": [
         {
-          "label": "fund",
-          "url": "https://explorer.testnet.arc.io/tx/0xcfc87ca9ab00adcafbd9468a17eb203d2e89e870b874f47d1e4e7610a7065d7d"
+          "label": "embed.js",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/site/public/embed.js"
         },
         {
-          "label": "settle",
-          "url": "https://explorer.testnet.arc.io/tx/0x0601dc6e0ccf3bfbabe1dabbb2a57fef109c5b16ddf782f44a66fcbe126afac3"
+          "label": "embed.ts",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/embed.ts"
         }
-      ]
+      ],
+      "label": "Testnet"
     },
     {
       "claim": "Seller-confirmed delivery, then settlement",
@@ -1275,7 +1371,8 @@
           "label": "settle",
           "url": "https://explorer.testnet.arc.io/tx/0x63aeb139848a1067eedb1961ed0721ef00024e44b4e9ec1e46cc2cdbb7eb8b45"
         }
-      ]
+      ],
+      "label": "Testnet"
     },
     {
       "claim": "An AI agent (Claude) negotiates, funds and settles through MCP within a mandate",
@@ -1286,7 +1383,8 @@
           "label": "transcript and transactions",
           "url": "https://github.com/Adityaakr/proteus/blob/main/docs/evidence/2026-10-23-claude-mcp-kitbox.md"
         }
-      ]
+      ],
+      "label": "Testnet"
     },
     {
       "claim": "x402 pay per call (exact, through Circle's facilitator)",
@@ -1297,7 +1395,8 @@
           "label": "payment",
           "url": "https://explorer.testnet.arc.io/tx/0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8"
         }
-      ]
+      ],
+      "label": "Testnet"
     },
     {
       "claim": "x402 through Circle Gateway batching (transfer 18395b90-7bfa-4cc2-b655-a2f4c7219be1)",
@@ -1308,7 +1407,8 @@
           "label": "deposit",
           "url": "https://explorer.testnet.arc.io/tx/0x2e048bf4ca99132f730503acc952d90b66b1843e008fdc6e373192939c1a8eb7"
         }
-      ]
+      ],
+      "label": "Testnet"
     },
     {
       "claim": "Proteus-run services do real work on Claude, with the model chosen per job; refused, cut-off or failed requests are never billed",
@@ -1323,7 +1423,8 @@
           "label": "workers.ts",
           "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/workers.ts"
         }
-      ]
+      ],
+      "label": "In testing"
     },
     {
       "claim": "Front desk: a business's customers chat or speak with its AI assistant on a link or website embed; one finished request is billed once, follow-up questions never",
@@ -1334,7 +1435,8 @@
           "label": "customer-link.ts",
           "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/customer-link.ts"
         }
-      ]
+      ],
+      "label": "In testing"
     },
     {
       "claim": "Order tracking for goods: seller updates, tracking link and on-chain proof on the buyer's order page",
@@ -1345,7 +1447,8 @@
           "label": "orders.ts",
           "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/orders.ts"
         }
-      ]
+      ],
+      "label": "In testing"
     },
     {
       "claim": "Booking straight into the business's Google Calendar (tested against a stand-in calendar; not switched on)",
@@ -1356,19 +1459,22 @@
           "label": "calendar.ts",
           "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/calendar.ts"
         }
-      ]
+      ],
+      "label": "In testing"
     },
     {
       "claim": "Phone calls answered by the front desk",
       "network": "offchain",
       "status": "not-yet",
-      "evidence": []
+      "evidence": [],
+      "label": "Not yet"
     },
     {
       "claim": "An AI agent buying through MCP on Arc mainnet",
       "network": "mainnet",
       "status": "not-yet",
-      "evidence": []
+      "evidence": [],
+      "label": "Not yet"
     },
     {
       "claim": "Disputes (open from the wallet, arbiter splits the unspent balance)",
@@ -1379,7 +1485,8 @@
           "label": "disputes.ts",
           "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/disputes.ts"
         }
-      ]
+      ],
+      "label": "In testing"
     },
     {
       "claim": "Catalog sync from the seller's own endpoint (tested against a local sample feed)",
@@ -1390,41 +1497,104 @@
           "label": "catalog-sync.ts",
           "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/catalog-sync.ts"
         }
-      ]
+      ],
+      "label": "In testing"
+    },
+    {
+      "claim": "WhatsApp channel: the deal agent on a seller's own WhatsApp Business number (deployed on both networks, a number connected and Meta's signed webhook verified; no real customer conversation yet)",
+      "network": "offchain",
+      "status": "tested-offchain",
+      "evidence": [
+        {
+          "label": "whatsapp.ts",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/whatsapp.ts"
+        },
+        {
+          "label": "whatsapp-e2e.ts",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/server/scripts/whatsapp-e2e.ts"
+        }
+      ],
+      "label": "In testing"
+    },
+    {
+      "claim": "Seller API and webhooks: scoped keys for both networks and a public sandbox on Arc testnet",
+      "network": "offchain",
+      "status": "tested-offchain",
+      "evidence": [
+        {
+          "label": "developers.ts",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/routes/developers.ts"
+        },
+        {
+          "label": "sandbox.ts",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/sandbox.ts"
+        }
+      ],
+      "label": "In testing"
+    },
+    {
+      "claim": "A Proteus AI phone app",
+      "network": "offchain",
+      "status": "not-yet",
+      "evidence": [],
+      "label": "Not yet"
     }
   ],
   "notProven": [
     {
       "claim": "Proteus-run services do real work on Claude, with the model chosen per job; refused, cut-off or failed requests are never billed",
-      "status": "tested-offchain"
+      "status": "tested-offchain",
+      "label": "In testing"
     },
     {
       "claim": "Front desk: a business's customers chat or speak with its AI assistant on a link or website embed; one finished request is billed once, follow-up questions never",
-      "status": "tested-offchain"
+      "status": "tested-offchain",
+      "label": "In testing"
     },
     {
       "claim": "Order tracking for goods: seller updates, tracking link and on-chain proof on the buyer's order page",
-      "status": "tested-offchain"
+      "status": "tested-offchain",
+      "label": "In testing"
     },
     {
       "claim": "Booking straight into the business's Google Calendar (tested against a stand-in calendar; not switched on)",
-      "status": "tested-offchain"
+      "status": "tested-offchain",
+      "label": "In testing"
     },
     {
       "claim": "Phone calls answered by the front desk",
-      "status": "not-yet"
+      "status": "not-yet",
+      "label": "Not yet"
     },
     {
       "claim": "An AI agent buying through MCP on Arc mainnet",
-      "status": "not-yet"
+      "status": "not-yet",
+      "label": "Not yet"
     },
     {
       "claim": "Disputes (open from the wallet, arbiter splits the unspent balance)",
-      "status": "tested-offchain"
+      "status": "tested-offchain",
+      "label": "In testing"
     },
     {
       "claim": "Catalog sync from the seller's own endpoint (tested against a local sample feed)",
-      "status": "tested-offchain"
+      "status": "tested-offchain",
+      "label": "In testing"
+    },
+    {
+      "claim": "WhatsApp channel: the deal agent on a seller's own WhatsApp Business number (deployed on both networks, a number connected and Meta's signed webhook verified; no real customer conversation yet)",
+      "status": "tested-offchain",
+      "label": "In testing"
+    },
+    {
+      "claim": "Seller API and webhooks: scoped keys for both networks and a public sandbox on Arc testnet",
+      "status": "tested-offchain",
+      "label": "In testing"
+    },
+    {
+      "claim": "A Proteus AI phone app",
+      "status": "not-yet",
+      "label": "Not yet"
     }
   ],
   "fees": {
@@ -1446,7 +1616,7 @@
       ],
       [
         "Fund a deal with approve",
-        "The buyer"
+        "The buyer pays for the approve; Proteus (relayer) for createAndFundDeal"
       ],
       [
         "Settle delivered units",
@@ -1454,67 +1624,132 @@
       ],
       [
         "Refund the unspent balance",
-        "Whoever calls refundUnused"
+        "Proteus (relayer) for the one-click refund on the deal page; anyone else who calls refundUnused pays their own gas"
+      ],
+      [
+        "Open a dispute",
+        "The buyer's wallet (or the seller signer, which can open one too)"
+      ],
+      [
+        "Rate the seller (ERC-8004 giveFeedback)",
+        "The buyer's wallet"
+      ],
+      [
+        "End a term early (sellerCloseTerm)",
+        "The seller signer key"
+      ],
+      [
+        "Sweep pay-per-call payments to the payee",
+        "The seller signer key (it keeps 0.05 USDC back for gas)"
       ]
     ],
-    "other": "Model calls for negotiation, hosting and the relayer's gas are paid by Proteus. Circle Gateway, wallets and exchanges may charge their own fees; those are theirs, not Proteus's."
+    "other": "Model calls, hosting and the relayer's gas are paid by Proteus. Circle Gateway, wallets and exchanges may charge their own fees; those are theirs, not Proteus's."
   },
   "limits": [
     {
       "title": "No audit yet",
-      "detail": "DealEscrow is source-verified and tested, not independently audited."
+      "detail": "DealEscrow is source-verified and tested, not independently audited.",
+      "group": "Escrow and disputes"
     },
     {
-      "title": "One arbiter key",
-      "detail": "Disputes are resolved by a single Proteus-operated key, with no timeout yet."
+      "title": "Proteus can open and decide a dispute",
+      "detail": "The seller signer is the deal's seller on chain and Proteus holds it, so it can open a dispute; the arbiter key, also Proteus's, then splits the unspent balance. Settled funds are out of reach. There is one arbiter key and no dispute timeout yet.",
+      "group": "Escrow and disputes"
+    },
+    {
+      "title": "Settle before end + grace",
+      "detail": "Settlement reverts after the term plus grace; usage not countersigned by then can no longer be paid from escrow.",
+      "group": "Escrow and disputes"
     },
     {
       "title": "Refunds need a call",
-      "detail": "`refundUnused` after the term plus grace or after the seller closes; one click on the deal page, or anyone."
+      "detail": "`refundUnused` after the term plus grace or after the seller closes; one click on the deal page, or anyone.",
+      "group": "Escrow and disputes"
     },
     {
       "title": "Dates live in the chat",
-      "detail": "Delivery dates are agreed in the conversation, not in the signed terms."
+      "detail": "Delivery dates are agreed in the conversation, not in the signed terms.",
+      "group": "Escrow and disputes"
     },
     {
       "title": "Delivery is seller-confirmed",
-      "detail": "Proteus does not verify physical delivery; the buyer countersigns or disputes."
+      "detail": "Proteus does not verify physical delivery; the buyer countersigns or disputes.",
+      "group": "Escrow and disputes"
     },
     {
-      "title": "Pay per call has no escrow",
-      "detail": "x402 calls are paid when made, with no refund path."
-    },
-    {
-      "title": "Listing check",
-      "detail": "The import flow lists after Arc registration by step order; the listing endpoint itself does not check it (catalog sync does)."
+      "title": "Pay per call is outside escrow",
+      "detail": "x402 calls are paid when made, with no refund path. With the exact scheme the payment lands in the seller's Proteus-held signer key until the seller sweeps it to its payee; Gateway batching pays the payee directly.",
+      "group": "Escrow and disputes"
     },
     {
       "title": "Figure check",
-      "detail": "Replies with unlisted digits are discarded; numbers written in words are not caught."
+      "detail": "A model reply is discarded if it carries a dollar amount or a number of four or more digits that is not in the offers. Smaller bare numbers (\"20%\", \"500 units\") and numbers written in words are not caught; the price never comes from the reply.",
+      "group": "Pricing and AI"
+    },
+    {
+      "title": "Counter limit is per window",
+      "detail": "Counteroffers are limited to 12 per negotiation and 40 per IP in each 10-minute window, not in total; one public reason for all price rules is what slows a search for the floor.",
+      "group": "Pricing and AI"
+    },
+    {
+      "title": "Front desk details reach the model",
+      "detail": "Contact redaction runs on the deal-desk chat only. A front desk customer's name and phone go to Claude and to the business's alerts, because the business needs them.",
+      "group": "Pricing and AI"
+    },
+    {
+      "title": "Listing check",
+      "detail": "The import flow lists after Arc registration by step order; the listing endpoint itself does not check it (catalog sync does).",
+      "group": "Pricing and AI"
+    },
+    {
+      "title": "Unregistered sellers are not checked on chain",
+      "detail": "For a seller not registered on Arc, the MCP server has no identity or policy to check and signs without refusing.",
+      "group": "Agents and APIs"
+    },
+    {
+      "title": "Rate limits are per server",
+      "detail": "Limits are counted in memory on each server instance and reset when it restarts.",
+      "group": "Agents and APIs"
+    },
+    {
+      "title": "No pagination yet",
+      "detail": "The seller API returns the newest 200 deals and 300 usage records; the inbox API the newest 200 requests.",
+      "group": "Agents and APIs"
+    },
+    {
+      "title": "Buyer alerts are best effort",
+      "detail": "Alerts to buyers go out at once with two tries and no delivery log. Signed webhooks work today; Telegram and email need their keys on the server. Sellers' deal webhooks use an outbox with retries.",
+      "group": "Channels"
     },
     {
       "title": "No phone line yet",
-      "detail": "The front desk answers chat and browser voice on a link or website embed, not phone calls."
+      "detail": "The front desk answers chat and browser voice on a link or website embed, not phone calls.",
+      "group": "Channels"
     },
     {
       "title": "Calendar booking is off",
-      "detail": "Google Calendar booking is built but not switched on; bookings arrive as requests for the business to confirm."
+      "detail": "Google Calendar booking is built but not switched on; bookings arrive as requests for the business to confirm.",
+      "group": "Channels"
     },
     {
       "title": "Voice depends on the browser",
-      "detail": "Speech uses the browser's engine: Chrome, Edge and Safari work; browsers that block it (Brave, Arc) fall back to typing."
+      "detail": "Speech uses the browser's engine: Chrome, Edge and Safari work; browsers that block it (Brave, Arc) fall back to typing.",
+      "group": "Channels"
     },
     {
-      "title": "Buyer alerts by webhook today",
-      "detail": "Telegram and email alerts need their keys on the server; signed webhooks work now."
+      "title": "WhatsApp is in testing",
+      "detail": "The channel is deployed and a number is connected, but no real customer conversation has happened yet.",
+      "group": "Channels"
     },
     {
       "title": "One rating predates the checks",
-      "detail": "Shoonya's first rating (Nov 11) counts although its buyer wallet is linked to a Shoonya team account in Proteus; it is listed as counted_before_checks. Every rating since Nov 12 must pass the checks."
+      "detail": "Shoonya's first rating (Nov 11) counts although its buyer wallet is linked to a Shoonya team account in Proteus; it is listed as counted_before_checks. Every rating since Nov 12 must pass the checks.",
+      "group": "Ratings"
     },
     {
       "title": "Ratings are cost-to-fake, not proof",
-      "detail": "A seller that funds a second wallet from an exchange leaves no link on Arc and can still rate itself; one vote per buyer and the neutral prior limit the effect. Flags are not yet written on chain."
+      "detail": "A seller that funds a second wallet from an exchange leaves no link on Arc and can still rate itself; one vote per buyer and the neutral prior limit the effect. Flags are not yet written on chain.",
+      "group": "Ratings"
     }
   ],
   "comparison": {

@@ -4,10 +4,10 @@
  * /docs/<page>.md for agents (generated at build). Unknown pages fall back to the first page.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, ArrowRight, ArrowUpRight, Check, Copy, FileText, Info, Lightbulb, Minus } from "lucide-react";
 import "../app.css";
-import { Wordmark } from "../layouts/Wordmark";
+import { WordmarkImage } from "../layouts/Wordmark";
 import { compare } from "../../content/proteus";
 import { DOC_LEDE, DOC_TITLE, FACTS_AS_OF, GROUPS, SECTIONS, SELLER_EXAMPLES, docsMarkdown, type Block, type DocSection } from "./docsContent";
 import { CodeBlock, CodeTabs } from "./Code";
@@ -20,7 +20,7 @@ import s from "./productDocs.module.css";
 const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://app.proteus.co.in";
 const ids = new Set(SECTIONS.map((x) => x.id));
 /** A section's page, or the page that holds an anchor (an h3 id). */
-const pageOf = (id: string) => (ids.has(id) ? id : SECTIONS.find((sec) => sec.blocks.some((b) => b.kind === "h3" && b.id === id))?.id);
+const pageOf = (id: string) => (ids.has(id) ? id : SECTIONS.find((sec) => sec.blocks.some((b) => (b.kind === "h3" && b.id === id) || (b.kind === "channels" && b.items.some((c) => c.id === id))))?.id);
 
 export default function ProductDocs() {
   const { page } = useParams();
@@ -31,6 +31,7 @@ export default function ProductDocs() {
 
 function DocsPage({ sec }: { sec: DocSection }) {
   const [copied, setCopied] = useState(false);
+  const { hash } = useLocation();
   const index = SECTIONS.findIndex((x) => x.id === sec.id);
   const prev = SECTIONS[index - 1];
   const next = SECTIONS[index + 1];
@@ -43,8 +44,11 @@ function DocsPage({ sec }: { sec: DocSection }) {
 
   useEffect(() => {
     document.title = `${sec.title} · Proteus AI docs`;
-    window.scrollTo({ top: 0 });
-  }, [sec]);
+    // A link to a heading on another page (/docs/page#heading) lands on that heading, not the top.
+    const target = hash ? document.getElementById(decodeURIComponent(hash.slice(1))) : null;
+    if (target) requestAnimationFrame(() => target.scrollIntoView());
+    else window.scrollTo({ top: 0 });
+  }, [sec, hash]);
 
   const copy = async () => {
     try {
@@ -63,7 +67,7 @@ function DocsPage({ sec }: { sec: DocSection }) {
     <div data-app className={s.root}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
       <header className={s.top}>
-        <span className={s.brand}><Wordmark /></span>
+        <Link to="/" className={s.brand} aria-label="Proteus AI home"><WordmarkImage /></Link>
         <nav className={s.pills} aria-label="Docs sections">
           {GROUPS.map((g) => {
             const first = SECTIONS.find((x) => x.group === g)!;
@@ -102,6 +106,7 @@ function DocsPage({ sec }: { sec: DocSection }) {
               <span className={s.eyebrow}>{sec.group}</span>
               {index === 0 ? <h2 id="page-title" className={s.h1Small}>{sec.title}</h2> : <h1 id="page-title" className={s.h1}>{sec.title}</h1>}
               {sec.summary && index !== 0 && <p className={s.summary}>{sec.summary}</p>}
+              {sec.intro && <p className={s.intro}><Rich text={sec.intro} /></p>}
               <div className={s.actions}>
                 <button type="button" className={s.btn} onClick={copy}>{copied ? <Check size={14} aria-hidden /> : <Copy size={14} aria-hidden />}{copied ? "Copied" : "Copy page"}</button>
                 <a href={md} className={s.btn}><FileText size={14} aria-hidden /> .md</a>
@@ -275,6 +280,29 @@ function BlockView({ b }: { b: Block }) {
       );
     case "compare":
       return <CompareTable />;
+    case "channels":
+      return (
+        <ul className={s.channels}>
+          {b.items.map((ch) => (
+            <li key={ch.title} id={ch.id} className={s.channel}>
+              <div className={s.channelHead}>
+                <span className={s.channelTitle}>{ch.title}</span>
+                <span className={`${s.status} ${s[`status${ch.status.replace(/\s/g, "")}`] ?? ""}`}>{ch.status}</span>
+              </div>
+              <dl className={s.channelFacts}>
+                <dt>For</dt><dd><Rich text={ch.who} /></dd>
+                <dt>Does</dt><dd><Rich text={ch.does} /></dd>
+                <dt>Proof</dt><dd><Rich text={ch.proof} /></dd>
+              </dl>
+              {ch.start.href.startsWith("/docs/") && !ch.start.href.includes(".") && !ch.start.href.includes("#") ? (
+                <Link to={ch.start.href} className={s.entryCta}>{ch.start.label} <ArrowRight size={14} aria-hidden /></Link>
+              ) : (
+                <a href={ch.start.href} className={s.entryCta} target={ch.start.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer">{ch.start.label} <ArrowRight size={14} aria-hidden /></a>
+              )}
+            </li>
+          ))}
+        </ul>
+      );
   }
 }
 

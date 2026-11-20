@@ -1,24 +1,52 @@
 # Deal lifecycle · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/lifecycle> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/lifecycle> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
+_Every state a deal goes through, and who moves it between them._
 
+For sellers, buyers and agent builders who need to know what happens when. You will learn the states a deal goes through, on Proteus and on chain, what moves it from one to the next, and the time limits that apply.
 
-_Eight states, and who moves a deal between them._
+_Diagram: A deal from the first message to the refund. Dashed arrows are the exceptions._
 
-_Diagram: A deal from the first message to the refund._
+Negotiating → Quoted (an engine-made offer) → Awaiting funding (buyer signed the terms, seller signer countersigned) → Funding pending (transaction submitted) → Active (USDC in DealEscrow, Funded on chain). A quote above the seller's approval threshold waits for the seller before the buyer can sign. While Active, usage is settled any number of times. From Active a dispute freezes the deal for the arbiter: a partial split returns it to Active, a full split closes it. refundUnused after end + grace (or after the seller closes the term) returns the rest to the buyer and closes the deal.
 
-Negotiate → Quote → Sign (buyer + seller signer) → Fund (USDC into DealEscrow) → Deliver and settle, repeated. A quote above the approval threshold waits for the seller first. From an active deal: a dispute freezes funds for the arbiter; when the term ends (plus grace) or the seller closes, the unspent balance is refunded.
+<a id="lifecycle-before"></a>
 
-| State | How it gets there | Who acts |
-|---|---|---|
-| Negotiating | A buyer opens a conversation. | Buyer, agent |
-| Quoted | The buyer picks an engine-made offer. | Buyer |
-| Approval required | Prepaid is above the approval threshold. | Seller |
-| Awaiting funding | Buyer signs the terms; seller signer countersigns. | Buyer, seller signer |
-| Funded | `createAndFundDeal` moves USDC into escrow. | Relayer submits |
-| Active | Service provisioned or goods delivered; usage settled in steps. | Buyer, seller |
-| Disputed | `openDispute`; settlement and refund blocked. | Buyer or seller, then arbiter |
-| Closed | `refundUnused` after term plus grace or seller close, or a full dispute payout. | Anyone, or the arbiter |
+### Before funding
 
-_A fully settled deal has nothing to refund and stays Active. [State machine](https://github.com/Adityaakr/proteus/blob/main/README.md#a-deals-states)._
+Nothing is on chain yet. These states live on Proteus; the API returns them as `status` on the negotiation, the quote and the deal.
+
+| State | Status value | What it means | Who acts |
+|---|---|---|---|
+| Negotiating | negotiation `open`, then `quoted` | The buyer talks to the deal agent; `quoted` once at least one offer passes the seller's rules. It becomes `accepted` when the buyer signs a quote. | Buyer, deal agent |
+| Quoted | quote `draft` | The buyer picked an offer; Proteus built the EIP-712 terms. The quote is `expired` once the seller's quote validity passes, and `accepted` when the buyer signs. | Buyer |
+| Approval required | quote `approval_required`, then `approved` or `declined` | The prepaid total is above the seller's approval threshold. The seller approves or declines in the console. | Seller |
+| Awaiting funding | deal `awaiting_funding` | The buyer signed the terms and the seller signer countersigned. | Buyer, seller signer |
+| Funding pending | deal `funding_pending` | The funding transaction was submitted and is waiting for Arc. | Relayer |
+
+<a id="lifecycle-after"></a>
+
+### After funding
+
+From here DealEscrow is the record. Proteus reconciles each deal's status from the contract (`getDeal`), which knows four states: `None`, `Funded`, `Disputed`, `Closed`.
+
+| State | Status value | What it means | Who acts |
+|---|---|---|---|
+| Active | deal `funded` (the funding event was seen), then `active` (reconciled from the contract, service provisioned); on chain `Funded` | USDC is in escrow. Usage is settled in steps, each with the buyer's Acceptance and the seller signer's Delivery. | Buyer, seller signer; the relayer submits |
+| Disputed | `disputed`; on chain `Disputed` | `openDispute` froze the deal; settlement and refund revert until the arbiter decides. | The buyer (on chain, also the seller signer), then the arbiter |
+| Closed | `closed`; on chain `Closed` | `refundUnused` returned the unspent balance, or a dispute split paid out everything left. | Anyone, or the arbiter |
+
+_A deal whose deposit is fully settled has nothing to refund and stays Active on chain; the seller console and seller API show it as `settled`. A partial dispute split returns the deal to Active. [State machine](https://github.com/Adityaakr/proteus/blob/main/README.md#a-deals-states)._
+
+<a id="lifecycle-time"></a>
+
+### Time limits
+
+| Limit | Rule |
+|---|---|
+| Quote | The terms carry an `expiry` from the seller's quote validity. Funding after it reverts (`Expired`). |
+| Settlement | Each Acceptance expires 1 hour after Proteus prepares it; fetch a fresh one from `GET /api/deals/{id}/usage`. No settlement after the term's end plus grace. |
+| Refund | `refundUnused` opens at end + grace (3 days by default), or at once after `sellerCloseTerm`; earlier calls revert (`TooEarly`). Read `refundableAt` from `GET /api/deals/{id}`. |
+| Dispute | Open while the deal is Funded. There is no dispute timeout yet. |
+
+> **Warning: Countersign before end + grace.** After end + grace, settlement reverts: usage not countersigned by then can no longer be paid from escrow, and the balance can only go back to the buyer as a refund.

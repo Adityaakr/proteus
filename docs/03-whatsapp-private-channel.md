@@ -22,7 +22,7 @@ Privacy comes from three rules, applied in order:
 | L3 | Rate limits trust `x-forwarded-for`, which anyone can spoof, and live in memory on one instance. | `server/src/lib/ratelimit.ts:3,16-17` | Anyone |
 | L4 | `/api/review` publishes every deal's `publicTerms` (unit price, total) plus `dealIdOnchain`. One log lookup on `DealFunded` then links it to the buyer's wallet. | `server/src/services/review.ts:50-51`, `contracts/src/DealEscrow.sol:111` | Competitor, chain observer |
 | L5 | A rejected quote returns raw internal rule ids. | `server/src/services/quotes.ts:62` | Buyer |
-| L6 | Unhandled errors return up to 400 characters of the raw message. | `server/src/index.ts:105-111` | Anyone |
+| L6 | Unhandled errors return up to 400 characters of the raw message. | `server/src/index.ts:80-89` | Anyone |
 | L7 | The full transcript goes to the LLM provider unredacted. Costs do not. | `server/src/agent/anthropic.ts:49`, `openrouter.ts:34`, `adapter.ts:22-23` | LLM provider |
 | L8 | All commercial and personal data is plaintext in Postgres: costs, policies, candidates with economics, `privateBasis`, transcripts, order details, emails. Only secrets are encrypted, under one global key that falls back to `SESSION_SECRET`. | `server/src/db/schema.ts:161-251,361`, `server/src/lib/crypto.ts:5-31`, `env.ts:93-96` | DB insider, backup leak |
 | L9 | Unauthenticated `GET /deals/:id` returns `buyerAddress` and signatures. | `server/src/routes/deals.ts:16-20` | Anyone with the id |

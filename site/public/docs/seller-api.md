@@ -1,10 +1,12 @@
 # Seller API · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/seller-api> · facts as of 2026-11-14 · all docs: <https://app.proteus.co.in/docs.md>
-
-
+Source: <https://app.proteus.co.in/docs/seller-api> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Run your store from your own systems: read deals, usage and payments, change prices and report deliveries, with keys that can do only what you allow._
+
+For sellers' developers connecting their own systems or agents. You will learn the environments, how keys and permissions work, how to make a first request against the sandbox, and the errors and limits to plan for.
+
+<a id="seller-api-envs"></a>
 
 ### Environments
 
@@ -21,6 +23,8 @@ _Each app creates keys for its own network. A key sent to the other network is r
 - **Not the buyer's service key.** A seller API key acts for your seller. The key a buyer gets when a deal is funded calls that deal's service at `/api/services/{product}/execute` ([HTTP API](https://app.proteus.co.in/docs/api)).
 - **Try it now.** Every endpoint in the [reference](https://app.proteus.co.in/docs/seller-api-reference) has a Send button that calls the sandbox. No sign-in, nothing stored.
 
+<a id="seller-api-auth"></a>
+
 ### Authentication
 
 Send your key as a bearer token on every request. Each authenticated call updates the key's last-used time.
@@ -31,7 +35,9 @@ Authorization: Bearer psk_live_<43 characters>
 
 _Diagram: Every request is checked in this order; each answer covers your own seller only._
 
-Your server sends Authorization: Bearer psk_live_… (or psk_test_…) to /api/v1/seller. Proteus hashes the key with SHA-256 and looks it up: missing, unknown, revoked or expired keys get 401. The key's environment must match the deployment (test keys on Arc testnet, live keys on Arc mainnet), else 401. The route's permission must be on the key, else 403 naming it. Then the handler reads or writes only that key's seller (another seller's deal or product is 404). The public sandbox key is a separate path: /api/v1/sandbox/seller answers from fixed demo data, and its writes are dry runs.
+Your server sends Authorization: Bearer psk_live_… (or psk_test_…) to /api/v1/seller. Proteus first checks the key's environment against the deployment (test keys on Arc testnet, live keys on Arc mainnet), else 401 naming the right network. It then hashes the key with SHA-256 and looks it up: unknown, revoked or expired keys get 401. The route's permission must be on the key, else 403 naming it. Then the handler reads or writes only that key's seller (another seller's deal or product is 404). The public sandbox key is a separate path: /api/v1/sandbox/seller answers from fixed demo data, and its writes are dry runs.
+
+<a id="seller-api-first-request"></a>
 
 ### Make your first request
 
@@ -42,7 +48,9 @@ curl https://ai.proteus.co.in/api/v1/sandbox/seller/me \
   -H "Authorization: Bearer psk_sandbox_demo_seller_testnet_read_only"
 ```
 
-> **Sandbox:** Reads return the same fields as the real API, from fixed demo records. Writes run the API's own checks and answer `{ "dryRun": true, "wouldReturn": …, "wouldHappen": [...] }`: nothing is stored, signed, paid or sent. It runs on the Arc testnet deployment and never touches a real seller, the chain or a webhook.
+> **Sandbox:** Reads return the same fields as the real API, from fixed demo records. Writes run the API's own checks and answer `{ "dryRun": true, "persisted": false, "status": …, "wouldReturn": …, "wouldHappen": [...] }`: nothing is stored, signed, paid or sent. It runs on the Arc testnet deployment and never touches a real seller, the chain or a webhook.
+
+<a id="seller-api-quickstart"></a>
 
 ### Quickstart
 
@@ -155,13 +163,17 @@ const product = await fetch(`${base}/products/${productId}/tiers`, {
 }).then((r) => r.json());
 ```
 
+<a id="seller-api-key"></a>
+
 ### API keys
 
 1. **Open Developers.** In the seller console: Sell → [Developers](https://app.proteus.co.in/app/sell/developers) → API keys. Only the signed-in owner of a seller account can manage keys; the shared example seller cannot.
 2. **Name it, pick permissions.** A name of 1 to 60 characters, such as "Order sync", and at least one permission.
 3. **Copy it once.** The full key is shown once. Proteus stores only its SHA-256 hash and shows a masked key after that, with when it was created and last used ([api-keys.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/api-keys.ts)).
 
-> **Warning:** A key is a bearer credential: anyone who has it can do what its permissions allow until you revoke it. A key is `psk_live_` or `psk_test_` followed by 43 base64url characters (256 random bits).
+> **Warning: Keep keys on your server.** A key is a bearer credential: anyone who has it can do what its permissions allow until you revoke it. A key is `psk_live_` or `psk_test_` followed by 43 base64url characters (256 random bits).
+
+<a id="seller-api-scopes"></a>
 
 ### Permissions
 
@@ -175,6 +187,8 @@ const product = await fetch(`${base}/products/${productId}/tiers`, {
 
 `GET /me` and `GET /products` work with any valid key. Every other endpoint needs the permission listed in the [reference](https://app.proteus.co.in/docs/seller-api-reference); without it the answer is 403 and `details.required` names the missing permission. A key's permissions are fixed: to add one, create a new key.
 
+<a id="seller-api-rotate"></a>
+
 ### Rotate and revoke
 
 | Action | Old key | Use when |
@@ -184,6 +198,8 @@ const product = await fetch(`${base}/products/${productId}/tiers`, {
 | Revoke | Stops at once, even inside an overlap | You no longer use the key |
 
 _The new key has the same name, environment and permissions. Up to 20 working keys per seller (active, or inside an overlap). A key already replaced, expired or revoked cannot be regenerated: regenerate its replacement, or create a new key._
+
+<a id="seller-api-errors"></a>
 
 ### Errors
 
@@ -204,11 +220,17 @@ Errors are JSON with a plain-language `error` that says what to fix, and `detail
 }
 ```
 
+<a id="seller-api-limits"></a>
+
 ### Limits
 
 - No request rate limit today.
 - `GET /deals` returns your newest 200 deals and `GET /usage` your newest 300 requests. There is no pagination yet.
 - Delivery reports are idempotent on `requestId`: retrying with the same id returns the first receipt instead of recording twice.
+
+<a id="seller-api-next"></a>
+
+### Next
 
 - [API reference](https://app.proteus.co.in/docs/seller-api-reference): every endpoint, with a Send button
 - [Webhooks](https://app.proteus.co.in/docs/seller-webhooks): deal events pushed to your server

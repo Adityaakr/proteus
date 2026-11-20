@@ -1,5 +1,8 @@
 import { createHmac } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { Hono } from "hono";
+import { describe, expect, it, vi } from "vitest";
+import { DELIVERY_TYPES } from "@proteus/domain";
+import type { HttpError } from "../src/lib/http";
 import { serviceOpenApi, serviceSkill } from "../src/services/agentdocs";
 import { publicProduct, unitPriceUsd } from "../src/services/catalog";
 import { sampleWebhookEvent, signWebhook } from "../src/services/notify";
@@ -109,5 +112,97 @@ describe("generated docs", async () => {
       expect(d.describe.length).toBeGreaterThan(80);
       expect(md).toContain(d.describe);
     }
+  });
+
+  it("every page says who it is for and what it covers, in the page and in its Markdown", () => {
+    for (const sec of SECTIONS) {
+      expect(sec.intro.length, sec.id).toBeGreaterThan(60);
+      expect(docsMarkdown("https://app.example", sec.id), sec.id).toContain(sec.intro.replace(/\]\(\//g, "](https://app.example/"));
+    }
+  });
+
+  it("headings have unique anchors, and every internal docs link points at a real page and heading", () => {
+    const anchors = SECTIONS.flatMap((s) => s.blocks.filter((b) => b.kind === "h3").map((b) => (b as { id: string }).id));
+    expect(new Set(anchors).size).toBe(anchors.length);
+    const channelIds = SECTIONS.flatMap((s) => s.blocks.flatMap((b) => (b.kind === "channels" ? b.items.map((c) => c.id) : [])));
+    const pageIds = new Set(SECTIONS.map((s) => s.id));
+    const known = new Set([...anchors, ...channelIds, ...pageIds]);
+    for (const [, page, hash] of md.matchAll(/https:\/\/app\.example\/docs\/([a-z0-9-]+)(?:#([a-z0-9-]+))?\)/g)) {
+      if (page === "api") continue; // the buyer HTTP API page (ApiDocs.tsx)
+      expect(pageIds.has(page!) || page!.endsWith(".md"), `/docs/${page}`).toBe(true);
+      if (hash) expect(known.has(hash), `/docs/${page}#${hash}`).toBe(true);
+    }
+  });
+
+  it("ways to use: every channel has an honest status, and only proven channels are Live", async () => {
+    const { CHANNEL_STATUS, CLAIMS } = await import("../../site/src/app/docs/docsContent");
+    const ways = SECTIONS.find((s) => s.id === "ways-to-use")!;
+    expect(ways.group).toBe("Start");
+    const channels = ways.blocks.flatMap((b) => (b.kind === "channels" ? b.items : []));
+    const status = Object.fromEntries(channels.map((c) => [c.id, c.status]));
+    for (const id of ["ways-web", "ways-embed", "ways-whatsapp", "ways-phone", "ways-mcp", "ways-own-agent", "ways-seller-api", "ways-front-desk"]) expect(status, id).toHaveProperty(id);
+    expect(status["ways-phone"]).toBe("Coming soon");
+    expect(channels.filter((c) => c.status === "Live").map((c) => c.id).sort()).toEqual(["ways-agent-docs", "ways-web"]);
+    // Agents buying through MCP on mainnet and the WhatsApp channel are not proven: they must not be marked Live.
+    expect(CLAIMS.find((c) => c.claim.startsWith("An AI agent buying through MCP on Arc mainnet"))?.status).toBe("not-yet");
+    expect(status["ways-mcp"]).not.toBe("Live");
+    expect(status["ways-whatsapp"]).not.toBe("Live");
+    for (const c of channels) {
+      expect(Object.keys(CHANNEL_STATUS)).toContain(c.status);
+      expect(md).toContain(`#### ${c.title} · ${c.status}`);
+    }
+    // The docs home points to it.
+    expect(JSON.stringify(SECTIONS.find((s) => s.id === "overview"))).toContain("/docs/ways-to-use");
+  });
+});
+
+describe("docs match the code", async () => {
+  const { API, MCP_TOOLS, docsMarkdown } = await import("../../site/src/app/docs/docsContent");
+  const md = docsMarkdown("https://app.example");
+
+  it("every public HTTP endpoint in the docs is a route the server mounts under /api", async () => {
+    const { apiRoutes } = await import("../src/routes/api");
+    const app = new Hono().route("/api", apiRoutes());
+    const param = (p: string) => p.replace(/\{[A-Za-z]+\}|:[A-Za-z]+(\{[^}]*\})?/g, ":p");
+    const mounted = new Set(app.routes.filter((r) => r.method !== "ALL").map((r) => `${r.method} ${param(r.path)}`));
+    for (const [method, path] of API.endpoints) expect(mounted, `${method} ${path}`).toContain(`${method} ${param(`/api${path.split("?")[0]}`)}`);
+  });
+
+  it("the MCP tool table lists exactly the tools the MCP server registers", async () => {
+    const { toolNames } = await import("../../packages/mcp/src/server");
+    expect(MCP_TOOLS.map(([name]) => name)).toEqual(toolNames);
+  });
+
+  it("the Delivery signature carries units and the receipts root, not the amount", () => {
+    expect(DELIVERY_TYPES.Delivery).toEqual([
+      { name: "dealId", type: "uint256" },
+      { name: "receiptsRoot", type: "bytes32" },
+      { name: "cumulativeUnits", type: "uint256" },
+    ]);
+    expect(md).toContain("Delivery (EIP-712): cumulative units and receipts root, no amount");
+  });
+
+  it("front desk limits in the docs match what the chat endpoint enforces", async () => {
+    const { customerChat } = await import("../src/services/customer-link");
+    const status = (token: string, ip: string, body: Record<string, unknown> = {}) =>
+      customerChat(token, ip, body).then(() => 200, (e: HttpError) => e.status);
+    for (let i = 0; i < 40; i++) expect(await status("tok-ip", "10.0.0.1")).toBe(400);
+    expect(await status("tok-ip", "10.0.0.1")).toBe(429);
+    for (let i = 0; i < 400; i++) expect(await status("tok-link", `10.1.${i >> 8}.${i & 255}`)).toBe(400);
+    expect(await status("tok-link", "10.2.0.1")).toBe(429);
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(Date.now() + 11 * 60_000);
+      expect(await status("tok-ip", "10.0.0.1")).toBe(400);
+      expect(await status("tok-link", "10.2.0.2")).toBe(429);
+      vi.setSystemTime(Date.now() + 24 * 3600_000);
+      expect(await status("tok-link", "10.2.0.3")).toBe(400);
+    } finally {
+      vi.useRealTimers();
+    }
+    const customer = (n: number) => Array.from({ length: n }, () => ({ role: "user", text: "hi" }));
+    expect(await status("tok-turns", "10.3.0.1", { sessionId: "session-abcdef", messages: customer(14) })).toBe(404);
+    expect(await status("tok-turns", "10.3.0.1", { sessionId: "session-abcdef", messages: customer(15) })).toBe(429);
+    expect(API.rateLimits).toContain("40 messages per IP per 10 minutes and 400 per customer link per day");
   });
 });

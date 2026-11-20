@@ -11,7 +11,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { POSTS } from "../src/app/blog/posts";
 import { SANDBOX, SELLER_API_REFERENCE, SCOPES_REFERENCE, KEY_RULES, WEBHOOK_EVENTS_REFERENCE, ERRORS_REFERENCE } from "../src/app/sell/developers/reference";
-import { API, CLAIMS, CONTRACTS, DOC_LEDE, DOC_TITLE, EVIDENCE, FACTS_AS_OF, GRACE, LIMITS, MCP_TOOLS, NETWORKS, SECTIONS, TRUST, compareRows, docsMarkdown, FEES, MODELS, SELLER_API_BASE, SELLER_EXAMPLES } from "../src/app/docs/docsContent";
+import { API, CLAIMS, claimLabel, CONTRACTS, DOC_LEDE, DOC_TITLE, EVIDENCE, FACTS_AS_OF, GRACE, LIMITS, MCP_TOOLS, NETWORKS, SECTIONS, TRUST, compareRows, docsMarkdown, FEES, MODELS, SELLER_API_BASE, SELLER_EXAMPLES } from "../src/app/docs/docsContent";
 
 const ORIGIN = "https://app.proteus.co.in";
 const pub = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
@@ -56,7 +56,7 @@ const facts = {
   docs: { html: `${ORIGIN}/docs`, markdown: `${ORIGIN}/docs.md`, pages: SECTIONS.map((x) => ({ id: x.id, group: x.group, title: x.title, summary: x.summary ?? null, html: `${ORIGIN}/docs/${x.id}`, markdown: `${ORIGIN}/docs/${x.id}.md` })) },
   networks: NETWORKS,
   contracts: CONTRACTS,
-  api: { base: { mainnet: NETWORKS.mainnet.api, testnet: NETWORKS.testnet.api }, auth: API.auth, errors: API.errors, rateLimits: API.rateLimits, endpoints: API.endpoints.map(([method, path, does]) => ({ method, path, does })), example: API.example },
+  api: { base: { mainnet: NETWORKS.mainnet.api, testnet: NETWORKS.testnet.api }, auth: API.auth, errors: API.errors, units: API.units, rateLimits: API.rateLimits, endpoints: API.endpoints.map(([method, path, does]) => ({ method, path, does })), example: API.example },
   sellerApi: {
     docs: { guide: `${ORIGIN}/docs/seller-api`, reference: `${ORIGIN}/docs/seller-api-reference`, webhooks: `${ORIGIN}/docs/seller-webhooks` },
     base: SELLER_API_BASE,
@@ -116,10 +116,11 @@ const facts = {
     verifyOnChain: "getSummary(agentId, trustedReviewers, \"proteus-deal\", \"\") on the registry; an empty list reverts",
     limit: "a seller funding a second wallet from an exchange leaves no link on Arc; ratings raise the cost of faking, they do not prove independence",
   },
-  claims: CLAIMS,
-  notProven: CLAIMS.filter((c) => c.status !== "proven").map((c) => ({ claim: c.claim, status: c.status })),
+  // label is the status word the pages use (Live, Testnet, In testing, Not yet); status and network are the raw values.
+  claims: CLAIMS.map((c) => ({ ...c, label: claimLabel(c) })),
+  notProven: CLAIMS.filter((c) => c.status !== "proven").map((c) => ({ claim: c.claim, status: c.status, label: claimLabel(c) })),
   fees: FEES,
-  limits: LIMITS.map(([title, detail]) => ({ title, detail })),
+  limits: LIMITS.map(([title, detail, group]) => ({ title, detail, group })),
   comparison: compareRows(),
 };
 writeFileSync(join(pub, "docs", "facts.json"), JSON.stringify(facts, null, 2) + "\n");
