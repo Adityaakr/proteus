@@ -46,10 +46,10 @@ export const hero = {
     status: ["Reading the request...", "Checking tiers, floor and capacity", "Sizing offers to the budget"],
     done: "Two offers, both in policy.",
     reply:
-      "250 tees at the bulk price is $1,625. If $1,500 is firm, 200 tees come to $1,300. Your USDC waits in escrow until you accept delivery.",
+      "250 tees at the bulk price is $1,625. If $1,500 is firm, 230 tees come to $1,495. Your USDC waits in escrow until you accept delivery.",
     completed: "Offer made",
     suggestionsLabel: "Suggestions",
-    suggestions: ["Option 01: 250 tees, $1,625", "Option 02: 200 tees, $1,300", "Keep negotiating"],
+    suggestions: ["Option 01: 250 tees, $1,625", "Option 02: 230 tees, $1,495", "Keep negotiating"],
     placeholder: "Reply to the seller's agent..",
   },
 };
@@ -207,7 +207,6 @@ export const partners = {
     { number: "03", title: "Event supply. Swag, signage and kits for organisers with a budget and a deadline." },
     { number: "04", title: "Creative and freelance services. Design, video and content, priced per deliverable." },
     { number: "05", title: "Wholesale and small-batch makers. Minimum orders, price tiers and repeat buyers." },
-    { number: "06", title: "Buyers who already hold USDC. DAOs, hackathons, conferences and Web3 teams." },
   ],
 };
 
@@ -216,7 +215,7 @@ export const comparison = {
   tag: "Buyers and agents",
   heading: "Buyers can be people or their own agents.",
   description:
-    "Every way in reaches the same deal agent, prices from the same rules and ends in the same escrow. Live means used on Arc mainnet with real USDC; Testnet means proven on Arc testnet.",
+    "First up: buyers who already hold USDC, such as DAOs, hackathons, conferences and Web3 teams. Every way in reaches the same deal agent, prices from the same rules and ends in the same escrow. Live means used on Arc mainnet with real USDC; Testnet means proven on Arc testnet.",
   cards: [
     { icon: "/assets/JXfbymshMLyfsl2323zgdqBGL4.svg", threshold: 0.46, title: "Web app · Live", body: "Store pages, offer review with the terms checked in your browser, gasless funding and refunds." },
     { icon: "/assets/oj7jXSrLMVYLxliKOyzXN6J1ZRs.svg", threshold: 0.46, title: "Website embed · Testnet", body: "One script tag puts your deal agent on your own site. Signing and payment open in Proteus, never in the frame." },
