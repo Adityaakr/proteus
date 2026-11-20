@@ -51,14 +51,14 @@ export const hero = {
   /** The three short facts under the buttons. */
   trust: ["Free during the pilot", "Live on Arc mainnet", "Set up in about 5 minutes"],
   chat: {
-    user: "We're running a hackathon for 250 builders in Bengaluru on Dec 14. We need 250 black oversized tees, logo printed front and back, sizes S to XXL. Budget is $1,500 in USDC. Can you make it work?",
-    status: ["Reading the request...", "Checking prices, margin and capacity", "Sizing offers to the budget"],
-    done: "Two offers, both in policy.",
+    user: "Purchasing agent for a 2,000-person company in London, Singapore and São Paulo. Mandate: 2,000 branded bottles, max $9 each, in two batches.",
+    status: ["Reading the mandate...", "Checking price, capacity and limits", "Fitting the offer to the mandate"],
+    done: "One offer, inside the mandate.",
     reply:
-      "250 tees at the bulk price is $1,625. If $1,500 is firm, 230 tees come to $1,495. Your payment is held in escrow until you confirm delivery.",
+      "2,000 at $8.40 is $16,800, inside your $9 limit. You accept each batch on arrival, and only the bottles you accept are paid out.",
     completed: "Offer made",
     suggestionsLabel: "Suggestions",
-    suggestions: ["Option 01: 250 tees, $1,625", "Option 02: 230 tees, $1,495", "Keep negotiating"],
+    suggestions: ["Option 01: 2,000 bottles, $16,800", "Option 02: two batches of 1,000", "Keep negotiating"],
     placeholder: "Reply to the seller's agent..",
   },
 };
