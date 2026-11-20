@@ -47,7 +47,7 @@ export function Hero() {
               </div>
               <Appear preset="fade-0.8" animate="visible" whileInView={undefined} className={s.buttons}>
                 <Button label={hero.secondary.label} href={hero.secondary.href} variant="secondary" icon={false} />
-                <Button label={hero.primary.label} hoverLabel={gated ? hero.primary.hoverLabel : undefined} href={gated ? hero.primary.href : "/app"} variant="primary" icon />
+                <Button label={hero.primary.label} hoverLabel={gated ? hero.primary.hoverLabel : undefined} href={gated ? hero.primary.href : hero.primary.openHref} variant="primary" icon />
               </Appear>
               <Appear preset="fade-0.8" animate="visible" whileInView={undefined} className={s.trust}>
                 <span><ArcMark size={14} /> Built on Arc</span>
