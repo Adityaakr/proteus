@@ -101,7 +101,7 @@ function Reference({ product: p, sellerSlug, sellerName }: { product: PublicProd
             </tbody>
           </table>
           {spec.fields.some((f) => f.type === "file") && (
-            <p>A file is an object with <code>name</code>, <code>type</code> (MIME), <code>size</code> and <code>dataBase64</code>, up to 512 KB per file and 700 KB per request. Text, markdown, CSV, JSON, PDF and images are read in full.</p>
+            <p>A file is an object with <code>name</code>, <code>type</code> (MIME), <code>size</code> and <code>dataBase64</code>, up to 512 KB per file and 700 KB per request. Services Proteus runs read text, markdown, CSV and JSON (up to 150,000 characters), PDFs and images; other types are skipped. A seller's own endpoint receives the file object as sent.</p>
           )}
         </section>
 
@@ -130,16 +130,16 @@ print(r["status"], r["answer"])`}</Code>
   "requestId": "req-0001",
   "status": "delivered",            // delivered | handoff | failed
   "billable": true,
-  "units": "1",
+  "units": 1,
   "answer": "…the ${p.unitLabel}, as plain text…",
   "source": { "store": "…who did the work…", "fields": [${spec.fields.map((f) => `"${f.key}"`).join(", ")}] },
-  "receipt": { "digest": "0x…", "sellerSignature": "0x…" },
-  "deal": { "cumulativeUnits": "1", "cumulativeCharged": "250000", "prepaid": "1500000" }
+  "receipt": { "digest": "0x…", "sellerSignature": "0x…", "at": "…" },
+  "deal": { "cumulativeUnits": "1", "cumulativeCharged": "250000", "remaining": "1250000" }
 }`}</Code>
           <ul className={s.states}>
             <li><span className={`${s.chip} ${s.chipOk}`}>delivered</span><span>One {p.unitLabel} done. Billed at the deal's unit price.</span></li>
             <li><span className={`${s.chip} ${s.chipWarn}`}>handoff</span><span>The service could not do it from what was sent and passed it to a human. Not billed.</span></li>
-            <li><span className={`${s.chip} ${s.chipBad}`}>failed</span><span>Error, timeout or a used-up allowance. Not billed.</span></li>
+            <li><span className={`${s.chip} ${s.chipBad}`}>failed</span><span>Error, timeout or a used-up allowance. Not billed. Errors such as a wrong key (401) or a closed deal (403) are listed in the <Link to="/docs/api#errors">API reference</Link>.</span></li>
           </ul>
         </section>
 
@@ -147,7 +147,7 @@ print(r["status"], r["answer"])`}</Code>
           <h2 className={s.h2}><span className={s.num}>04</span>Billing</h2>
           <ul className={s.rules}>
             <li><Coins size={15} strokeWidth={1.9} /><span>Only <b>delivered</b> responses are billed, one {p.unitLabel} each. Amounts are micro-USDC strings: <code>250000</code> is $0.25.</span></li>
-            <li><BadgeCheck size={15} strokeWidth={1.9} /><span><code>requestId</code> is idempotent. Repeating it returns the stored result and never charges twice; retry a timeout with the same id.</span></li>
+            <li><BadgeCheck size={15} strokeWidth={1.9} /><span><code>requestId</code> (8 to 128 characters) is recorded once, whatever the outcome. Repeating it returns the stored result and never charges twice, so a network retry is safe; to try a failed request again, use a new id.</span></li>
             <li><Zap size={15} strokeWidth={1.9} /><span>Settle from the deal page whenever you like; the seller is paid only what you countersign. {p.refundPolicy}</span></li>
           </ul>
         </section>

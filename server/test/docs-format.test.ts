@@ -80,8 +80,8 @@ describe("generated docs", async () => {
     expect(md).not.toMatch(/\$\d+\.\d(?![\dBMKT])/);
   });
 
-  it("the Developers group reads Overview, API reference, Webhooks in the sidebar", () => {
-    expect(SECTIONS.filter((s) => s.group === "Developers").map((s) => s.nav ?? s.title)).toEqual(["Overview", "API reference", "Webhooks"]);
+  it("the Developers group reads Agents over HTTP, Seller API, API reference, Webhooks in the sidebar", () => {
+    expect(SECTIONS.filter((s) => s.group === "Developers").map((s) => s.nav ?? s.title)).toEqual(["Agents over HTTP", "Seller API", "API reference", "Webhooks"]);
   });
 
   it("the reference documents every seller API route, with its parameters and errors", () => {
@@ -141,7 +141,7 @@ describe("generated docs", async () => {
     const channels = ways.blocks.flatMap((b) => (b.kind === "channels" ? b.items : []));
     const status = Object.fromEntries(channels.map((c) => [c.id, c.status]));
     for (const id of ["ways-web", "ways-embed", "ways-whatsapp", "ways-phone", "ways-mcp", "ways-own-agent", "ways-seller-api", "ways-front-desk"]) expect(status, id).toHaveProperty(id);
-    expect(status["ways-phone"]).toBe("Coming soon");
+    expect(status["ways-phone"]).toBe("Planned");
     expect(channels.filter((c) => c.status === "Live").map((c) => c.id).sort()).toEqual(["ways-agent-docs", "ways-web"]);
     // Agents buying through MCP on mainnet and the WhatsApp channel are not proven: they must not be marked Live.
     expect(CLAIMS.find((c) => c.claim.startsWith("An AI agent buying through MCP on Arc mainnet"))?.status).toBe("not-yet");

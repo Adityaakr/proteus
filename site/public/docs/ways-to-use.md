@@ -1,6 +1,6 @@
 # Ways to use Proteus AI · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/ways-to-use> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/ways-to-use> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _One deal agent, many ways in: the web, a seller's website, WhatsApp, Claude and other MCP clients, your own agent, and your own systems._
 
@@ -8,7 +8,7 @@ For sellers choosing where their agent should answer, and for buyers and builder
 
 _Diagram: Every channel reaches the same deal agent, prices from the same rules and ends in the same escrow._
 
-Buyers reach the same deal agent from the web app, a seller's website embed, the seller's WhatsApp number, an MCP client such as Claude, their own agent over HTTP, and later a phone app (coming soon). The deal agent prices only from the seller's rules. The seller sets those rules in the seller console and connects its own systems through the seller API and webhooks. Every channel ends in the same signed terms and the same DealEscrow contract on Arc.
+Buyers reach the same deal agent from the web app, a seller's website embed, the seller's WhatsApp number, an MCP client such as Claude, their own agent over HTTP, and later a phone app (planned). The deal agent prices only from the seller's rules. The seller sets those rules in the seller console and connects its own systems through the seller API and webhooks. Every channel ends in the same signed terms and the same DealEscrow contract on Arc.
 
 > **Same rules everywhere:** A channel changes where the conversation happens, never the price rules, the terms or where the money goes. Signing and paying always happen on a Proteus page or with the buyer's own key, never inside a chat or a third-party frame.
 
@@ -21,7 +21,7 @@ Buyers reach the same deal agent from the web app, a seller's website embed, the
 | Live | In production and in use. Where money moves, used on Arc mainnet with real USDC. |
 | Testnet | Proven end to end on Arc testnet. It also runs against mainnet, but has not been proven there yet. |
 | In testing | Built and deployed, checked in tests, but not yet used end to end by a real customer. |
-| Coming soon | Not built yet. |
+| Planned | Not built yet. Listed so you know it is missing; no date is promised. |
 
 <a id="ways-talk"></a>
 
@@ -32,7 +32,7 @@ Buyers reach the same deal agent from the web app, a seller's website embed, the
 #### Web app · Live
 
 - **For:** Buyers who want to talk to a seller directly, and sellers running their store.
-- **Does:** Store pages where one agent answers for every product, offer review with the terms hash checked in your browser, gasless funding, and deal pages with balances, refunds and disputes. Sellers set products and rules in the console.
+- **Does:** Store pages where one agent answers for every product, offer review with the public terms hash checked in your browser, gasless funding, and deal pages with balances, order tracking, refunds and disputes. Sellers set products and rules in the console. Sign in with a browser wallet, or on Arc testnet with email, which creates a Circle wallet.
 - **Proof:** A Shoonya Store order on Arc mainnet, [funded](https://explorer.arc.io/tx/0x9145fb235f7c00e625ccb91e3a8a817dcf3cd0b1ee4265fd5697cf79cb1b62a7) gaslessly and [settled](https://explorer.arc.io/tx/0x852725276799255fa7425be9aafcd2296828a0a9553e3e2b9394104fcbad5542). Its buyer wallet was later found linked to a Shoonya team account ([why](https://app.proteus.co.in/docs/ratings#ratings-before-checks)).
 - **Start:** [Buyer quickstart](https://app.proteus.co.in/docs/quickstart-buyer)
 
@@ -43,7 +43,7 @@ Buyers reach the same deal agent from the web app, a seller's website embed, the
 - **For:** Sellers who want quotes on their own website.
 - **Does:** One script tag adds the deal agent as a floating "Get a quote" button or an inline panel. It runs in a Proteus frame; signing and payment open Proteus in a new tab.
 - **Proof:** Tested from a third-party site on Arc testnet. The script is served by both apps.
-- **Start:** [Add it to your site](https://app.proteus.co.in/docs/quickstart-seller)
+- **Start:** [Add it to your site](https://app.proteus.co.in/docs/quickstart-seller#seller-embed)
 
 <a id="ways-whatsapp"></a>
 
@@ -56,7 +56,7 @@ Buyers reach the same deal agent from the web app, a seller's website embed, the
 
 <a id="ways-phone"></a>
 
-#### Phone app · Coming soon
+#### Phone app · Planned
 
 - **For:** Sellers and buyers who want Proteus AI as an app on their phone.
 - **Does:** Not built yet. Today the web app works in a phone browser, with a tab bar on small screens.
@@ -134,6 +134,7 @@ _Diagram: The chat negotiates; the money moves only on the web._
 The buyer messages the seller's own WhatsApp Business number. Meta's Cloud API sends a signed webhook to Proteus, which checks the signature, keys the buyer by a pseudonym and runs the same deal agent and pricing rules. Offers go back through Meta as reply buttons. To sign and pay, the buyer gets an opaque link that works for 30 minutes and opens the offer on the web; nothing about money happens inside the chat. HUMAN hands the chat to the seller's team, STOP ends messages.
 
 - **The seller's own number.** The seller connects its WhatsApp Business number in Settings with Meta's Embedded Signup; a manual connect is the fallback. Past chats are never copied.
+- **Offers as buttons.** Up to three offers arrive as reply buttons. An offer that needs the seller's approval gets its pay link only if the seller approves within WhatsApp's 24-hour reply window.
 - **Says it is an AI.** Every chat opens by saying the buyer is talking to the seller's AI sales agent, that prices come from the seller's rules, and how to reach a person.
 - **Commands.** HUMAN asks the seller's team to reply (for 24 hours, or until AGENT); STOP ends messages and START resumes. STOP is never rate limited.
 - **Private by default.** A buyer is known by a one-way pseudonym of Meta's user id. Chat text never carries wallet addresses or deal ids; pay links are opaque and expire after 30 minutes ([Privacy](https://app.proteus.co.in/docs/privacy)).

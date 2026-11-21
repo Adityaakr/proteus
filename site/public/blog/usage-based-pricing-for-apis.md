@@ -2,7 +2,7 @@
 
 > How to sell an API or AI service by usage without chasing invoices: a prepaid balance in escrow, every call metered with a signed receipt, and unused credit refundable.
 
-Aditya, founder of Proteus AI · published 2026-11-09 · 4 min read · https://app.proteus.co.in/blog/usage-based-pricing-for-apis
+Aditya, founder of Proteus AI · published 2026-11-09, updated 2026-11-22 · 4 min read · https://app.proteus.co.in/blog/usage-based-pricing-for-apis
 
 ## Key takeaways
 
@@ -33,9 +33,9 @@ That is what a prepaid balance in escrow gives you.
 
 1. **Agree the plan.** The buyer, or the buyer's agent, negotiates a volume tier with the seller's deal desk, for example a block of calls at a per-call price, prepaid for 30 days.
 2. **Fund it.** Both sides sign the terms and the buyer's USDC moves into DealEscrow on Arc. The buyer gets a service key.
-3. **Call the service.** Each call goes to `POST /api/services/{product}/execute` with that key and a `requestId`. Send the same `requestId` again and you are not charged twice.
-4. **Get a receipt.** The seller's signer signs a receipt for every delivered result. Calls that fail, or that get handed to a person, are recorded but never billed.
-5. **Countersign.** `GET /api/deals/{id}/usage` returns the receipts and the acceptance to sign. The buyer, or its agent, checks the count and the price, then signs.
+3. **Call the service.** Each call goes to `POST /api/services/{product}/execute` with that key and a `requestId`. Send the same `requestId` again and you get the stored result, never a second charge. A failed request is stored too, so retry that work with a new id.
+4. **Get a receipt.** The seller's signer signs a receipt for every result. Calls that fail, or that get handed to a person, are recorded but never billed.
+5. **Countersign.** `GET /api/deals/{id}/usage` returns the receipts and the acceptance to sign. The buyer, or its agent, checks the count and the price, then signs. One signature covers everything delivered so far.
 6. **Get paid.** DealEscrow pays the seller for everything newly accepted since the last settlement.
 7. **Get the rest back.** After the term plus a grace period (3 days by default), whatever was not used is refundable to the buyer.
 

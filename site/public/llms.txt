@@ -1,8 +1,8 @@
 # Proteus AI
 
-> The deal desk for internet businesses. A deal agent for anything sold by quote, volume or usage. It negotiates with buyers and their AI agents inside the seller's rules, both sides sign the same terms, and USDC waits on Arc until delivery: the seller is paid for what was delivered, the rest is refundable.
+> Win the order in minutes. Get paid when it's delivered. Proteus AI is the deal network for small businesses and AI agents on Arc. A seller's deal agent answers buyers, and their AI agents, inside the prices and limits the seller sets. Every order is paid upfront into USDC escrow on Arc and released to the seller when the buyer confirms delivery; what is not delivered goes back to the buyer.
 
-Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (https://ai.proteus.co.in, chain 5042002). DealEscrow: 0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46 on both. Facts as of 2026-11-20. Proven claims link an Arc transaction, a contract or the code; what is not proven yet is listed in facts.json under notProven.
+Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (https://ai.proteus.co.in, chain 5042002). DealEscrow: 0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46 on both. Facts as of 2026-11-22. Proven claims link an Arc transaction, a contract or the code; what is not proven yet is listed in facts.json under notProven.
 
 ## Start here
 
@@ -14,39 +14,41 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 
 ## Start
 
-- [What Proteus AI is](https://app.proteus.co.in/docs/overview.md): A deal desk for anything sold by quote, volume or usage.
+- [What Proteus AI is](https://app.proteus.co.in/docs/overview.md): The deal network for small businesses and AI agents on Arc.
+- [How payment protection works](https://app.proteus.co.in/docs/protection.md): Escrow, delivery, refunds and disputes, in plain words, for both sides of an order.
+- [Features](https://app.proteus.co.in/docs/features.md): What sellers and buyers get, and where each is proven.
 - [Ways to use Proteus AI](https://app.proteus.co.in/docs/ways-to-use.md): One deal agent, many ways in: the web, a seller's website, WhatsApp, Claude and other MCP clients, your own agent, and your own systems.
-- [For AI agents](https://app.proteus.co.in/docs/for-agents.md): Everything an agent needs to read, verify and buy, in machine-readable form.
 - [What is live today](https://app.proteus.co.in/docs/status.md): Each capability, the network it is proven on, and the transaction that shows it.
-- [The problem](https://app.proteus.co.in/docs/problem.md): Every sale that is not a checkout button is still done by hand.
+- [FAQ](https://app.proteus.co.in/docs/faq.md): Short answers to the questions people ask most, each linking to the detail.
 
 ## Quickstarts
 
-- [Sell: from wallet to a listed product](https://app.proteus.co.in/docs/quickstart-seller.md): From your own wallet to a listed product and your first payout.
-- [Buy: from a question to a refund](https://app.proteus.co.in/docs/quickstart-buyer.md): Ask, review, sign once, and pay only for what you countersign.
+- [Sell: from sign-in to your first payout](https://app.proteus.co.in/docs/quickstart-seller.md): Sign in, publish what you sell with your rules, take orders, and get paid on delivery.
+- [Buy: pay into escrow, pay for what arrives](https://app.proteus.co.in/docs/quickstart-buyer.md): Ask, review, sign once, and pay only for what you confirm.
 - [Buy with an AI agent (MCP)](https://app.proteus.co.in/docs/quickstart-agent.md): Give Claude or any MCP client the full buying loop, within a limit you set.
+
+## For sellers
+
+- [How offers are priced](https://app.proteus.co.in/docs/pricing.md): Code decides the price; the model only writes the words.
+- [Orders, delivery and payouts](https://app.proteus.co.in/docs/orders.md): What happens after the buyer pays: updates, delivery records, the buyer's confirmation and your payout.
+- [Ratings and reputation](https://app.proteus.co.in/docs/ratings.md): Who can rate a seller, how a rating is checked, how the score is computed, and how to verify it on Arc.
+- [What Proteus costs](https://app.proteus.co.in/docs/fees.md): Nothing during the pilot. The seller keeps 100% of every deal.
+- [Front desk, inbox and alerts](https://app.proteus.co.in/docs/front-desk.md): For appointment businesses: a front desk your customers can talk to, an inbox of their requests, and alerts.
 
 ## Developers
 
+- [For AI agents](https://app.proteus.co.in/docs/for-agents.md): Everything an agent needs to read, verify and buy, in machine-readable form.
 - [Seller API](https://app.proteus.co.in/docs/seller-api.md): Run your store from your own systems: read deals, usage and payments, change prices and report deliveries, with keys that can do only what you allow.
 - [Seller API reference](https://app.proteus.co.in/docs/seller-api-reference.md): Every /api/v1/seller endpoint: what it needs, what it takes, what it returns. Each one has a Send button that calls the sandbox.
 - [Webhooks](https://app.proteus.co.in/docs/seller-webhooks.md): Deal events POSTed to your server as they happen, signed so you can prove they came from Proteus.
 
-## Concepts
+## How it works
 
 - [Deal lifecycle](https://app.proteus.co.in/docs/lifecycle.md): Every state a deal goes through, and who moves it between them.
 - [The money path](https://app.proteus.co.in/docs/money-path.md): Where the USDC is at every moment, and what releases it.
 - [What is signed, and by whom](https://app.proteus.co.in/docs/signatures.md): Every message that moves money or identity, who signs it, and who checks it.
-- [How offers are priced](https://app.proteus.co.in/docs/pricing.md): Code decides the price; the model only writes the words.
-- [Privacy](https://app.proteus.co.in/docs/privacy.md): What each party can see when a buyer talks to a seller's agent, on the web, on WhatsApp or at a front desk.
-- [Front desk, orders and inbox](https://app.proteus.co.in/docs/front-desk.md): What a business and its customers see after the deal: a front desk customers can talk to, order tracking, an inbox, and alerts.
 - [The AI behind it](https://app.proteus.co.in/docs/ai-models.md): Which Claude model does which job, and the rules that keep it inside the seller's terms.
-- [Ratings and reputation](https://app.proteus.co.in/docs/ratings.md): Who can rate a seller, how a rating is checked, how the score is computed, and how to verify it on Arc.
-
-## Product
-
-- [What Proteus costs](https://app.proteus.co.in/docs/fees.md): Nothing during the pilot. The seller keeps 100% of every deal.
-- [Features](https://app.proteus.co.in/docs/features.md): What sellers and buyers get, and where each is proven.
+- [Privacy](https://app.proteus.co.in/docs/privacy.md): What each party can see when a buyer talks to a seller's agent, on the web, on WhatsApp or at a front desk.
 
 ## Trust
 
@@ -54,16 +56,16 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 - [Limits and known gaps](https://app.proteus.co.in/docs/limits.md): What is not done yet. We would rather you read it here.
 - [Verify it yourself](https://app.proteus.co.in/docs/verify.md): Contracts, transactions and how to read a deal on chain.
 
-## Context
+## About
 
-- [Why now](https://app.proteus.co.in/docs/why-now.md): Agents can pay; businesses already use stablecoins; the rails are on Arc.
-- [Market](https://app.proteus.co.in/docs/market.md): Third-party figures, linked to their publishers.
+- [The problem](https://app.proteus.co.in/docs/problem.md): Every order that starts with "what's your price?" is still won by hand, and paid on trust.
 - [How Proteus AI compares](https://app.proteus.co.in/docs/competitors.md): Others help you quote, negotiate or bill. Proteus takes a deal from the first message to the final transaction.
 - [Traction](https://app.proteus.co.in/docs/traction.md): One real business live on mainnet, with its first customer order paid out and rated on Arc.
+- [Why now](https://app.proteus.co.in/docs/why-now.md): Agents can pay; businesses already use stablecoins; the rails are on Arc.
+- [Market](https://app.proteus.co.in/docs/market.md): Third-party figures, linked to their publishers.
 
 ## Reference
 
-- [FAQ](https://app.proteus.co.in/docs/faq.md): Short answers to the questions people ask most, each linking to the detail.
 - [Glossary](https://app.proteus.co.in/docs/glossary.md): The terms these docs use, in one line each.
 - [Links](https://app.proteus.co.in/docs/links.md): Every API, machine-readable file and source in one place.
 
@@ -71,7 +73,7 @@ Live on Arc mainnet (https://app.proteus.co.in, chain 5042) and Arc testnet (htt
 
 - [What is an AI deal desk? How autonomous agents negotiate and close B2B deals](https://app.proteus.co.in/blog/what-is-an-ai-deal-desk.md): An AI deal desk quotes, negotiates and closes deals inside a business's own rules, then turns the agreement into a paid transaction. Here is how it works.
 - [How to let an AI negotiate for your business without giving away your margin](https://app.proteus.co.in/blog/ai-negotiation-without-losing-margin.md): Seven guardrails that let an AI agent negotiate prices for your business while your floor, costs and approval rules stay in your control.
-- [Get paid on delivery: USDC escrow for small business orders](https://app.proteus.co.in/blog/usdc-escrow-pay-on-delivery.md): How USDC escrow lets a buyer pay up front and a business get paid only for what it delivers, with automatic refunds, no gas for buyers and funding from 25 chains.
+- [Get paid on delivery: USDC escrow for small business orders](https://app.proteus.co.in/blog/usdc-escrow-pay-on-delivery.md): How USDC escrow lets a buyer pay up front and a business get paid only for what it delivers, with refunds of anything not delivered, no gas for buyers and funding from 25 chains.
 - [How AI agents can buy safely: budgets, seller checks and MCP](https://app.proteus.co.in/blog/how-ai-agents-buy-safely.md): What an AI agent needs to buy on its owner's behalf without overspending or paying the wrong seller: a spending mandate, on-chain seller checks and escrow.
 - [Selling on WhatsApp with an AI agent: five rules for trust, privacy and payment](https://app.proteus.co.in/blog/whatsapp-ai-sales-agent.md): How to put an AI sales agent on a business's WhatsApp without taking payments in chat, exposing customers' numbers or breaking Meta's rules.
 - [What is ERC-8004? Verifiable identity for AI agents that sell](https://app.proteus.co.in/blog/erc-8004-agent-identity.md): ERC-8004 gives an AI agent an on-chain identity: who owns it, where it gets paid and which key signs for it. Here is how sellers use it and how buyers check it.

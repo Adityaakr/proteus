@@ -28,7 +28,7 @@
 .doc { display: flex; flex-direction: column; gap: 0; min-width: 0; }
 .hero { display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; border-bottom: 1px solid var(--c-dark-10); }
 /* One line on desktop: sized to the 800px column. */
-.title { margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: 42px; line-height: 1.1; letter-spacing: -1.1px; white-space: nowrap; }
+.title { margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: 42px; line-height: 1.1; letter-spacing: -1.1px; text-wrap: balance; }
 .lede { margin: 0; max-width: 720px; font-size: 18px; line-height: 1.6; color: var(--c-dark-60); }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--c-card, #fff); box-shadow: inset 0 0 0 1px var(--c-dark-10), 0 1px 2px rgba(0, 0, 0, 0.03); font: inherit; font-size: 14px; color: var(--c-dark); cursor: pointer; transition: box-shadow 140ms ease; }
@@ -258,6 +258,6 @@ tbody tr:last-child .cmpUs { border-radius: 0 0 12px 12px; }
 .statusLive { --st: var(--docs-ok); }
 .statusTestnet { --st: var(--c-primary); }
 .statusIntesting { --st: var(--docs-warn); }
-.statusComingsoon { --st: var(--c-dark-60); }
-.statusComingsoon::before { background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; }
+.statusPlanned { --st: var(--c-dark-60); }
+.statusPlanned::before { background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; }
 @media (max-width: 860px) { .channels { grid-template-columns: minmax(0, 1fr); } }

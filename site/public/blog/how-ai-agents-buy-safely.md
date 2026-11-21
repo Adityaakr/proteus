@@ -2,7 +2,7 @@
 
 > What an AI agent needs to buy on its owner's behalf without overspending or paying the wrong seller: a spending mandate, on-chain seller checks and escrow.
 
-Aditya, founder of Proteus AI · published 2026-10-23, updated 2026-11-14 · 4 min read · https://app.proteus.co.in/blog/how-ai-agents-buy-safely
+Aditya, founder of Proteus AI · published 2026-10-23, updated 2026-11-22 · 4 min read · https://app.proteus.co.in/blog/how-ai-agents-buy-safely
 
 ## Key takeaways
 
@@ -63,16 +63,18 @@ The agent pays into escrow, not to the seller. The seller gets paid when the age
 | proteus_list_services | Every service on the market, with prices |
 | proteus_get_service | Tiers, terms, refund policy and the seller's Arc identity |
 | proteus_negotiate | Talks to the seller's agent; returns offers and a private negotiation key |
-| proteus_verify_seller | The four checks above |
+| proteus_verify_seller | The four checks above (it needs the buyer key set, so it can read the terms) |
 | proteus_accept_offer | Creates the quote, enforces the mandate, verifies, then signs |
-| proteus_fund_deal | Funds with a gasless USDC permit |
+| proteus_fund_deal | Funds with a gasless USDC permit, or by approving USDC |
 | proteus_call_service | Calls a funded service; only delivered results are billed |
-| proteus_settle_usage | Checks delivered usage against receipts and price, then settles |
-| proteus_deal_status | Balances read from the escrow |
+| proteus_settle_usage | Checks the amount is no more than delivered units times the price, then settles |
+| proteus_deal_status | Balances as last reconciled from the escrow |
 
 ## What is not done yet
 
 This run was on Arc testnet against a demo seller. An agent buying on mainnet from a real business has not happened yet, and I will not pretend otherwise. It is near the top of my list.
+
+Two more limits. The MCP server checks totals, not the seller's receipt signatures, and it signs the typed data the API returns without comparing it field by field with the terms it checked. And it runs on your own machine: a hosted buyer agent you can use in a browser is planned, as is support for ERC-8183, the draft standard for paid agent jobs, so that agents built for it can order from Proteus sellers without custom code.
 
 ## If you are building an agent
 

@@ -1,6 +1,6 @@
 # Deal lifecycle · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/lifecycle> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/lifecycle> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Every state a deal goes through, and who moves it between them._
 
@@ -32,7 +32,7 @@ From here DealEscrow is the record. Proteus reconciles each deal's status from t
 
 | State | Status value | What it means | Who acts |
 |---|---|---|---|
-| Active | deal `funded` (the funding event was seen), then `active` (reconciled from the contract, service provisioned); on chain `Funded` | USDC is in escrow. Usage is settled in steps, each with the buyer's Acceptance and the seller signer's Delivery. | Buyer, seller signer; the relayer submits |
+| Active | deal `funded` (the funding event was seen), then `active` (reconciled from the contract); on chain `Funded`. A service deal's API key is provisioned separately, on the first read of the deal | USDC is in escrow. Usage is settled in steps, each with the buyer's Acceptance and the seller signer's Delivery. | Buyer, seller signer; the relayer submits |
 | Disputed | `disputed`; on chain `Disputed` | `openDispute` froze the deal; settlement and refund revert until the arbiter decides. | The buyer (on chain, also the seller signer), then the arbiter |
 | Closed | `closed`; on chain `Closed` | `refundUnused` returned the unspent balance, or a dispute split paid out everything left. | Anyone, or the arbiter |
 
@@ -44,9 +44,12 @@ _A deal whose deposit is fully settled has nothing to refund and stays Active on
 
 | Limit | Rule |
 |---|---|
-| Quote | The terms carry an `expiry` from the seller's quote validity. Funding after it reverts (`Expired`). |
+| Quote | The terms carry an `expiry` from the seller's quote validity. Funding after it reverts (`Expired`). A quote waiting for the seller's approval uses the same window. |
+| Term | Starts when the quote is created (`start`), not when it is funded, and ends `start` plus the product's term in days (`end`). |
 | Settlement | Each Acceptance expires 1 hour after Proteus prepares it; fetch a fresh one from `GET /api/deals/{id}/usage`. No settlement after the term's end plus grace. |
 | Refund | `refundUnused` opens at end + grace (3 days by default), or at once after `sellerCloseTerm`; earlier calls revert (`TooEarly`). Read `refundableAt` from `GET /api/deals/{id}`. |
-| Dispute | Open while the deal is Funded. There is no dispute timeout yet. |
+| Dispute | The buyer opens one while the deal is Funded, that is until someone calls `refundUnused`, even after end + grace. There is no dispute timeout yet. |
 
-> **Warning: Countersign before end + grace.** After end + grace, settlement reverts: usage not countersigned by then can no longer be paid from escrow, and the balance can only go back to the buyer as a refund.
+> **Warning: Countersign before end + grace.** After end + grace, settlement reverts: usage not countersigned by then can no longer be paid from escrow. The balance goes back to the buyer as a refund, unless a dispute is opened before anyone claims it.
+
+> **ERC-8183:** This lifecycle maps onto the draft ERC-8183 job standard: fund, submit, complete, reject or expire. Implementing its interface is Planned ([how it maps](https://app.proteus.co.in/docs/protection#protection-erc8183)).

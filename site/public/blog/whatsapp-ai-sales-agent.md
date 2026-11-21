@@ -2,7 +2,7 @@
 
 > How to put an AI sales agent on a business's WhatsApp without taking payments in chat, exposing customers' numbers or breaking Meta's rules.
 
-Aditya, founder of Proteus AI · published 2026-11-11, updated 2026-11-14 · 4 min read · https://app.proteus.co.in/blog/whatsapp-ai-sales-agent
+Aditya, founder of Proteus AI · published 2026-11-11, updated 2026-11-22 · 4 min read · https://app.proteus.co.in/blog/whatsapp-ai-sales-agent
 
 ## Key takeaways
 
@@ -72,7 +72,7 @@ The WhatsApp channel is built and deployed on Arc mainnet and testnet. A number 
 
 - [Privacy on Proteus AI](https://app.proteus.co.in/docs/privacy), including WhatsApp.
 - [What is an AI deal desk?](https://app.proteus.co.in/blog/what-is-an-ai-deal-desk)
-- [Front desk, orders and inbox](https://app.proteus.co.in/docs/front-desk), for businesses whose customers talk to them.
+- [Front desk, inbox and alerts](https://app.proteus.co.in/docs/front-desk), for businesses whose customers talk to them.
 
 ## Frequently asked questions
 

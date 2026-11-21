@@ -1,29 +1,26 @@
 # What Proteus AI is · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/overview> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/overview> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
-_A deal desk for anything sold by quote, volume or usage._
+_The deal network for small businesses and AI agents on Arc._
 
-For anyone new to Proteus AI: sellers, buyers and builders. You will learn what it does, how one deal moves from a question to a payout, where it runs, and where to go next.
+For business owners first, and for buyers and builders. You will learn what Proteus AI does for a seller, how one order moves from a question to a payout, what is live today, and where to go next.
 
-- **I sell.** Publish products and the rules your agent must keep, register on Arc, go live. About 5 minutes. [Seller quickstart](https://app.proteus.co.in/docs/quickstart-seller)
-- **I buy.** Ask the seller's agent, agree a price, sign once and fund. Get back what is not delivered. [Buyer quickstart](https://app.proteus.co.in/docs/quickstart-buyer)
-- **I build an agent.** Let Claude or your own agent negotiate and pay through MCP or HTTP, within a mandate you set. [Agent quickstart](https://app.proteus.co.in/docs/quickstart-agent)
+- **I sell.** Set your prices and limits once. Your deal agent answers buyers and their AI agents, and you are paid in USDC when an order is delivered. [Seller quickstart](https://app.proteus.co.in/docs/quickstart-seller)
+- **I buy.** Ask for a price, sign once and pay into escrow. The seller is paid when you confirm delivery; what is not delivered comes back. [Buyer quickstart](https://app.proteus.co.in/docs/quickstart-buyer)
+- **I build an agent.** Let Claude or your own agent negotiate and pay through MCP or HTTP, within a limit you set. [Agent quickstart](https://app.proteus.co.in/docs/quickstart-agent)
 
-> **Every way in:** The web app, a seller's website, WhatsApp, Claude and other MCP clients, your own agent, and your own systems all reach the same deal agent. See [Ways to use Proteus AI](https://app.proteus.co.in/docs/ways-to-use), with an honest status for each.
+> **What the labels mean:** Live means in use on Arc mainnet with real USDC. Testnet means proven on Arc testnet. In testing means built but not yet used by a real customer. Planned means not built yet. Every capability and its proof: [What is live today](https://app.proteus.co.in/docs/status).
 
 <a id="how-it-works"></a>
 
 ### How it works
 
-- **The seller sets the rules.** Cost, margin floor, maximum discount, minimum order, capacity, and the order size it approves itself.
-- **An agent does the selling.** It answers buyers and their AI agents in seconds; every offer is computed in code from those rules ([How offers are priced](https://app.proteus.co.in/docs/pricing)).
-- **Both parties sign identical terms.** The buyer's wallet and the seller's signer (a key Proteus holds for the seller) sign the same EIP-712 terms, checked on chain by [DealEscrow](https://github.com/Adityaakr/proteus/blob/main/contracts/src/DealEscrow.sol).
-- **Money waits in escrow on Arc.** USDC moves only against the signatures in the agreement ([The money path](https://app.proteus.co.in/docs/money-path)).
-- **Paid per delivered unit.** The seller is paid for each unit the buyer countersigns; the rest becomes refundable.
-- **Verifiable by anyone.** The seller's identity is an ERC-8004 agent on Arc and its pricing policy is committed to [ProteusPolicyRegistry](https://github.com/Adityaakr/proteus/blob/main/contracts/src/ProteusPolicyRegistry.sol); every payment is an Arc transaction.
+1. **Set your rules once.** Price tiers for each product, plus private limits only your agent sees: your costs, the lowest margin you accept, the largest discount, the smallest order, and the order size above which you approve it yourself.
+2. **Your deal agent wins the order.** It answers buyers, and buyers' AI agents, in seconds: on your store page, on your website, or from their agent. Every offer is computed in code from your rules; the AI writes the words, never the price ([How offers are priced](https://app.proteus.co.in/docs/pricing)).
+3. **You are paid when it's delivered.** Both sides sign the same terms and the buyer pays upfront into USDC escrow on Arc. You record what you delivered; when the buyer confirms it, the contract pays your wallet. What is not delivered becomes refundable to the buyer ([How payment protection works](https://app.proteus.co.in/docs/protection)).
 
-> The model proposes. The seller's policy decides. The signed agreement controls the money.
+> The model proposes. The seller's rules decide. Signatures move the money.
 
 <a id="how-it-fits"></a>
 
@@ -37,23 +34,25 @@ The buyer, or the buyer's AI agent, negotiates with the seller's deal agent on P
 
 ### Who it is for
 
-- **Merch and corporate gifting.** "20 boxes, our logo, Mumbai by Oct 31, price per box?" Answered in seconds instead of by hand. Live: [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e).
-- **Inference and GPU hours.** Prepay a block of capacity; pay only for the hours or tokens actually served.
-- **Data and API access.** Volume tiers and per-call pricing, negotiated by the buyer's agent, settled per call or per batch.
-- **Services sold by invoice.** Quotes, deposits and milestones become one signed agreement instead of an email thread.
-- **Voice and per-minute services.** Prepay a bundle of minutes or sessions; the seller is paid for what was used, the rest is refundable.
-- **Agents buying from agents.** A buyer's agent negotiates, checks the seller on chain and funds within a mandate its owner set.
+Businesses that answer "it depends" when asked the price, and the buyers, people or AI agents, who order from them.
+
+- **Custom merch and apparel.** "200 tees with our logo by the 30th, price per tee?" answered in seconds instead of the next morning. Live: [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e).
+- **Print, packaging and gifting.** Quotes that depend on quantity and finish, priced from your tiers instead of by hand, with big orders waiting for your approval.
+- **Event supply and creative services.** A deposit, a quote and an invoice become one signed order, paid out as each delivery is confirmed.
+- **Wholesale.** Volume tiers and a margin floor the agent never goes below, for buyers you have never met.
+- **Services sold by usage.** API calls, AI work or bookings, prepaid as a bundle and billed per delivered unit ([Buyer HTTP API](https://app.proteus.co.in/docs/api)).
+- **Buyers' AI agents.** An agent negotiates, checks the seller on Arc and funds within a limit its owner set. Proven on Arc testnet.
 
 <a id="deal-example"></a>
 
-### One deal, start to finish
+### One order, start to finish
 
-1. **A buyer asks.** "20 merch boxes with our logo, delivered by Oct 31. Best price per box?"
-2. **The agent offers.** Inside the seller's rules: a price per box, a term and a refund window. It never quotes below the margin floor.
-3. **Both sign.** The buyer and the seller's signer sign the same EIP-712 terms: units, unit price, term, payee.
-4. **The buyer funds.** USDC goes into DealEscrow on Arc, not to the seller. With a permit, the relayer pays the gas.
-5. **The seller delivers.** It records what was delivered; the buyer countersigns the units it received.
-6. **The money settles.** The seller is paid for countersigned units. The rest is refundable to the buyer after the term plus a grace period (3 days by default).
+1. **A buyer asks.** "200 tees with our logo, delivered by the 30th. Best price per tee?"
+2. **The agent offers.** Inside the seller's rules: a price per tee, a term and a refund window. It never quotes below the margin floor, and an order above the seller's approval limit waits for the seller.
+3. **Both sign.** The buyer and the seller's signer key sign the same terms: units, unit price, term, payee.
+4. **The buyer pays upfront.** USDC goes into the DealEscrow contract on Arc, not to the seller or to Proteus. With a permit, Proteus pays the network fee.
+5. **The seller delivers.** It posts order updates (accepted, in production, shipped with tracking) and records each batch it delivers, with proof.
+6. **The buyer confirms, the seller is paid.** The buyer countersigns what was recorded and the contract pays the seller for it. What was not delivered is refundable to the buyer after the term plus a grace period (3 days by default).
 
 <a id="does-not"></a>
 
@@ -62,10 +61,10 @@ The buyer, or the buyer's AI agent, negotiates with the seller's deal agent on P
 | Proteus AI does | Proteus AI does not |
 |---|---|
 | Negotiate inside rules the seller wrote | Let the model invent a price below the seller's floor |
-| Hold deal payments in a contract on Arc until delivery is countersigned | Hold escrowed funds in a Proteus account |
-| Pay the seller's own wallet, published in its Arc identity | Let Proteus or anyone else redirect a seller's payouts |
-| Make unspent money refundable after the term | Refund automatically: the buyer (or anyone) calls the refund |
-| Resolve disputes through an arbiter key, today held by Proteus | Offer a dispute timeout or an independent arbiter yet ([limits](https://app.proteus.co.in/docs/limits)) |
+| Hold order payments in a contract on Arc until the buyer confirms delivery | Hold escrowed funds in a Proteus account |
+| Pay the seller's own wallet, fixed when it first publishes and, for a seller registered on Arc, published in its ERC-8004 identity | Let an order's money go anywhere but the seller's payee or back to the buyer |
+| Make undelivered money refundable after the term | Refund automatically: the buyer (or anyone) asks for it |
+| Let the buyer open a dispute that an arbiter, today Proteus, decides | Offer a dispute timeout, an independent arbiter, or a way for sellers to open a dispute yet ([limits](https://app.proteus.co.in/docs/limits)) |
 
 _Pay per call (x402) is outside escrow and works differently: see [The money path](https://app.proteus.co.in/docs/money-path#money-x402)._
 
@@ -75,8 +74,8 @@ _Pay per call (x402) is outside escrow and works differently: see [The money pat
 
 | Network | App | Chain id | What is real |
 |---|---|---|---|
-| Arc mainnet | [app.proteus.co.in](https://app.proteus.co.in) | `5042` | Real USDC. One real business listed, [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e), with its first order paid out. |
-| Arc testnet | [ai.proteus.co.in](https://ai.proteus.co.in) | `5042002` | Testnet USDC with no value. Example sellers and a demo merch seller. |
+| Arc mainnet | [app.proteus.co.in](https://app.proteus.co.in) | `5042` | Real USDC. Sign in with a browser wallet. One real business listed, [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e), with its first order paid out. |
+| Arc testnet | [ai.proteus.co.in](https://ai.proteus.co.in) | `5042002` | Test USDC with no value. Sign in with email (Proteus creates a Circle wallet for you) or a browser wallet. Example sellers and a demo merch seller. |
 
 _DealEscrow is at the same address on both networks: `0x5085A8400C95B9Cf0c9a3552cCFf31eA45D06a46`._
 
@@ -87,7 +86,8 @@ _The market: each seller with its Arc identity, links and services priced from t
 
 ### Go deeper
 
-- [Ways to use Proteus AI](https://app.proteus.co.in/docs/ways-to-use): web, embed, WhatsApp, MCP, your own agent
-- [The deal lifecycle](https://app.proteus.co.in/docs/lifecycle): every state a deal goes through
-- [What Proteus costs](https://app.proteus.co.in/docs/fees): no fee during the pilot; who pays gas
+- [How payment protection works](https://app.proteus.co.in/docs/protection): escrow, refunds and disputes, for both sides
+- [Orders, delivery and payouts](https://app.proteus.co.in/docs/orders): what a seller does after the buyer pays
+- [Ways to use Proteus AI](https://app.proteus.co.in/docs/ways-to-use): store page, website, WhatsApp, MCP, your own agent
+- [What Proteus costs](https://app.proteus.co.in/docs/fees): no fee during the pilot; who pays network fees
 - [Verify it yourself](https://app.proteus.co.in/docs/verify): contracts and transactions on Arc

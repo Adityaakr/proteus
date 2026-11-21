@@ -1,6 +1,6 @@
 # Buy with an AI agent (MCP) · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/quickstart-agent> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/quickstart-agent> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Give Claude or any MCP client the full buying loop, within a limit you set._
 
@@ -56,12 +56,12 @@ You set the mandate (the largest prepaid amount per deal) in the MCP server's en
 | `proteus_list_services` | Every service on the market: seller, unit, starting prepaid price, per-call price. |
 | `proteus_get_service` | Tiers, term, refund policy, request fields and the seller's Arc identity. |
 | `proteus_negotiate` | Talks to the seller's agent; returns the reply, the current offers and a negotiationKey (pass it back on later calls; the negotiation is private to it). |
-| `proteus_verify_seller` | Checks the terms hash and, for a seller registered on Arc, its ERC-8004 signer and payee and the policy commitment. |
+| `proteus_verify_seller` | Checks the terms hash and, for a seller registered on Arc, its ERC-8004 signer and payee and the policy commitment. Needs PROTEUS_BUYER_PRIVATE_KEY to fetch the terms; without it every check reports a failure. |
 | `proteus_accept_offer` | Creates the quote, enforces the mandate, refuses a registered seller whose on-chain checks fail, then signs the terms. |
 | `proteus_fund_deal` | Funds by signing a USDC permit (gasless, the default) or by approving USDC. |
 | `proteus_call_service` | Calls the funded service; only delivered results are billed. |
-| `proteus_settle_usage` | Checks the amount is no more than delivered units × the agreed price, signs the acceptance; the relayer settles. |
-| `proteus_deal_status` | Deposit, used, settled and remaining, read from the escrow. |
+| `proteus_settle_usage` | Checks the amount is no more than delivered units × the agreed price, then signs the acceptance; the relayer settles. It does not verify the seller's receipt signatures. |
+| `proteus_deal_status` | Deposit, settled, refunded and remaining, as last reconciled from the escrow (GET /api/deals/{id}). |
 
 <a id="mcp-guards"></a>
 
@@ -71,17 +71,18 @@ You set the mandate (the largest prepaid amount per deal) in the MCP server's en
 |---|---|
 | Prepaid amount within the mandate | Yes: it refuses to sign or fund above it. |
 | Seller's ERC-8004 signer and payee, policy commitment | Yes, for sellers registered on Arc; it refuses when one fails. A seller not registered on Arc is not checked, and the agent still signs. |
-| Terms hash matches the public terms | Reported by `proteus_verify_seller`; it blocks signing only for registered sellers. |
+| Terms hash matches the public terms | Reported by `proteus_verify_seller`, which needs `PROTEUS_BUYER_PRIVATE_KEY` to fetch the terms (without it, every check reports a failure); it blocks signing only for registered sellers. |
+| The typed data it signs matches the checked terms | No: it signs the EIP-712 typed data the API returns without comparing it field by field with the terms it checked. |
 | Permit for exactly this escrow, USDC and amount | Yes, against the addresses the server's `GET /api/health` returns. |
 | Settlement amount within units × agreed price | Yes, before it signs the Acceptance. |
-| The seller's receipts behind the usage | No: read them with `GET /api/deals/{id}/usage` before you let it settle. |
+| The seller's receipts behind the usage | No: it does not verify receipt signatures. Read them with `GET /api/deals/{id}/usage` before you let it settle. |
 | Unit price, number of deals, which service | No: the mandate caps the prepaid amount per deal only. |
 
 - **Testnet by default.** The config points at Arc testnet. MCP buying is proven on testnet only.
 - **Funding.** Default is a gasless USDC permit; pass `gasless: false` to approve instead (it needs the buyer key).
 - **Check the addresses.** The server takes the escrow and USDC addresses from the API's `GET /api/health`. Compare them once with [Verify it yourself](https://app.proteus.co.in/docs/verify).
 - **Private negotiation.** `proteus_negotiate` returns a negotiationKey; the MCP server keeps it and sends it on every later call, so no one else can read the conversation. After a restart, pass it back.
-- **The service key stays local.** After funding, the service's API key is kept in the MCP process's memory and used by `proteus_call_service`.
+- **The service key stays local.** After funding, the service's API key is kept in the MCP process's memory and used by `proteus_call_service`. The key is handed out once, on the first read of the funded deal: if funding times out and the agent then calls `proteus_deal_status`, the key can land in the conversation instead and is not stored.
 
 > **Warning: The mandate is local.** It is enforced in the MCP process on your machine, not on chain. It does not cap the unit price, how many deals the agent makes, or which service it picks.
 

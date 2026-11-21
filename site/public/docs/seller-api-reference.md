@@ -1,6 +1,6 @@
 # Seller API reference · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/seller-api-reference> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/seller-api-reference> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Every /api/v1/seller endpoint: what it needs, what it takes, what it returns. Each one has a Send button that calls the sandbox._
 
@@ -111,7 +111,7 @@ Response `200`:
 
 `PATCH /products/:id/tiers` · Permission: `products:write` · Returns `200`
 
-Replaces every public price tier of a product and returns the product. New quotes use the new prices; deals already signed keep theirs.
+Replaces every public price tier of a product and returns the product. New offers use the new prices; an offer already made in an open negotiation can still be quoted at its old price, and deals already signed keep theirs.
 
 | Parameter | In | Type | Required | Description |
 |---|---|---|---|---|
@@ -459,7 +459,7 @@ Response `201`:
 
 `GET /usage` · Permission: `usage:read` · Returns `200`
 
-Totals and your newest 300 metered requests and delivery reports, each with its deal, units, running charge and whether its receipt is signed.
+Totals over, and the list of, your newest 300 metered requests and delivery reports, each with its deal, units, running charge and whether its receipt is signed.
 
 ```bash
 curl https://ai.proteus.co.in/api/v1/seller/usage \

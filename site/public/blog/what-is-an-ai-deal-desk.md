@@ -2,14 +2,14 @@
 
 > An AI deal desk quotes, negotiates and closes deals inside a business's own rules, then turns the agreement into a paid transaction. Here is how it works.
 
-Aditya, founder of Proteus AI · published 2026-10-16, updated 2026-11-14 · 5 min read · https://app.proteus.co.in/blog/what-is-an-ai-deal-desk
+Aditya, founder of Proteus AI · published 2026-10-16, updated 2026-11-22 · 5 min read · https://app.proteus.co.in/blog/what-is-an-ai-deal-desk
 
 ## Key takeaways
 
 - An AI deal desk quotes, negotiates and closes deals for a business, inside rules the business sets. That is the whole idea.
 - The model writes the conversation. The prices come from plain code that reads the seller's rules, so there is nothing to talk it out of.
 - A deal is not closed when someone says yes. It is closed when both sides sign the same terms and the money is waiting in escrow.
-- It fits anything sold by quote, volume or usage: custom merch, services, API plans, data, compute.
+- It fits small businesses that quote every order, such as custom merch, print, gifting and wholesale, and anything sold by volume or usage.
 
 ## The person who answers at 11pm
 
@@ -19,20 +19,20 @@ That conversation is where most of the selling actually happens, and it runs on 
 
 I started Proteus AI to give that person a co-worker. Not a chatbot that is polite and useless, but something that knows what the business can offer, negotiates only inside its rules, and turns a yes into a paid transaction.
 
-That is what I mean by an **AI deal desk**.
+That is what I mean by an **AI deal desk**. On Proteus AI every seller gets one, and buyers, or their AI agents, can deal with any of them under the same rules and the same escrow. We call that the deal network for small businesses and AI agents on Arc.
 
 ## What it actually does
 
 Most "AI sales" tools mix three jobs together. We split them on purpose.
 
-1. **Understanding.** A model reads the buyer's message and pulls out what matters: quantity, budget, dates, anything unusual. On Proteus AI this runs on Claude Haiku 5.5 with structured output, so what comes back is data, not a paragraph.
+1. **Understanding.** A model reads the buyer's message and pulls out what matters: quantity, budget, integrations, open questions. On Proteus AI this runs on Claude Haiku 5.5 with structured output, so what comes back is data, not a paragraph.
 2. **Deciding.** Offers are computed in ordinary code from the seller's rules: cost, margin floor, maximum discount, minimum order, capacity, and a threshold above which a person has to approve. The model is never asked what to charge.
-3. **Explaining.** A second model call writes the reply around those offers. If it mentions any number the pricing code did not produce, we throw the reply away and send a plain fixed one instead.
+3. **Explaining.** A second model call writes the reply around those offers. If it mentions a price, or any large number, that is not among the offers, the buyer's own budget or the seller's other products, we throw the reply away and send a plain fixed one instead.
 
 Then the two parts that make it a desk and not a chat:
 
 4. **Closing.** When the buyer accepts, both sides sign identical terms (EIP-712), and the buyer's USDC goes into an escrow contract on Arc.
-5. **Settling.** The seller delivers, the buyer countersigns what arrived, and the escrow pays exactly that. Anything not delivered can go back to the buyer.
+5. **Settling.** The seller records what it delivered, the buyer countersigns it, and the escrow pays exactly that. Anything not delivered can go back to the buyer.
 
 ![A buyer negotiating with a demo seller's deal desk on Proteus AI](https://app.proteus.co.in/docs/negotiation.jpg "A negotiation with Kitbox, our labelled demo seller on Arc testnet. Every offer on the right came from the seller's rules.")
 
@@ -63,10 +63,10 @@ It is a fair worry. Models want to be helpful, and "can you do a bit better?" wo
 
 Anyone who sells by quote, volume or usage:
 
-- **Print, merch and custom goods.** Quantities, artwork and delivery dates change every order.
+- **Custom merch, print and gifting.** Quantities, artwork and delivery dates change every order.
+- **Event supply, creative services and wholesale.** Volume tiers, batches and buyers you have never met.
 - **Service businesses.** Bookings, receptionists, after-hours requests, billed per handled request.
 - **API, data and AI providers.** Volume plans, pay per call, prepaid credit that should be refundable.
-- **Agencies and back-office services.** Scoped work, partial delivery, milestones.
 
 And a buyer most businesses are not ready for yet: other people's AI agents. A deal desk with an API can sell to them the same way it sells to a person. More on that in [How AI agents can buy safely](https://app.proteus.co.in/blog/how-ai-agents-buy-safely).
 
@@ -74,7 +74,7 @@ And a buyer most businesses are not ready for yet: other people's AI agents. A d
 
 The first business live on Proteus AI on Arc mainnet is a custom merch studio. On November 7, one of its customers asked the studio's deal desk for a single custom tee, accepted the offer, and funded it in USDC without paying gas. On November 11 the studio delivered, the customer confirmed, and the escrow paid the studio 6.60 USDC in one transaction. The customer then rated the studio 5 stars on chain (that rating was made before our [link checks](https://app.proteus.co.in/docs/ratings) existed, and we say so publicly).
 
-It is one order. It is also the first time the whole loop ran with someone else's money, and every step is a public transaction anyone can check.
+It is one order, and our own link check later found the buyer's wallet tied to an account on the studio's team, so it proves the mechanism more than independent demand. Every step is a public transaction anyone can check.
 
 ## If you want to try it
 

@@ -1,24 +1,37 @@
-# Sell: from wallet to a listed product · Proteus AI docs
+# Sell: from sign-in to your first payout · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/quickstart-seller> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/quickstart-seller> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
-_From your own wallet to a listed product and your first payout._
+_Sign in, publish what you sell with your rules, take orders, and get paid on delivery._
 
-For sellers setting up for the first time. You will sign in, publish products and the rules your agent must keep, register on Arc, and learn how orders, deliveries and payouts work. It takes about 5 minutes.
+For business owners setting up for the first time. You will sign in, publish products with the rules your deal agent must keep, register on Arc so buyers' agents can check you, and learn how orders, deliveries and payouts work. A first product takes about 5 minutes.
 
-> **Try it on testnet first:** [ai.proteus.co.in](https://ai.proteus.co.in) runs the same app on Arc testnet with test USDC from [Circle's faucet](https://faucet.circle.com). Use [app.proteus.co.in](https://app.proteus.co.in) when you are ready for real USDC. Your wallet needs a little USDC on Arc either way: gas on Arc is paid in USDC, and registering your agent is one transaction.
+> **Try it on testnet first:** [ai.proteus.co.in](https://ai.proteus.co.in) runs the same app on Arc testnet: sign in with your email, Proteus creates a Circle wallet for you, and [Circle's faucet](https://faucet.circle.com) gives you test USDC. Move to [app.proteus.co.in](https://app.proteus.co.in) when you are ready for real USDC; there you sign in with a browser wallet such as MetaMask.
+
+<a id="seller-signin"></a>
+
+### Sign in
+
+| Network | How you sign in | Your wallet |
+|---|---|---|
+| Arc mainnet | A browser wallet signs a one-time message. Email sign-in is not switched on yet. | The browser wallet you signed in with |
+| Arc testnet | Your email: Circle sends a code and you set a PIN. Or a browser wallet. | A Circle user-controlled wallet on Arc, created for you (its key is split between Circle and your PIN, and cannot be exported), or your browser wallet |
+
+_The wallet you are signed in with when you publish your first product owns the account and receives every payout; no setting changes it later. A new Circle wallet starts empty: add a little USDC before you register on Arc, since network fees on Arc are paid in USDC._
 
 <a id="seller-steps"></a>
 
 ### Steps
 
-1. **Sign in with your wallet.** At [app.proteus.co.in](https://app.proteus.co.in). It owns the account and receives payouts.
-2. **Publish products and rules.** Tiers and list prices, plus private rules: cost, floor, discount cap, minimum, capacity, approval threshold.
-3. **Register on Arc.** One transaction from your wallet registers your agent in Arc's ERC-8004 IdentityRegistry ([code](https://github.com/Adityaakr/proteus/blob/main/server/src/services/agent-registry.ts#L90)).
-4. **Policies are committed.** Proteus creates your seller signer, a key it holds encrypted to countersign offers for you; your registration publishes it and your payee. Proteus checks owner, payee and signer on chain, then commits each policy to ProteusPolicyRegistry.
-5. **Take orders.** On your store page, on your website, or from buyers' AI agents. Offers above your approval threshold wait for you.
-6. **Keep the buyer posted.** For goods: Order accepted, In production, Shipped with a tracking link, Out for delivery. The buyer sees each update on its order page and in its alerts.
-7. **Deliver and get paid.** API calls are metered; goods are confirmed per batch by you, not verified by Proteus. Escrow pays what the buyer countersigns.
+1. **Sign in.** At [app.proteus.co.in](https://app.proteus.co.in), or on testnet first, as above.
+2. **Publish what you sell.** Sell → New product: a name, what counts as one unit, price tiers, a term and a refund policy, plus your private costs and limits. The form is built for services delivered through your own endpoint; for goods, see the note below.
+3. **Set the rules your agent keeps.** Costs, lowest margin, largest discount, smallest order, capacity, quote validity and the order size you approve yourself ([the rules](https://app.proteus.co.in/docs/quickstart-seller#seller-rules)).
+4. **Register on Arc.** One transaction from your wallet, on the Developers page, registers your deal agent in Arc's ERC-8004 identity registry and publishes your payout wallet and signer key ([code](https://github.com/Adityaakr/proteus/blob/main/server/src/services/agent-registry.ts)). Proteus then commits each product's pricing policy to ProteusPolicyRegistry. It is optional, but without it buyers' agents have nothing on chain to check you against, and you cannot be rated.
+5. **Share your store.** Your store page answers for every product. Add the agent to your own website with one script tag ([below](https://app.proteus.co.in/docs/quickstart-seller#seller-embed)). Offers above your approval limit wait for you under Approvals.
+6. **Keep the buyer posted.** For goods, post Accepted, In production, Shipped with a tracking link, Out for delivery or Delayed from the deal page. The buyer sees each one and gets an alert.
+7. **Record deliveries, get paid.** Record each batch with what was delivered and a proof link; when the buyer countersigns, DealEscrow pays your wallet. API services are metered for you ([Orders, delivery and payouts](https://app.proteus.co.in/docs/orders)).
+
+> **Selling goods or custom orders:** The New product form asks for the HTTPS endpoint of a service. Goods listings, with their products, tiers and rules, are prepared with the Proteus team and published from your own wallet, where you can change every price before it goes live; that is how [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e) listed. To ask for one, open an issue on [GitHub](https://github.com/Adityaakr/proteus/issues).
 
 ![Shoonya Store's store page on Proteus AI](https://app.proteus.co.in/docs/store.jpg)
 _A store: every product with its tiers and one deal agent for all of them. [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e) is a real business. (Arc mainnet)_
@@ -31,13 +44,13 @@ Each product has a private policy and cost model. Buyers never see them; every o
 
 | Rule | What it does |
 |---|---|
-| Cost model | Your cost per unit and per deal. Offers must leave the margin you set; a cost model past its fresh-until date blocks offers until you refresh it. |
+| Cost model | Your cost per unit and per deal. Offers must leave the margin you set. A cost model expires 30 days after you last edit it, and then blocks offers until you refresh it. |
 | Margin floor | The lowest contribution margin an offer may have. |
 | Discount cap | The most an offer may sit below your list price. |
-| Minimum prepaid | The smallest deal you accept. |
-| Capacity | Units you can still commit this period; also a maximum per deal on the product. |
-| Approval threshold | Deals above this prepaid total wait for you to approve in the console. |
-| Quote validity | How long an offer can be signed and funded before it expires. |
+| Minimum prepaid | The smallest order you accept. |
+| Capacity | The most units one offer may include. It is not counted down as orders come in, so update it when your stock changes. Each product also has a maximum per deal. |
+| Approval threshold | Orders above this prepaid total wait for you to approve in the console. |
+| Quote validity | How long an offer can be signed and funded before it expires, between 1 hour and 7 days. An order waiting for your approval uses the same window. |
 
 ![Agent policies page with the catalog sync card](https://app.proteus.co.in/docs/policies.jpg)
 _Agent policies: the rules each product's agent must obey, and catalog sync from your own endpoint. (Arc testnet)_
@@ -55,7 +68,7 @@ _Agent policies: the rules each product's agent must obey, and catalog sync from
 The script opens the agent from the app it was loaded from: use `https://ai.proteus.co.in/embed.js` for a testnet seller.
 
 - **Runs in a Proteus frame.** Signing and payment always open Proteus in a new tab, never inside the frame ([embed.js](https://github.com/Adityaakr/proteus/blob/main/site/public/embed.js)).
-- **You choose the sites.** In Settings, list up to 10 https sites that may embed your agent; Proteus sends them as the page's CSP `frame-ancestors`. With no list, any site may embed it ([embed.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/embed.ts)).
+- **You choose the sites.** On the Developers page, list up to 10 https sites that may embed your agent; Proteus sends them as the page's CSP `frame-ancestors`. With no list, any site may embed it ([embed.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/embed.ts)).
 
 ![The deal agent embedded on a seller's website, showing three offers](https://app.proteus.co.in/docs/embed.jpg)
 _A sample shop page with a seller's agent embedded (the Kitbox demo seller), answering a real request. (Arc testnet)_
@@ -64,7 +77,7 @@ _A sample shop page with a seller's agent embedded (the Kitbox demo seller), ans
 
 ### Next steps
 
-- [Seller API](https://app.proteus.co.in/docs/seller-api): read deals and payments, change prices, report deliveries
-- [Webhooks](https://app.proteus.co.in/docs/seller-webhooks): deal events pushed to your server
-- [Ways to use Proteus AI](https://app.proteus.co.in/docs/ways-to-use): WhatsApp, MCP and the other channels
-- [The deal lifecycle](https://app.proteus.co.in/docs/lifecycle): what happens after an offer is signed
+- [Orders, delivery and payouts](https://app.proteus.co.in/docs/orders): after the buyer pays
+- [How payment protection works](https://app.proteus.co.in/docs/protection): escrow, refunds and disputes
+- [Ways to use Proteus AI](https://app.proteus.co.in/docs/ways-to-use): your website, WhatsApp and buyers' agents
+- [Seller API](https://app.proteus.co.in/docs/seller-api): run your store from your own systems

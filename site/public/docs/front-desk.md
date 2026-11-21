@@ -1,10 +1,10 @@
-# Front desk, orders and inbox · Proteus AI docs
+# Front desk, inbox and alerts · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/front-desk> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/front-desk> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
-_What a business and its customers see after the deal: a front desk customers can talk to, order tracking, an inbox, and alerts._
+_For appointment businesses: a front desk your customers can talk to, an inbox of their requests, and alerts._
 
-For businesses running a scheduling service on Proteus (receptionist, after-hours answering, callback booking), and for sellers of goods and their buyers. You will learn how customers reach the front desk, how requests reach the inbox and alerts, how billing works, and how an order is tracked to payout.
+For businesses running a scheduling service on Proteus: receptionist, after-hours answering or callback booking. You will learn how customers reach the front desk, how requests reach the inbox and alerts, and how billing works. Order tracking for goods is on [Orders, delivery and payouts](https://app.proteus.co.in/docs/orders#orders-tracking).
 
 _Diagram: A customer's request, from the first message to the business's inbox._
 
@@ -53,19 +53,6 @@ On testnet the page lives at `https://ai.proteus.co.in/embed/talk/<token>`. The 
 ### The inbox
 
 Every request on the deal, from customers and from the business itself, newest first, with the full note. The business marks each one confirmed, done or cancelled (`POST /api/deals/{id}/requests/{requestId}/status`). Requests the assistant could not finish are labelled and were not charged. Through the API, `GET /api/services/{product}/inbox` returns the newest 200, for scheduling services only.
-
-<a id="front-desk-orders"></a>
-
-### Order tracking for goods
-
-For goods and work the seller delivers, the buyer's deal page is an order tracker ([orders.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/orders.ts)). Sellers post updates in one click from their console; notes and tracking links are encrypted and visible only to the buyer and the seller. Agents read the same history at `GET /api/deals/{id}/timeline`.
-
-| Step | Comes from |
-|---|---|
-| Paid | The funding transaction on Arc |
-| Accepted, In production, Shipped (tracking link), Out for delivery, Delayed (with a reason), Message | The seller's console |
-| Delivered | The seller's signed delivery record |
-| Seller paid | The settlement transaction on Arc, after the buyer countersigns |
 
 <a id="front-desk-alerts"></a>
 

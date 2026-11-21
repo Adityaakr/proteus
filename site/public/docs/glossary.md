@@ -1,6 +1,6 @@
 # Glossary · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/glossary> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/glossary> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _The terms these docs use, in one line each._
 
@@ -15,7 +15,7 @@ For anyone meeting a term for the first time. Terms are grouped by where they co
 | Terms | The EIP-712 agreement both sides sign: units, unit price, prepaid, term, grace, payee. |
 | Acceptance | The buyer's signature over the cumulative delivered units and amount, and the receipts root. |
 | Delivery | The seller signer's signature over the cumulative delivered units and the receipts root (not the amount). |
-| Receipt | The seller signer's signed record (EIP-191) of one delivered unit or batch; the buyer checks receipts before countersigning. |
+| Receipt | The seller signer's signed record (EIP-191) of one service result or delivery batch, delivered or not; the buyer can check receipts before countersigning. |
 | Payee | Where the seller is paid: its own wallet, published in its ERC-8004 identity. |
 | Terms hash | The EIP-712 digest of the terms both parties sign; DealEscrow stores it per deal. `publicTermsHash` inside the terms is the hash of the human-readable public terms. |
 | Receipts root | One hash over the seller's receipts for delivered units, carried by the Acceptance and the Delivery. |
@@ -35,11 +35,13 @@ For anyone meeting a term for the first time. Terms are grouped by where they co
 | Seller signer | A per-seller key held by Proteus that countersigns; on chain it is the deal's seller address. |
 | Relayer | The Proteus key that submits transactions and pays gas. |
 | Arbiter | The key, held by Proteus, that resolves disputes over the unspent balance; it is also DealEscrow's owner. |
-| Mandate | The largest prepaid amount an AI agent may commit per deal. |
+| Mandate | The limits an owner sets for a buying agent. The MCP server enforces one in code: the largest prepaid amount per deal. The buyer skill also asks an agent to keep to a service and a highest unit price. |
 | Policy commitment | A salted hash of a pricing policy on ProteusPolicyRegistry. |
 | ERC-8004 | An Ethereum standard for agent identity and reputation (Trustless Agents), deployed on Arc. Proteus publishes each seller's payee and signer as metadata on its identity. |
 | Seller API key | A bearer key (`psk_live_…` or `psk_test_…`) from the Developers page, with permissions such as `deals:read`. |
 | Sandbox | A public demo seller on Arc testnet for trying the seller API: fixed data for reads, dry runs for writes. |
+| Circle wallet | A Circle user-controlled wallet on Arc, created when you sign in with email on Arc testnet; its key is split between Circle and your PIN. |
+| ERC-8183 | A draft Ethereum standard for paid jobs between agents (client, provider, evaluator). Proteus orders follow its lifecycle; implementing its interface is Planned. |
 
 <a id="glossary-product"></a>
 
@@ -56,7 +58,9 @@ For anyone meeting a term for the first time. Terms are grouped by where they co
 | Order timeline | The buyer's view of a goods order, from paid to seller paid (`GET /api/deals/{id}/timeline`). |
 | Outbox | The queue that holds a seller's deal events until they are delivered, with up to 5 attempts. |
 | Deal ids | `deal_…` is a deal's id in the API and console; `d_…` is its public id on public records and in webhooks; `dealIdOnchain` is its id in DealEscrow. |
-| Status words | Live, Testnet, In testing and Coming soon: see [Ways to use](https://app.proteus.co.in/docs/ways-to-use#ways-status). |
+| Status words | Live, Testnet, In testing and Planned: see [Ways to use](https://app.proteus.co.in/docs/ways-to-use#ways-status). |
+| Deal network | Proteus AI's marketplace of sellers, each with a deal agent, that people and AI agents can buy from. |
+| Payment protection | Escrow on every order: paid upfront, released to the seller on the buyer's confirmation, the rest refundable. See [How payment protection works](https://app.proteus.co.in/docs/protection). |
 | Business profile | Hours, services, prices, timezone and emergency line the front desk answers from. |
 
 <a id="glossary-ratings"></a>

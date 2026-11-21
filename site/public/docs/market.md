@@ -1,6 +1,6 @@
 # Market · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/market> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/market> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Third-party figures, linked to their publishers._
 
@@ -15,5 +15,5 @@ For partners and investors. Figures on agentic commerce and stablecoin payments,
 
 ### Where we start
 
-- **First.** Quote-based B2B sellers that already accept stablecoins: merch, data APIs, agent infrastructure.
-- **Then.** Any seller with a price list, a floor and something to deliver.
+- **First.** Small businesses that quote every order, starting with custom merch, print and gifting studios like Shoonya Store, selling to buyers who already hold USDC: event organisers, hackathons, DAOs and Web3 teams.
+- **Then.** Any seller with a price list, a floor and something to deliver, and the AI agents that buy from them.

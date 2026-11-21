@@ -1,6 +1,6 @@
 # What is signed, and by whom · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/signatures> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/signatures> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Every message that moves money or identity, who signs it, and who checks it._
 
@@ -18,7 +18,7 @@ Buyer wallet: permit (checked by Arc USDC), terms and acceptance (DealEscrow). S
 |---|---|---|
 | Terms (EIP-712, domain `ProteusDealEscrow` v1): deal id, buyer, seller, payee, USDC, product, unit price, max units, prepaid, start, end, grace, public terms hash, nonce, expiry | Buyer wallet + seller signer | DealEscrow `createAndFundDeal` |
 | USDC permit (EIP-2612): exactly the prepaid amount, spender DealEscrow | Buyer wallet | Arc USDC |
-| Receipt per delivered unit or batch (EIP-191 personal message) | Seller signer | The buyer or its agent, off chain, before countersigning |
+| Receipt per result or delivery batch (EIP-191 personal message) | Seller signer | The buyer or its agent can check it off chain before countersigning; the web app and the MCP server check totals, not receipt signatures |
 | Acceptance (EIP-712): deal id, terms hash, cumulative units and amount, receipts root, nonce, expiry (1 hour after Proteus prepares it) | Buyer wallet | `settleAcceptedUsage` |
 | Delivery (EIP-712): cumulative units and receipts root, no amount | Seller signer | `settleAcceptedUsage`, which requires both to match the Acceptance |
 | Policy commitment (`commitBySig`) | Seller signer | ProteusPolicyRegistry |
@@ -134,4 +134,4 @@ Buyer wallet: permit (checked by Arc USDC), terms and acceptance (DealEscrow). S
 }
 ```
 
-> **The seller signer:** A per-seller key Proteus holds, AES-256-GCM encrypted ([signer.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/chain/signer.ts)). It countersigns offers so sellers need not approve each one, and on chain it is the deal's seller address. It cannot move escrowed funds or change the payee, which is pinned to the owner's wallet. It can end a term early (`sellerCloseTerm`), open a dispute on its deals, and it collects x402 payments until the seller sweeps them. Revoking it stops Proteus using it for new terms; on deals it already signed it stays the seller on chain until they close.
+> **The seller signer:** A per-seller key Proteus holds, AES-256-GCM encrypted ([signer.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/chain/signer.ts)). It countersigns offers so sellers need not approve each one, and on chain it is the deal's seller address. It cannot move escrowed funds on its own: every payout also needs the buyer's Acceptance, and goes to the payee in the terms, which Proteus takes from the seller's account (the owner's wallet, fixed at the first publish). It can end a term early (`sellerCloseTerm`), could open a dispute on its deals on chain (no Proteus route does), and it collects x402 payments until the seller sweeps them. Revoking it stops Proteus using it for anything; deals it already signed name it as their seller on chain, so they can no longer settle through Proteus afterwards.

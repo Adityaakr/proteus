@@ -1,6 +1,6 @@
 # Seller API · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/seller-api> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/seller-api> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Run your store from your own systems: read deals, usage and payments, change prices and report deliveries, with keys that can do only what you allow._
 

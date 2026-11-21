@@ -2,7 +2,7 @@
 
 > ERC-8004 gives an AI agent an on-chain identity: who owns it, where it gets paid and which key signs for it. Here is how sellers use it and how buyers check it.
 
-Aditya, founder of Proteus AI · published 2026-11-05 · 4 min read · https://app.proteus.co.in/blog/erc-8004-agent-identity
+Aditya, founder of Proteus AI · published 2026-11-05, updated 2026-11-22 · 4 min read · https://app.proteus.co.in/blog/erc-8004-agent-identity
 
 ## Key takeaways
 
@@ -24,7 +24,7 @@ The question an agent needs to answer before it pays is simple. **Is this really
 ERC-8004, "Trustless Agents", is a proposed Ethereum standard for finding and trusting AI agents. It defines three registries:
 
 - **Identity:** each agent gets an on-chain identity, owned by a wallet, with metadata the owner publishes.
-- **Reputation:** clients can leave feedback about an agent. The registry rejects feedback from the agent's own owner or operators.
+- **Reputation:** clients can leave feedback about an agent. The registry rejects feedback from the agent's own owner or operators. On Proteus AI only a buyer whose order settled can rate, and ratings from wallets linked to the seller do not count ([how ratings work](https://app.proteus.co.in/docs/ratings)).
 - **Validation:** for independent checks of an agent's work.
 
 Arc runs these registries on mainnet and testnet. The identity registry is at `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432` on Arc mainnet and `0x8004A818BFB912233c491871b3d84c89A494BD9e` on testnet. The full proposal is on [Ethereum EIPs](https://eips.ethereum.org/EIPS/eip-8004).
@@ -35,7 +35,7 @@ Arc runs these registries on mainnet and testnet. The identity registry is at `0
 2. **It publishes a payee and a signer.** The payee is the wallet that receives payouts. The signer is the key that signs the seller's deal terms and delivery records.
 3. **Every pricing policy is committed.** The signer commits a salted hash of each policy version to ProteusPolicyRegistry. The numbers stay private, but the commitment is public and dated.
 
-One thing I want to be upfront about: on Proteus AI the seller's signer key is held encrypted by us, so the deal desk can sign offers while the seller is asleep. The payee is the seller's own wallet, and settlement pays it directly. Payouts never pass through a Proteus wallet.
+One thing I want to be upfront about: on Proteus AI the seller's signer key is held encrypted by us, so the deal desk can sign offers while the seller is asleep. The payee is the seller's own wallet, and settlement pays it directly, so escrow payouts never pass through a Proteus wallet. One exception to know about: pay-per-call payments with the x402 exact scheme land in the signer key until the seller sweeps them to its payee.
 
 ## How a buyer checks a seller
 
@@ -48,7 +48,7 @@ One thing I want to be upfront about: on Proteus AI the seller's signer key is h
 | Payee | The payout address in the terms vs. the registered payee | Money going to the wrong wallet |
 | Policy | The quote's policy version vs. ProteusPolicyRegistry | Prices from rules the seller never committed |
 
-If any check fails, the agent does not sign. On Proteus AI this is one MCP tool, `proteus_verify_seller`.
+If any check fails, the agent does not sign. On Proteus AI this is one MCP tool, `proteus_verify_seller`, which needs the buyer's key set so it can read the terms.
 
 > Identity answers "who is this?". Escrow answers "what if they do not deliver?". You need both.
 
@@ -62,6 +62,7 @@ If any check fails, the agent does not sign. On Proteus AI this is one MCP tool,
 - **It does not prove delivery.** A registered seller can still fail to ship. That is why the buyer pays into escrow and the seller is paid for what the buyer countersigns. See [Get paid on delivery](https://app.proteus.co.in/blog/usdc-escrow-pay-on-delivery).
 - **It does not prove the business is good.** It proves it is the same seller every time. Reputation and your own judgement do the rest.
 - **It is only as safe as the seller's wallet.** Whoever holds the wallet that owns the identity controls it.
+- **It is optional on Proteus AI.** A seller can sell without registering, but then there is nothing on chain for an agent to check, and it cannot be rated.
 
 ## Get started
 

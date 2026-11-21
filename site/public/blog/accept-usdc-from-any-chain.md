@@ -2,7 +2,7 @@
 
 > Your customers hold USDC on Solana, Base or Ethereum. Here is how Circle CCTP brings it to Arc as native USDC, so they can pay you without a wrapped token or a bridge they have to trust.
 
-Aditya, founder of Proteus AI · published 2026-11-07 · 4 min read · https://app.proteus.co.in/blog/accept-usdc-from-any-chain
+Aditya, founder of Proteus AI · published 2026-11-07, updated 2026-11-22 · 4 min read · https://app.proteus.co.in/blog/accept-usdc-from-any-chain
 
 ## Key takeaways
 
@@ -24,7 +24,7 @@ That day the bridge was used by someone who just wanted to buy a tee. Here is wh
 - If a burn has already been sent, you can resume instead of starting over.
 - And bridging now works both ways: out of Arc to the 19 chains Circle's Forwarder mints on.
 
-The customer's USDC landed on Arc ([the mint](https://explorer.arc.io/tx/0x3e7f549108d377aa340c8a2d93b75322ac4a7454d4f54f2011d4b22357460862)), and they funded their order in escrow the same day without paying any gas.
+The customer's USDC landed on Arc ([the mint](https://explorer.arc.io/tx/0x3e7f549108d377aa340c8a2d93b75322ac4a7454d4f54f2011d4b22357460862)), and they funded their order in escrow the same day without paying any gas. (Our link check, built later, found that customer's wallet tied to an account on the studio's team. The bridge worked the same either way.)
 
 That is the whole lesson of this post, really. Your customer's money is on some other chain. Getting it to you has to be boring.
 
