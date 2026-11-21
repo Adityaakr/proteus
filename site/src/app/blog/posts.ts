@@ -289,7 +289,7 @@ On November 11 the studio delivered, the customer countersigned, and the escrow 
       { q: "What is USDC escrow?", a: "USDC escrow holds a buyer's payment in a smart contract until the agreed conditions are met. On Proteus AI the seller is paid for what the buyer confirms as delivered, and the rest is refundable." },
       { q: "Do buyers need ETH or another token for gas?", a: "No. Arc charges gas in USDC, and on Proteus AI the buyer signs a USDC permit while a relayer submits the transaction and pays the gas." },
       { q: "Can I pay with USDC from another chain?", a: "Yes. Circle CCTP brings native USDC to Arc from 25 chains, including Solana, without wrapping." },
-      { q: "What happens if the seller never delivers?", a: "Nothing is paid without the buyer's countersignature. After the term plus a grace period, the unspent balance is refundable to the buyer, and that refund cannot be paused." },
+      { q: "What happens if the seller never delivers?", a: "The seller is not paid without the buyer's countersignature; only a dispute the buyer opens can lead to an arbiter's split. After the term plus a grace period, the unspent balance is refundable to the buyer, and that refund cannot be paused." },
       { q: "What if the buyer never confirms delivery?", a: "The seller is not paid. Today only the buyer can open a dispute; after the term plus a grace period the unconfirmed balance is refundable to the buyer. Sellers should record each delivery with proof and ask the buyer to confirm it." },
       { q: "Who resolves disputes?", a: "An arbiter key that can only split the unspent balance between buyer and seller. It cannot take funds or reverse payments the buyer already confirmed." },
     ],

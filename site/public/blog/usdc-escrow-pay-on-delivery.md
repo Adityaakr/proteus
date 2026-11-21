@@ -84,7 +84,7 @@ Yes. Circle CCTP brings native USDC to Arc from 25 chains, including Solana, wit
 
 ### What happens if the seller never delivers?
 
-Nothing is paid without the buyer's countersignature. After the term plus a grace period, the unspent balance is refundable to the buyer, and that refund cannot be paused.
+The seller is not paid without the buyer's countersignature; only a dispute the buyer opens can lead to an arbiter's split. After the term plus a grace period, the unspent balance is refundable to the buyer, and that refund cannot be paused.
 
 ### What if the buyer never confirms delivery?
 
