@@ -192,54 +192,58 @@ export const partners = {
   ],
 };
 
-/** Before vs after: one example order run the usual way and through Proteus (BeforeAfter component, id "before-after"). Illustrative; no time or revenue savings are claimed. */
+/**
+ * Before vs after (BeforeAfter component, id "before-after"): the hero's order, a purchasing agent
+ * buying 2,000 branded bottles for three offices, run the usual way and through Proteus. The same
+ * order runs along the ERC-8183 track. Illustrative; no time or revenue savings are claimed.
+ */
 export const beforeAfter = {
   tag: "Before and after",
-  heading: "One order of 230 tees. Two ways to run it.",
+  heading: "2,000 bottles, three countries, two AI agents. Two ways to run it.",
   description:
-    "The same custom order, from the first message to the payout, run the usual way and run through Proteus. The order is an example; every step on the right is how the product works today.",
+    "The order from the top of this page, from the first request to the last payout, run the usual way and run through Proteus. It's an example; every step on the right is how the product works today, with a status wherever it isn't Live.",
   stageLabel: "The order",
-  before: { name: "Without Proteus", description: "Chat, email, a spreadsheet and an invoice." },
-  after: { name: "With Proteus", description: "Your deal agent, escrow on Arc and a public record." },
+  before: { name: "Without Proteus", description: "Email, a PDF quote, a bank wire and an invoice." },
+  after: { name: "With Proteus", description: "Two agents, escrow on Arc and a public record." },
   rows: [
     {
-      stage: "The request arrives",
-      before: "A message at 11pm: 230 tees with our logo, budget $1,500. You see it the next morning, if a competitor hasn't already replied.",
-      after: "Your deal agent replies in seconds, at any hour, with offers built from your price tiers.",
+      stage: "The request",
+      before: "A purchasing agent asks for 2,000 branded bottles for offices in London, Singapore and São Paulo, at most $9 each. It can't negotiate with your inbox, so the request waits for a person.",
+      after: "Your deal agent answers their agent in seconds and negotiates inside your floor and their $9 limit. Agent buyers run on Arc testnet today.",
     },
     {
       stage: "The price",
-      before: "You work it out by hand. The buyer asks for 30% off, and three rounds later you close by giving away margin.",
-      after: "The buyer can push all they like. Every offer is calculated from your rules, never below your floor, and big orders wait for your approval.",
+      before: "Days of email across time zones. They push for a bulk discount, and you guess what still leaves a margin.",
+      after: "Every offer is calculated from your price tiers and costs: 2,000 at $8.40 is $16,800. Orders above your approval limit wait for you.",
     },
     {
       stage: "The terms",
-      before: "Quantity, sizes and price are scattered across a chat thread. Nobody is quite sure what was agreed.",
-      after: "Both sides sign the same terms: 230 tees at $6.50, $1,495 in total.",
+      before: "Quantity, price and delivery are spread across an email thread and a PDF quote.",
+      after: "Both sides sign the same terms: 2,000 bottles at $8.40, paid per bottle accepted.",
     },
     {
       stage: "The payment",
-      before: "You send an invoice and start printing on trust. Or the buyer pays a stranger upfront, with no way back.",
-      after: "The buyer funds $1,495 into escrow on Arc before you start. You can see the money is there before you buy the blanks.",
+      before: "A deposit by international wire, with bank fees and days in transit, to a supplier abroad the buyer has never used.",
+      after: "The buyer funds $16,800 in USDC into escrow on Arc before you order stock, with no network fee to pay.",
     },
     {
       stage: "Delivery and payout",
-      before: "You deliver, then chase the invoice. Ten tees arrive misprinted, and the whole payment stalls over them.",
-      after: "The buyer accepts what arrived and the contract pays you in USDC, per unit: 220 accepted pays $1,430. The other 10 are refundable to the buyer.",
+      before: "The first batch arrives with 20 dented bottles, and the whole invoice stalls while both sides argue across time zones.",
+      after: "The buyer accepts each batch as it lands, and you're paid per bottle in USDC: 980 accepted from the first batch pays $8,232. The 20 dented ones are refundable to the buyer after the term.",
     },
     {
-      stage: "Your reputation",
-      before: "Screenshots of happy customers that anyone could fake.",
-      after: "A public review that can only be left after an order paid out, on your ERC-8004 identity on Arc.",
+      stage: "Trust",
+      before: "Their agent has no way to check you, so it hands back to a person and a reference call.",
+      after: "Their agent checks your ERC-8004 identity on Arc and reviews that can only come from paid orders.",
     },
     {
       stage: "Who carries the risk",
-      before: "You, until the invoice is paid. The buyer, from the moment they pay.",
+      before: "You, until the wire clears. The buyer, from the moment they pay.",
       after: "The escrow contract, for both sides.",
     },
   ],
   closing: "The usual way, one side always goes first and hopes. With Proteus, nobody has to.",
-  footnote: "Illustrative order. Real prices come from each seller's own rules; we don't claim time or revenue savings. Disputes are In testing.",
+  footnote: "Illustrative order. Real prices come from each seller's own rules, and we don't claim time or revenue savings. Agent buyers: Testnet. Disputes: In testing. Rules for receiving stablecoins differ by country.",
 };
 
 /**
@@ -257,36 +261,36 @@ export const erc8183 = {
     { name: "Provider", proteus: "You, the seller" },
     { name: "Evaluator", proteus: "The buyer's signed acceptance" },
   ],
-  order: "Following one order: 230 tees at $6.50",
+  order: "Following the same order: 2,000 bottles at $8.40",
   addsLabel: "Proteus adds",
   steps: [
     {
       state: "Open",
       standard: "Job and budget set",
-      amount: "$1,495 agreed",
+      amount: "$16,800 agreed",
       proteus: "Negotiated in your rules. Both sides sign.",
       adds: [{ title: "Negotiated price", status: "Live", body: "The standard takes the budget as given." }],
     },
     {
       state: "Funded",
       standard: "Budget locked in escrow",
-      amount: "$1,495 locked",
+      amount: "$16,800 locked",
       proteus: "Paid into escrow before you start. No gas for the buyer.",
       adds: [],
     },
     {
       state: "Submitted",
       standard: "Provider delivers",
-      amount: "230 delivered",
-      proteus: "You record each delivery.",
+      amount: "2,000 delivered",
+      proteus: "You record each batch as it ships.",
       adds: [{ title: "Disputes", status: "In testing", body: "Either side can freeze the order before it completes. Proteus holds the arbiter key today." }],
     },
     {
       state: "Completed",
       standard: "Evaluator approves, provider paid",
-      amount: "$1,430 paid to you",
-      proteus: "220 accepted, paid per unit in USDC.",
-      branch: { state: "Rejected or expired", amount: "$65 refunded", proteus: "The 10 not accepted, after the term + 3 days." },
+      amount: "$16,632 paid to you",
+      proteus: "1,980 accepted, paid per bottle in USDC.",
+      branch: { state: "Rejected or expired", amount: "$168 refunded", proteus: "The 20 dented bottles, after the term + 3 days." },
       adds: [
         { title: "Pay per unit", status: "Live", body: "Not all or nothing." },
         { title: "Reviews", status: "Live", body: "Only after a payout, on ERC-8004." },
@@ -497,8 +501,8 @@ export const faq = {
 };
 
 export const footer = {
-  heading: "Quoted in seconds.\nFunded before you start.\nPaid on delivery.",
-  line: "Set your prices and limits once. Your deal agent handles every buyer inside them, people and AI agents alike, and you're paid in USDC when they confirm delivery. Free during the pilot, set up in about 5 minutes.",
+  heading: "Answer every buyer in seconds.\nGet paid for what you deliver.",
+  line: "Your deal agent quotes people and their AI agents inside your rules. Escrow on Arc holds the money before you start and pays you in USDC when delivery is confirmed. Free during the pilot.",
   cta: { label: "Start free", href: links.sell },
   brand: "Proteus AI",
   tagline: "The deal network for businesses and AI agents, built on Arc.",
