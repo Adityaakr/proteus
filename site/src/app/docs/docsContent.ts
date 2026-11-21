@@ -268,7 +268,7 @@ export const GRACE = { defaultSeconds: 259200, note: "Each deal's terms carry `g
 /** Which Claude model does each job (server/src/lib/claude.ts). Opus and Sonnet calls use Anthropic's refusal fallback. */
 export const MODELS = [
   ["Reading a buyer's requirements in chat", "Claude Haiku 5.5", "low", "structured output: units, budget, integrations"],
-  ["Writing the deal desk's replies", "Claude Sonnet 5.5", "low", "only figures from the offers, the buyer's budget and the seller's other products; any other figure falls back to the fixed reply"],
+  ["Writing the deal desk's replies", "Claude Sonnet 5.5", "low", "a dollar amount or a number of four or more digits that is not among the offers, the buyer's budget or the seller's other products falls back to the fixed reply"],
   ["Callback booking, after-hours answering", "Claude Haiku 5.5", "low", "fast, well-specified records"],
   ["AI receptionist service", "Claude Sonnet 5.5", "low", "talks to customers; asks one question at a time"],
   ["Invoice processing, screening checks", "Claude Sonnet 5.5", "medium", "reads PDFs and images directly"],
@@ -399,7 +399,7 @@ const PAGES: DocSection[] = [
     summary: "Escrow, delivery, refunds and disputes, in plain words, for both sides of an order.",
     intro: "For sellers and buyers deciding whether to trust an order with someone they have not worked with before. You will learn where the money is at each step, what releases it, what happens when something goes wrong, and what Proteus itself can and cannot do.",
     blocks: [
-      { kind: "callout", tone: "note", title: "Nobody goes first on trust", text: "The buyer pays before the seller starts, but the money waits in a public contract, DealEscrow on Arc. It moves to the seller only when the buyer confirms delivery, and back to the buyer only when refunds open after the term." },
+      { kind: "callout", tone: "note", title: "Nobody goes first on trust", text: "The buyer pays before the seller starts, but the money waits in a public contract, DealEscrow on Arc. It moves to the seller when the buyer confirms delivery and back to the buyer when refunds open after the term; if a dispute is opened, the arbiter decides how what is left is split." },
       { kind: "h3", id: "protection-steps", text: "Where the money is" },
       { kind: "table", head: ["Moment", "Where the USDC is", "What moves it"], rows: [
         ["Agreed", "The buyer's wallet", "Nothing yet. Both sides sign the same terms: units, unit price, term, payee."],
@@ -407,12 +407,12 @@ const PAGES: DocSection[] = [
         ["Delivered", "Still in escrow", "The seller records each delivery with proof. Recording alone moves no money."],
         ["Confirmed", "Escrow → the seller's wallet", "The buyer countersigns everything recorded so far, and the contract pays exactly that."],
         ["After the term", "Escrow → the buyer", "Whatever was not paid out is refundable after the term plus a grace period (3 days by default), or at once if the seller closes the term early."],
-      ], note: "Every step is a transaction on Arc you can open on the explorer. The detail, for developers: [The money path](/docs/money-path)." },
+      ], note: "Funding, every payout and every refund is a transaction on Arc you can open on the explorer; signing the terms and recording a delivery happen off chain. The detail, for developers: [The money path](/docs/money-path)." },
       { kind: "h3", id: "protection-sellers", text: "What it means for sellers" },
       { kind: "points", items: [
         { title: "You never start unpaid", text: "The whole order is in escrow before you start. The deal page shows the balance, reconciled from the contract, and links the funding transaction on Arc." },
-        { title: "Get confirmed batch by batch", text: "Record each batch as it ships and ask the buyer to countersign. Each confirmation pays you for everything recorded so far. Recording a delivery does not alert the buyer, so post an update too ([Orders, delivery and payouts](/docs/orders))." },
-        { title: "Confirm before the deadline", text: "Payment is possible until the term ends plus the grace period. After that, anything the buyer has not confirmed can only go back to the buyer." },
+        { title: "Get confirmed batch by batch", text: "Record each batch as it ships and ask the buyer to countersign. Each confirmation covers everything recorded so far and pays you the part not yet paid. Recording a delivery does not alert the buyer, so post an update too ([Orders, delivery and payouts](/docs/orders))." },
+        { title: "Confirm before the deadline", text: "Payment is possible until the term ends plus the grace period. After that, anything the buyer has not confirmed goes back to the buyer as a refund, unless a dispute is opened before the refund is claimed." },
         { title: "If a buyer never confirms", text: "You are not paid, and today you cannot open a dispute yourself: only the buyer can. Keep delivery records with proof and order updates with tracking, and remind the buyer before the deadline." },
         { title: "Your payout wallet", text: "Payouts go to the wallet that owned your account when you published your first product. No setting changes it, and on each order it is fixed in the terms both sides sign." },
       ] },
@@ -432,7 +432,7 @@ const PAGES: DocSection[] = [
       { kind: "h3", id: "protection-proteus", text: "What Proteus can and cannot do" },
       { kind: "points", items: [
         { title: "Cannot take the money", text: "DealEscrow pays only an order's payee and its buyer. There is no owner withdrawal, and the contract cannot be upgraded ([DealEscrow.sol](" + code("contracts/src/DealEscrow.sol") + "))." },
-        { title: "Cannot pay the seller without the buyer", text: "Every payout needs the buyer's signed confirmation and the seller signer's delivery record over the same units." },
+        { title: "Pays the seller on confirmation or a dispute decision", text: "A normal payout needs the buyer's signed confirmation and the seller signer's delivery record over the same units. The one exception is a dispute, where the arbiter can split what is left between the seller and the buyer." },
         { title: "Can end a term early", text: "Through the seller's signer key, which makes the unspent balance refundable to the buyer at once." },
         { title: "Can freeze and split an order", text: "Proteus holds the seller's signer key and the arbiter key, so on chain it could open a dispute on any funded order and split what is left between the seller and the buyer. No Proteus route opens one for a seller today." },
       ] },
@@ -697,12 +697,12 @@ const PAGES: DocSection[] = [
       ] },
       { kind: "figure", src: "/docs/seller-usage.jpg", alt: "Seller usage and delivery page with a signed, delivered receipt", caption: "Usage and delivery: each delivered unit with its outcome and signed receipt.", network: "Arc testnet" },
       { kind: "h3", id: "orders-batches", text: "Batches and short deliveries" },
-      { kind: "p", text: "Record what actually went out, batch by batch. If 200 tees were ordered and 180 shipped, record 180: the buyer can confirm those and you are paid for 180. A buyer confirms all recorded units at once and cannot confirm part of a recorded batch, so record only what you stand behind. The 20 that were never delivered stay in escrow and become refundable to the buyer after the term." },
+      { kind: "p", text: "Record what actually went out, batch by batch. If 200 tees were ordered and 180 shipped, record 180: the buyer can confirm those and you are paid for 180. A buyer confirms all recorded units at once and cannot confirm part of a recorded batch, so record only what you stand behind. The 20 that were never delivered stay in escrow and become refundable to the buyer after the term plus grace, or at once if you close the term early." },
       { kind: "h3", id: "orders-deadlines", text: "Deadlines" },
       { kind: "table", head: ["Deadline", "Rule"], rows: [
         ["Quote", "An offer must be signed and funded within the quote validity you set. An order waiting for your approval uses the same window."],
         ["Term", "Runs for the product's term in days, counted from when the quote was made, not from funding."],
-        ["Payment", "Possible until the term ends plus the grace period (3 days by default). After that, deliveries the buyer has not confirmed can only be refunded to the buyer."],
+        ["Payment", "Possible until the term ends plus the grace period (3 days by default). After that, deliveries the buyer has not confirmed are refunded to the buyer, unless a dispute is opened before the refund is claimed."],
         ["Refund", "Opens at the end of the term plus grace, or at once if you close the term early."],
       ] },
       { kind: "h3", id: "orders-wrong", text: "When an order goes wrong" },
@@ -1013,7 +1013,7 @@ const PAGES: DocSection[] = [
       { kind: "h3", id: "signatures-example", text: "Example: the terms to sign" },
       { kind: "p", text: "`GET /api/quotes/{id}?buyer=0x…` returns this shape as `typedData`; sign it with `eth_signTypedData_v4`. Values are illustrative; amounts are micro-USDC." },
       { kind: "code", lang: "json", title: "Terms typed data", text: JSON.stringify({ domain: { name: "ProteusDealEscrow", version: "1", chainId: 5042, verifyingContract: ESCROW }, primaryType: "Terms", types: { Terms: [["dealId", "uint256"], ["buyer", "address"], ["seller", "address"], ["payee", "address"], ["usdc", "address"], ["productId", "bytes32"], ["unitNum", "uint256"], ["unitDen", "uint256"], ["maxUnits", "uint256"], ["prepaid", "uint256"], ["start", "uint64"], ["end", "uint64"], ["grace", "uint64"], ["publicTermsHash", "bytes32"], ["nonce", "uint256"], ["expiry", "uint64"]].map(([name, type]) => ({ name, type })) }, message: { dealId: "<on-chain deal id>", buyer: "<your wallet>", seller: "<seller signer>", payee: "<seller payee>", usdc: CONTRACTS.usdc, productId: "<keccak256 of the product slug>", unitNum: "6600000", unitDen: "1", maxUnits: "1", prepaid: "6600000", start: "<unix seconds>", end: "<start + term>", grace: "259200", publicTermsHash: "<hash of publicTerms>", nonce: "<nonce>", expiry: "<quote expiry>" } }, null, 2) },
-      { kind: "callout", tone: "note", title: "The seller signer", text: "A per-seller key Proteus holds, AES-256-GCM encrypted ([signer.ts](" + code("server/src/chain/signer.ts") + ")). It countersigns offers so sellers need not approve each one, and on chain it is the deal's seller address. It cannot move escrowed funds on its own: every payout also needs the buyer's Acceptance, and goes to the payee in the terms, which Proteus takes from the seller's account (the owner's wallet, fixed at the first publish). It can end a term early (`sellerCloseTerm`), could open a dispute on its deals on chain (no Proteus route does), and it collects x402 payments until the seller sweeps them. Revoking it stops Proteus using it for anything; deals it already signed name it as their seller on chain, so they can no longer settle through Proteus afterwards." },
+      { kind: "callout", tone: "note", title: "The seller signer", text: "A per-seller key Proteus holds, AES-256-GCM encrypted ([signer.ts](" + code("server/src/chain/signer.ts") + ")). It countersigns offers so sellers need not approve each one, and on chain it is the deal's seller address. It cannot move escrowed funds on its own: a normal payout also needs the buyer's Acceptance and a dispute split needs the arbiter, and either goes only to the payee in the terms, which Proteus takes from the seller's account (the owner's wallet, fixed at the first publish). It can end a term early (`sellerCloseTerm`), could open a dispute on its deals on chain (no Proteus route does), and it collects x402 payments until the seller sweeps them. Revoking it stops Proteus using it for anything; deals it already signed name it as their seller on chain, so they can no longer settle through Proteus afterwards." },
     ],
   },
   {
@@ -1326,7 +1326,7 @@ const PAGES: DocSection[] = [
         ["DealEscrow", "Code; the owner can pause new deals and replace the arbiter", "Release USDC against signatures; settlement and refunds keep working while paused", "Let anyone, the owner included, withdraw buyer funds; it is not upgradeable"],
         ["Arbiter", "Proteus deployer key (also the owner)", "Split the unspent balance of a disputed deal", "Touch settled funds; there is no timeout yet"],
         ["Relayer", "Proteus key", "Submit transactions, pay gas, call the refund once it opens (it only ever pays the buyer)", "Pay a seller without both parties' signatures"],
-        ["Seller signer", "Per-seller key, encrypted, held by Proteus", "Countersign terms, deliveries and policies; end a term early; on chain, open a dispute (no Proteus route does); hold pay-per-call payments until swept", "Pay out without the buyer's Acceptance, or change the payee of a deal already signed. Revoking it stops Proteus using it, which also stops settlement on deals it signed"],
+        ["Seller signer", "Per-seller key, encrypted, held by Proteus", "Countersign terms, deliveries and policies; end a term early; on chain, open a dispute (no Proteus route does); hold pay-per-call payments until swept", "Pay out on its own (settlement also needs the buyer's Acceptance, a dispute split the arbiter), or change the payee of a deal already signed. Revoking it stops Proteus using it, which also stops settlement on deals it signed"],
         ["Pricing engine", "Proteus's server", "Enforce the seller's rules", "Be proven by the commitment alone"],
         ["Delivery", "Seller confirms, buyer countersigns", "Trigger payment once countersigned", "Be verified by Proteus"],
       ] },
@@ -1707,7 +1707,8 @@ export function docsMarkdown(origin: string, only?: string): string {
       else if (b.kind === "figure") out.push(`![${b.alt}](${abs(b.src)})`, `_${absText(b.caption)} (${b.network})_`, "");
       else if (b.kind === "code") out.push(...(b.title ? [`**${b.title}:**`, ""] : []), "```" + b.lang, b.text, "```", "");
       else if (b.kind === "table") {
-        out.push(`| ${b.head.join(" | ")} |`, `|${b.head.map(() => "---").join("|")}|`, ...b.rows.map((r) => `| ${r.map(absText).join(" | ")} |`));
+        const cell = (t: string) => t.replace(/\|/g, "\\|");
+        out.push(`| ${b.head.map(cell).join(" | ")} |`, `|${b.head.map(() => "---").join("|")}|`, ...b.rows.map((r) => `| ${r.map((c) => cell(absText(c))).join(" | ")} |`));
         if (b.note) out.push("", `_${absText(b.note)}_`);
         out.push("");
       } else if (b.kind === "diagram") {

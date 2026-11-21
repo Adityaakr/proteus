@@ -74,7 +74,7 @@ And a buyer most businesses are not ready for yet: other people's AI agents. A d
 
 The first business live on Proteus AI on Arc mainnet is a custom merch studio. On November 7, one of its customers asked the studio's deal desk for a single custom tee, accepted the offer, and funded it in USDC without paying gas. On November 11 the studio delivered, the customer confirmed, and the escrow paid the studio 6.60 USDC in one transaction. The customer then rated the studio 5 stars on chain (that rating was made before our [link checks](https://app.proteus.co.in/docs/ratings) existed, and we say so publicly).
 
-It is one order, and our own link check later found the buyer's wallet tied to an account on the studio's team, so it proves the mechanism more than independent demand. Every step is a public transaction anyone can check.
+It is one order, and our own link check later found the buyer's wallet tied to an account on the studio's team, so it proves the mechanism more than independent demand. The funding, the payout and the rating are public transactions anyone can check; the delivery record itself is a signed receipt kept off chain.
 
 ## If you want to try it
 

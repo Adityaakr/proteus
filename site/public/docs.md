@@ -102,7 +102,7 @@ _Escrow, delivery, refunds and disputes, in plain words, for both sides of an or
 
 For sellers and buyers deciding whether to trust an order with someone they have not worked with before. You will learn where the money is at each step, what releases it, what happens when something goes wrong, and what Proteus itself can and cannot do.
 
-> **Nobody goes first on trust:** The buyer pays before the seller starts, but the money waits in a public contract, DealEscrow on Arc. It moves to the seller only when the buyer confirms delivery, and back to the buyer only when refunds open after the term.
+> **Nobody goes first on trust:** The buyer pays before the seller starts, but the money waits in a public contract, DealEscrow on Arc. It moves to the seller when the buyer confirms delivery and back to the buyer when refunds open after the term; if a dispute is opened, the arbiter decides how what is left is split.
 
 <a id="protection-steps"></a>
 
@@ -116,15 +116,15 @@ For sellers and buyers deciding whether to trust an order with someone they have
 | Confirmed | Escrow → the seller's wallet | The buyer countersigns everything recorded so far, and the contract pays exactly that. |
 | After the term | Escrow → the buyer | Whatever was not paid out is refundable after the term plus a grace period (3 days by default), or at once if the seller closes the term early. |
 
-_Every step is a transaction on Arc you can open on the explorer. The detail, for developers: [The money path](https://app.proteus.co.in/docs/money-path)._
+_Funding, every payout and every refund is a transaction on Arc you can open on the explorer; signing the terms and recording a delivery happen off chain. The detail, for developers: [The money path](https://app.proteus.co.in/docs/money-path)._
 
 <a id="protection-sellers"></a>
 
 ### What it means for sellers
 
 - **You never start unpaid.** The whole order is in escrow before you start. The deal page shows the balance, reconciled from the contract, and links the funding transaction on Arc.
-- **Get confirmed batch by batch.** Record each batch as it ships and ask the buyer to countersign. Each confirmation pays you for everything recorded so far. Recording a delivery does not alert the buyer, so post an update too ([Orders, delivery and payouts](https://app.proteus.co.in/docs/orders)).
-- **Confirm before the deadline.** Payment is possible until the term ends plus the grace period. After that, anything the buyer has not confirmed can only go back to the buyer.
+- **Get confirmed batch by batch.** Record each batch as it ships and ask the buyer to countersign. Each confirmation covers everything recorded so far and pays you the part not yet paid. Recording a delivery does not alert the buyer, so post an update too ([Orders, delivery and payouts](https://app.proteus.co.in/docs/orders)).
+- **Confirm before the deadline.** Payment is possible until the term ends plus the grace period. After that, anything the buyer has not confirmed goes back to the buyer as a refund, unless a dispute is opened before the refund is claimed.
 - **If a buyer never confirms.** You are not paid, and today you cannot open a dispute yourself: only the buyer can. Keep delivery records with proof and order updates with tracking, and remind the buyer before the deadline.
 - **Your payout wallet.** Payouts go to the wallet that owned your account when you published your first product. No setting changes it, and on each order it is fixed in the terms both sides sign.
 
@@ -151,7 +151,7 @@ _Every step is a transaction on Arc you can open on the explorer. The detail, fo
 ### What Proteus can and cannot do
 
 - **Cannot take the money.** DealEscrow pays only an order's payee and its buyer. There is no owner withdrawal, and the contract cannot be upgraded ([DealEscrow.sol](https://github.com/Adityaakr/proteus/blob/main/contracts/src/DealEscrow.sol)).
-- **Cannot pay the seller without the buyer.** Every payout needs the buyer's signed confirmation and the seller signer's delivery record over the same units.
+- **Pays the seller on confirmation or a dispute decision.** A normal payout needs the buyer's signed confirmation and the seller signer's delivery record over the same units. The one exception is a dispute, where the arbiter can split what is left between the seller and the buyer.
 - **Can end a term early.** Through the seller's signer key, which makes the unspent balance refundable to the buyer at once.
 - **Can freeze and split an order.** Proteus holds the seller's signer key and the arbiter key, so on chain it could open a dispute on any funded order and split what is left between the seller and the buyer. No Proteus route opens one for a seller today.
 
@@ -778,7 +778,7 @@ _Usage and delivery: each delivered unit with its outcome and signed receipt. (A
 
 ### Batches and short deliveries
 
-Record what actually went out, batch by batch. If 200 tees were ordered and 180 shipped, record 180: the buyer can confirm those and you are paid for 180. A buyer confirms all recorded units at once and cannot confirm part of a recorded batch, so record only what you stand behind. The 20 that were never delivered stay in escrow and become refundable to the buyer after the term.
+Record what actually went out, batch by batch. If 200 tees were ordered and 180 shipped, record 180: the buyer can confirm those and you are paid for 180. A buyer confirms all recorded units at once and cannot confirm part of a recorded batch, so record only what you stand behind. The 20 that were never delivered stay in escrow and become refundable to the buyer after the term plus grace, or at once if you close the term early.
 
 <a id="orders-deadlines"></a>
 
@@ -788,7 +788,7 @@ Record what actually went out, batch by batch. If 200 tees were ordered and 180 
 |---|---|
 | Quote | An offer must be signed and funded within the quote validity you set. An order waiting for your approval uses the same window. |
 | Term | Runs for the product's term in days, counted from when the quote was made, not from funding. |
-| Payment | Possible until the term ends plus the grace period (3 days by default). After that, deliveries the buyer has not confirmed can only be refunded to the buyer. |
+| Payment | Possible until the term ends plus the grace period (3 days by default). After that, deliveries the buyer has not confirmed are refunded to the buyer, unless a dispute is opened before the refund is claimed. |
 | Refund | Opens at the end of the term plus grace, or at once if you close the term early. |
 
 <a id="orders-wrong"></a>
@@ -1143,7 +1143,7 @@ For developers building agents that buy on Proteus, and for AI assistants readin
 | `POST` | `/negotiations` | { sellerSlug, productSlug, buyerAddress? } → negotiation with buyerKey (send it as X-Negotiation-Key on every /negotiations/{id} call) |
 | `GET` | `/negotiations/{id}` | the conversation and current offers (X-Negotiation-Key, or the signed-in buyer) |
 | `POST` | `/negotiations/{id}/messages` | { content } → agent reply and offers |
-| `POST` | `/negotiations/{id}/counter` | { candidateId, targetTotal? | targetUnits? } → decision |
+| `POST` | `/negotiations/{id}/counter` | { candidateId, targetTotal? \| targetUnits? } → decision |
 | `POST` | `/negotiations/{id}/quotes` | { candidateId } → quote (or approval_required) |
 | `GET` | `/quotes/{id}?buyer=0x…` | EIP-712 typed data to sign |
 | `POST` | `/quotes/{id}/accept` | { buyerAddress, buyerSignature } → deal |
@@ -1161,7 +1161,7 @@ For developers building agents that buy on Proteus, and for AI assistants readin
 | `GET` | `/deals/{id}/timeline` | the buyer's order history: progress (paid, accepted, in production, shipped, delivered, seller paid), tracking, every update with its transaction (buyer wallet or the deal's service key only) |
 | `GET` | `/deals/{id}/notifications` | where the buyer hears about this deal: email, Telegram, webhook (buyer only) |
 | `PUT` | `/deals/{id}/notifications` | { email?, telegramChatId?, webhookUrl? } → settings; a new webhook returns its signing secret once |
-| `POST` | `/deals/{id}/requests/{requestId}/status` | { status: confirmed | done | cancelled } → the buyer marks a request in its inbox |
+| `POST` | `/deals/{id}/requests/{requestId}/status` | { status: confirmed \| done \| cancelled } → the buyer marks a request in its inbox |
 | `GET` | `/services/{product}/inbox` | Bearer key; scheduling services only: the newest 200 requests on the deal, each with its full note and mark |
 | `GET` | `/services/{product}/customer-link` | Bearer key; the business's customer link and website embed code (scheduling services) |
 | `POST` | `/services/{product}/customer-link` | Bearer key; create the link, or replace it so the old one stops working (DELETE turns it off) |
@@ -2395,7 +2395,7 @@ Buyer wallet: permit (checked by Arc USDC), terms and acceptance (DealEscrow). S
 }
 ```
 
-> **The seller signer:** A per-seller key Proteus holds, AES-256-GCM encrypted ([signer.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/chain/signer.ts)). It countersigns offers so sellers need not approve each one, and on chain it is the deal's seller address. It cannot move escrowed funds on its own: every payout also needs the buyer's Acceptance, and goes to the payee in the terms, which Proteus takes from the seller's account (the owner's wallet, fixed at the first publish). It can end a term early (`sellerCloseTerm`), could open a dispute on its deals on chain (no Proteus route does), and it collects x402 payments until the seller sweeps them. Revoking it stops Proteus using it for anything; deals it already signed name it as their seller on chain, so they can no longer settle through Proteus afterwards.
+> **The seller signer:** A per-seller key Proteus holds, AES-256-GCM encrypted ([signer.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/chain/signer.ts)). It countersigns offers so sellers need not approve each one, and on chain it is the deal's seller address. It cannot move escrowed funds on its own: a normal payout also needs the buyer's Acceptance and a dispute split needs the arbiter, and either goes only to the payee in the terms, which Proteus takes from the seller's account (the owner's wallet, fixed at the first publish). It can end a term early (`sellerCloseTerm`), could open a dispute on its deals on chain (no Proteus route does), and it collects x402 payments until the seller sweeps them. Revoking it stops Proteus using it for anything; deals it already signed name it as their seller on chain, so they can no longer settle through Proteus afterwards.
 
 ## The AI behind it
 
@@ -2414,7 +2414,7 @@ Deal desk: buyer text from any channel has emails, phone and card numbers remove
 | Job | Model | Effort | Why |
 |---|---|---|---|
 | Reading a buyer's requirements in chat | Claude Haiku 5.5 | low | structured output: units, budget, integrations |
-| Writing the deal desk's replies | Claude Sonnet 5.5 | low | only figures from the offers, the buyer's budget and the seller's other products; any other figure falls back to the fixed reply |
+| Writing the deal desk's replies | Claude Sonnet 5.5 | low | a dollar amount or a number of four or more digits that is not among the offers, the buyer's budget or the seller's other products falls back to the fixed reply |
 | Callback booking, after-hours answering | Claude Haiku 5.5 | low | fast, well-specified records |
 | AI receptionist service | Claude Sonnet 5.5 | low | talks to customers; asks one question at a time |
 | Invoice processing, screening checks | Claude Sonnet 5.5 | medium | reads PDFs and images directly |
@@ -2503,7 +2503,7 @@ The buyer's wallet signs the terms, permit and acceptances and funds DealEscrow.
 | DealEscrow | Code; the owner can pause new deals and replace the arbiter | Release USDC against signatures; settlement and refunds keep working while paused | Let anyone, the owner included, withdraw buyer funds; it is not upgradeable |
 | Arbiter | Proteus deployer key (also the owner) | Split the unspent balance of a disputed deal | Touch settled funds; there is no timeout yet |
 | Relayer | Proteus key | Submit transactions, pay gas, call the refund once it opens (it only ever pays the buyer) | Pay a seller without both parties' signatures |
-| Seller signer | Per-seller key, encrypted, held by Proteus | Countersign terms, deliveries and policies; end a term early; on chain, open a dispute (no Proteus route does); hold pay-per-call payments until swept | Pay out without the buyer's Acceptance, or change the payee of a deal already signed. Revoking it stops Proteus using it, which also stops settlement on deals it signed |
+| Seller signer | Per-seller key, encrypted, held by Proteus | Countersign terms, deliveries and policies; end a term early; on chain, open a dispute (no Proteus route does); hold pay-per-call payments until swept | Pay out on its own (settlement also needs the buyer's Acceptance, a dispute split the arbiter), or change the payee of a deal already signed. Revoking it stops Proteus using it, which also stops settlement on deals it signed |
 | Pricing engine | Proteus's server | Enforce the seller's rules | Be proven by the commitment alone |
 | Delivery | Seller confirms, buyer countersigns | Trigger payment once countersigned | Be verified by Proteus |
 

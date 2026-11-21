@@ -1158,7 +1158,7 @@
         "job": "Writing the deal desk's replies",
         "model": "Claude Sonnet 5.5",
         "effort": "low",
-        "why": "only figures from the offers, the buyer's budget and the seller's other products; any other figure falls back to the fixed reply"
+        "why": "a dollar amount or a number of four or more digits that is not among the offers, the buyer's budget or the seller's other products falls back to the fixed reply"
       },
       {
         "job": "Callback booking, after-hours answering",

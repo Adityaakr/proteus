@@ -2,7 +2,7 @@
 
 > What an AI agent needs to buy on its owner's behalf without overspending or paying the wrong seller: a spending mandate, on-chain seller checks and escrow.
 
-Aditya, founder of Proteus AI · published 2026-10-23, updated 2026-11-22 · 4 min read · https://app.proteus.co.in/blog/how-ai-agents-buy-safely
+Aditya, founder of Proteus AI · published 2026-10-23, updated 2026-11-22 · 5 min read · https://app.proteus.co.in/blog/how-ai-agents-buy-safely
 
 ## Key takeaways
 
@@ -37,7 +37,7 @@ The part I keep coming back to is at the end. In its own report, Claude noted th
 
 ### A budget it cannot exceed
 
-The owner sets a **spending mandate**: the largest prepaid amount the agent may commit to one deal. The MCP server enforces it before it signs anything. I want to be precise here: it caps the amount per deal. Which service to buy and what unit price is acceptable are still the agent's judgement, so say them in the task.
+The owner sets a **spending mandate**: the largest prepaid amount the agent may commit to one deal. The MCP server checks it against the deal terms before it signs or funds. It then signs the typed data the API returns without comparing it field by field with those terms, so the cap relies on the API serving matching data. I want to be precise here: it caps the amount per deal. Which service to buy and what unit price is acceptable are still the agent's judgement, so say them in the task.
 
 ### A way to check the seller
 

@@ -103,7 +103,7 @@ And a buyer most businesses are not ready for yet: other people's AI agents. A d
 
 The first business live on Proteus AI on Arc mainnet is a custom merch studio. On November 7, one of its customers asked the studio's deal desk for a single custom tee, accepted the offer, and funded it in USDC without paying gas. On November 11 the studio delivered, the customer confirmed, and the escrow paid the studio 6.60 USDC in one transaction. The customer then rated the studio 5 stars on chain (that rating was made before our [link checks](/docs/ratings) existed, and we say so publicly).
 
-It is one order, and our own link check later found the buyer's wallet tied to an account on the studio's team, so it proves the mechanism more than independent demand. Every step is a public transaction anyone can check.
+It is one order, and our own link check later found the buyer's wallet tied to an account on the studio's team, so it proves the mechanism more than independent demand. The funding, the payout and the rating are public transactions anyone can check; the delivery record itself is a signed receipt kept off chain.
 
 ## If you want to try it
 
@@ -215,7 +215,7 @@ Set up a product and its rules in the [seller quickstart](/docs/quickstart-selle
   {
     slug: "usdc-escrow-pay-on-delivery",
     title: "Get paid on delivery: USDC escrow for small business orders",
-    description: "How USDC escrow lets a buyer pay up front and a business get paid only for what it delivers, with refunds of anything not delivered, no gas for buyers and funding from 25 chains.",
+    description: "How USDC escrow lets a buyer pay up front and a business get paid only for what it delivers, with refunds of anything not delivered, no gas on Arc for buyers, and funding from 25 chains.",
     date: "2026-11-11",
     updated: "2026-11-22",
     author: AUTHOR,
@@ -241,7 +241,7 @@ Small businesses live with this every day. It shows up as 50% deposits, invoices
 1. **Both sides sign the same terms.** Units, price, term and the seller's payout address, signed by the buyer and by the seller's signing key as EIP-712 typed data. Neither side can change them after.
 2. **The buyer funds the escrow.** The USDC moves into our DealEscrow contract on Arc. With a USDC permit the buyer signs once, and our relayer submits it and pays the gas.
 3. **The seller delivers.** For an API, every call is metered. For physical goods, the seller records each delivered batch with a note and, if they want, a proof link.
-4. **The buyer countersigns.** The buyer signs the total the seller has recorded so far, all of it or none of it. Nothing moves without this signature.
+4. **The buyer countersigns.** The buyer signs the total the seller has recorded so far, all of it or none of it. No ordinary payout happens without this signature; the only other ways money leaves escrow are the refund after the term and an arbiter's split in a dispute.
 5. **The escrow pays the seller.** DealEscrow checks the buyer's acceptance against the seller's signed delivery record and pays the difference since the last settlement, straight to the seller's own wallet.
 6. **The rest can go back.** After the term plus a grace period (3 days by default), or as soon as the seller closes early, the unspent balance is refundable to the buyer. Anyone can trigger it, and it cannot be paused.
 
@@ -338,7 +338,7 @@ The part I keep coming back to is at the end. In its own report, Claude noted th
 
 ### A budget it cannot exceed
 
-The owner sets a **spending mandate**: the largest prepaid amount the agent may commit to one deal. The MCP server enforces it before it signs anything. I want to be precise here: it caps the amount per deal. Which service to buy and what unit price is acceptable are still the agent's judgement, so say them in the task.
+The owner sets a **spending mandate**: the largest prepaid amount the agent may commit to one deal. The MCP server checks it against the deal terms before it signs or funds. It then signs the typed data the API returns without comparing it field by field with those terms, so the cap relies on the API serving matching data. I want to be precise here: it caps the amount per deal. Which service to buy and what unit price is acceptable are still the agent's judgement, so say them in the task.
 
 ### A way to check the seller
 
