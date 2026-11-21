@@ -1,6 +1,6 @@
 <h1 align="center">Proteus AI</h1>
 
-<p align="center"><strong>The autonomous deal service desk for internet businesses.</strong></p>
+<p align="center"><strong>The deal network for small businesses and AI agents on Arc.</strong></p>
 
 <p align="center">
   <a href="contracts/src/DealEscrow.sol">DealEscrow.sol</a> ·
