@@ -192,20 +192,87 @@ export const partners = {
   ],
 };
 
-/** ERC-8183: how a Proteus order maps onto the draft agent job standard (Partners layout, id "erc-8183"). The interface is planned, not built. */
+/** Before vs after: one example order run the usual way and through Proteus (BeforeAfter component, id "before-after"). Illustrative; no time or revenue savings are claimed. */
+export const beforeAfter = {
+  tag: "Before and after",
+  heading: "One order of 230 tees. Two ways to run it.",
+  description:
+    "The same custom order, from the first message to the payout, run the usual way and run through Proteus. The order is an example; every step on the right is how the product works today.",
+  stageLabel: "The order",
+  before: { name: "Without Proteus", description: "Chat, email, a spreadsheet and an invoice." },
+  after: { name: "With Proteus", description: "Your deal agent, escrow on Arc and a public record." },
+  rows: [
+    {
+      stage: "The request arrives",
+      before: "A message at 11pm: 230 tees with our logo, budget $1,500. You see it the next morning, if a competitor hasn't already replied.",
+      after: "Your deal agent replies in seconds, at any hour, with offers built from your price tiers.",
+    },
+    {
+      stage: "The price",
+      before: "You work it out by hand. The buyer asks for 30% off, and three rounds later you close by giving away margin.",
+      after: "The buyer can push all they like. Every offer is calculated from your rules, never below your floor, and big orders wait for your approval.",
+    },
+    {
+      stage: "The terms",
+      before: "Quantity, sizes and price are scattered across a chat thread. Nobody is quite sure what was agreed.",
+      after: "Both sides sign the same terms: 230 tees at $6.50, $1,495 in total.",
+    },
+    {
+      stage: "The payment",
+      before: "You send an invoice and start printing on trust. Or the buyer pays a stranger upfront, with no way back.",
+      after: "The buyer funds $1,495 into escrow on Arc before you start. You can see the money is there before you buy the blanks.",
+    },
+    {
+      stage: "Delivery and payout",
+      before: "You deliver, then chase the invoice. Ten tees arrive misprinted, and the whole payment stalls over them.",
+      after: "The buyer accepts what arrived and the contract pays you in USDC, per unit: 220 accepted pays $1,430. The other 10 are refundable to the buyer.",
+    },
+    {
+      stage: "Your reputation",
+      before: "Screenshots of happy customers that anyone could fake.",
+      after: "A public review that can only be left after an order paid out, on your ERC-8004 identity on Arc.",
+    },
+    {
+      stage: "Who carries the risk",
+      before: "You, until the invoice is paid. The buyer, from the moment they pay.",
+      after: "The escrow contract, for both sides.",
+    },
+  ],
+  closing: "The usual way, one side always goes first and hopes. With Proteus, nobody has to.",
+  footnote: "Illustrative order. Real prices come from each seller's own rules; we don't claim time or revenue savings. Disputes are In testing.",
+};
+
+/** ERC-8183: the draft agent job standard, its lifecycle and how a Proteus order maps onto it (dark Erc8183 component, id "erc-8183"). The compatible interface is Planned, not built. */
 export const erc8183 = {
   tag: "ERC-8183",
-  heading: "Real orders, in the shape agents expect.",
+  heading: "Agents are getting a standard way to order. Proteus orders already fit it.",
   description:
-    "ERC-8183 is a draft standard for paid jobs between agents: a client funds escrow, a provider delivers, and an evaluator approves before payment. A Proteus order follows the same lifecycle, with the buyer as evaluator, and adds what a real business needs around it. Today orders run on DealEscrow; an ERC-8183-compatible interface is planned.",
-  steps: [
-    { number: "01", title: "Budget: negotiated. The standard leaves how a price is agreed open; your deal agent negotiates it inside your rules." },
-    { number: "02", title: "Fund: paid upfront. The buyer funds the agreed amount into escrow before you start work." },
-    { number: "03", title: "Submit: delivered. You record each delivery against the order, with proof if you have it." },
-    { number: "04", title: "Complete: paid per unit. The buyer's signed acceptance is the evaluator, so 180 good tees out of 200 still pay out." },
-    { number: "05", title: "Reject or expire: refunded. Whatever the buyer doesn't accept is refundable to them after the term." },
-    { number: "06", title: "Beyond the standard: disputes (In testing) and ERC-8004 reviews only from settled orders." },
+    "ERC-8183 is a draft Ethereum standard for paid work between agents. A client locks the budget in escrow, a provider does the work, and an evaluator decides whether it is paid. It defines how the money moves and leaves the rest to the application. Every Proteus order already follows that flow, and adds what a real business needs around it.",
+  rolesTitle: "Three roles",
+  roles: [
+    { name: "Client", standard: "Creates the job and locks the budget in escrow.", proteus: "The buyer, or the buyer's AI agent." },
+    { name: "Provider", standard: "Does the work and submits it.", proteus: "You, the seller." },
+    { name: "Evaluator", standard: "Approves the work or rejects it.", proteus: "The buyer's signed acceptance of what arrived." },
   ],
+  lifecycleTitle: "The job lifecycle, and the same order on Proteus",
+  standardLabel: "The standard",
+  proteusLabel: "On Proteus",
+  lifecycle: [
+    { state: "Open", standard: "A job is created with a provider, an evaluator and a budget.", proteus: "Your deal agent negotiates the budget inside your rules, and both sides sign the terms." },
+    { state: "Funded", standard: "The client locks the budget in escrow.", proteus: "The buyer funds $1,495 into DealEscrow before you start, with no network fee." },
+    { state: "Submitted", standard: "The provider submits the work.", proteus: "You record each delivery against the order." },
+    { state: "Completed", standard: "The evaluator approves and the provider is paid.", proteus: "The buyer accepts per unit: 220 of 230 tees accepted pays you $1,430." },
+    { state: "Rejected or expired", standard: "The work is rejected or time runs out, and the client is refunded.", proteus: "Whatever isn't accepted is refundable to the buyer after the term and a 3-day grace period." },
+  ],
+  addsTitle: "What Proteus adds on top",
+  adds: [
+    { title: "A negotiated price", status: "Live", body: "The standard takes the budget as given. Proteus agrees it with the buyer, calculated from your rules and never below your floor." },
+    { title: "Pay per unit", status: "Live", body: "A job is paid in full or refunded in full. A Proteus order pays for each unit the buyer accepts and refunds the rest." },
+    { title: "Disputes", status: "In testing", body: "The standard has no dispute step. Either side can freeze a Proteus order for an arbiter; today Proteus holds the arbiter key." },
+    { title: "Reviews from paid orders", status: "Live", body: "Reviews go on your ERC-8004 identity only after an order pays out, and reviews linked to the seller are flagged." },
+  ],
+  closing: "Why it matters to you: when the interface ships, any agent built for ERC-8183 can order from you without a custom integration, and you keep your prices, your limits and your payment protection.",
+  footnote: "Status: Proteus orders run on DealEscrow on Arc mainnet today (Live). The ERC-8183-compatible interface is Planned and not built yet. ERC-8183 is a draft standard, and Arc lists it on testnet.",
 };
 
 /** Agent to agent: what the AI decides, buyers' agents, what they verify (Verification component, id "agents"). */
