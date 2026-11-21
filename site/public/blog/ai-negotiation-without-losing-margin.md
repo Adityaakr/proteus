@@ -2,12 +2,12 @@
 
 > Seven guardrails that let an AI agent negotiate prices for your business while your floor, costs and approval rules stay in your control.
 
-Aditya, founder of Proteus AI · published 2026-11-11, updated 2026-11-14 · 4 min read · https://app.proteus.co.in/blog/ai-negotiation-without-losing-margin
+Aditya, founder of Proteus AI · published 2026-11-11, updated 2026-11-22 · 4 min read · https://app.proteus.co.in/blog/ai-negotiation-without-losing-margin
 
 ## Key takeaways
 
 - Never let the model pick a price. Compute offers in code from the seller's rules, and let the model only write the words around them.
-- Check every number in the reply against the offers you computed. If anything else shows up, send a fixed reply instead.
+- Check the figures in every reply against the offers you computed. If an unlisted price shows up, send a fixed reply instead.
 - Give every price refusal the same public reason and cap counteroffers. Different reasons let a buyer find your floor in about 20 tries. We learned that from our own audit.
 - Keep costs and margins out of the model's context entirely, and send big deals to a person.
 
@@ -33,7 +33,7 @@ The model gets the buyer's message and the offers the buyer is allowed to see. T
 
 ### 3. A figure guard on every reply
 
-Before a reply goes out, every price and quantity in it is compared with the numbers the engine produced. If the model wrote a number that is not on the list, we drop the reply and send a plain one built from the rules. Models are good writers and bad accountants. This makes that a non-issue.
+Before a reply goes out, every dollar amount and every number of four or more digits in it is compared with the figures the conversation allows: the offers, the buyer's own budget and the seller's other products. If the model wrote one that is not on the list, we drop the reply and send a plain one built from the rules. Small bare numbers can slip through, but they cannot change a price: the buyer signs terms that show the exact figures. Models are good writers and bad accountants, and this keeps the accounting out of their hands.
 
 ### 4. One reason for every refusal
 
@@ -49,11 +49,11 @@ Probing works by asking again and again. Since that same fix, a negotiation allo
 
 ### 6. A person approves the big ones
 
-Above the threshold the seller sets, the offer is not sent. It waits for a human, and the agent tells the buyer the seller will confirm. Automation takes the many small deals. You keep the few that matter.
+Above the threshold the seller sets, the offer cannot be signed until a person approves it, and the agent tells the buyer the seller will confirm. Automation takes the many small deals. You keep the few that matter.
 
 ### 7. The rules are committed in public
 
-Each version of a seller's pricing policy is committed on Arc as a salted hash, and every quote points at the version that produced it. Your numbers stay private. But anyone can check later that a quote came from rules you committed to at the time, and not from something we changed quietly.
+For a seller registered on Arc, each version of its pricing policy is committed on chain as a salted hash, and every quote points at the version that produced it. Your numbers stay private. But anyone can check later that a quote came from rules you committed to at the time, and not from something we changed quietly.
 
 ## What the buyer sees, and what they never do
 
@@ -71,7 +71,7 @@ If they ask for something you do not sell, the agent points them at the right pr
 
 **What if the model makes a mistake anyway?** The figure guard catches invented numbers, and the buyer still has to sign terms that show the exact price before any money moves. A typo in a chat cannot become a contract.
 
-**What about my data?** Costs, margins and policy never go to the model. Emails and phone numbers typed into the chat are removed before every model call. The details are on our [privacy page](https://app.proteus.co.in/docs/privacy).
+**What about my data?** Costs, margins and policy never go to the model. Emails and phone numbers typed into the deal-desk chat are removed before every model call. The details are on our [privacy page](https://app.proteus.co.in/docs/privacy).
 
 ## Try it on yourself
 

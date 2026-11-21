@@ -83,7 +83,7 @@ export default function BlogPost() {
 
             <section className={s.ctaCard}>
               <h2>Give your business a deal desk</h2>
-              <p>Set your products and rules once. Proteus AI negotiates inside them, both sides sign the same terms, and USDC waits on Arc until you deliver.</p>
+              <p>Set your prices and limits once. Your deal agent answers buyers and their AI agents inside them, every order is paid upfront into USDC escrow on Arc, and you are paid when the buyer confirms delivery.</p>
               <div className={s.ctaRow}>
                 <a href="https://app.proteus.co.in/app" className={s.ctaPrimary}>Start selling <ArrowUpRight size={14} aria-hidden /></a>
                 <Link to="/docs/quickstart-seller" className={s.ctaGhost}>Read the quickstart</Link>

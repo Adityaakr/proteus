@@ -2,7 +2,7 @@
 import { POSTS, readMinutes, type Post } from "./posts";
 
 export const BLOG_TITLE = "The Proteus AI blog";
-export const BLOG_LEDE = "Notes from building Proteus AI, the deal desk for internet businesses: how it works, what broke along the way, and what is not done yet. Every claim matches our docs or the chain.";
+export const BLOG_LEDE = "Notes from building Proteus AI, the deal network for small businesses and AI agents on Arc: how it works, what broke along the way, and what is not done yet. Every claim matches our docs or the chain.";
 
 const PUBLISHER = (origin: string) => ({ "@type": "Organization", name: "Proteus AI", url: origin, logo: { "@type": "ImageObject", url: `${origin}/og/docs.jpg` } });
 

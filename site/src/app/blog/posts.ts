@@ -29,7 +29,7 @@ export const POSTS: Post[] = [
     title: "What is an AI deal desk? How autonomous agents negotiate and close B2B deals",
     description: "An AI deal desk quotes, negotiates and closes deals inside a business's own rules, then turns the agreement into a paid transaction. Here is how it works.",
     date: "2026-10-16",
-    updated: "2026-11-14",
+    updated: "2026-11-22",
     author: AUTHOR,
     tags: ["AI deal desk", "B2B sales", "Autonomous agents"],
     hero: { src: "/blog/covers/what-is-an-ai-deal-desk.jpg", alt: "A buyer asks Kitbox's deal agent for 20 branded boxes; the agent answers with two offers computed from the seller's rules, a $230 team pack and a $12.50 sample" },
@@ -37,7 +37,7 @@ export const POSTS: Post[] = [
       "An AI deal desk quotes, negotiates and closes deals for a business, inside rules the business sets. That is the whole idea.",
       "The model writes the conversation. The prices come from plain code that reads the seller's rules, so there is nothing to talk it out of.",
       "A deal is not closed when someone says yes. It is closed when both sides sign the same terms and the money is waiting in escrow.",
-      "It fits anything sold by quote, volume or usage: custom merch, services, API plans, data, compute.",
+      "It fits small businesses that quote every order, such as custom merch, print, gifting and wholesale, and anything sold by volume or usage.",
     ],
     body: `
 ## The person who answers at 11pm
@@ -48,20 +48,20 @@ That conversation is where most of the selling actually happens, and it runs on 
 
 I started Proteus AI to give that person a co-worker. Not a chatbot that is polite and useless, but something that knows what the business can offer, negotiates only inside its rules, and turns a yes into a paid transaction.
 
-That is what I mean by an **AI deal desk**.
+That is what I mean by an **AI deal desk**. On Proteus AI every seller gets one, and buyers, or their AI agents, can deal with any of them under the same rules and the same escrow. We call that the deal network for small businesses and AI agents on Arc.
 
 ## What it actually does
 
 Most "AI sales" tools mix three jobs together. We split them on purpose.
 
-1. **Understanding.** A model reads the buyer's message and pulls out what matters: quantity, budget, dates, anything unusual. On Proteus AI this runs on Claude Haiku 5.5 with structured output, so what comes back is data, not a paragraph.
+1. **Understanding.** A model reads the buyer's message and pulls out what matters: quantity, budget, integrations, open questions. On Proteus AI this runs on Claude Haiku 5.5 with structured output, so what comes back is data, not a paragraph.
 2. **Deciding.** Offers are computed in ordinary code from the seller's rules: cost, margin floor, maximum discount, minimum order, capacity, and a threshold above which a person has to approve. The model is never asked what to charge.
-3. **Explaining.** A second model call writes the reply around those offers. If it mentions any number the pricing code did not produce, we throw the reply away and send a plain fixed one instead.
+3. **Explaining.** A second model call writes the reply around those offers. If it mentions a price, or any large number, that is not among the offers, the buyer's own budget or the seller's other products, we throw the reply away and send a plain fixed one instead.
 
 Then the two parts that make it a desk and not a chat:
 
 4. **Closing.** When the buyer accepts, both sides sign identical terms (EIP-712), and the buyer's USDC goes into an escrow contract on Arc.
-5. **Settling.** The seller delivers, the buyer countersigns what arrived, and the escrow pays exactly that. Anything not delivered can go back to the buyer.
+5. **Settling.** The seller records what it delivered, the buyer countersigns it, and the escrow pays exactly that. Anything not delivered can go back to the buyer.
 
 ![A buyer negotiating with a demo seller's deal desk on Proteus AI](/docs/negotiation.jpg "A negotiation with Kitbox, our labelled demo seller on Arc testnet. Every offer on the right came from the seller's rules.")
 
@@ -92,10 +92,10 @@ It is a fair worry. Models want to be helpful, and "can you do a bit better?" wo
 
 Anyone who sells by quote, volume or usage:
 
-- **Print, merch and custom goods.** Quantities, artwork and delivery dates change every order.
+- **Custom merch, print and gifting.** Quantities, artwork and delivery dates change every order.
+- **Event supply, creative services and wholesale.** Volume tiers, batches and buyers you have never met.
 - **Service businesses.** Bookings, receptionists, after-hours requests, billed per handled request.
 - **API, data and AI providers.** Volume plans, pay per call, prepaid credit that should be refundable.
-- **Agencies and back-office services.** Scoped work, partial delivery, milestones.
 
 And a buyer most businesses are not ready for yet: other people's AI agents. A deal desk with an API can sell to them the same way it sells to a person. More on that in [How AI agents can buy safely](/blog/how-ai-agents-buy-safely).
 
@@ -103,7 +103,7 @@ And a buyer most businesses are not ready for yet: other people's AI agents. A d
 
 The first business live on Proteus AI on Arc mainnet is a custom merch studio. On November 7, one of its customers asked the studio's deal desk for a single custom tee, accepted the offer, and funded it in USDC without paying gas. On November 11 the studio delivered, the customer confirmed, and the escrow paid the studio 6.60 USDC in one transaction. The customer then rated the studio 5 stars on chain (that rating was made before our [link checks](/docs/ratings) existed, and we say so publicly).
 
-It is one order. It is also the first time the whole loop ran with someone else's money, and every step is a public transaction anyone can check.
+It is one order, and our own link check later found the buyer's wallet tied to an account on the studio's team, so it proves the mechanism more than independent demand. Every step is a public transaction anyone can check.
 
 ## If you want to try it
 
@@ -126,13 +126,13 @@ It is one order. It is also the first time the whole loop ran with someone else'
     title: "How to let an AI negotiate for your business without giving away your margin",
     description: "Seven guardrails that let an AI agent negotiate prices for your business while your floor, costs and approval rules stay in your control.",
     date: "2026-11-11",
-    updated: "2026-11-14",
+    updated: "2026-11-22",
     author: AUTHOR,
     tags: ["AI negotiation", "Pricing", "Guardrails"],
     hero: { src: "/blog/covers/ai-negotiation-without-losing-margin.jpg", alt: "A product's enforced pricing policy (15% margin floor, 8% max discount, $500 approval threshold) beside a buyer's lowball counteroffer being refused" },
     takeaways: [
       "Never let the model pick a price. Compute offers in code from the seller's rules, and let the model only write the words around them.",
-      "Check every number in the reply against the offers you computed. If anything else shows up, send a fixed reply instead.",
+      "Check the figures in every reply against the offers you computed. If an unlisted price shows up, send a fixed reply instead.",
       "Give every price refusal the same public reason and cap counteroffers. Different reasons let a buyer find your floor in about 20 tries. We learned that from our own audit.",
       "Keep costs and margins out of the model's context entirely, and send big deals to a person.",
     ],
@@ -159,7 +159,7 @@ The model gets the buyer's message and the offers the buyer is allowed to see. T
 
 ### 3. A figure guard on every reply
 
-Before a reply goes out, every price and quantity in it is compared with the numbers the engine produced. If the model wrote a number that is not on the list, we drop the reply and send a plain one built from the rules. Models are good writers and bad accountants. This makes that a non-issue.
+Before a reply goes out, every dollar amount and every number of four or more digits in it is compared with the figures the conversation allows: the offers, the buyer's own budget and the seller's other products. If the model wrote one that is not on the list, we drop the reply and send a plain one built from the rules. Small bare numbers can slip through, but they cannot change a price: the buyer signs terms that show the exact figures. Models are good writers and bad accountants, and this keeps the accounting out of their hands.
 
 ### 4. One reason for every refusal
 
@@ -175,11 +175,11 @@ Probing works by asking again and again. Since that same fix, a negotiation allo
 
 ### 6. A person approves the big ones
 
-Above the threshold the seller sets, the offer is not sent. It waits for a human, and the agent tells the buyer the seller will confirm. Automation takes the many small deals. You keep the few that matter.
+Above the threshold the seller sets, the offer cannot be signed until a person approves it, and the agent tells the buyer the seller will confirm. Automation takes the many small deals. You keep the few that matter.
 
 ### 7. The rules are committed in public
 
-Each version of a seller's pricing policy is committed on Arc as a salted hash, and every quote points at the version that produced it. Your numbers stay private. But anyone can check later that a quote came from rules you committed to at the time, and not from something we changed quietly.
+For a seller registered on Arc, each version of its pricing policy is committed on chain as a salted hash, and every quote points at the version that produced it. Your numbers stay private. But anyone can check later that a quote came from rules you committed to at the time, and not from something we changed quietly.
 
 ## What the buyer sees, and what they never do
 
@@ -197,7 +197,7 @@ If they ask for something you do not sell, the agent points them at the right pr
 
 **What if the model makes a mistake anyway?** The figure guard catches invented numbers, and the buyer still has to sign terms that show the exact price before any money moves. A typo in a chat cannot become a contract.
 
-**What about my data?** Costs, margins and policy never go to the model. Emails and phone numbers typed into the chat are removed before every model call. The details are on our [privacy page](/docs/privacy).
+**What about my data?** Costs, margins and policy never go to the model. Emails and phone numbers typed into the deal-desk chat are removed before every model call. The details are on our [privacy page](/docs/privacy).
 
 ## Try it on yourself
 
@@ -215,16 +215,16 @@ Set up a product and its rules in the [seller quickstart](/docs/quickstart-selle
   {
     slug: "usdc-escrow-pay-on-delivery",
     title: "Get paid on delivery: USDC escrow for small business orders",
-    description: "How USDC escrow lets a buyer pay up front and a business get paid only for what it delivers, with automatic refunds, no gas for buyers and funding from 25 chains.",
+    description: "How USDC escrow lets a buyer pay up front and a business get paid only for what it delivers, with refunds of anything not delivered, no gas for buyers and funding from 25 chains.",
     date: "2026-11-11",
-    updated: "2026-11-14",
+    updated: "2026-11-22",
     author: AUTHOR,
     tags: ["USDC", "Escrow", "Payments", "Arc"],
     hero: { src: "/blog/covers/usdc-escrow-pay-on-delivery.jpg", alt: "A settled deal on Arc mainnet: $6.60 deposited and $6.60 paid to the seller after the buyer countersigned delivery" },
     takeaways: [
       "Escrow fixes the oldest problem in custom orders: who goes first. The buyer commits the money up front, and the seller is paid only for what the buyer confirms arrived.",
       "With USDC on Arc, the same escrow works for a business in any country, settles in seconds and charges gas in USDC.",
-      "Anything not delivered by the end of the term can go back to the buyer, and nobody, including us, can pause that refund.",
+      "Anything not delivered by the end of the term can go back to the buyer, and the contract's owner, us included, cannot pause that refund.",
       "Buyers can fund from 25 chains through Circle CCTP and pay no gas, because a relayer submits the transaction for them.",
     ],
     body: `
@@ -238,10 +238,10 @@ Small businesses live with this every day. It shows up as 50% deposits, invoices
 
 ## How it works on Proteus AI
 
-1. **Both sides sign the same terms.** Units, price, term and the seller's payout address, signed by the buyer and by the seller as EIP-712 typed data. Neither side can change them after.
+1. **Both sides sign the same terms.** Units, price, term and the seller's payout address, signed by the buyer and by the seller's signing key as EIP-712 typed data. Neither side can change them after.
 2. **The buyer funds the escrow.** The USDC moves into our DealEscrow contract on Arc. With a USDC permit the buyer signs once, and our relayer submits it and pays the gas.
 3. **The seller delivers.** For an API, every call is metered. For physical goods, the seller records each delivered batch with a note and, if they want, a proof link.
-4. **The buyer countersigns.** The buyer signs the total delivered so far. Nothing moves without this signature.
+4. **The buyer countersigns.** The buyer signs the total the seller has recorded so far, all of it or none of it. Nothing moves without this signature.
 5. **The escrow pays the seller.** DealEscrow checks the buyer's acceptance against the seller's signed delivery record and pays the difference since the last settlement, straight to the seller's own wallet.
 6. **The rest can go back.** After the term plus a grace period (3 days by default), or as soon as the seller closes early, the unspent balance is refundable to the buyer. Anyone can trigger it, and it cannot be paused.
 
@@ -261,6 +261,7 @@ I did not pick these because they are fashionable. I picked them for the busines
 I would rather you hear the limits from me.
 
 - **It does not check delivery.** For physical goods the seller says what was delivered. The buyer's countersignature is the real check. If they disagree, they do not sign, and they can open a dispute.
+- **Only the buyer can open a dispute today.** If a buyer never confirms, the seller is not paid, and after the term plus grace the money can go back to the buyer. Sellers should record each batch with proof and ask for a confirmation as it lands. A way for sellers to open a dispute, an independent arbiter and a deadline for decisions are planned, not built.
 - **Disputes have one arbiter, and it is us for now.** A dispute freezes the deal, and the arbiter can only split the unspent balance between buyer and seller. It cannot take money for itself, and it cannot touch payments the buyer already confirmed. No live deal has been disputed yet.
 - **The owner's power is narrow.** The contract owner can pause new deals and set the arbiter. Settlement and refunds cannot be paused, and there is no function that sweeps funds.
 
@@ -268,13 +269,13 @@ I would rather you hear the limits from me.
 
 On November 7, a customer of a custom merch studio bridged USDC from Solana, agreed one custom tee for $6.60 with the studio's deal desk, and funded the escrow without paying gas. I was on a call with them while they did it.
 
-On November 11 the studio delivered, the customer countersigned, and the escrow paid the studio 6.60 USDC in a single transaction. If you call balances on DealEscrow for that deal today you get 6.60 deposited, 6.60 settled, nothing refunded, nothing left.
+On November 11 the studio delivered, the customer countersigned, and the escrow paid the studio 6.60 USDC in a single transaction. If you call balances on DealEscrow for that deal today you get 6.60 deposited, 6.60 settled, nothing refunded, nothing left. Our link check, which we built later, found the buyer's wallet tied to an account on the studio's team, so this order proves the mechanism more than independent demand.
 
 | Step | Who acts | What happens on chain |
 |---|---|---|
 | Terms signed | Buyer and seller | Terms hash recorded with the funding |
 | Escrow funded | Relayer, for the buyer | USDC into DealEscrow |
-| Delivery recorded | Seller | Signed receipt |
+| Delivery recorded | Seller | Signed receipt (off chain) |
 | Delivery accepted | Buyer | Settlement transaction |
 | Seller paid | DealEscrow | USDC to the seller's wallet |
 
@@ -289,6 +290,7 @@ On November 11 the studio delivered, the customer countersigned, and the escrow 
       { q: "Do buyers need ETH or another token for gas?", a: "No. Arc charges gas in USDC, and on Proteus AI the buyer signs a USDC permit while a relayer submits the transaction and pays the gas." },
       { q: "Can I pay with USDC from another chain?", a: "Yes. Circle CCTP brings native USDC to Arc from 25 chains, including Solana, without wrapping." },
       { q: "What happens if the seller never delivers?", a: "Nothing is paid without the buyer's countersignature. After the term plus a grace period, the unspent balance is refundable to the buyer, and that refund cannot be paused." },
+      { q: "What if the buyer never confirms delivery?", a: "The seller is not paid. Today only the buyer can open a dispute; after the term plus a grace period the unconfirmed balance is refundable to the buyer. Sellers should record each delivery with proof and ask the buyer to confirm it." },
       { q: "Who resolves disputes?", a: "An arbiter key that can only split the unspent balance between buyer and seller. It cannot take funds or reverse payments the buyer already confirmed." },
     ],
     related: ["what-is-an-ai-deal-desk", "how-ai-agents-buy-safely", "ai-negotiation-without-losing-margin"],
@@ -299,7 +301,7 @@ On November 11 the studio delivered, the customer countersigned, and the escrow 
     title: "How AI agents can buy safely: budgets, seller checks and MCP",
     description: "What an AI agent needs to buy on its owner's behalf without overspending or paying the wrong seller: a spending mandate, on-chain seller checks and escrow.",
     date: "2026-10-23",
-    updated: "2026-11-14",
+    updated: "2026-11-22",
     author: AUTHOR,
     tags: ["Agentic commerce", "MCP", "ERC-8004", "AI agents"],
     hero: { src: "/blog/covers/how-ai-agents-buy-safely.jpg", alt: "Claude's tool calls through the Proteus MCP server, from negotiating and declining to verifying, funding and settling, within a 13 USDC spending mandate" },
@@ -362,16 +364,18 @@ The agent pays into escrow, not to the seller. The seller gets paid when the age
 | proteus_list_services | Every service on the market, with prices |
 | proteus_get_service | Tiers, terms, refund policy and the seller's Arc identity |
 | proteus_negotiate | Talks to the seller's agent; returns offers and a private negotiation key |
-| proteus_verify_seller | The four checks above |
+| proteus_verify_seller | The four checks above (it needs the buyer key set, so it can read the terms) |
 | proteus_accept_offer | Creates the quote, enforces the mandate, verifies, then signs |
-| proteus_fund_deal | Funds with a gasless USDC permit |
+| proteus_fund_deal | Funds with a gasless USDC permit, or by approving USDC |
 | proteus_call_service | Calls a funded service; only delivered results are billed |
-| proteus_settle_usage | Checks delivered usage against receipts and price, then settles |
-| proteus_deal_status | Balances read from the escrow |
+| proteus_settle_usage | Checks the amount is no more than delivered units times the price, then settles |
+| proteus_deal_status | Balances as last reconciled from the escrow |
 
 ## What is not done yet
 
 This run was on Arc testnet against a demo seller. An agent buying on mainnet from a real business has not happened yet, and I will not pretend otherwise. It is near the top of my list.
+
+Two more limits. The MCP server checks totals, not the seller's receipt signatures, and it signs the typed data the API returns without comparing it field by field with the terms it checked. And it runs on your own machine: a hosted buyer agent you can use in a browser is planned, as is support for ERC-8183, the draft standard for paid agent jobs, so that agents built for it can order from Proteus sellers without custom code.
 
 ## If you are building an agent
 
@@ -395,7 +399,7 @@ This run was on Arc testnet against a demo seller. An agent buying on mainnet fr
     title: "Selling on WhatsApp with an AI agent: five rules for trust, privacy and payment",
     description: "How to put an AI sales agent on a business's WhatsApp without taking payments in chat, exposing customers' numbers or breaking Meta's rules.",
     date: "2026-11-11",
-    updated: "2026-11-14",
+    updated: "2026-11-22",
     author: AUTHOR,
     tags: ["WhatsApp", "AI sales agent", "Privacy"],
     hero: { src: "/blog/covers/whatsapp-ai-sales-agent.jpg", alt: "Illustration of the WhatsApp flow with a demo seller: the agent says it is an AI, sends offers as buttons, then a pay link that works for 30 minutes" },
@@ -467,7 +471,7 @@ The WhatsApp channel is built and deployed on Arc mainnet and testnet. A number 
 
 - [Privacy on Proteus AI](/docs/privacy), including WhatsApp.
 - [What is an AI deal desk?](/blog/what-is-an-ai-deal-desk)
-- [Front desk, orders and inbox](/docs/front-desk), for businesses whose customers talk to them.
+- [Front desk, inbox and alerts](/docs/front-desk), for businesses whose customers talk to them.
 `,
     faq: [
       { q: "Can an AI agent sell on WhatsApp?", a: "Yes, through Meta's WhatsApp Cloud API, if it is scoped to one business, discloses that it is an AI, and lets the customer reach a person and opt out." },
@@ -483,6 +487,7 @@ The WhatsApp channel is built and deployed on Arc mainnet and testnet. A number 
     title: "What is ERC-8004? Verifiable identity for AI agents that sell",
     description: "ERC-8004 gives an AI agent an on-chain identity: who owns it, where it gets paid and which key signs for it. Here is how sellers use it and how buyers check it.",
     date: "2026-11-05",
+    updated: "2026-11-22",
     author: AUTHOR,
     tags: ["ERC-8004", "Agent identity", "Arc"],
     hero: { src: "/blog/covers/erc-8004-agent-identity.jpg", alt: "A demo seller's ERC-8004 identity on Arc beside the four checks a buyer runs before signing" },
@@ -506,7 +511,7 @@ The question an agent needs to answer before it pays is simple. **Is this really
 ERC-8004, "Trustless Agents", is a proposed Ethereum standard for finding and trusting AI agents. It defines three registries:
 
 - **Identity:** each agent gets an on-chain identity, owned by a wallet, with metadata the owner publishes.
-- **Reputation:** clients can leave feedback about an agent. The registry rejects feedback from the agent's own owner or operators.
+- **Reputation:** clients can leave feedback about an agent. The registry rejects feedback from the agent's own owner or operators. On Proteus AI only a buyer whose order settled can rate, and ratings from wallets linked to the seller do not count ([how ratings work](/docs/ratings)).
 - **Validation:** for independent checks of an agent's work.
 
 Arc runs these registries on mainnet and testnet. The identity registry is at \`0x8004A169FB4a3325136EB29fA0ceB6D2e539a432\` on Arc mainnet and \`0x8004A818BFB912233c491871b3d84c89A494BD9e\` on testnet. The full proposal is on [Ethereum EIPs](https://eips.ethereum.org/EIPS/eip-8004).
@@ -517,7 +522,7 @@ Arc runs these registries on mainnet and testnet. The identity registry is at \`
 2. **It publishes a payee and a signer.** The payee is the wallet that receives payouts. The signer is the key that signs the seller's deal terms and delivery records.
 3. **Every pricing policy is committed.** The signer commits a salted hash of each policy version to ProteusPolicyRegistry. The numbers stay private, but the commitment is public and dated.
 
-One thing I want to be upfront about: on Proteus AI the seller's signer key is held encrypted by us, so the deal desk can sign offers while the seller is asleep. The payee is the seller's own wallet, and settlement pays it directly. Payouts never pass through a Proteus wallet.
+One thing I want to be upfront about: on Proteus AI the seller's signer key is held encrypted by us, so the deal desk can sign offers while the seller is asleep. The payee is the seller's own wallet, and settlement pays it directly, so escrow payouts never pass through a Proteus wallet. One exception to know about: pay-per-call payments with the x402 exact scheme land in the signer key until the seller sweeps them to its payee.
 
 ## How a buyer checks a seller
 
@@ -530,7 +535,7 @@ One thing I want to be upfront about: on Proteus AI the seller's signer key is h
 | Payee | The payout address in the terms vs. the registered payee | Money going to the wrong wallet |
 | Policy | The quote's policy version vs. ProteusPolicyRegistry | Prices from rules the seller never committed |
 
-If any check fails, the agent does not sign. On Proteus AI this is one MCP tool, \`proteus_verify_seller\`.
+If any check fails, the agent does not sign. On Proteus AI this is one MCP tool, \`proteus_verify_seller\`, which needs the buyer's key set so it can read the terms.
 
 > Identity answers "who is this?". Escrow answers "what if they do not deliver?". You need both.
 
@@ -544,6 +549,7 @@ If any check fails, the agent does not sign. On Proteus AI this is one MCP tool,
 - **It does not prove delivery.** A registered seller can still fail to ship. That is why the buyer pays into escrow and the seller is paid for what the buyer countersigns. See [Get paid on delivery](/blog/usdc-escrow-pay-on-delivery).
 - **It does not prove the business is good.** It proves it is the same seller every time. Reputation and your own judgement do the rest.
 - **It is only as safe as the seller's wallet.** Whoever holds the wallet that owns the identity controls it.
+- **It is optional on Proteus AI.** A seller can sell without registering, but then there is nothing on chain for an agent to check, and it cannot be rated.
 
 ## Get started
 
@@ -566,6 +572,7 @@ If any check fails, the agent does not sign. On Proteus AI this is one MCP tool,
     title: "How to accept USDC from any chain: Circle CCTP into Arc",
     description: "Your customers hold USDC on Solana, Base or Ethereum. Here is how Circle CCTP brings it to Arc as native USDC, so they can pay you without a wrapped token or a bridge they have to trust.",
     date: "2026-11-07",
+    updated: "2026-11-22",
     author: AUTHOR,
     tags: ["USDC", "Circle CCTP", "Cross-chain"],
     hero: { src: "/blog/covers/accept-usdc-from-any-chain.jpg", alt: "USDC from 25 chains, including Solana, Ethereum and Base, burned at the source and minted as native USDC on Arc through Circle CCTP" },
@@ -589,7 +596,7 @@ That day the bridge was used by someone who just wanted to buy a tee. Here is wh
 - If a burn has already been sent, you can resume instead of starting over.
 - And bridging now works both ways: out of Arc to the 19 chains Circle's Forwarder mints on.
 
-The customer's USDC landed on Arc ([the mint](https://explorer.arc.io/tx/0x3e7f549108d377aa340c8a2d93b75322ac4a7454d4f54f2011d4b22357460862)), and they funded their order in escrow the same day without paying any gas.
+The customer's USDC landed on Arc ([the mint](https://explorer.arc.io/tx/0x3e7f549108d377aa340c8a2d93b75322ac4a7454d4f54f2011d4b22357460862)), and they funded their order in escrow the same day without paying any gas. (Our link check, built later, found that customer's wallet tied to an account on the studio's team. The bridge worked the same either way.)
 
 That is the whole lesson of this post, really. Your customer's money is on some other chain. Getting it to you has to be boring.
 
@@ -649,6 +656,7 @@ The buyer picks the chain their USDC is on, enters an amount, and signs once in 
     title: "Usage-based pricing for APIs and AI services: prepaid, metered and refundable",
     description: "How to sell an API or AI service by usage without chasing invoices: a prepaid balance in escrow, every call metered with a signed receipt, and unused credit refundable.",
     date: "2026-11-09",
+    updated: "2026-11-22",
     author: AUTHOR,
     tags: ["Usage-based pricing", "API monetization", "x402"],
     hero: { src: "/blog/covers/usage-based-pricing-for-apis.jpg", alt: "A seller's usage page: one request delivered and billed with a signed receipt, nothing billed for failed or handed-off requests" },
@@ -681,9 +689,9 @@ That is what a prepaid balance in escrow gives you.
 
 1. **Agree the plan.** The buyer, or the buyer's agent, negotiates a volume tier with the seller's deal desk, for example a block of calls at a per-call price, prepaid for 30 days.
 2. **Fund it.** Both sides sign the terms and the buyer's USDC moves into DealEscrow on Arc. The buyer gets a service key.
-3. **Call the service.** Each call goes to \`POST /api/services/{product}/execute\` with that key and a \`requestId\`. Send the same \`requestId\` again and you are not charged twice.
-4. **Get a receipt.** The seller's signer signs a receipt for every delivered result. Calls that fail, or that get handed to a person, are recorded but never billed.
-5. **Countersign.** \`GET /api/deals/{id}/usage\` returns the receipts and the acceptance to sign. The buyer, or its agent, checks the count and the price, then signs.
+3. **Call the service.** Each call goes to \`POST /api/services/{product}/execute\` with that key and a \`requestId\`. Send the same \`requestId\` again and you get the stored result, never a second charge. A failed request is stored too, so retry that work with a new id.
+4. **Get a receipt.** The seller's signer signs a receipt for every result. Calls that fail, or that get handed to a person, are recorded but never billed.
+5. **Countersign.** \`GET /api/deals/{id}/usage\` returns the receipts and the acceptance to sign. The buyer, or its agent, checks the count and the price, then signs. One signature covers everything delivered so far.
 6. **Get paid.** DealEscrow pays the seller for everything newly accepted since the last settlement.
 7. **Get the rest back.** After the term plus a grace period (3 days by default), whatever was not used is refundable to the buyer.
 
