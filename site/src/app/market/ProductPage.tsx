@@ -179,7 +179,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
               );
             })}
           </ol>
-          <p className={d.fine}>The agreement controls the money. Nothing moves without both signatures.</p>
+          <p className={d.fine}>The agreement controls the money. Payment is released when the buyer confirms delivery; disputes and refunds after the term follow the published rules.</p>
         </section>
 
         <section className={d.section} aria-labelledby="h-seller">
