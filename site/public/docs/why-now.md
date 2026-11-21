@@ -1,6 +1,6 @@
 # Why now · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/why-now> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/why-now> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Agents can pay; businesses already use stablecoins; the rails are on Arc._
 

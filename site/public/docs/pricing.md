@@ -1,14 +1,14 @@
 # How offers are priced · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/pricing> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/pricing> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Code decides the price; the model only writes the words._
 
-For sellers setting rules and buyers wondering how an offer was made. You will learn how candidates are built from tiers, which rules every offer must pass, what happens to counteroffers and large orders, and what the model may and may not do.
+For sellers setting their rules, and buyers wondering how an offer was made. You will learn how offers are built from your price tiers, which rules every offer must pass, what happens to counteroffers and large orders, and what the AI may and may not do.
 
 _Diagram: From a buyer's message to the offers on screen. Only the green box reaches the buyer as a price._
 
-The buyer's message is read by Claude Haiku into fields (units, budget, integrations). The pricing engine, which is code, builds candidates from the seller's tiers and checks each against the seller's rules. A candidate that passes is an offer; one above the approval threshold waits for the seller; one that breaks a rule is refused with a public reason. Claude Sonnet writes the reply from the offers only, and a figure check replaces any reply with an unlisted figure by a fixed reply before the buyer sees it.
+The buyer's message is read by Claude Haiku into fields (units, budget, integrations, open questions). The pricing engine, which is code, builds candidates from the seller's tiers and checks each against the seller's rules. A candidate that passes is an offer; one above the approval threshold waits for the seller; one that breaks a rule is refused with a public reason. Claude Sonnet writes the reply from the offers only, and a figure check replaces any reply with an unlisted figure by a fixed reply before the buyer sees it.
 
 <a id="pricing-candidates"></a>
 
@@ -29,7 +29,7 @@ The buyer's message is read by Claude Haiku into fields (units, budget, integrat
 | Positive contribution | The offer would not cover its cost (unless the product is labelled as a test) | Refused |
 | Discount cap | The unit price is further below list than the cap allows | Refused |
 | Minimum prepaid | The prepaid total is below the seller's minimum | Refused |
-| Capacity | More units than the seller can still commit this period | Refused |
+| Capacity | More units than the capacity the seller set (it is not counted down as orders come in) | Refused |
 | Units per deal | More units than the product's maximum for one agreement | Refused |
 | Fresh cost model | The seller's cost inputs are past their fresh-until date | Refused |
 | Approval threshold | The prepaid total is above the threshold | Waits for the seller |
@@ -41,7 +41,7 @@ _The price rules (floor, contribution, discount, minimum) share one public reaso
 
 ### Counteroffers
 
-A buyer can propose a total for the same units, or more units for the same total (`POST /api/negotiations/{id}/counter`). The engine evaluates it like any candidate: within the rules, the agent agrees and the offer can be accepted at once; above the approval threshold, it goes to the seller; otherwise it is refused with the public reason and, when one exists, the most the budget buys. Each negotiation allows 12 counters and each IP 40 in every 10-minute window. That slows a search for the seller's floor rather than stopping it; the single public reason for all price rules is what hides which limit was hit.
+A buyer can propose a total for the same units, or more units for the same total (`POST /api/negotiations/{id}/counter`). The engine evaluates it like any candidate: within the rules, the agent agrees and the offer can be accepted at once; above the approval threshold, the agent says it will go to the seller, and the seller is asked to approve once the buyer turns it into a quote; otherwise it is refused with the public reason and, when one exists, the most the budget buys. Each negotiation allows 12 counters and each IP 40 in every 10-minute window. That slows a search for the seller's floor rather than stopping it; the single public reason for all price rules is what hides which limit was hit.
 
 <a id="pricing-example"></a>
 
@@ -66,7 +66,7 @@ The buyer then counters "40 tees for $230", $5.75 a tee. That is 12.9% below the
 
 - **Read the request.** Claude Haiku turns the conversation into fields: units, budget, integrations, open questions.
 - **Write the words.** Claude Sonnet writes the reply from the public offers, the product's public terms and the seller's other products. It never sees costs, floors or the policy.
-- **Figure check.** A reply carrying a dollar amount or a number of four or more digits that is not in the offers is replaced by a fixed reply ([anthropic.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/agent/anthropic.ts#L94)). Smaller numbers and numbers in words are not caught, but the price never comes from the reply.
+- **Figure check.** A reply carrying a dollar amount or a number of four or more digits that is not among the offers, the buyer's own budget or the seller's other products is replaced by a fixed reply ([anthropic.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/agent/anthropic.ts#L94)). Smaller numbers and numbers in words are not caught, but the price never comes from the reply.
 - **Injection attempts.** Buyer text that tries to override the policy is logged as blocked and evaluated normally; prices do not change.
 - **Whole catalog.** The agent can point the buyer to the seller's product that fits better, with its list price, without making an offer on it.
 - **No model, still priced.** Without a model key, replies are rule-based; the offers are the same because they never came from the model.

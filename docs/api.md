@@ -215,7 +215,7 @@ x-proteus-request-id: <requestId>
 { "requestId": "...", "dealId": "deal_... | null", "orgId": "org_...", "productSlug": "...", "input": { ...the buyer's fields as defined by the seller, files as { name, type, size, dataBase64 } } }
 ```
 
-The endpoint answers with JSON: `{ "answer": "...", "billable": true | false, "status": "delivered" | "failed" | "handoff" }`. A 2xx with `billable` not `false` is one delivered unit and is metered against the deal (or settled through x402 for pay per call). `handoff`, `failed`, any non-2xx status, non-JSON bodies and timeouts (20 s) are never charged. Retries with the same `requestId` return the stored receipt. Products on the sample store carry a "Demo seller" label to buyers; endpoint-backed products on a live org do not.
+The endpoint answers with JSON: `{ "answer": "...", "billable": true | false, "status": "delivered" | "failed" | "handoff" }`. A 2xx with `status: "delivered"` (and `billable` not `false`), or with no `status` and `billable: true`, is one delivered unit and is metered against the deal (or settled through x402 for pay per call). `handoff`, `failed`, any other reply, any non-2xx status, non-JSON bodies and timeouts (20 s) are never charged. Every outcome is stored under its `requestId`: retries with the same id return the stored result, failures included, and a deal whose included units are used up still calls the endpoint but records the request as failed. The buyer-facing contract is in the docs at `/docs/api`. Products on the sample store carry a "Demo seller" label to buyers; endpoint-backed products on a live org do not.
 
 ### Seller identity and the seller-centric market (2026-10-16)
 

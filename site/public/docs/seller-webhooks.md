@@ -1,6 +1,6 @@
 # Webhooks · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/seller-webhooks> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/seller-webhooks> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Deal events POSTed to your server as they happen, signed so you can prove they came from Proteus._
 

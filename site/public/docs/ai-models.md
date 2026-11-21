@@ -1,6 +1,6 @@
 # The AI behind it · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/ai-models> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/ai-models> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Which Claude model does which job, and the rules that keep it inside the seller's terms._
 
@@ -17,7 +17,7 @@ Deal desk: buyer text from any channel has emails, phone and card numbers remove
 | Job | Model | Effort | Why |
 |---|---|---|---|
 | Reading a buyer's requirements in chat | Claude Haiku 5.5 | low | structured output: units, budget, integrations |
-| Writing the deal desk's replies | Claude Sonnet 5.5 | low | only figures from the engine's offers; any other figure falls back to the fixed reply |
+| Writing the deal desk's replies | Claude Sonnet 5.5 | low | only figures from the offers, the buyer's budget and the seller's other products; any other figure falls back to the fixed reply |
 | Callback booking, after-hours answering | Claude Haiku 5.5 | low | fast, well-specified records |
 | AI receptionist service | Claude Sonnet 5.5 | low | talks to customers; asks one question at a time |
 | Invoice processing, screening checks | Claude Sonnet 5.5 | medium | reads PDFs and images directly |
@@ -25,7 +25,7 @@ Deal desk: buyer text from any channel has emails, phone and card numbers remove
 | Vendor evaluations, operator tasks | Claude Opus 5.5 | medium | multi-step judgement |
 | Embeddings service | OpenRouter (text-embedding-3-small) | n/a | Anthropic has no embeddings endpoint |
 
-Both live deployments run on Claude (`agentAdapter` in [/api/health](https://app.proteus.co.in/api/health)). Without an Anthropic key, a deployment falls back to OpenRouter (`anthropic/claude-sonnet-4.5` by default), which then receives the same redacted conversation, or to fixed rule-based replies with no model. On the OpenRouter fallback a cut-off reply is not detected as cut off.
+Both live deployments run on Claude (`agentAdapter` in [/api/health](https://app.proteus.co.in/api/health)). Without an Anthropic key, a deployment falls back to OpenRouter (`anthropic/claude-sonnet-4.5` by default), which then receives the same redacted conversation, or to fixed rule-based replies with no model. On the OpenRouter fallback a cut-off reply is not detected as cut off. A service not listed in the table runs on Claude Sonnet 5.5 at medium effort.
 
 <a id="ai-models-rules"></a>
 

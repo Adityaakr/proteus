@@ -270,7 +270,7 @@ export const DIAGRAMS: Record<DiagramName, SketchSpec> = {
     h: 372,
     alt: "How an offer is made: the buyer's message is read by Claude Haiku into fields (units, budget, integrations). The pricing engine, which is code, builds candidates from the seller's tiers and checks each against the seller's rules. A candidate that passes is an offer; one above the approval threshold waits for the seller; one that breaks a rule is refused with a public reason. Claude Sonnet writes the reply from the offers only, and a figure check replaces any reply with an unlisted figure by a fixed reply before the buyer sees it.",
     nodes: [
-      { id: "msg", x: 16, y: 34, w: 150, h: 64, title: "Buyer message", sub: "units, budget, dates", tone: "blue" },
+      { id: "msg", x: 16, y: 34, w: 150, h: 64, title: "Buyer message", sub: "units, budget, needs", tone: "blue" },
       { id: "read", x: 206, y: 34, w: 170, h: 64, title: "Read the request", sub: "Claude Haiku → fields", tone: "gray" },
       { id: "engine", x: 416, y: 34, w: 170, h: 64, title: "Pricing engine", sub: "code: candidates", tone: "amber" },
       { id: "rules", x: 626, y: 34, w: 140, h: 64, title: "Seller's rules", sub: "floor · cap · min · stock", tone: "amber" },
@@ -346,14 +346,14 @@ export const DIAGRAMS: Record<DiagramName, SketchSpec> = {
   channels: {
     w: 800,
     h: 410,
-    alt: "Ways to use Proteus AI: buyers reach the same deal agent from the web app, a seller's website embed, the seller's WhatsApp number, an MCP client such as Claude, their own agent over HTTP, and later a phone app (coming soon). The deal agent prices only from the seller's rules. The seller sets those rules in the seller console and connects its own systems through the seller API and webhooks. Every channel ends in the same signed terms and the same DealEscrow contract on Arc.",
+    alt: "Ways to use Proteus AI: buyers reach the same deal agent from the web app, a seller's website embed, the seller's WhatsApp number, an MCP client such as Claude, their own agent over HTTP, and later a phone app (planned). The deal agent prices only from the seller's rules. The seller sets those rules in the seller console and connects its own systems through the seller API and webhooks. Every channel ends in the same signed terms and the same DealEscrow contract on Arc.",
     nodes: [
       { id: "web", x: 12, y: 16, w: 124, h: 56, title: "Web app", sub: "store, deal pages", tone: "blue" },
       { id: "embed", x: 142, y: 16, w: 124, h: 56, title: "Website embed", sub: "one script tag", tone: "blue" },
       { id: "wa", x: 272, y: 16, w: 124, h: 56, title: "WhatsApp", sub: "seller's number", tone: "blue" },
       { id: "mcp", x: 402, y: 16, w: 124, h: 56, title: "MCP client", sub: "Claude and others", tone: "blue" },
       { id: "http", x: 532, y: 16, w: 124, h: 56, title: "Your agent", sub: "HTTP skill · x402", tone: "blue" },
-      { id: "phone", x: 662, y: 16, w: 124, h: 56, title: "Phone app", sub: "coming soon", tone: "gray", dashed: true },
+      { id: "phone", x: 662, y: 16, w: 124, h: 56, title: "Phone app", sub: "planned", tone: "gray", dashed: true },
       { id: "agent", x: 290, y: 190, w: 200, h: 72, title: "Deal agent", sub: "prices only from the rules", tone: "amber" },
       { id: "console", x: 600, y: 160, w: 186, h: 60, title: "Seller console", sub: "products and rules", tone: "green" },
       { id: "api", x: 600, y: 246, w: 186, h: 60, title: "Seller API", sub: "keys · webhooks", tone: "gray" },
@@ -417,13 +417,13 @@ export const DIAGRAMS: Record<DiagramName, SketchSpec> = {
   trust: {
     w: 780,
     h: 340,
-    alt: "Trust boundaries: the buyer's wallet signs the terms, permit and acceptances and funds DealEscrow. Proteus holds three keys: the relayer submits transactions and pays gas but cannot move funds without signatures; the seller signer countersigns terms and deliveries, can end a term early and can open a dispute; the arbiter, which is also the owner, splits only the unspent balance of a disputed deal and can pause new deals. DealEscrow pays only the deal's payee (the seller's own wallet) and the buyer.",
+    alt: "Trust boundaries: the buyer's wallet signs the terms, permit and acceptances and funds DealEscrow. Proteus holds three keys: the relayer submits transactions and pays gas but cannot pay a seller without signatures; the seller signer countersigns terms and deliveries, can end a term early and, on chain, could open a dispute; the arbiter, which is also the owner, splits only the unspent balance of a disputed deal and can pause new deals. DealEscrow pays only the deal's payee (the seller's own wallet) and the buyer.",
     nodes: [
       { id: "buyer", x: 16, y: 40, w: 180, h: 64, title: "Buyer wallet", sub: "funds; signs and accepts", tone: "blue" },
       { id: "payee", x: 16, y: 236, w: 180, h: 64, title: "Seller wallet", sub: "payee: gets settlements", tone: "green" },
       { id: "escrow", x: 262, y: 136, w: 180, h: 72, title: "DealEscrow", sub: "checks every signature", tone: "green" },
       { id: "relayer", x: 590, y: 20, w: 176, h: 64, title: "Relayer", sub: "Proteus: submits, pays gas", tone: "amber" },
-      { id: "signer", x: 590, y: 140, w: 176, h: 64, title: "Seller signer", sub: "Proteus: signs, can dispute", tone: "amber" },
+      { id: "signer", x: 590, y: 140, w: 176, h: 64, title: "Seller signer", sub: "Proteus: signs, ends terms", tone: "amber" },
       { id: "arbiter", x: 590, y: 260, w: 176, h: 64, title: "Arbiter and owner", sub: "Proteus: disputes, pause", tone: "rose" },
     ],
     edges: [

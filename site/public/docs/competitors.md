@@ -1,6 +1,6 @@
 # How Proteus AI compares · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/competitors> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/competitors> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Others help you quote, negotiate or bill. Proteus takes a deal from the first message to the final transaction._
 

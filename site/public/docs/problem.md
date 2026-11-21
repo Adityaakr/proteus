@@ -1,20 +1,20 @@
 # The problem · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/problem> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/problem> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
-_Every sale that is not a checkout button is still done by hand._
+_Every order that starts with "what's your price?" is still won by hand, and paid on trust._
 
-For sellers and buyers wondering whether Proteus fits them. You will see the kinds of sales it is for and what goes wrong with them today.
+For business owners and buyers wondering whether Proteus fits them. You will see the kinds of orders it is for, what goes wrong with them today, and why.
 
 | Business | The buyer asks | What happens today |
 |---|---|---|
-| Custom merch | "20 boxes with our logo, Mumbai by Oct 31, price per box?" | Priced by hand, answered hours later, prepaid on trust. |
-| Invoice processing | "600 invoices a month, two-way matching, $150." | Sales call, PDF quote, monthly plan; unused volume is lost. |
-| Inference and GPU hours | "10M tokens this month, 40 H100 hours next week." | Prepaid credits that expire; refunds are a support ticket. |
-| Data and API plans | "50,000 calls, priced per call, from tomorrow." | Annual plan by guesswork; disputes settled with screenshots. |
-| AI voice agents | "After-hours answering, about 300 calls a month." | Monthly seats; failed calls are paid for anyway. |
-| Compliance checks | "Screen 200 counterparties this quarter." | A deposit, a report weeks later, an argument over partial work. |
-| AI agents | Needs three paid API calls now. | No one to negotiate with; a person must step in. |
+| Custom merch and apparel | "200 tees with our logo, by the 30th, price per tee?" | Priced by hand, answered the next morning; the buyer has already asked two other studios. |
+| Print and packaging | "5,000 boxes, two-colour print, what's the best you can do?" | A margin given away to close, and an invoice chased after delivery. |
+| Corporate gifting | "300 welcome kits for a conference abroad." | A deposit by international wire to a supplier the buyer has never used. |
+| Event supply | "Banners, lanyards and badges for 800 people." | Partial deliveries stall the whole invoice. |
+| Creative services | "Ten product shoots, paid per finished set." | Scope and payment live in an email thread; disputes are settled with screenshots. |
+| Wholesale | "Your price at 2,000 units?" | Volume pricing worked out each time, with no record of what was agreed. |
+| AI agents buying | An agent with a budget needs a supplier now. | No one to negotiate with and nothing to verify, so it hands back to a person. |
 
 <a id="problem-why"></a>
 
@@ -23,8 +23,8 @@ For sellers and buyers wondering whether Proteus fits them. You will see the kin
 - **Slow replies lose orders.** The buyer asks several sellers; the first credible answer wins.
 - **Quotes by hand.** Sellers underprice to win, or spend hours per request.
 - **One-way trust.** Either the buyer prepays and hopes, or the seller delivers and chases.
-- **Paying for capacity, not delivery.** Seats and credits are bought upfront; failed work is billed anyway.
-- **Refunds by goodwill.** Unused credits expire; cancellations become support threads.
+- **Paying for the order, not the delivery.** A short or late delivery is argued over after the money has moved.
+- **Refunds by goodwill.** Cancellations and undelivered units become support threads.
 - **No shared record.** Price in a chat, delivery in a screenshot, payment in a bank statement.
 
-> **Next:** See [what Proteus does about it](https://app.proteus.co.in/docs/overview#how-it-works), or go straight to the [seller quickstart](https://app.proteus.co.in/docs/quickstart-seller).
+> **Next:** See [how Proteus works](https://app.proteus.co.in/docs/overview#how-it-works), or go straight to the [seller quickstart](https://app.proteus.co.in/docs/quickstart-seller).

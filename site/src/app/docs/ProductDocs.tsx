@@ -88,7 +88,7 @@ function DocsPage({ sec }: { sec: DocSection }) {
               {SECTIONS.filter((x) => x.group === g).map((x) => (
                 <Link key={x.id} to={`/docs/${x.id}`} className={`${s.sideLink} ${sec.id === x.id ? s.sideOn : ""}`} aria-current={sec.id === x.id ? "page" : undefined}>{x.nav ?? x.title}</Link>
               ))}
-              {g === "Reference" && <Link to="/docs/api" className={s.sideLink}>Buyer HTTP API</Link>}
+              {g === "Developers" && <Link to="/docs/api" className={s.sideLink}>Buyer HTTP API</Link>}
             </div>
           ))}
         </aside>

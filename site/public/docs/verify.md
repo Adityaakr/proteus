@@ -1,6 +1,6 @@
 # Verify it yourself · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/verify> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/verify> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Contracts, transactions and how to read a deal on chain._
 

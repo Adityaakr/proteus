@@ -1,13 +1,15 @@
 # What is live today · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/status> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/status> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Each capability, the network it is proven on, and the transaction that shows it._
 
-For anyone deciding what to rely on today. Each row is one capability, its status and the transaction or code that shows it. Live (Arc mainnet), Testnet and In testing mean what they mean on [Ways to use](https://app.proteus.co.in/docs/ways-to-use#ways-status); Not yet means not shown anywhere.
+For anyone deciding what to rely on today. Each row is one capability, its status and the transaction or code that shows it. Live (Arc mainnet), Testnet, In testing and Planned mean what they mean on [Ways to use](https://app.proteus.co.in/docs/ways-to-use#ways-status); Not yet means built but not shown on that network.
 
 | Capability | Status | Evidence |
 |---|---|---|
+| Sign in with a browser wallet such as MetaMask: it signs a one-time message, and that wallet owns the seller account and receives payouts | Live (Arc mainnet) | [LoginPage.tsx](https://github.com/Adityaakr/proteus/blob/main/site/src/app/auth/LoginPage.tsx) · [circle-auth.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/routes/circle-auth.ts) · [mainnet /api/health](https://app.proteus.co.in/api/health) |
+| Email sign-in that creates a Circle user-controlled wallet on Arc (on mainnet it waits for Circle production access) | Testnet | [CircleAuthProvider.tsx](https://github.com/Adityaakr/proteus/blob/main/site/src/app/auth/CircleAuthProvider.tsx) · [circle.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/circle.ts) · [testnet /api/health](https://ai.proteus.co.in/api/health) |
 | Full escrow loop: approve, fund, settle, close, refund (team funds, 0.60 USDC) | Live (Arc mainnet) | [fund](https://explorer.arc.io/tx/0xe527f3c4d6d5d2bebeb25dbd67dcc429b99827deac6349a81f7a88c3f75efe9d) · [settle](https://explorer.arc.io/tx/0xce2caa88fa3a2b136a85771573f2b5ce269be2ea2182da91f78cd9a2243153b0) · [refund](https://explorer.arc.io/tx/0x70d68aa16db7588b90f172ccb68d20bb4f95ca099650a2755ee1a3436481c94d) |
 | A real business registers its agent from its own wallet (Shoonya Store, ERC-8004 Agent #2695) | Live (Arc mainnet) | [register](https://explorer.arc.io/tx/0x45921b0f981908b7d704b79119863781c21e71498c812965d90db1787bd24e55) |
 | Pricing policies committed on chain (4 Shoonya products at version 1, then version 2 of the tees policy used for the first order) | Live (Arc mainnet) | [v1 commit 1](https://explorer.arc.io/tx/0x59065079ffdc03ddc1e7ab3d257210ff743076e6522d1013e67b0bf901cdd165) · [v1 commit 2](https://explorer.arc.io/tx/0x525f8578c6f8c039aaf5ad32cd16b91f5d176d966e54e29050ff0c735ee0c977) · [v1 commit 3](https://explorer.arc.io/tx/0xe88e372b98cd6a8532b5c8294d9e6a03953821c4a543054cf1102960fe591947) · [v1 commit 4](https://explorer.arc.io/tx/0xece7b7615eabe2605eba03127341da4749c06f2bc775bec22278aa2f26c4ff8f) · [v2 commit](https://explorer.arc.io/tx/0xf9f566e326231199de683c3b0082a0ba37c4ab36ba76e8bb6c22fe76e7430386) |
@@ -19,16 +21,19 @@ For anyone deciding what to rely on today. Each row is one capability, its statu
 | An AI agent (Claude) negotiates, funds and settles through MCP within a mandate | Testnet | [transcript and transactions](https://github.com/Adityaakr/proteus/blob/main/docs/evidence/2026-10-23-claude-mcp-kitbox.md) |
 | x402 pay per call (exact, through Circle's facilitator) | Testnet | [payment](https://explorer.testnet.arc.io/tx/0x3d5c48a9a3fb765d5821479d0f46d4c94b8a17fc6763048fedb6f323f28de9f8) |
 | x402 through Circle Gateway batching (transfer 18395b90-7bfa-4cc2-b655-a2f4c7219be1) | Testnet | [deposit](https://explorer.testnet.arc.io/tx/0x2e048bf4ca99132f730503acc952d90b66b1843e008fdc6e373192939c1a8eb7) |
-| Proteus-run services do real work on Claude, with the model chosen per job; refused, cut-off or failed requests are never billed | In testing | [claude.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/lib/claude.ts) · [workers.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/workers.ts) |
+| Proteus-run services do real work on Claude, with the model chosen per job (the embeddings service runs on OpenRouter); refused, cut-off or failed requests are never billed | In testing | [claude.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/lib/claude.ts) · [workers.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/workers.ts) |
 | Front desk: a business's customers chat or speak with its AI assistant on a link or website embed; one finished request is billed once, follow-up questions never | In testing | [customer-link.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/customer-link.ts) |
 | Order tracking for goods: seller updates, tracking link and on-chain proof on the buyer's order page | In testing | [orders.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/orders.ts) |
 | Booking straight into the business's Google Calendar (tested against a stand-in calendar; not switched on) | In testing | [calendar.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/calendar.ts) |
-| Phone calls answered by the front desk | Not yet | — |
+| Phone calls answered by the front desk | Planned | — |
 | An AI agent buying through MCP on Arc mainnet | Not yet | — |
-| Disputes (open from the wallet, arbiter splits the unspent balance) | In testing | [disputes.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/disputes.ts) |
+| Disputes (the buyer opens one from its wallet, the arbiter splits the unspent balance) | In testing | [disputes.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/disputes.ts) · [Dispute.tsx](https://github.com/Adityaakr/proteus/blob/main/site/src/app/buyer/Dispute.tsx) |
+| An independent arbiter, a dispute timeout, and a way for sellers to open a dispute | Planned | — |
+| An ERC-8183-compatible escrow interface (Proteus orders already follow the ERC-8183 job lifecycle; DealEscrow does not implement its interface) | Planned | — |
+| A hosted buyer agent you can use in the browser, with no MCP server to run | Planned | — |
 | Catalog sync from the seller's own endpoint (tested against a local sample feed) | In testing | [catalog-sync.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/catalog-sync.ts) |
 | WhatsApp channel: the deal agent on a seller's own WhatsApp Business number (deployed on both networks, a number connected and Meta's signed webhook verified; no real customer conversation yet) | In testing | [whatsapp.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/whatsapp.ts) · [whatsapp-e2e.ts](https://github.com/Adityaakr/proteus/blob/main/server/scripts/whatsapp-e2e.ts) |
 | Seller API and webhooks: scoped keys for both networks and a public sandbox on Arc testnet | In testing | [developers.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/routes/developers.ts) · [sandbox.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/sandbox.ts) |
-| A Proteus AI phone app | Not yet | — |
+| A Proteus AI phone app | Planned | — |
 
 > The same list is in [facts.json](https://app.proteus.co.in/docs/facts.json) under `claims`, with what is not proven yet under `notProven`.

@@ -1,6 +1,6 @@
 # Links · Proteus AI docs
 
-Source: <https://app.proteus.co.in/docs/links> · facts as of 2026-11-20 · all docs: <https://app.proteus.co.in/docs.md>
+Source: <https://app.proteus.co.in/docs/links> · facts as of 2026-11-22 · all docs: <https://app.proteus.co.in/docs.md>
 
 _Every API, machine-readable file and source in one place._
 
@@ -12,7 +12,7 @@ For developers and agents looking for the right URL. Paths starting with /api ar
 
 - [Seller API](https://app.proteus.co.in/docs/seller-api): keys, quickstart and a sandbox you can call now
 - [Seller API reference](https://app.proteus.co.in/docs/seller-api-reference): every /api/v1/seller endpoint, with a Send button
-- [Buyer HTTP API](https://app.proteus.co.in/docs/api): calling a service, billing, settlement (HTML only)
+- [Buyer HTTP API](https://app.proteus.co.in/docs/api): calling a service, errors, billing, settlement, pay per call (HTML only)
 - [Seller webhooks](https://app.proteus.co.in/docs/seller-webhooks): events, payload, signature
 - [Public endpoints](https://app.proteus.co.in/docs/for-agents#agent-api): negotiate, quote, fund, settle, rate
 - [Health](https://app.proteus.co.in/api/health): network, contract addresses, features switched on
@@ -37,3 +37,4 @@ For developers and agents looking for the right URL. Paths starting with /api ar
 - [Evidence: Claude buys through MCP](https://github.com/Adityaakr/proteus/blob/main/docs/evidence/2026-10-23-claude-mcp-kitbox.md): Arc testnet
 - [Threat model](https://github.com/Adityaakr/proteus/blob/main/docs/threat-model.md)
 - [Source code](https://github.com/Adityaakr/proteus)
+- [Get help](https://github.com/Adityaakr/proteus/issues): open an issue on GitHub

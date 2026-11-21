@@ -251,7 +251,7 @@ export function endpointExamples(base: string): EndpointExample[] {
     },
     {
       method: "PATCH", path: "/v1/seller/products/:id/tiers", title: "Replace price tiers", status: 200, example: { ...EXAMPLE_BODIES.tiers },
-      description: "Replaces every public price tier of a product and returns the product. New quotes use the new prices; deals already signed keep theirs.",
+      description: "Replaces every public price tier of a product and returns the product. New offers use the new prices; an offer already made in an open negotiation can still be quoted at its old price, and deals already signed keep theirs.",
       params: [
         ID_PRODUCT,
         { name: "tiers", in: "body", type: "array", required: true, description: "1 to 6 tiers. They are sorted by `includedUnits`." },
@@ -315,7 +315,7 @@ export function endpointExamples(base: string): EndpointExample[] {
     },
     {
       method: "GET", path: "/v1/seller/usage", title: "List usage", status: 200, example: null, params: [],
-      description: "Totals and your newest 300 metered requests and delivery reports, each with its deal, units, running charge and whether its receipt is signed.",
+      description: "Totals over, and the list of, your newest 300 metered requests and delivery reports, each with its deal, units, running charge and whether its receipt is signed.",
       errors: [E401, e403("usage:read")],
       ...get("/usage", "{ totals, requests }"),
       response: `{\n  "totals": {\n    "requests": 12,\n    "delivered": 11,\n    "handoff": 0,\n    "failed": 1,\n    "billableUnits": 11,\n    "avgLatencyMs": 840\n  },\n  "requests": [{\n    "requestId": "order-1042-shipped",\n    "dealId": "deal_…",\n    "dealPublicId": "d_…",\n    "productName": "Custom oversized tees",\n    "status": "delivered",\n    "billable": true,\n    "units": 1,\n    "cumulativeCharged": "6600000",\n    "signed": true,\n    "at": "2026-11-20T10:00:00.000Z",\n    …\n  }]\n}`,
