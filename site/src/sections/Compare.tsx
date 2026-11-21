@@ -44,29 +44,17 @@ function VendorHead({ v, accent }: { v: CompareVendor; accent?: boolean }) {
   );
 }
 
-/** The comparison data; the landing page passes its own, the default is the docs' vendor table. */
-export interface CompareData {
-  tag: string;
-  heading: string;
-  description: string;
-  capabilities: string[];
-  proteus: CompareVendor;
-  vendors: CompareVendor[];
-  closing: string;
-  footnote: string;
-}
-
-export function Compare({ data = compare }: { data?: CompareData }) {
-  const all = [data.proteus, ...data.vendors];
+export function Compare() {
+  const all = [compare.proteus, ...compare.vendors];
   return (
     <section id="compare" className={s.section}>
       <div className={s.container}>
         <div className={s.content}>
-          <SectionHeader tag={data.tag} icon={<Scale size={16} strokeWidth={2} />} heading={data.heading} description={data.description} align="center" gap={32} textGap={16} headingMaxWidth={620} descriptionMaxWidth={640} />
+          <SectionHeader tag={compare.tag} icon={<Scale size={16} strokeWidth={2} />} heading={compare.heading} description={compare.description} align="center" gap={32} textGap={16} headingMaxWidth={620} descriptionMaxWidth={640} />
 
           <Appear preset="pop-0.4" className={s.tableWrap}>
             <table className={s.table}>
-              <caption className="sr-only">{`How Proteus AI compares with ${data.vendors.map((v) => v.name).join(", ")}`}</caption>
+              <caption className="sr-only">How Proteus AI compares with DealHub, Pactum AI, Nue, Sequence and Metronome</caption>
               <thead>
                 <tr>
                   <th scope="col" className={s.capHead}><span className="label">Capability</span></th>
@@ -78,7 +66,7 @@ export function Compare({ data = compare }: { data?: CompareData }) {
                 </tr>
               </thead>
               <tbody>
-                {data.capabilities.map((cap, r) => (
+                {compare.capabilities.map((cap, r) => (
                   <tr key={cap}>
                     <th scope="row" className={s.cap}>{cap}</th>
                     {all.map((v, i) => (
@@ -97,7 +85,7 @@ export function Compare({ data = compare }: { data?: CompareData }) {
               <Appear key={v.name} preset="pop-0.4" className={`${s.card} ${i === 0 ? s.cardAccent : ""}`}>
                 <VendorHead v={v} accent={i === 0} />
                 <ul className={s.cardRows}>
-                  {data.capabilities.map((cap, r) => (
+                  {compare.capabilities.map((cap, r) => (
                     <li key={cap}>
                       <span className={`body3 ${s.cardCap}`}>{cap}</span>
                       <Mark mark={v.marks[r]!} note={v.notes?.[r]} accent={i === 0} />
@@ -109,8 +97,8 @@ export function Compare({ data = compare }: { data?: CompareData }) {
           </div>
 
           <div className={s.foot}>
-            <p className={`h5 ${s.closing}`}>{data.closing}</p>
-            <p className={`body3 ${s.footnote}`}>{data.footnote}</p>
+            <p className={`h5 ${s.closing}`}>{compare.closing}</p>
+            <p className={`body3 ${s.footnote}`}>{compare.footnote}</p>
           </div>
         </div>
       </div>

@@ -30,7 +30,7 @@
   align-items: flex-start;
   gap: 24px;
 }
-.h2 { width: 100%; color: var(--c-white); }
+.h2 { width: 100%; color: var(--c-white); white-space: pre-line; }
 .line { width: 100%; max-width: 500px; color: var(--c-white-80); }
 /* DxAbxJGyl Brand and single product column */
 .brandRow {
@@ -91,3 +91,7 @@
   .tagline { width: auto; }
   .rail { flex-direction: column; align-items: flex-start; gap: 24px; }
 }
+
+/* Keep each beat of the three-line close on one line on phones. */
+@media (max-width: 479.98px) { .h2 { font-size: 30px; } }
+@media (max-width: 379.98px) { .h2 { font-size: 27px; } }

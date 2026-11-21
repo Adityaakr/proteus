@@ -242,36 +242,58 @@ export const beforeAfter = {
   footnote: "Illustrative order. Real prices come from each seller's own rules; we don't claim time or revenue savings. Disputes are In testing.",
 };
 
-/** ERC-8183: the draft agent job standard, its lifecycle and how a Proteus order maps onto it (dark Erc8183 component, id "erc-8183"). The compatible interface is Planned, not built. */
+/**
+ * ERC-8183: the draft agent job standard, drawn as a track with one example order moving along it
+ * (dark Erc8183 component, id "erc-8183"). Each "adds" item sits at the step where it applies.
+ * The ERC-8183-compatible interface is Planned, not built.
+ */
 export const erc8183 = {
   tag: "ERC-8183",
   heading: "Agents are getting a standard way to order. Proteus orders already fit it.",
   description:
-    "ERC-8183 is a draft Ethereum standard for paid work between agents. A client locks the budget in escrow, a provider does the work, and an evaluator decides whether it is paid. It defines how the money moves and leaves the rest to the application. Every Proteus order already follows that flow, and adds what a real business needs around it.",
-  rolesTitle: "Three roles",
+    "ERC-8183 is a draft standard for paid work between agents: a client locks the budget in escrow, a provider delivers, and an evaluator approves payment. A Proteus order follows the same steps, with what a real business needs on top.",
   roles: [
-    { name: "Client", standard: "Creates the job and locks the budget in escrow.", proteus: "The buyer, or the buyer's AI agent." },
-    { name: "Provider", standard: "Does the work and submits it.", proteus: "You, the seller." },
-    { name: "Evaluator", standard: "Approves the work or rejects it.", proteus: "The buyer's signed acceptance of what arrived." },
+    { name: "Client", proteus: "The buyer, or their AI agent" },
+    { name: "Provider", proteus: "You, the seller" },
+    { name: "Evaluator", proteus: "The buyer's signed acceptance" },
   ],
-  lifecycleTitle: "The job lifecycle, and the same order on Proteus",
-  standardLabel: "The standard",
-  proteusLabel: "On Proteus",
-  lifecycle: [
-    { state: "Open", standard: "A job is created with a provider, an evaluator and a budget.", proteus: "Your deal agent negotiates the budget inside your rules, and both sides sign the terms." },
-    { state: "Funded", standard: "The client locks the budget in escrow.", proteus: "The buyer funds $1,495 into DealEscrow before you start, with no network fee." },
-    { state: "Submitted", standard: "The provider submits the work.", proteus: "You record each delivery against the order." },
-    { state: "Completed", standard: "The evaluator approves and the provider is paid.", proteus: "The buyer accepts per unit: 220 of 230 tees accepted pays you $1,430." },
-    { state: "Rejected or expired", standard: "The work is rejected or time runs out, and the client is refunded.", proteus: "Whatever isn't accepted is refundable to the buyer after the term and a 3-day grace period." },
-  ],
-  addsTitle: "What Proteus adds on top",
-  adds: [
-    { title: "A negotiated price", status: "Live", body: "The standard takes the budget as given. Proteus agrees it with the buyer, calculated from your rules and never below your floor." },
-    { title: "Pay per unit", status: "Live", body: "A job is paid in full or refunded in full. A Proteus order pays for each unit the buyer accepts and refunds the rest." },
-    { title: "Disputes", status: "In testing", body: "The standard has no dispute step. Either side can freeze a Proteus order for an arbiter; today Proteus holds the arbiter key." },
-    { title: "Reviews from paid orders", status: "Live", body: "Reviews go on your ERC-8004 identity only after an order pays out, and reviews linked to the seller are flagged." },
-  ],
-  closing: "Why it matters to you: when the interface ships, any agent built for ERC-8183 can order from you without a custom integration, and you keep your prices, your limits and your payment protection.",
+  order: "Following one order: 230 tees at $6.50",
+  addsLabel: "Proteus adds",
+  steps: [
+    {
+      state: "Open",
+      standard: "Job and budget set",
+      amount: "$1,495 agreed",
+      proteus: "Negotiated in your rules. Both sides sign.",
+      adds: [{ title: "Negotiated price", status: "Live", body: "The standard takes the budget as given." }],
+    },
+    {
+      state: "Funded",
+      standard: "Budget locked in escrow",
+      amount: "$1,495 locked",
+      proteus: "Paid into escrow before you start. No gas for the buyer.",
+      adds: [],
+    },
+    {
+      state: "Submitted",
+      standard: "Provider delivers",
+      amount: "230 delivered",
+      proteus: "You record each delivery.",
+      adds: [{ title: "Disputes", status: "In testing", body: "Either side can freeze the order before it completes. Proteus holds the arbiter key today." }],
+    },
+    {
+      state: "Completed",
+      standard: "Evaluator approves, provider paid",
+      amount: "$1,430 paid to you",
+      proteus: "220 accepted, paid per unit in USDC.",
+      branch: { state: "Rejected or expired", amount: "$65 refunded", proteus: "The 10 not accepted, after the term + 3 days." },
+      adds: [
+        { title: "Pay per unit", status: "Live", body: "Not all or nothing." },
+        { title: "Reviews", status: "Live", body: "Only after a payout, on ERC-8004." },
+      ],
+    },
+  ] as { state: string; standard: string; amount: string; proteus: string; branch?: { state: string; amount: string; proteus: string }; adds: { title: string; status: string; body: string }[] }[],
+  closing: "Why it matters: when the interface ships, any ERC-8183 agent can order from you with no custom integration, on your prices and limits.",
   footnote: "Status: Proteus orders run on DealEscrow on Arc mainnet today (Live). The ERC-8183-compatible interface is Planned and not built yet. ERC-8183 is a draft standard, and Arc lists it on testnet.",
 };
 
@@ -318,40 +340,6 @@ export const comparison = {
     { icon: "/assets/vBsEOrQoXzW0ffeVyss7E7BMXc.svg", threshold: 0.42, title: "MCP, HTTP and x402 · Testnet", body: "Buyers' agents negotiate and pay through MCP or plain HTTP within a mandate; one-off calls pay with x402 through Circle's facilitator or Gateway batching. Works with a Circle Agent Wallet." },
     { icon: "/assets/fBC0zzbZpTAZaOtfiJwmWF4bgO4.svg", threshold: 0.28, title: "Your own channels", body: "Website embed: Testnet. WhatsApp on your own number: In testing. Seller API and webhooks: In testing. The code is open on GitHub." },
   ],
-};
-
-/** "How it's different": the landing page comparison, from the strategy report's sourced capability matrix and the competitor research (Nov 2026). */
-export const landingCompare = {
-  tag: "How it's different",
-  heading: "Negotiation, escrow and settlement in one flow.",
-  description:
-    "Escrow services hold the money but leave the quoting to you. Offer apps negotiate but don't hold the money. Agent payment protocols pay a fixed price. Proteus negotiates inside your rules, holds the payment and settles on the buyer's signature.",
-  capabilities: [
-    "Negotiates price inside the seller's rules",
-    "Holds payment until delivery is confirmed",
-    "Release decided by the buyer's signature, not a model",
-    "Refunds and a dispute path",
-    "Reputation only from completed orders",
-    "Works with buyers' AI agents",
-    "Follows the ERC-8183 job lifecycle",
-  ],
-  proteus: {
-    name: "Proteus AI",
-    description: "The deal network for businesses and AI agents, built on Arc.",
-    href: "/app",
-    logo: "/assets/proteus-ai-wordmark.png",
-    logoHeight: 18,
-    marks: ["yes", "yes", "yes", "partial", "yes", "yes", "planned"],
-    notes: [undefined, "Live on Arc mainnet", undefined, "Refunds Live; disputes In testing", "ERC-8004, with link checks", "MCP and HTTP, Testnet", "Same lifecycle; interface planned"],
-  } as CompareVendor,
-  vendors: [
-    { name: "Escrow services", description: "Escrow.com and similar: a third party holds the payment for a fee.", href: "https://www.escrow.com", marks: ["not-core", "yes", "yes", "yes", "not-core", "not-core", "not-core"], notes: [undefined, undefined, "Buyer approves", undefined, undefined, undefined, undefined] },
-    { name: "Offer apps", description: "Shopify negotiation apps such as Flux and Bargain Buddy.", href: "https://apps.shopify.com/flux-ai-negotiation", marks: ["yes", "not-core", "not-core", "partial", "not-core", "not-core", "not-core"], notes: ["Floor price, discount codes", undefined, undefined, "Store returns", undefined, undefined, undefined] },
-    { name: "Agent payment protocols", description: "x402, ACP and AP2: an agent pays a known price.", href: "https://docs.x402.org/schemes/overview", marks: ["not-core", "partial", "not-core", "partial", "not-core", "yes", "not-core"], notes: ["Fixed price", "x402 auth-capture, Base only", undefined, "Void and refund, no arbiter", undefined, undefined, undefined] },
-    { name: "Agent job escrow", description: "ERC-8183 and Virtuals ACP: escrowed jobs between agents.", href: "https://eips.ethereum.org/EIPS/eip-8183", marks: ["partial", "yes", "partial", "partial", "partial", "yes", "yes"], notes: ["Budget proposals", undefined, "An evaluator decides", "ERC-8183 has no disputes", "Own registry", undefined, "ERC-8183 itself"] },
-  ] as CompareVendor[],
-  closing: "Others hold the money, haggle over the price, or pay a fixed amount. Proteus does all three, and leaves the release to the buyer.",
-  footnote: "Assessed from each product's public pages and specifications in November 2026. Names belong to their owners. Proteus marks reflect what runs today, with statuses as in our docs.",
 };
 
 /** "How Proteus AI compares": assessed from each vendor's public product pages in October 2026. Not on the landing page; the docs render it. */
@@ -509,8 +497,8 @@ export const faq = {
 };
 
 export const footer = {
-  heading: "Your next custom order, quoted and paid.",
-  line: "Set your prices and limits once. Proteus answers every buyer, collects payment upfront and releases it to you when they confirm delivery.",
+  heading: "Quoted in seconds.\nFunded before you start.\nPaid on delivery.",
+  line: "Set your prices and limits once. Your deal agent handles every buyer inside them, people and AI agents alike, and you're paid in USDC when they confirm delivery. Free during the pilot, set up in about 5 minutes.",
   cta: { label: "Start free", href: links.sell },
   brand: "Proteus AI",
   tagline: "The deal network for businesses and AI agents, built on Arc.",
