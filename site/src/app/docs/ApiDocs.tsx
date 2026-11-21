@@ -104,7 +104,7 @@ const r = await res.json();`}</Code>
               <li><span className={`${s.chip} ${s.chipWarn}`}>handoff</span><span>The service passed the request to a human. Nothing is billed.</span></li>
               <li><span className={`${s.chip} ${s.chipBad}`}>failed</span><span>The service could not do it, timed out, errored, or the deal's units are used up. Nothing is billed.</span></li>
             </ul>
-            <p>Every result, billed or not, carries a receipt digest, normally signed by the seller's signer key; if signing failed, <code>sellerSignature</code> is missing, so check for it before you countersign. <code>units</code> is a number; the running totals in <code>deal</code> are strings. Amounts are micro-USDC: <code>200000</code> is $0.20, and <code>remaining</code> is what is still unbilled from your prepaid amount.</p>
+            <p>Every result, billed or not, carries a receipt digest, normally signed by the seller's signer key; if signing failed, <code>sellerSignature</code> is <code>null</code>, so check that it has a value before you countersign. <code>units</code> is a number; the running totals in <code>deal</code> are strings. Amounts are micro-USDC: <code>200000</code> is $0.20, and <code>remaining</code> is what is still unbilled from your prepaid amount.</p>
           </section>
 
           <section id="errors" className={s.section}>
