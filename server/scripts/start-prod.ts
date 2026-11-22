@@ -3,6 +3,7 @@
  * bootstrap an empty market, then serve the API and the built site. Every failure prints why.
  */
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import postgres from "postgres";
 
 function fail(msg: string): never {
@@ -62,6 +63,10 @@ async function main() {
   await waitForDb();
   run("syncing the schema (drizzle-kit push)", "node_modules/.bin/drizzle-kit", ["push", "--force"]);
   run("bootstrapping the market", "node_modules/.bin/tsx", ["scripts/bootstrap.ts"]);
+  if (process.env.IMPORTER_BROWSER !== "off") {
+    const chromium = process.env.BROWSER_CDP_URL ? "a cloud browser (BROWSER_CDP_URL)" : process.env.BROWSER_EXECUTABLE_PATH || (existsSync("/usr/bin/chromium") ? "/usr/bin/chromium" : "");
+    console.log(`[start] website importer browser: ${chromium || "none found; JavaScript sites read only their plain HTML"}`);
+  }
   console.log("[start] starting the API");
   await import("../src/index");
 }

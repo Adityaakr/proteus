@@ -10,6 +10,7 @@
     }
   },
   "deploy": {
+    "aptPackages": ["chromium"],
     "startCommand": "cd server && node_modules/.bin/tsx scripts/start-prod.ts"
   }
 }

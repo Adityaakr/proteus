@@ -58,6 +58,14 @@ const TRACKERS = /(^|\.)(google-analytics\.com|googletagmanager\.com|doubleclick
 /** Requests that read the seller's site and so follow its robots.txt. */
 const READS = new Set(["document", "xhr", "fetch", "eventsource"]);
 
+/** The Debian package the Railway image installs (railpack.json); used without configuration when present. */
+export const SYSTEM_CHROMIUM = "/usr/bin/chromium";
+
+/** BROWSER_EXECUTABLE_PATH when set, else the system Chromium when installed, else undefined (Playwright's own). */
+export function pickExecutable(configured: string | undefined, exists: (path: string) => boolean): string | undefined {
+  return configured ?? (exists(SYSTEM_CHROMIUM) ? SYSTEM_CHROMIUM : undefined);
+}
+
 const SYSTEM_BROWSERS = [
   "/usr/bin/chromium",
   "/usr/bin/chromium-browser",
@@ -95,8 +103,10 @@ async function launchLocal(proxy: EgressProxy): Promise<Browser> {
     proxy: { server: proxy.url },
     args: ["--disable-dev-shm-usage", "--disable-background-networking", "--no-pings", "--force-webrtc-ip-handling-policy=disable_non_proxied_udp", "--webrtc-ip-handling-policy=disable_non_proxied_udp", "--disable-features=DnsOverHttps,WebRtcHideLocalIpsWithMdns"],
   };
-  // BROWSER_EXECUTABLE_PATH when set; else Playwright's own download (`playwright install chromium`), else a system Chrome.
-  const tries: (string | undefined)[] = env.BROWSER_EXECUTABLE_PATH ? [env.BROWSER_EXECUTABLE_PATH] : [undefined, ...SYSTEM_BROWSERS.filter((p) => existsSync(p))];
+  // BROWSER_EXECUTABLE_PATH, else /usr/bin/chromium (the production image); else Playwright's own download
+  // (`npx playwright install chromium`), else any system Chrome.
+  const chosen = pickExecutable(env.BROWSER_EXECUTABLE_PATH, existsSync);
+  const tries: (string | undefined)[] = chosen ? [chosen] : [undefined, ...SYSTEM_BROWSERS.filter((p) => existsSync(p))];
   let last: unknown;
   for (const executablePath of tries) {
     try {

@@ -62,11 +62,13 @@ The repo carries `railway.json` and `railpack.json`. One Railway service pointed
    `curl -X POST https://<domain>/api/admin/invites -H "authorization: Bearer $ADMIN_TOKEN" -H 'content-type: application/json' -d '{"count":100,"label":"launch"}'`
    `GET /api/admin/invites` lists status and who redeemed what; `POST /api/admin/invites/revoke {"invite":"<id or code>"}` revokes. From a shell with the database URL, `pnpm --filter @proteus/server exec tsx scripts/invites.ts generate 100 --label launch` does the same.
 4. In the Privy dashboard, add `https://<domain>` to the app's allowed origins so login works there.
-6. Create your deal agent reads sites built with JavaScript in a browser. The Railpack image has no Chromium, so on Railway either:
-   - set `BROWSER_CDP_URL` to a cloud browser's `wss://` Chrome DevTools URL (Browserless, Browserbase, Steel; the URL carries that provider's key), or
-   - add Chromium to the image (for example `"deploy": { "aptPackages": ["chromium"] }` in `railpack.json`, not tried on Railway yet) and set `BROWSER_EXECUTABLE_PATH=/usr/bin/chromium`.
-
-   With neither, the importer still reads Shopify, WooCommerce and schema.org product data and says that no browser is available. `ANTHROPIC_API_KEY` or `OPENROUTER_API_KEY` also lets it read rendered page text with the model.
+6. Create your deal agent reads sites built with JavaScript in a headless browser:
+   - **Chromium:** `railpack.json` installs Debian's `chromium` package in the runtime image (`deploy.aptPackages`). The server uses `/usr/bin/chromium` without any variable, and the start log prints `[start] website importer browser: /usr/bin/chromium`.
+   - **Optional variables:**
+     - `BROWSER_EXECUTABLE_PATH` points it at another binary.
+     - `BROWSER_CDP_URL` uses a cloud browser instead: a `wss://` Chrome DevTools URL (Browserless, Browserbase, Steel) that carries that provider's key.
+     - `IMPORTER_BROWSER=off` never starts one.
+   - **Model:** `ANTHROPIC_API_KEY` (the deployment's existing key) lets it also read rendered page text with Claude. Without it, the browser still reads product cards, prices and product lists from the page layout.
 
 ## Hosting (earlier notes)
 

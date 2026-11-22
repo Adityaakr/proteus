@@ -532,7 +532,7 @@ Fund the deployer and the relayer at [faucet.circle.com](https://faucet.circle.c
 | `ANTHROPIC_API_KEY` | Claude for the negotiation agent and every Proteus-run service (models per job in `server/src/lib/claude.ts`); preferred over OpenRouter |
 | `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | fallback model provider, and the embeddings product; with neither key, negotiation is rule-based and Proteus-run services refuse unbilled |
 | `IMPORTER_BROWSER` | `auto` (default) lets Create your deal agent open JavaScript sites in headless Chromium on the server when one is installed (`npx playwright install chromium`); `off` never starts a browser |
-| `BROWSER_EXECUTABLE_PATH` | optional: a Chrome or Chromium binary for the importer's browser, when Playwright's download is not used |
+| `BROWSER_EXECUTABLE_PATH` | optional: a Chrome or Chromium binary for the importer's browser; unset, it uses `/usr/bin/chromium` when installed (the Railway image installs it), else Playwright's download |
 | `BROWSER_CDP_URL` | optional: a cloud browser for the importer instead of a local one, as a `wss://` Chrome DevTools URL with the provider's key (Browserless, Browserbase, Steel) |
 | `FIRECRAWL_API_KEY` | optional: renders pages through Firecrawl when no browser is available; with or without it the importer reads Shopify, WooCommerce and schema.org product data, and page text when a model key is set |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | optional: lets a buyer connect its Google Calendar to a scheduling service (redirect `https://<host>/api/integrations/google/callback`, scopes `calendar.events` and `calendar.freebusy`) |

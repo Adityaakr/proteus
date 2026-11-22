@@ -9,7 +9,7 @@ import { createServer, type Server } from "node:http";
 import { connect } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Browser, BrowserContext } from "playwright-core";
-import { session, type PageRenderer, type RenderRules } from "../src/services/importer/browser";
+import { pickExecutable, session, type PageRenderer, type RenderRules } from "../src/services/importer/browser";
 import { browserSource, elsewhereOf, pageKey, parseShownPrice, scoreLink, tidyName } from "../src/services/importer/browser-source";
 import { allowedTarget, startEgressProxy } from "../src/services/importer/egress-proxy";
 import { faqHints, hintsFrom } from "../src/services/importer/html";
@@ -43,6 +43,14 @@ describe("egress proxy", () => {
     expect(proxy.stats.tunnels).toBe(0);
     expect(proxy.stats.refused).toBe(7);
     await proxy.close();
+  });
+});
+
+describe("which browser binary", () => {
+  it("uses BROWSER_EXECUTABLE_PATH, else the system Chromium the production image installs, else Playwright's", () => {
+    expect(pickExecutable("/opt/chrome", () => true)).toBe("/opt/chrome");
+    expect(pickExecutable(undefined, (p) => p === "/usr/bin/chromium")).toBe("/usr/bin/chromium");
+    expect(pickExecutable(undefined, () => false)).toBeUndefined();
   });
 });
 
