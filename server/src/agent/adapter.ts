@@ -75,7 +75,7 @@ export function viewFigures(input: Pick<ComposeInput, "offers" | "rejected" | "r
   const texts = [...input.offers, ...input.rejected].flatMap((o) => [offerTotalText(o, input.view), offerUnitText(o, input.view) ?? ""]);
   if (input.requirements.budget) texts.push(amountText(input.requirements.budget, input.view, input.requirements.budgetInr));
   // The adapter's own figure pattern may cut an Indian-grouped figure differently ("1,05,000" read as "05,000").
-  return texts.flatMap((t) => [...figuresOf(t), ...(checker ? (t.match(new RegExp(checker.source, "g")) ?? []) : [])]);
+  return texts.flatMap((t) => [...figuresOf(t), ...(checker ? (t.match(new RegExp(checker.source, checker.flags.includes("g") ? checker.flags : `${checker.flags}g`)) ?? []) : [])]);
 }
 
 /** The instruction both models get when the buyer reads rupees. */

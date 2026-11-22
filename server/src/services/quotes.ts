@@ -9,7 +9,7 @@ import { sealJson, sealText } from "../lib/vault";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, publicId, randomDealId } from "../lib/ids";
 import { evaluationContext, loadProductById } from "./catalog";
-import { displayOf } from "./currency";
+import { displayOf, hasOwnRate } from "./currency";
 import { assertAgentBinding } from "./agent-registry";
 import { ensurePolicyCommit, publishPolicyCommit } from "./policy-commit";
 import { loadNegotiation, reviveCandidate, toOffer } from "./negotiation";
@@ -53,9 +53,10 @@ export function buildPublicTerms(lp: Awaited<ReturnType<typeof loadProductById>>
     sellerAgent: binding.sellerAgent,
     policy: { version: binding.version, commitment: binding.commitment, registry: binding.registry },
     labels: [features.network, lp.org.label],
-    // The offer in rupees and the dated rate it is fixed at, when the seller has a rate. Signed with the rest, so the
-    // rate cannot change after the buyer sees it. Escrow still takes prepaidTotal micro-USDC.
-    ...(c.local ? { localPrice: localPriceJson(c.local) } : {}),
+    // The offer in rupees and the dated rate it is fixed at, when the seller chose a rate (fixed or reference). Signed
+    // with the rest, so the rate cannot change after the buyer sees it. Escrow still takes prepaidTotal micro-USDC. A
+    // seller that never chose one signs no rupee amount (its buyers may still read rupees at the reference rate).
+    ...(c.local && hasOwnRate(lp.org.currency) ? { localPrice: localPriceJson(c.local) } : {}),
   };
 }
 

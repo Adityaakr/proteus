@@ -88,7 +88,7 @@ Offer = PublicCandidate from @proteus/domain plus { unitPriceUsd, prepaidTotalUs
   local: { currency: "INR", unitPrice: "1050.00", total: "45000.00", stated, rate: FxRate } | null }
 ```
 
-Each offer fixes its rate: `local.rate` is the dated rate it was priced at, and a quote copies `local` into the signed public terms as `localPrice`. For an offer whose price depends on the rate (a rupee list price or a rupee floor), the rate is part of the candidate id: once the rate moves, `POST /quotes` answers 409 "The exchange rate was updated after this offer was made. Ask for a fresh offer at today's rate." A USD-priced offer keeps its rupee figure as a display at the rate it was made with.
+Each offer fixes its rate: `local.rate` is the dated rate it was priced at, and, for a seller that chose a rate (fixed or reference), a quote copies `local` into the signed public terms as `localPrice`. A seller that never chose one signs no rupee amount; its buyers can still read rupees at the reference rate, marked "≈". For an offer whose price depends on the rate (a rupee list price or a rupee floor), the rate is part of the candidate id: once the rate moves, `POST /quotes` answers 409 "The exchange rate was updated after this offer was made. Ask for a fresh offer at today's rate." A USD-priced offer keeps its rupee figure as a display at the rate it was made with.
 
 ```
 ```

@@ -112,6 +112,12 @@ describe("offers fix their rate", () => {
     expect(staleReason(loaded(rate("91.10", "2026-11-23")), c)).toMatch(/exchange rate was updated/);
     expect(staleReason({ ...loaded(R), cost: { ...cost, version: 5 } } as LoadedProduct, c)).toMatch(/pricing rules/);
   });
+  it("a seller that never chose a rate signs no rupee price, even when buyers read rupees at the reference rate", () => {
+    const usd = { ...product, tiers: product.tiers.map(({ unitPriceInr: _x, ...t }) => t) };
+    const c = getQuoteCandidates({ product: usd, cost: { ...cost, floorUnitPriceInr: undefined }, policy, now: Date.now(), fx: REF }, noReq)[0]!;
+    expect(c.local?.stated).toBe(false);
+    expect(buildPublicTerms({ ...loaded(REF, null), product: usd } as never, c, { version: 2, commitment: "0x00", registry: "x", sellerAgent: null })).not.toHaveProperty("localPrice");
+  });
   it("public terms of a USD-only seller carry no rupee price", () => {
     const usd = { ...product, tiers: product.tiers.map(({ unitPriceInr: _x, ...t }) => t) };
     const c = getQuoteCandidates({ product: usd, cost: { ...cost, floorUnitPriceInr: undefined }, policy, now: Date.now() }, noReq)[0]!;
