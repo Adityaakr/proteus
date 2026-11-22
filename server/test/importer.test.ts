@@ -292,6 +292,13 @@ describe("draft", () => {
 
   it("reads a floor said as 'nothing below' or 'never below', but not a percent", () => {
     expect(parseStated("nothing below ₹900 on the polo", catalog).rules[0]).toMatchObject({ floorLocal: "900" });
+    expect(parseStated("nothing below Rs 900 on the polo", catalog).rules[0]).toMatchObject({ floorLocal: "900" });
+    expect(parseStated("nothing below 900 inr on the polo", catalog).rules[0]).toMatchObject({ floorLocal: "900" });
+    const dollars = parseStated("nothing below 900 dollars on the polo", catalog).rules[0];
+    expect(dollars).toMatchObject({ floorUsd: "900" });
+    expect(dollars?.floorLocal).toBeUndefined();
+    expect(parseStated("floor 20 dollars", catalog).rules[0]).toMatchObject({ floorUsd: "20" });
+    expect(parseStated("floor for hers 900", catalog).rules[0]).toMatchObject({ floorUsd: "900" });
     expect(parseStated("never below $9 for stickers", catalog).rules[0]).toMatchObject({ target: { kind: "category", name: "Stickers" }, floorUsd: "9" });
     expect(parseStated("never below 10% off", catalog).rules[0]?.floorUsd).toBeUndefined();
   });
