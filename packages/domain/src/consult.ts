@@ -47,10 +47,12 @@ const stem = (w: string) => w.replace(/(ies)$/, "y").replace(/(xes|ches|shes|ses
  * price?" or "what are my options?" on a product are about that product.
  */
 const DISCOVERY = /\b(what (else )?(do|can) you (have|make|offer|sell)|what else (would|could|might) (work|fit|suit)|(anything|something) else (you |that you )?(have|make|offer|sell)|(have|got|show me|suggest|recommend) (anything|something) else|alternatives?|(other|different|more) (merch|products|items|options|ideas|suggestions|things|stuff)|(some|any) (good |other )?(merch|products|items)|browse|(your|the) catalog(ue)?)\b/i;
-/** "...besides hoodies", "hoodies instead of tees": a product named right after these words is the one to leave out. */
-const EXCLUDE = /\b(besides|other than|apart from|instead of|except|not the)\b/i;
-/** What an exclusion word applies to: up to five words, ending at punctuation or where a new phrase starts ("that", "can we", "for"). */
-const OBJECT = /^(?:\s*(?!(?:for|can|could|do|does|did|is|are|was|we|i|you|please|but|so|with|that|this|which|how|what|would|will)\b)[^\s,.;:!?]+){0,5}/i;
+/** "...besides hoodies", "hoodies instead of tees": the products named right after these words are the ones to leave out. */
+const EXCLUDE = /\b(besides|other than|apart from|instead of|except|not the)\b/gi;
+/** Before the excluded product: where a new phrase starts ("other than that", "not the same price for hoodies"). */
+const OBJECT_STOP = /^(,|for|as|can|could|do|does|did|is|are|was|we|i|you|please|but|so|with|that|this|which|how|what|would|will)$/i;
+/** Between excluded products: "besides hoodies and tote bags", "other than tees, stickers or the bottles". */
+const OBJECT_JOIN = /^(,|and|or|the|&)$/i;
 
 /**
  * Which product a buyer message is about, or that it is an open question to consult on.
@@ -84,11 +86,32 @@ export function routeMessage(message: string, products: readonly ConsultProduct[
     };
   };
 
-  const ex = EXCLUDE.exec(message);
-  const after = ex ? message.slice(ex.index + ex[0].length) : "";
-  const object = OBJECT.exec(after)![0];
-  const exclude = object.trim() ? score(object).named.map((s) => s.slug) : [];
-  const asked = score(exclude.length ? `${message.slice(0, ex!.index)} ${after.slice(object.length)}` : message);
+  // Each exclusion leaves out the run of products right after it; the text around those runs says what is asked for.
+  const exclude: string[] = [];
+  const leaveOut = (phrase: string[]) => {
+    const n = phrase.length ? score(phrase.join(" ")).named : [];
+    for (const s of n) if (s.strong === n[0]!.strong && !exclude.includes(s.slug)) exclude.push(s.slug);
+  };
+  let rest = message;
+  for (const ex of message.matchAll(EXCLUDE)) {
+    const from = ex.index + ex[0].length;
+    let phrase: string[] = [];
+    let to = -1;
+    let lead = 0;
+    for (const t of message.slice(from).split(/[.;:!?]/)[0]!.matchAll(/[^\s,]+|,/g)) {
+      if (score(t[0]).named.length) {
+        phrase.push(t[0]);
+        to = from + t.index + t[0].length;
+        continue;
+      }
+      leaveOut(phrase);
+      phrase = [];
+      if (to >= 0 ? !OBJECT_JOIN.test(t[0]) : OBJECT_STOP.test(t[0]) || ++lead > 8) break;
+    }
+    leaveOut(phrase);
+    if (to >= 0) rest = rest.slice(0, from) + " ".repeat(to - from) + rest.slice(to);
+  }
+  const asked = score(rest);
   const named = asked.named.filter((s) => !exclude.includes(s.slug));
   const pointed = asked.pointed.filter((s) => !exclude.includes(s.slug));
 
