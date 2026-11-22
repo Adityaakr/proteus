@@ -52,10 +52,8 @@ export async function addConsultMessage(negId: string, content: string, current?
   if (missing?.alsoListed) {
     const fallback = consult(lp.org.name, products, buyerTexts, { pointed, exclude });
     ({ result, steps } = await adapter.consult({ sellerName: lp.org.name, products, turns: convo, fallback, pointed, exclude }));
-    const items = itemsText(missing.items);
-    customRequest = { items };
-    const [notListed, offer] = unlistedLines({ items, alsoListed: true, closest: [], listed: [], sellerName: lp.org.name });
-    result = { ...result, intro: `${notListed} ${result.intro}`, questions: [...result.questions.slice(0, 1), offer!] };
+    const [notListed] = unlistedLines({ items: itemsText(missing.items), alsoListed: true, closest: [], listed: [], sellerName: lp.org.name });
+    result = { ...result, intro: `${notListed} ${result.intro}` };
     text = consultText(result);
   } else if (missing) {
     const u = unlistedConsultation(lp.org.name, products, missing, buyerTexts, exclude);

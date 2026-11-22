@@ -247,7 +247,7 @@ export async function addBuyerMessage(negId: string, content: string) {
   composed.reply = nameColourCodesInProse(composed.reply);
   activity.push({ at: iso(), label: offers.length ? "Prepared offers" : "Prepared a reply", state: "done" });
 
-  const payload = { ...(offers.length ? { offers: offers.map(toOffer) } : {}), ...(unlisted ? { customRequest: { items: unlisted.items } } : {}) };
+  const payload = offers.length ? { offers: offers.map(toOffer) } : {};
   await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq: seq + 1, role: "agent", kind: offers.length ? "offers" : "message", content: await sealText(lp.org.id, composed.reply), payload: Object.keys(payload).length ? bigintsToStrings(payload) : null });
   await db.insert(schema.agentRuns).values({ id: id("run"), orgId: lp.org.id, negotiationId: negId, adapter: adapter.name, steps: await sealJson(lp.org.id, steps), durationMs: Date.now() - started });
   await db

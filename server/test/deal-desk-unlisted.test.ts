@@ -119,6 +119,24 @@ describe("is it listed", () => {
     // The same ask again ("hey i want caps", then "i want caps") gets the same answer; it sends nothing.
     expect(answersCustomRequest("i want caps", "Caps", all)).toBe(false);
   });
+  it("a follow-up about a listed product after the offer is not the custom request", () => {
+    const all = [sweatshirt, ...others];
+    expect(answersCustomRequest("can i get 20 of the classic t-shirt", "Caps", all)).toBe(false);
+    expect(answersCustomRequest("how much for 20 t-shirts?", "Caps", all)).toBe(false);
+    expect(answersCustomRequest("I would like a quote for classic t-shirt.", "Caps", all)).toBe(false);
+    expect(answersCustomRequest("200 pieces by march, buyer@example.com", "Caps", all)).toBe(true);
+  });
+  it("a word only in a summary or the middle of a name does not make a kind listed", () => {
+    const steel: ListedProduct = { name: "Steel Water Bottle", unitLabel: "bottle", category: "Drinkware", summary: "steel bottle with screw cap" };
+    const loop: ListedProduct = { name: "Loop Cap Bottle", unitLabel: "bottle", category: "Drinkware" };
+    const u = findUnlisted("hey i want caps", steel, [loop, ...others.slice(0, 1)])!;
+    expect(u.items.map((i) => i.phrase)).toEqual(["caps"]);
+    expect(u.alsoListed).toBe(false);
+    expect(u.closest.map((p) => p.name)).toEqual(["Classic T-Shirt"]);
+    const reply = composeRuleBased({ ...composeInput("hey i want caps"), productName: "Steel Water Bottle", unitLabel: "bottle", unlisted: { items: itemsText(u.items), alsoListed: false, closest: u.closest.map((p) => ({ name: p.name, smallestPack: p.smallestPack ?? "", current: false })), listed: [], sellerName: "Shoonya Store" } });
+    expect(reply).toMatch(/^Caps are not something Shoonya Store lists\./);
+    expect(reply).not.toMatch(/\$160\.00|25 bottles/);
+  });
 });
 
 describe("the built-in reply (no model)", () => {
@@ -130,6 +148,15 @@ describe("the built-in reply (no model)", () => {
     expect(reply).toMatch(/closest listed products are Unbranded Sweatshirt \(the product we are on, from 10 sweatshirts for \$86\.30\) and Classic T-Shirt \(from 10 t-shirts for \$52\.00\)\. If one of them works, ask me about it\./);
     expect(reply).toMatch(/custom request: reply with how many you need, by when, and how they can reach you/);
     expect(reply).not.toMatch(/\$388\.50|50 sweatshirts/);
+  });
+  it("caps together with hoodies: the hoodie offers, a plain 'not listed' line, and no custom request offer to answer", () => {
+    const hoodie: ListedProduct = { name: "Zip Hoodie", unitLabel: "hoodie", category: "Apparel" };
+    const u = findUnlisted("i want hoodies and caps", hoodie, others)!;
+    expect(u.alsoListed).toBe(true);
+    const reply = composeRuleBased(composeInput("i want hoodies and caps", { productName: "Zip Hoodie", unitLabel: "hoodie", offers: [offer(50n, "900.00", "Bulk")], unlisted: { items: itemsText(u.items), alsoListed: true, closest: [], listed: [], sellerName: "Shoonya Store" } }));
+    expect(reply).toMatch(/\$900\.00/);
+    expect(reply).toMatch(/Caps are not something Shoonya Store lists\./);
+    expect(reply).not.toMatch(/custom request/);
   });
   it("before the fix the same input answered with the sweatshirt offers; with caps and sweatshirts it shows both", () => {
     expect(composeRuleBased(composeInput("i want caps", { offers: sweatshirtOffers }))).toMatch(/\$388\.50/);

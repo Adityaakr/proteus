@@ -79,7 +79,7 @@ export function unlistedLines(u: UnlistedAsk): string[] {
   };
   if (u.closest.length) lines[0] += ` The closest ${u.closest.length > 1 ? "listed products are" : "listed product is"} ${u.closest.length > 1 ? `${u.closest.slice(0, -1).map(show).join(", ")} and ${show(u.closest.at(-1)!)}` : show(u.closest[0]!)}. If one of them works, ask me about it.`;
   else if (u.listed.length) lines[0] += ` ${u.sellerName} lists ${u.listed.length > 1 ? `${u.listed.slice(0, -1).join(", ")} and ${u.listed.at(-1)}` : u.listed[0]}.`;
-  lines.push(`If you want ${u.items.toLowerCase()} made, I can send ${u.sellerName} a custom request: reply with how many you need, by when, and how they can reach you.`);
+  if (!u.alsoListed) lines.push(`If you want ${u.items.toLowerCase()} made, I can send ${u.sellerName} a custom request: reply with how many you need, by when, and how they can reach you.`);
   return lines;
 }
 

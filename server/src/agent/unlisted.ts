@@ -2,8 +2,8 @@
  * "I want caps" at a store that lists no caps. The buyer names a kind of product; when no listed product is that kind,
  * the agent must say so plainly instead of answering with the current product's offers. Deterministic and
  * conservative: only a clear request for a named kind of product counts ("i want caps", "do you have mugs?",
- * "need 50 tote bags"), and a word that any listed product's name, unit, category, summary or capabilities carries
- * counts as listed. Used with or without a model; a model's own reading of the request can add items to check.
+ * "need 50 tote bags"), and a kind counts as listed only when a listed product is that kind: its name ends with the
+ * word or its unit is the word ("Baseball Cap"; not "Loop Cap Bottle" or a bottle with a screw cap). Used with or without a model; a model's own reading of the request can add items to check.
  */
 
 import { consult, pickLine, type Consultation, type ConsultProduct } from "@proteus/domain";
@@ -106,19 +106,25 @@ export function forms(word: string): string[] {
 
 const words = (s: string) => normalize(s).split(/[^a-z]+/).filter((w) => w.length > 1);
 
-/**
- * Every spelling of every word a product goes by, with the other names of the same kind of product. `brief` keeps to
- * the name, unit and category: a summary's words ("flip-top", "top flaps") say nothing about what kind of product it is.
- */
-function vocabulary(p: ListedProduct, brief = false): Set<string> {
-  const text = [p.name, p.unitLabel, p.category ?? "", ...(brief ? [] : [p.summary ?? "", ...(p.capabilities ?? [])])].join(" ");
+/** Every spelling of the words, with the other names of the same kind of product. */
+function spellings(ws: string[]): Set<string> {
   const out = new Set<string>();
-  for (const w of words(text)) for (const f of forms(w)) out.add(f);
+  for (const w of ws) for (const f of forms(w)) out.add(f);
   for (const group of SAME) if (group.some((g) => out.has(g))) for (const g of group) out.add(g);
   return out;
 }
 
-const isListedIn = (item: RequestedItem, vocab: Set<string>) => forms(item.head).some((f) => vocab.has(f));
+/**
+ * Every spelling of the name, unit and category a product goes by: a summary's words ("flip-top", "top flaps") say
+ * nothing about what kind of product it is.
+ */
+const vocabulary = (p: ListedProduct) => spellings(words([p.name, p.unitLabel, p.category ?? ""].join(" ")));
+
+/** Every spelling of the kind of product a product is: the last word of its name and its unit ("Baseball Cap", unit cap; not "Loop Cap Bottle"). */
+const kindWords = (p: ListedProduct) => spellings([...words(p.name).slice(-1), ...words(p.unitLabel)]);
+
+/** Whether a product is the kind of product an item names. */
+const isKind = (p: ListedProduct, item: RequestedItem) => forms(item.head).some((f) => kindWords(p).has(f));
 
 /** Where a request for a kind of product starts: "i want", "do you have", "looking for", "price for", "order 50". */
 const ASK = /\b(?:want|wants|need|needs|looking for|searching for|interested in|(?:i|we)'?d like|would like|(?:what|how) about|do you (?:have|sell|make|do|offer|carry|stock|print)|can you (?:make|do|print|supply)|(?:price|prices|pricing|quote|cost) (?:for|of|on)|(?:order|buy|purchase|get)(?= (?:some|a|an|[\d,]+)\b)|any)\s+/g;
@@ -191,16 +197,16 @@ const kindOf = (head: string) => KINDS.find((k) => forms(head).some((f) => k.wor
 
 /**
  * The listed products closest to an unlisted kind: the same kind first (hats for caps), then the same family (other
- * apparel), judged by the product's words and category. Empty when nothing listed is close.
+ * apparel), judged by the kind of product it is and its category. Empty when nothing listed is close.
  */
 export function closestListed(item: RequestedItem, listed: ListedProduct[], max = 3): ListedProduct[] {
   const kind = kindOf(item.head);
   if (!kind) return [];
   const scored = listed
     .map((p) => {
-      const v = vocabulary(p, true);
-      const same = kind.words.some((w) => v.has(w)) ? 2 : 0;
-      const family = KINDS.some((k) => k.family === kind.family && k.words.some((w) => v.has(w))) || FAMILY_WORDS[kind.family]!.some((w) => v.has(w)) ? 1 : 0;
+      const k = kindWords(p);
+      const same = kind.words.some((w) => k.has(w)) ? 2 : 0;
+      const family = KINDS.some((f) => f.family === kind.family && f.words.some((w) => k.has(w))) || FAMILY_WORDS[kind.family]!.some((w) => vocabulary(p).has(w)) ? 1 : 0;
       return { p, score: Math.max(same, family) };
     })
     .filter((x) => x.score > 0);
@@ -218,8 +224,7 @@ export function findUnlisted(message: string, current: ListedProduct, others: Li
   for (const e of extra) for (const it of requestedItems(`i want ${e}`)) if (!asked.some((x) => forms(x.head).some((f) => forms(it.head).includes(f)))) asked.push(it);
   if (!asked.length) return undefined;
   const all = [current, ...others];
-  const vocabs = all.map((p) => vocabulary(p));
-  const missing = asked.filter((it) => !vocabs.some((v) => isListedIn(it, v)));
+  const missing = asked.filter((it) => !all.some((p) => isKind(p, it)));
   if (!missing.length) return undefined;
   return { items: missing, alsoListed: missing.length < asked.length, closest: closestListed(missing[0]!, all) };
 }
@@ -233,22 +238,14 @@ export function itemsText(items: RequestedItem[]): string {
 
 /**
  * Whether a buyer message answers the agent's offer to send a custom request: a yes, a quantity or date, or contact
- * details. A no, the same ask repeated, or a message that now asks for something listed, is not.
+ * details. A no, the same ask repeated, or a message that names a listed product ("how much for 20 t-shirts?"), is not.
  */
 export function answersCustomRequest(message: string, _items: string, listed: ListedProduct[]): boolean {
   const m = message.trim();
   if (/^(no|nope|nah|not now|no thanks|never ?mind|cancel)\b/i.test(m)) return false;
-  const asked = requestedItems(m);
-  if (asked.length && !findUnlisted(m, listed[0]!, listed.slice(1))) return false;
+  if (words(m).some((w) => !forms(w).some((f) => NON_ITEMS.has(f)) && listed.some((p) => isKind(p, { phrase: w, head: w })))) return false;
   // The item asked for again with nothing more ("i want caps") is the same question, not the request: it gets the same answer.
   return /^(yes|yeah|yep|sure|ok(ay)?|please|go ahead|do it|send)\b/i.test(m) || /\b(custom request|send (it|the request|a request))\b/i.test(m) || /\d|@/.test(m);
-}
-
-/** Whether a product is the kind of product an item names: its name ends with that word, or its unit is that word ("Baseball Cap", unit cap; not "Loop Cap Bottle"). */
-function isKind(p: ListedProduct, item: RequestedItem): boolean {
-  const head = words(p.name).at(-1);
-  const f = forms(item.head);
-  return (head !== undefined && forms(head).some((x) => f.includes(x))) || forms(normalize(p.unitLabel)).some((x) => f.includes(x));
 }
 
 /**
