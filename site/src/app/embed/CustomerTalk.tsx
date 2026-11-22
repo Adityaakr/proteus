@@ -81,12 +81,13 @@ export default function CustomerTalk() {
 
   const accent = useMemo(() => ({ "--accent": "var(--c-blue, #2b4cf5)" }) as CSSProperties, []);
 
-  if (page.isLoading) return <main className={e.root} style={accent}><p className={e.empty}>Loading…</p></main>;
-  if (page.isError) return <main className={e.root} style={accent}><p className={e.empty}>{errorMessage(page.error)}</p></main>;
+  if (page.isLoading) return <div className={e.page}><main className={e.root} style={accent}><p className={e.empty}>Loading…</p></main></div>;
+  if (page.isError) return <div className={e.page}><main className={e.root} style={accent}><p className={e.empty}>{errorMessage(page.error)}</p></main></div>;
   const p = page.data!;
   const showStarters = msgs.length === 0 && p.starters.length > 0;
 
   return (
+    <div className={e.page}>
     <main className={e.root} style={accent}>
       <header className={e.head}>
         <span className={t.avatar} aria-hidden>{initialOf(name)}</span>
@@ -132,6 +133,7 @@ export default function CustomerTalk() {
         </p>
       )}
 
+      <div className={e.composerWrap}>
       <form className={e.composer} onSubmit={submit}>
         <input
           value={voice.listening ? voice.interim || "Listening…" : draft}
@@ -149,7 +151,9 @@ export default function CustomerTalk() {
         )}
         <button type="submit" disabled={busy || done || voice.listening || !draft.trim()} aria-label="Send"><Send size={16} /></button>
       </form>
+      </div>
       <p className={e.foot}>AI assistant for {name}. Your details go only to {name}.</p>
     </main>
+    </div>
   );
 }
