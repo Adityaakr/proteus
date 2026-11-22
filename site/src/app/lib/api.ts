@@ -211,7 +211,9 @@ export const api = {
   health: () => request<T.Health>("GET", "/health"),
   seller: (sellerSlug: string) => request<T.PublicSeller>("GET", `/public/sellers/${enc(sellerSlug)}`),
   /** Store-wide deal desk: which of the seller's products this message is about. */
-  routeSeller: (sellerSlug: string, message: string, current?: string) => request<{ productSlug: string; productName: string; matched: boolean; switched: boolean; reason: string }>("POST", `/public/sellers/${enc(sellerSlug)}/route`, { body: { message, current } }),
+  /** `mode: "consult"`: an open question, so stay on all products and ask for a recommendation (api.consult). */
+  routeSeller: (sellerSlug: string, message: string, current?: string, picks?: string[]) =>
+    request<{ mode?: "product" | "consult"; productSlug: string; productName: string; matched: boolean; switched: boolean; reason: string; suggested?: string[] }>("POST", `/public/sellers/${enc(sellerSlug)}/route`, { body: { message, current, picks } }),
   product: (sellerSlug: string, productSlug: string) => request<T.PublicProduct>("GET", `/public/sellers/${enc(sellerSlug)}/products/${enc(productSlug)}`),
 
   /* Negotiation (buyer) */
@@ -223,6 +225,8 @@ export const api = {
   },
   negotiation: (id: string) => request<T.Negotiation>("GET", `/negotiations/${enc(id)}`, { headers: negotiationKeys.header(id) }),
   sendMessage: (id: string, content: string) => request<T.Negotiation>("POST", `/negotiations/${enc(id)}/messages`, { body: { content }, headers: negotiationKeys.header(id) }),
+  /** An open question on a store conversation: the agent recommends products and asks follow-ups (a "consult" turn). */
+  consult: (id: string, content: string, current?: string) => request<T.Negotiation>("POST", `/negotiations/${enc(id)}/consult`, { body: { content, current }, headers: negotiationKeys.header(id) }),
   counter: (id: string, body: { candidateId: string; targetTotal?: T.MicroStr; targetUnits?: T.UnitsStr }) =>
     request<T.Negotiation>("POST", `/negotiations/${enc(id)}/counter`, { body, headers: negotiationKeys.header(id) }),
   createQuote: (id: string, candidateId: string) => request<T.Quote>("POST", `/negotiations/${enc(id)}/quotes`, { body: { candidateId }, headers: negotiationKeys.header(id) }),

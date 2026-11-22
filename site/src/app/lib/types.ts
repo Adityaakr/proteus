@@ -163,7 +163,15 @@ export interface WireRequirements {
 }
 
 export type TurnRole = "buyer" | "agent" | "system";
-export type TurnKind = "message" | "offers" | "decision" | "clarify";
+export type TurnKind = "message" | "offers" | "decision" | "clarify" | "consult";
+
+/** A recommendation on a store conversation that is not on one product yet (turn kind "consult"). */
+export interface ConsultPayload {
+  intro: string;
+  picks: { slug: string; name: string; unitLabel: string; reason: string; fromPrice: string | null }[];
+  questions: string[];
+  needs: { occasion?: string; audience?: string; quantity?: number; budgetTotal?: number; budgetUnit?: number; deadline?: string; branding?: boolean };
+}
 export type CounterDecisionKind = "approved" | "approval_required" | "rejected";
 
 export interface Turn {
@@ -174,6 +182,7 @@ export interface Turn {
   kind?: TurnKind;
   offers?: Offer[];
   decision?: { decision: CounterDecisionKind; reasons: string[]; alternative?: Offer };
+  consult?: ConsultPayload;
 }
 
 export interface ActivityItem {

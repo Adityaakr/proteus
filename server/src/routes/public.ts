@@ -1,11 +1,12 @@
 import { and, eq } from "drizzle-orm";
 import { Hono, type Context } from "hono";
-import { AcceptBody, CounterBody, MessageBody, StartNegotiationBody } from "@proteus/domain";
+import { AcceptBody, ConsultBody, CounterBody, MessageBody, StartNegotiationBody } from "@proteus/domain";
 import type { Address, Hex } from "viem";
 import { db, schema } from "../db";
 import { HttpError, json, toBig } from "../lib/http";
 import { loadProductById, loadProductBySlugs, publicProduct } from "../services/catalog";
 import { routeToProduct } from "../services/storefront";
+import { addConsultMessage } from "../services/consult";
 import { addBuyerMessage, assertNegotiationAccess, counter, negotiationView, startNegotiation } from "../services/negotiation";
 import { env, features } from "../env";
 import { acceptQuote, createQuote, quoteView } from "../services/quotes";
@@ -55,9 +56,10 @@ publicRoutes.post("/public/talk/:token/messages", async (c) => {
 /** Store-wide deal desk: which of this seller's products a buyer message is about. */
 publicRoutes.post("/public/sellers/:sellerSlug/route", async (c) => {
   limit(`store-route:${clientIp((n) => c.req.header(n))}`, 120);
-  const b = (await c.req.json().catch(() => ({}))) as { message?: unknown; current?: unknown };
+  const b = (await c.req.json().catch(() => ({}))) as { message?: unknown; current?: unknown; picks?: unknown };
   if (typeof b.message !== "string" || !b.message.trim() || b.message.length > 4000) throw new HttpError(400, "message is required (up to 4000 characters)");
-  return json(c, await routeToProduct(c.req.param("sellerSlug"), b.message, typeof b.current === "string" ? b.current : undefined));
+  const picks = Array.isArray(b.picks) ? b.picks.filter((x): x is string => typeof x === "string").slice(0, 4) : undefined;
+  return json(c, await routeToProduct(c.req.param("sellerSlug"), b.message, typeof b.current === "string" ? b.current : undefined, picks));
 });
 
 publicRoutes.get("/public/sellers/:sellerSlug/products/:productSlug", async (c) => {
@@ -131,6 +133,17 @@ publicRoutes.post("/negotiations/:id/messages", async (c) => {
   await negotiationAccess(c);
   const body = MessageBody.parse(await c.req.json());
   return json(c, await addBuyerMessage(c.req.param("id"), body.content));
+});
+
+/**
+ * An open question in a store conversation ("suggest me some good merch"): the agent recommends products from the
+ * seller's catalogue and asks follow-up questions, without moving the conversation to one product.
+ */
+publicRoutes.post("/negotiations/:id/consult", async (c) => {
+  limit(`neg-msg:${clientIp((n) => c.req.header(n))}`, 60);
+  await negotiationAccess(c);
+  const body = ConsultBody.parse(await c.req.json());
+  return json(c, await addConsultMessage(c.req.param("id"), body.content, body.current));
 });
 
 publicRoutes.post("/negotiations/:id/counter", async (c) => {

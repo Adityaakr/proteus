@@ -1,41 +1,59 @@
 /**
  * The store-wide deal desk: one conversation for everything a seller lists. Each buyer message is routed to the
  * product it is about, and that product's agent (which also knows the rest of the catalog) negotiates within that
- * product's rules. Routing is deterministic and explainable: words from the message matched against each product's
- * name, unit, capabilities and summary. With no clear match the conversation stays on the product it is on.
+ * product's rules. An open question that names no product ("suggest me some good merch") is not routed anywhere: the
+ * conversation stays on all products and the agent recommends (services/consult.ts). Routing is deterministic and
+ * explainable (routeMessage in @proteus/domain): words from the message matched against each product's name, unit,
+ * capabilities and summary.
  */
 import { and, eq } from "drizzle-orm";
-import { pluralUnit } from "@proteus/domain";
+import { routeMessage, type ConsultProduct } from "@proteus/domain";
 import { db, schema } from "../db";
 import { HttpError } from "../lib/http";
 import { loadProductById, publicProduct } from "./catalog";
 
-/** Words that appear in many product names and say nothing about which one is meant. */
-const GENERIC = new Set(["custom", "event", "events", "pack", "bulk", "your", "with", "from", "for", "and", "the", "per", "design", "logo", "printed", "branded", "service", "plan", "team", "teams", "one", "each", "included", "delivery"]);
-const words = (s: string) => s.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !GENERIC.has(w));
-/** Light stemming so "bags" matches "bag" and "boxes" matches "box". */
-const stem = (w: string) => w.replace(/(ies)$/, "y").replace(/(xes|ches|shes|ses)$/, (m) => m.slice(0, -2)).replace(/s$/, "");
+type PublicProduct = ReturnType<typeof publicProduct>;
 
-export async function routeToProduct(sellerSlug: string, message: string, current?: string) {
+/** A listed product as the router and the recommender see it: public data only, prices from its tiers. */
+export function consultProduct(p: PublicProduct): ConsultProduct {
+  const tiers = [...p.tiers].sort((a, b) => Number(a.unitPriceUsd.replace(/[^0-9.]/g, "")) - Number(b.unitPriceUsd.replace(/[^0-9.]/g, "")));
+  const units = p.tiers.map((t) => Number(t.includedUnits)).filter((n) => Number.isFinite(n) && n > 0);
+  return {
+    slug: p.slug,
+    name: p.name,
+    unitLabel: p.unitLabel,
+    summary: p.summary,
+    capabilities: p.capabilities,
+    fromPrice: tiers[0]?.unitPriceUsd ?? null,
+    minUnits: units.length ? Math.min(...units) : null,
+    notes: p.knowledge?.notes ?? [],
+  };
+}
+
+/** Every listed product of a seller, in the seller's order. */
+export async function storeCatalog(sellerSlug: string) {
   const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.slug, sellerSlug));
   if (!org) throw new HttpError(404, "seller not found");
   const rows = await db.select({ id: schema.products.id }).from(schema.products).where(and(eq(schema.products.orgId, org.id), eq(schema.products.active, true)));
   if (!rows.length) throw new HttpError(404, "this seller has no listed products");
-  const said = new Set(words(message).map(stem));
-  const scored = [];
-  for (const r of rows) {
-    const p = publicProduct(await loadProductById(r.id));
-    const strong = new Set([...words(p.name), p.unitLabel.toLowerCase(), pluralUnit(p.unitLabel).toLowerCase()].map(stem));
-    const weak = new Set([...p.capabilities.flatMap(words), ...words(p.summary ?? "")].map(stem));
-    const hits = [...said].filter((w) => strong.has(w));
-    const weakHits = [...said].filter((w) => !strong.has(w) && weak.has(w));
-    scored.push({ slug: p.slug, name: p.name, score: hits.length * 3 + weakHits.length, hits: [...hits, ...weakHits] });
+  const products: ConsultProduct[] = [];
+  for (const r of rows) products.push(consultProduct(publicProduct(await loadProductById(r.id))));
+  return { org, products };
+}
+
+/**
+ * Which product a message is about. `mode: "consult"`: an open question, so the conversation stays on all products
+ * and the client asks for a recommendation instead of switching (`matched` is false and `productSlug` is the current
+ * product, or the first one, only so older clients keep working). `picks`: the products the last recommendation
+ * offered, so "the second one" picks one of them.
+ */
+export async function routeToProduct(sellerSlug: string, message: string, current?: string, picks?: string[]) {
+  const { org, products } = await storeCatalog(sellerSlug);
+  const d = routeMessage(message, products, { current, picks, sellerName: org.name });
+  if (d.mode === "product") {
+    const p = products.find((x) => x.slug === d.slug)!;
+    return { mode: d.mode, productSlug: p.slug, productName: p.name, matched: true, switched: d.switched, reason: d.reason, suggested: [] as string[] };
   }
-  scored.sort((a, b) => b.score - a.score);
-  const best = scored[0]!;
-  const cur = scored.find((s) => s.slug === current);
-  // Stay on the current product unless the message clearly points elsewhere.
-  if (cur && (best.score === 0 || best.score <= cur.score)) return { productSlug: cur.slug, productName: cur.name, matched: true, switched: false, reason: "continuing the current product" };
-  if (best.score === 0) return { productSlug: best.slug, productName: best.name, matched: false, switched: false, reason: "no product named yet" };
-  return { productSlug: best.slug, productName: best.name, matched: true, switched: Boolean(current && current !== best.slug), reason: `matched ${best.hits.join(", ")}` };
+  const stay = products.find((x) => x.slug === current) ?? products[0]!;
+  return { mode: d.mode, productSlug: stay.slug, productName: stay.name, matched: false, switched: false, reason: d.reason, suggested: d.slugs, exclude: d.exclude };
 }

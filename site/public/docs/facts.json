@@ -358,7 +358,7 @@
       {
         "method": "POST",
         "path": "/public/sellers/{seller}/route",
-        "does": "{ message, current? } → which product a message is about"
+        "does": "{ message, current?, picks? } → which product a message is about, or mode consult for an open question"
       },
       {
         "method": "POST",
@@ -374,6 +374,11 @@
         "method": "POST",
         "path": "/negotiations/{id}/messages",
         "does": "{ content } → agent reply and offers"
+      },
+      {
+        "method": "POST",
+        "path": "/negotiations/{id}/consult",
+        "does": "{ content, current? } → recommended products from the catalogue and follow-up questions"
       },
       {
         "method": "POST",

@@ -1,10 +1,12 @@
-import { pluralUnit, sellerGreeting, switchNegotiation, unitFor, type GreetingProduct } from "@proteus/domain";
+import { pickMessage, pluralUnit, sellerGreeting, switchNegotiation, unitFor, type GreetingProduct } from "@proteus/domain";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, Check, ChevronDown, LayoutGrid, Send, X } from "lucide-react";
 import { api, errorMessage } from "../lib/api";
 import type { Negotiation, Offer, PublicProduct, Turn } from "../lib/types";
+import { openConsult, threadScope, withMarkers, type Scope } from "../lib/consult";
+import { ConsultCard } from "../agentic/ConsultCard";
 import { SellerMark } from "../ui/SellerMark";
 import { ArcMark } from "../ui/Marks";
 import e from "./embed.module.css";
@@ -21,13 +23,20 @@ const visibleTurns = (n: Negotiation | null) => {
   const first = turns.findIndex((t) => t.role === "buyer");
   return first === -1 ? [] : turns.slice(first);
 };
+/** One line of the thread: a message, or a marker where the conversation moved ("Now on: Hoodies"). */
+type Row = { kind: "turn"; turn: Turn } | { kind: "marker"; label: string; key: string };
+/** A negotiation's visible turns with a marker wherever it moved between all products and its product. */
+const rowsOf = (n: Negotiation | null, start: Scope): Row[] =>
+  withMarkers(visibleTurns(n), start).map((x) => (x.kind === "turn" ? x : { kind: "marker", label: x.scope === "all" ? "All products" : (n?.productName ?? n?.productSlug ?? ""), key: x.key }));
 
 /**
  * The seller's deal agent, embedded on the seller's own website (iframe from /embed.js) or opened as a link page. A
  * visitor is greeted with the seller's key facts, asks questions, and gets offers that come from the seller's rules
- * in code; the model only writes the words. Until the visitor picks a product, each message goes to the product it is
- * about. "Get this offer" creates a quote and opens Proteus AI in a new top-level tab to sign and fund: nothing is
- * ever signed inside the embedding page.
+ * in code; the model only writes the words. Until the visitor picks a product, the chat is on all products: an open
+ * question ("suggest me some good merch") gets recommendations from the catalogue with follow-up questions, and a
+ * message that names a product (or a tapped recommendation) moves the chat there, shown as "Now on: Hoodies · change".
+ * "Get this offer" creates a quote and opens Proteus AI in a new top-level tab to sign and fund: nothing is ever signed
+ * inside the embedding page.
  */
 export default function EmbedAgent() {
   const { sellerSlug = "" } = useParams();
@@ -39,8 +48,12 @@ export default function EmbedAgent() {
   const [picked, setPicked] = useState<string>(params.get("product") ?? "");
   const pickedProduct = products.find((p) => p.slug === picked);
   const [neg, setNeg] = useState<Negotiation | null>(null);
-  /** Earlier negotiations of this conversation, when a message moved it to another product. */
-  const [earlier, setEarlier] = useState<{ product: string; turns: Turn[] }[]>([]);
+  /** Earlier negotiations of this conversation, when a message moved it to another product (markers included). */
+  const [earlier, setEarlier] = useState<{ product: string; turns: Row[] }[]>([]);
+  /** Where the current negotiation started: on all products (the first one, until a product is named) or on one. */
+  const [negStart, setNegStart] = useState<Scope>("all");
+  /** The visitor chose "All products" while the chat was following a product: the next message is not tied to it. */
+  const [backToAll, setBackToAll] = useState(false);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
@@ -53,6 +66,11 @@ export default function EmbedAgent() {
   // Close only means something in the pop-up: the link page has no parent and an inline card has nothing to close.
   const closable = typeof window !== "undefined" && window.parent !== window && params.get("inline") !== "1";
   const current = products.find((p) => p.slug === neg?.productSlug) ?? pickedProduct;
+  // The product the chat is on: picked, the only one, or the one the last reply was about; else all products.
+  const routed = neg ? threadScope(neg.turns, negStart) : negStart;
+  const following = !backToAll && routed === "product" ? current : undefined;
+  const focusProduct = pickedProduct ?? (products.length === 1 ? products[0] : following);
+  const consultNow = neg && !pickedProduct ? openConsult(visibleTurns(neg)) : null;
 
   // The whole store until the visitor picks a product (or the embed names one); then that product's own facts.
   const focus = pickedProduct ?? (products.length === 1 ? products[0] : undefined);
@@ -62,7 +80,8 @@ export default function EmbedAgent() {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
   }, [neg?.turns.length, busy, picked, earlier.length]);
 
-  const send = async (text: string) => {
+  /** `to`: a recommendation the visitor tapped, so the message goes to that product without routing. */
+  const send = async (text: string, to?: string) => {
     const clean = text.trim();
     if (!products.length || !clean || busy) return;
     setError(null);
@@ -70,27 +89,42 @@ export default function EmbedAgent() {
     setPending(clean);
     setDraft("");
     try {
-      let slug = pickedProduct?.slug ?? neg?.productSlug ?? "";
-      if (!pickedProduct && products.length > 1) {
-        // No product chosen: the message goes to the product it is about, as on the store's deal desk.
-        const r = await api.routeSeller(sellerSlug, clean, neg?.productSlug).catch(() => null);
-        if (r?.matched) slug = r.productSlug;
+      const multi = !pickedProduct && products.length > 1;
+      let slug = to ?? pickedProduct?.slug ?? (products.length === 1 ? products[0]!.slug : "");
+      if (!slug) {
+        // No product chosen: a message that names one goes there; an open question stays on all products.
+        const r = await api.routeSeller(sellerSlug, clean, focusProduct?.slug, consultNow?.picks.map((p) => p.slug)).catch(() => null);
+        if (r && r.mode !== "consult" && r.matched) slug = r.productSlug;
       }
-      slug ||= products[0]!.slug;
       let n = neg;
+      if (!slug) {
+        // The conversation needs a negotiation to live in; the first one opens on the store and stays on all products.
+        if (!n) {
+          n = await api.startNegotiation({ sellerSlug, productSlug: products[0]!.slug, store: "open" }, { embed: sellerSlug });
+          setNegStart("all");
+          setNeg(n);
+        }
+        // The product the chat was last on (even after "All products"), so "what else?" leaves it out.
+        setNeg(await api.consult(n.id, clean, pickedProduct?.slug ?? (routed === "product" ? n.productSlug : undefined)));
+        setBackToAll(false);
+        return;
+      }
       if (!n || n.productSlug !== slug) {
-        const store = !pickedProduct && products.length > 1 ? (n ? "continue" : "open") : undefined;
+        const store = multi ? (n ? "continue" : "open") : undefined;
+        const start = n ? "product" : multi ? "all" : "product";
         const moved = await switchNegotiation(
           n,
           earlier,
           () => api.startNegotiation({ sellerSlug, productSlug: slug, ...(store ? { store } : {}) }, { embed: sellerSlug }),
-          (x) => ({ product: x.productName ?? x.productSlug, turns: visibleTurns(x) }),
+          (x) => ({ product: x.productName ?? x.productSlug, turns: rowsOf(x, negStart) }),
         );
         n = moved.next;
         setEarlier(moved.history);
+        setNegStart(start);
         setNeg(n);
       }
       setNeg(await api.sendMessage(n.id, clean));
+      setBackToAll(false);
     } catch (err) {
       setError(errorMessage(err));
       setDraft((d) => (d.trim() ? d : clean));
@@ -118,11 +152,21 @@ export default function EmbedAgent() {
       setPicked(slug);
       setOpened(null);
     }
+    // "All products" also lets go of a product the chat was following.
+    setBackToAll(slug === "");
     setBrowsing(false);
     setFilter("");
   };
 
+  /** A tapped recommendation: ask that product for a quote, carrying what the visitor already said. */
+  const pick = (slug: string) => {
+    const p = products.find((x) => x.slug === slug);
+    if (p) void send(pickMessage(p, consultNow?.needs), slug);
+  };
+
   const latestOffers = useMemo(() => {
+    // After a recommendation the chat is on all products: earlier offers for one product would read as its answer.
+    if (neg && openConsult(neg.turns)) return [];
     const withOffers = [...(neg?.turns ?? [])].reverse().find((t) => t.offers?.length);
     return (withOffers?.offers ?? neg?.offers ?? []).filter((o) => o.status !== "rejected").slice(0, 3);
   }, [neg]);
@@ -130,6 +174,15 @@ export default function EmbedAgent() {
   const close = () => window.parent?.postMessage({ type: "proteus:close" }, "*");
   const shown = visibleTurns(neg);
   const started = shown.length > 0 || earlier.length > 0 || pending !== null;
+  // The whole thread: earlier negotiations, a marker wherever it moved, then this negotiation.
+  const rows: Row[] = [];
+  earlier.forEach((x, k) => {
+    rows.push(...x.turns, { kind: "marker", label: k + 1 < earlier.length ? earlier[k + 1]!.product : (neg?.productName ?? current?.name ?? ""), key: `part-${k}` });
+  });
+  rows.push(...rowsOf(neg, negStart));
+  if (backToAll && routed === "product" && !pickedProduct) rows.push({ kind: "marker", label: "All products", key: "back-to-all" });
+  const lastMarker = rows.findLastIndex((r) => r.kind === "marker");
+  const lastAgent = [...shown].reverse().find((t) => t.role === "agent")?.id;
   const matches = products.filter((p) => p.name.toLowerCase().includes(filter.trim().toLowerCase()));
   const agentName = seller ? `${seller.name}'s agent` : "Deal agent";
   const mark = seller ? <SellerMark name={seller.name} brand={seller.brand} size="sm" /> : null;
@@ -207,15 +260,25 @@ export default function EmbedAgent() {
             </section>
           )}
 
-          {earlier.map((x, k) => (
-            <div key={`earlier-${k}`} style={{ display: "contents" }}>
-              {x.turns.map((t) => <div key={t.id} className={t.role === "buyer" ? e.msgMe : e.msgAgent}>{t.content}</div>)}
-              <p className={e.topic}>Now on {k + 1 < earlier.length ? earlier[k + 1]!.product : (neg?.productName ?? current?.name ?? "")}</p>
-            </div>
-          ))}
-          {shown.map((t) => (
-            <div key={t.id} className={t.role === "buyer" ? e.msgMe : e.msgAgent}>{t.content}</div>
-          ))}
+          {rows.map((r, i) =>
+            r.kind === "marker" ? (
+              <p key={r.key} className={e.topic}>
+                Now on: {r.label}
+                {i === lastMarker && products.length > 1 && (
+                  <>
+                    {" · "}
+                    <button type="button" className={e.topicChange} onClick={() => setBrowsing(true)}>change</button>
+                  </>
+                )}
+              </p>
+            ) : r.turn.consult ? (
+              <div key={r.turn.id} className={e.msgAgent}>
+                <ConsultCard consult={r.turn.consult} onPick={r.turn.id === lastAgent && !pickedProduct ? pick : undefined} disabled={busy} />
+              </div>
+            ) : (
+              <div key={r.turn.id} className={r.turn.role === "buyer" ? e.msgMe : e.msgAgent}>{r.turn.content}</div>
+            ),
+          )}
           {pending && <div className={e.msgMe}>{pending}</div>}
           {busy && <div className={e.msgAgent} aria-label="The agent is typing"><span className={e.typing}><i /><i /><i /></span></div>}
 
@@ -246,7 +309,7 @@ export default function EmbedAgent() {
             <div className={e.context}>
               Asking about
               <button type="button" onClick={() => setBrowsing(true)} aria-label="Choose a product">
-                <span>{pickedProduct?.name ?? (current && started ? current.name : "All products")}</span>
+                <span>{focusProduct?.name ?? "All products"}</span>
                 <ChevronDown size={13} aria-hidden />
               </button>
             </div>
@@ -271,7 +334,7 @@ export default function EmbedAgent() {
               </div>
               {products.length > 6 && <input className={e.search} value={filter} onChange={(ev) => setFilter(ev.target.value)} placeholder="Search products" aria-label="Search products" autoFocus={window.innerWidth >= 560} />}
               <ul className={e.grid}>
-                {picked && <li><button type="button" className={e.pick} onClick={() => choose("")}><strong>All products</strong><span>The agent follows what you ask about</span></button></li>}
+                {(picked || focusProduct) && <li><button type="button" className={e.pick} onClick={() => choose("")}><strong>All products</strong><span>Suggestions, and the agent follows what you ask about</span></button></li>}
                 {matches.map((p) => {
                   const from = fromPrice(p);
                   return (

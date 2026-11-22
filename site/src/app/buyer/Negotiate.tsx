@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { sellerGreeting } from "@proteus/domain";
+import { pickMessage, sellerGreeting } from "@proteus/domain";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -23,6 +23,8 @@ import { Message, MessageAvatar, MessageBubble, MessageBubbleCollapsible, Messag
 import { relTime } from "../seller/format";
 import { useAuth } from "../auth/useAuth";
 import { startStoreChat, storeChain } from "../lib/storeChat";
+import { openConsult, threadScope, withMarkers, type Scope } from "../lib/consult";
+import { ConsultCard } from "../agentic/ConsultCard";
 
 const WORKING_STEPS = ["Reading your message", "Extracting requirements", "Checking the seller's pricing rules", "Preparing offers"];
 const COUNTER_STEPS = ["Reading your counteroffer", "Checking margin and discount rules", "Looking for an alternative", "Writing a decision"];
@@ -49,6 +51,14 @@ export default function Negotiate() {
   const reduce = useReducedMotion();
 
   const setNeg = (n: Negotiation) => qc.setQueryData(qk.negotiation(id), n);
+  /** The buyer chose "All products" while the chat was following a product: the next message is not tied to it. */
+  const [backToAll, setBackToAll] = useState(false);
+  // A store conversation is on all products until a message names one (or the buyer taps a recommendation): this
+  // negotiation started there when the store's own button opened it, and the latest reply says where it is now.
+  const startScope: Scope = chain && chain.prior.length === 0 && chain.scope === "all" ? "all" : "product";
+  const scope: Scope = chain ? (backToAll ? "all" : threadScope(negQ.data?.turns ?? [], startScope)) : "product";
+  const focusSlug = scope === "product" ? negQ.data?.productSlug : undefined;
+  const consultNow = chain ? openConsult(negQ.data?.turns ?? []) : null;
 
   const runSteps = (labels: string[]) => {
     startedAt.current = performance.now();
@@ -65,31 +75,40 @@ export default function Negotiate() {
   };
 
   const send = useMutation({
-    mutationFn: async (content: string): Promise<{ n: Negotiation; movedTo?: string }> => {
+    /** `to`: a recommendation the buyer tapped, so the message goes to that product without routing. */
+    mutationFn: async ({ content, to }: { content: string; to?: string }): Promise<{ n: Negotiation; movedTo?: string }> => {
       const cur = negQ.data;
       if (chain && cur) {
-        // A store conversation follows the buyer to whichever product the message is about.
-        const r = await api.routeSeller(chain.seller, content, cur.productSlug);
-        if (r.matched && r.productSlug !== cur.productSlug) {
-          const next = await startStoreChat(chain.seller, r.productSlug, wallet?.address, [...chain.prior, id]);
+        // A store conversation follows the buyer to whichever product the message names; an open question stays on
+        // all products and gets recommendations instead.
+        let slug = to;
+        if (!slug) {
+          const r = await api.routeSeller(chain.seller, content, focusSlug, consultNow?.picks.map((p) => p.slug));
+          // The product the chat was last on (even after "All products"), so "what else?" leaves it out.
+          if (r.mode === "consult" || !r.matched) return { n: await api.consult(id, content, threadScope(cur.turns, startScope) === "product" ? cur.productSlug : undefined) };
+          slug = r.productSlug;
+        }
+        if (slug !== cur.productSlug) {
+          const next = await startStoreChat(chain.seller, slug, wallet?.address, [...chain.prior, id]);
           return { n: await api.sendMessage(next.id, content), movedTo: next.id };
         }
       }
       return { n: await api.sendMessage(id, content) };
     },
-    onMutate: (content) => {
+    onMutate: ({ content }) => {
       // The message leaves the composer the moment it is sent; it comes back only if the send fails.
       setPendingText(content);
       setDraft("");
       runSteps(WORKING_STEPS);
     },
     onSuccess: ({ n: next, movedTo }) => {
+      setBackToAll(false);
       if (movedTo) {
         qc.setQueryData(qk.negotiation(movedTo), next);
         navigate(`/app/negotiations/${movedTo}`);
       } else setNeg(next);
     },
-    onError: (_e, content) => {
+    onError: (_e, { content }) => {
       setDraft((d) => (d.trim() ? d : content));
     },
     onSettled: () => {
@@ -127,7 +146,7 @@ export default function Negotiate() {
     if (!starter || sentStarter.current || !negQ.data) return;
     sentStarter.current = true;
     navigate(location.pathname, { replace: true, state: null });
-    send.mutate(starter);
+    send.mutate({ content: starter });
   }, [location.state, location.pathname, negQ.data, navigate, send]);
 
   // In a store conversation that moved here from another product, this product's greeting would interrupt the thread.
@@ -168,7 +187,7 @@ export default function Negotiate() {
     e?.preventDefault();
     const text = draft.trim();
     if (!text || working) return;
-    send.mutate(text);
+    send.mutate({ content: text });
   };
   const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -221,6 +240,19 @@ export default function Negotiate() {
   const req = neg.requirements;
   const closed = neg.status === "closed" || neg.status === "accepted";
   const mutationError = send.error ?? counter.error ?? accept.error;
+  // The thread with a marker wherever the store conversation moved: between negotiations and within this one.
+  const thread: ({ kind: "turn"; turn: Turn } | { kind: "marker"; scope: Scope; key: string })[] = [
+    ...(chain && chain.prior.length > 0 ? [{ kind: "marker" as const, scope: "product" as const, key: "topic-now" }] : []),
+    ...withMarkers(turns, startScope),
+    ...(backToAll && threadScope(neg.turns, startScope) === "product" ? [{ kind: "marker" as const, scope: "all" as const, key: "back-to-all" }] : []),
+  ];
+  const lastMarker = thread.findLastIndex((x) => x.kind === "marker");
+  const lastAgentId = [...turns].reverse().find((t) => t.role === "agent")?.id;
+  /** A tapped recommendation: ask that product for a quote, carrying what the buyer already said. */
+  const pick = (slug: string) => {
+    const p = consultNow?.picks.find((x) => x.slug === slug);
+    if (p) send.mutate({ content: pickMessage(p, consultNow?.needs), to: slug });
+  };
 
   return (
     <AppShell title="Negotiation">
@@ -250,7 +282,7 @@ export default function Negotiate() {
         </div>
         <p className={n.lede}>
           {chain
-            ? `One conversation for everything ${sellerName} makes. Right now: ${productName}. Ask about anything else they make and the agent moves there. Offers come from the seller's pricing rules, so the agent cannot be talked past them.`
+            ? <>One conversation for everything {sellerName} makes. Asking about: <b>{scope === "product" ? productName : "all products"}</b>{scope === "product" && <> · <button type="button" className={n.topicChange} onClick={() => setBackToAll(true)}>change</button></>}. Ask for suggestions, or name a product and the agent moves there. Offers come from the seller's pricing rules, so the agent cannot be talked past them.</>
             : `Describe your volume, tools and budget. Offers come from the seller's pricing rules, so the agent cannot be talked past them. Negotiation ${neg.publicId}.`}
         </p>
       </header>
@@ -260,24 +292,52 @@ export default function Negotiate() {
           <div ref={threadRef} className={n.thread} role="log" aria-live="polite" aria-relevant="additions" aria-label="Messages" tabIndex={0}>
             <MessageGroup spacing="default">
               <AnimatePresence initial={false}>
-                {priorQs.map((q, k) =>
-                  q.data ? (
+                {priorQs.map((q, k) => {
+                  if (!q.data) return null;
+                  const start: Scope = k === 0 && chain!.scope === "all" ? "all" : "product";
+                  const name = q.data.productName ?? prettyName(q.data.productSlug);
+                  return (
                     <div key={`prior-${chain!.prior[k]}`}>
-                      <p className={n.topic}>{q.data.productName ?? prettyName(q.data.productSlug)}</p>
-                      {q.data.turns.map((t, i) => (
-                        <TurnView key={t.id} turn={t} grouped={i > 0 && q.data!.turns[i - 1]!.role === t.role && t.role !== "system"} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
-                      ))}
+                      <p className={n.topic}>{start === "all" ? "All products" : name}</p>
+                      {withMarkers(q.data.turns, start).map((x, i, all) =>
+                        x.kind === "marker" ? (
+                          <p key={x.key} className={n.topic}>Now on: {x.scope === "all" ? "All products" : name}</p>
+                        ) : (
+                          <TurnView key={x.turn.id} turn={x.turn} grouped={i > 0 && all[i - 1]!.kind === "turn" && (all[i - 1] as { turn: Turn }).turn.role === x.turn.role && x.turn.role !== "system"} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
+                        ),
+                      )}
                     </div>
-                  ) : null,
+                  );
+                })}
+                {thread.map((x, i) =>
+                  x.kind === "marker" ? (
+                    <p key={x.key} className={n.topic}>
+                      Now on: {x.scope === "all" ? "All products" : productName}
+                      {i === lastMarker && x.scope === "product" && (
+                        <>
+                          {" · "}
+                          <button type="button" className={n.topicChange} onClick={() => setBackToAll(true)}>change</button>
+                        </>
+                      )}
+                    </p>
+                  ) : (
+                    <TurnView
+                      key={x.turn.id}
+                      turn={x.turn}
+                      grouped={i > 0 && thread[i - 1]!.kind === "turn" && (thread[i - 1] as { turn: Turn }).turn.role === x.turn.role && x.turn.role !== "system"}
+                      isNew={!(seenIds.current?.has(x.turn.id) ?? true)}
+                      agentName={agentName}
+                      sellerName={sellerName}
+                      brand={neg.sellerBrand}
+                      onPick={x.turn.id === lastAgentId && !closed ? pick : undefined}
+                      pickBusy={working}
+                    />
+                  ),
                 )}
-                {chain && chain.prior.length > 0 && <p key="topic-now" className={n.topic}>Now on {productName}</p>}
-                {turns.map((t, i) => (
-                  <TurnView key={t.id} turn={t} grouped={i > 0 && turns[i - 1]!.role === t.role && t.role !== "system"} isNew={!(seenIds.current?.has(t.id) ?? true)} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
-                ))}
                 {fresh && !pendingText && !working && neg.status === "open" && quickStarts.length > 0 && (
                   <motion.div key="quick-starts" className={n.quickStarts} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={T_DEFAULT}>
                     {quickStarts.map((c) => (
-                      <button key={c.label} type="button" className={n.quickStart} onClick={() => send.mutate(c.message)}>{c.label}</button>
+                      <button key={c.label} type="button" className={n.quickStart} onClick={() => send.mutate({ content: c.message })}>{c.label}</button>
                     ))}
                   </motion.div>
                 )}
@@ -346,11 +406,11 @@ export default function Negotiate() {
               <dt>Seller</dt>
               <dd><SellerMark name={sellerName} brand={neg.sellerBrand} variant="wordmark" size="sm" /></dd>
               <dt>Product</dt>
-              <dd>{productName}{chain && <span style={{ color: "var(--c-dark-40)" }}> · follows what you ask about</span>}</dd>
+              <dd>{chain && scope === "all" ? "All products" : productName}{chain && <span style={{ color: "var(--c-dark-40)" }}> · follows what you ask about</span>}</dd>
               <dt>Term</dt>
               <dd>{neg.termDays ? `${neg.termDays} days, prepaid in escrow` : "Prepaid in escrow"}</dd>
               <dt>Billing</dt>
-              <dd>Per {neg.unitLabel ?? "unit"} delivered, only what you countersign</dd>
+              <dd>Per {chain && scope === "all" ? "item" : (neg.unitLabel ?? "unit")} delivered, only what you countersign</dd>
             </dl>
           </div>
 
@@ -430,7 +490,7 @@ function prettyName(slug: string) {
   return v ? v[0]!.toUpperCase() + v.slice(1) : slug;
 }
 
-function TurnView({ turn, grouped = false, isNew = false, agentName, sellerName, brand }: { turn: Turn; grouped?: boolean; isNew?: boolean; agentName: string; sellerName: string; brand?: SellerBrand }) {
+function TurnView({ turn, grouped = false, isNew = false, agentName, sellerName, brand, onPick, pickBusy }: { turn: Turn; grouped?: boolean; isNew?: boolean; agentName: string; sellerName: string; brand?: SellerBrand; onPick?: (slug: string) => void; pickBusy?: boolean }) {
   const buyer = turn.role === "buyer";
   const system = turn.role === "system";
   // Only clamp genuinely long prose; replies that carry offers stay fully visible.
@@ -448,7 +508,7 @@ function TurnView({ turn, grouped = false, isNew = false, agentName, sellerName,
           )}
           <MessageBubble variant={buyer ? "solid" : system ? "ghost" : "soft"} animateIn={isNew}>
             <MessageBubbleContent className={system ? n.systemText : undefined}>
-              {long ? <MessageBubbleCollapsible collapsedLines={6}>{turn.content}</MessageBubbleCollapsible> : turn.content}
+              {turn.consult ? <ConsultCard consult={turn.consult} onPick={onPick} disabled={pickBusy} /> : long ? <MessageBubbleCollapsible collapsedLines={6}>{turn.content}</MessageBubbleCollapsible> : turn.content}
             </MessageBubbleContent>
           </MessageBubble>
           {turn.decision && (

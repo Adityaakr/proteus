@@ -10,6 +10,8 @@ export interface StoreChain {
   seller: string;
   /** Earlier negotiations in this store conversation, oldest first. */
   prior: string[];
+  /** Where the first negotiation started: "all" from the store's own button (no product chosen), else its product. */
+  scope?: "all" | "product";
 }
 
 const key = (negotiationId: string) => `proteus:store-chat:${negotiationId}`;
@@ -31,9 +33,13 @@ export function setStoreChain(negotiationId: string, chain: StoreChain) {
   }
 }
 
-/** Opens a store conversation on one product; later messages may move it to another. */
-export async function startStoreChat(sellerSlug: string, productSlug: string, buyerAddress?: string, prior: string[] = []) {
+/**
+ * Opens a store conversation. `scope: "all"`: no product chosen yet, so the conversation is on all products (the
+ * negotiation is on `productSlug` only so it has somewhere to live) until a message names one. Later messages may
+ * move it to another product.
+ */
+export async function startStoreChat(sellerSlug: string, productSlug: string, buyerAddress?: string, prior: string[] = [], scope: "all" | "product" = "product") {
   const n = await api.startNegotiation({ sellerSlug, productSlug, buyerAddress, store: prior.length ? "continue" : "open" });
-  setStoreChain(n.id, { seller: sellerSlug, prior });
+  setStoreChain(n.id, { seller: sellerSlug, prior, ...(prior.length ? {} : { scope }) });
   return n;
 }

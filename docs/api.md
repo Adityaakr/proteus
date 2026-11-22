@@ -38,6 +38,12 @@ GET  /api/negotiations/:id
 POST /api/negotiations/:id/messages   { content }
   -> Negotiation            (includes the agent's reply turn(s) and any new offers)
 
+POST /api/negotiations/:id/consult    { content, current? }
+  -> Negotiation            (store conversations: an open question that names no product. Adds a "consult" turn whose
+                             payload `consult` holds { intro, picks: [{ slug, name, unitLabel, reason, fromPrice }],
+                             questions, needs }; picks come from the seller's listed products and prices from their
+                             tiers. No offers are priced and requirements are unchanged.)
+
 POST /api/negotiations/:id/counter    { candidateId, targetTotal?: micro, targetUnits?: units }
   -> Negotiation            (adds a decision turn: approved | approval_required | rejected with alternative)
 
@@ -258,7 +264,7 @@ The 402 body's `accepts` lists `exact` (Circle facilitator, `extra.name = "USDC"
 ## Store, catalog sync and onboarding (2026-10-24)
 
 - `GET /api/public/sellers/:s`: the seller card and its **listed** products only.
-- `POST /api/public/sellers/:s/route { message, current? }`: returns `{ productSlug, productName, matched, switched, reason }`, the product a buyer message is about. The store deal desk starts or continues that product's negotiation. With no product named (`matched: false`), the desk answers with a store overview.
+- `POST /api/public/sellers/:s/route { message, current?, picks? }`: returns `{ mode, productSlug, productName, matched, switched, reason, suggested }`. `mode: "product"`: the message names one product (or picks one of the last recommendation's `picks` by position, "the second one"), and the store deal desk starts or continues that product's negotiation. `mode: "consult"` (`matched: false`): an open question ("suggest me some good merch") or several products matched equally, so the conversation stays on all products and the client calls `POST /api/negotiations/:id/consult`; `suggested` lists products the message pointed at. A follow-up that names nothing while on a product stays on it.
 - `GET /api/app/catalog-sync`: returns `{ url, authHeader, hasSecret, enabled, everyMinutes, lastRunAt, lastStatus, lastResult }`.
 - `PUT /api/app/catalog-sync { url, authHeader?, secret?, enabled? }`: `url: null` removes the sync. The owner session is required.
 - `POST /api/app/catalog-sync/run`: syncs now. Returns `{ at, status, updated: [{ slug, changes }], unchanged, notOnProteus, errors }`.
