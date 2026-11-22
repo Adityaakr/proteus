@@ -1,0 +1,16 @@
+/* Before and after. Layout comes from Compare.module.css; these rules only cover the text cells and the phone cards. */
+.table th:first-child { width: 20%; }
+
+.cell { display: flex; align-items: flex-start; gap: 9px; font-size: 15px; line-height: 1.5; color: var(--c-dark-60); }
+.cellAfter { color: var(--c-dark); }
+.icon { flex: none; margin-top: 4px; color: var(--c-dark-20); }
+.cellAfter .icon { color: var(--c-primary); }
+
+.card { gap: 12px !important; }
+.stage { color: var(--c-dark); }
+.side { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; border-top: 1px solid var(--c-dark-10); }
+.sideAfter { margin: 0 -12px; padding: 12px; border-top: 0; border-radius: 12px; background: rgba(1, 43, 255, 0.035); }
+.sideLabel { color: var(--c-dark-60); }
+.sideLabelAfter { color: var(--c-primary); }
+.side .cell { font-size: 14px; }
+.closing { text-wrap: balance; }

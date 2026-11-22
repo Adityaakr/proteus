@@ -39,16 +39,12 @@
 .headingTag { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 32px; overflow: clip; }
 .headingDesc { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; overflow: clip; }
 .line { max-width: 500px; text-align: center; }
-/* r5gAyaGS2 LogoGrid: 1fr x 63 */
-.grid { position: relative; width: 100%; height: 63px; }
 
 @media (max-width: 1199.98px) {
   .inner { gap: 40px; padding: 60px 0; max-width: 1000px; }
   .headingTag { gap: 24px; }
-  .grid { height: 40px; }
 }
 @media (max-width: 809.98px) {
   .content { padding: 40px 16px; }
   .inner { gap: 40px; padding: 40px 0; max-width: 500px; }
-  .grid { height: 105px; }
 }

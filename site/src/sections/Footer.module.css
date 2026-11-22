@@ -30,7 +30,7 @@
   align-items: flex-start;
   gap: 24px;
 }
-.h2 { width: 100%; color: var(--c-white); }
+.h2 { width: 100%; color: var(--c-white); white-space: pre-line; }
 .line { width: 100%; max-width: 500px; color: var(--c-white-80); }
 /* DxAbxJGyl Brand and single product column */
 .brandRow {
@@ -91,3 +91,6 @@
   .tagline { width: auto; }
   .rail { flex-direction: column; align-items: flex-start; gap: 24px; }
 }
+
+/* Phones: let the two-sentence close wrap as balanced lines instead of breaking per sentence. */
+@media (max-width: 809.98px) { .h2 { white-space: normal; text-wrap: balance; } }

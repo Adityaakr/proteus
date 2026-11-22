@@ -6,7 +6,8 @@ import { PromptCard } from "../ui/PromptCard";
 import s from "./Hero.module.css";
 import { useQuery } from "@tanstack/react-query";
 import { api, qk } from "../app/lib/api";
-import { ArcMark, CircleMark, UsdcMark } from "../app/ui/Marks";
+import { Check } from "lucide-react";
+import { Fragment } from "react";
 
 const MARK = "/assets/7QuYVNK6yeb3hmBB6mc2yJ1DBUg.png";
 
@@ -33,7 +34,8 @@ export function Hero() {
                       <>
                         {/* The mark sits inline with the text so a wrapped line stays centred on phones. */}
                         <img src={MARK} alt="" width={16} height={16} style={{ display: "inline-block", width: 16, height: 16, verticalAlign: "-3px", marginRight: 8 }} />
-                        {hero.tag}{" "}
+                        {hero.tag}
+                        {" "}
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 5, verticalAlign: "-1px" }}>
                           <img src="/assets/arc-icon.svg" alt="" width={14} height={14} style={{ width: 14, height: 14 }} />
                           <span style={{ fontWeight: 500 }}>{hero.tagNetwork}</span>
@@ -47,14 +49,15 @@ export function Hero() {
               </div>
               <Appear preset="fade-0.8" animate="visible" whileInView={undefined} className={s.buttons}>
                 <Button label={hero.secondary.label} href={hero.secondary.href} variant="secondary" icon={false} />
-                <Button label={hero.primary.label} hoverLabel={gated ? hero.primary.hoverLabel : undefined} href={gated ? hero.primary.href : "/app"} variant="primary" icon />
+                <Button label={hero.primary.label} hoverLabel={gated ? hero.primary.hoverLabel : undefined} href={gated ? hero.primary.href : hero.primary.openHref} variant="primary" icon />
               </Appear>
               <Appear preset="fade-0.8" animate="visible" whileInView={undefined} className={s.trust}>
-                <span><ArcMark size={14} /> Built on Arc</span>
-                <span className={s.trustDot} aria-hidden>·</span>
-                <span><CircleMark size={14} /> Circle Wallets</span>
-                <span className={s.trustDot} aria-hidden>·</span>
-                <span><UsdcMark size={14} /> Settled in USDC</span>
+                {hero.trust.map((item, i) => (
+                  <Fragment key={item}>
+                    {i > 0 && <span className={s.trustDot} aria-hidden>·</span>}
+                    <span><Check size={14} strokeWidth={2} aria-hidden /> {item}</span>
+                  </Fragment>
+                ))}
               </Appear>
             </div>
           </div>

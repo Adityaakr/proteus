@@ -1,141 +1,173 @@
-/** All page copy for Proteus AI. Edit here, not in sections. Source: "Proteus AI" copy doc ("Your business should be able to make a deal" draft). */
+/**
+ * All landing page copy for Proteus AI. Edit here, not in sections.
+ * Voice: a small business owner's outcomes first, in plain words; chain and protocol detail lives
+ * in the "Under the hood" section and the FAQ. Every capability claim matches the docs
+ * (site/src/app/docs/docsContent.ts) and uses their statuses: Live, Testnet, In testing, Coming soon.
+ * Chats, handles and numbers in the visuals are illustrative, never customers.
+ */
 
 export const links = {
-  explore: "/app/market",
+  sell: "/app/sell",
+  sellGated: "/invite?next=%2Fapp%2Fsell",
+  market: "/app/market",
   howItWorks: "/#how-it-works",
-  earlyAccess: "/app",
   record: "/review",
   github: "https://github.com/Adityaakr/proteus",
+  help: "https://github.com/Adityaakr/proteus/issues",
   docs: "/docs",
+  waysToUse: "/docs/ways-to-use",
+  forAgents: "/docs/for-agents",
+  sellerQuickstart: "/docs/quickstart-seller",
+  fees: "/docs/fees",
+  security: "/docs/security",
+  limits: "/docs/limits",
+  verify: "/docs/verify",
   blog: "/blog",
 };
 
 export const nav = {
   items: [
-    { label: "Product", href: "/#features" },
     { label: "How it works", href: "/#how-it-works" },
-    { label: "Use cases", href: "/#partners" },
+    { label: "Payment protection", href: "/#protection" },
+    { label: "For agents", href: "/#agents" },
     { label: "FAQ", href: "/#faqs" },
     { label: "Docs", href: links.docs },
-    { label: "Blog", href: links.blog },
   ],
-  secondary: { label: "Seller console", href: links.earlyAccess },
-  primary: { label: "Negotiate a deal", href: links.explore },
+  secondary: { label: "Why Arc", href: "/#why-arc" },
+  primary: { label: "Start free", href: links.sell },
 };
 
 export const hero = {
-  tag: "The autonomous deal service desk for internet businesses, built on",
+  tag: "The deal network for businesses and AI agents, built on",
+  /** Network name shown with its mark after the tag. */
   tagNetwork: "Arc",
-  headline: "Your business should be able to make a deal.",
-  headlineAlt: "Your next deal shouldn’t wait for sales.",
+  headline: "Win the order in minutes. Get paid when it's delivered.",
   subhead:
-    "Proteus AI gives your business an AI co-worker that negotiates and closes deals. It works out what you can offer, negotiates within your rules, and turns the agreement into a paid transaction.",
+    "Your deal agent quotes every buyer in seconds, people and AI agents alike, and never below your floor. Buyers pay upfront into escrow on Arc. You're paid in USDC when delivery is confirmed.",
   secondary: { label: "See how it works", href: links.howItWorks },
-  primary: { label: "Explore Proteus AI", hoverLabel: "Enter invite code", href: "/invite" },
+  /** `href` when the deployment runs the invite gate, `openHref` when it does not. */
+  primary: { label: "Start free", hoverLabel: "Enter invite code", href: links.sellGated, openHref: links.sell },
+  /** The three short facts under the buttons. */
+  trust: ["Free during the pilot", "Live on Arc mainnet", "Set up in about 5 minutes"],
   chat: {
-    user: "We run three online stores on Zendesk, about 8,000 tickets a month. We want order tracking and delivery questions automated, roughly 2,000 resolutions a month. Budget is $1,500. Can you make it work?",
-    status: ["Reading the request...", "Checking packages, costs, and margin", "Structuring two offers"],
-    done: "Two offers. One decision.",
+    user: "Purchasing agent for a 2,000-person company in London, Singapore and São Paulo. Mandate: 2,000 branded bottles, max $9 each, in two batches.",
+    status: ["Reading the mandate...", "Checking price, capacity and limits", "Fitting the offer to the mandate"],
+    done: "One offer, inside the mandate.",
     reply:
-      "Yes. 2,000 resolutions a month is $1,700. If $1,500 is firm, 1,500 resolutions for $1,440. Either way, returns and refunds stay with your team.",
+      "2,000 at $8.40 is $16,800, under your $9 limit. Escrow holds it until you confirm delivery; undelivered units are refundable.",
     completed: "Offer made",
     suggestionsLabel: "Suggestions",
-    suggestions: ["Option 01: 2,000 resolutions, $1,700/month", "Option 02: 1,500 resolutions, $1,440/month", "Keep negotiating"],
-    placeholder: "Reply to Proteus AI..",
+    suggestions: ["Option 01: 2,000 bottles, $16,800", "Option 02: two batches of 1,000", "Keep negotiating"],
+    placeholder: "Reply to the seller's agent..",
   },
 };
 
 export const logos = {
-  line: "Built for AI companies, APIs and infrastructure providers with more to offer than a fixed pricing page. The conversation above is illustrative; real offers come from the seller’s own costs and policies.",
+  line: "Built for the businesses behind every custom order: merch and apparel studios, print and packaging shops, gifting companies, event suppliers, creative studios and wholesalers. The conversation above is an example; every real offer is priced from the seller's own rules.",
 };
 
+/** How it works: three plain steps (HowItWorks component, id "how-it-works"). The third card shows an order paying out. */
 export const howItWorks = {
   tag: "How it works",
-  heading: "From interest to income.\nOne continuous workflow.",
+  heading: "Set your rules once.\nProteus handles every quote.",
   description:
-    "A pricing page can’t handle a discount, a commitment or a budget. Someone has to work out the deal, usually the founder. Proteus AI does it for you.",
+    "Buyers want a price now. Quoting each custom order by hand means late replies, lost orders and invoices to chase. Proteus answers for you and collects the money before you start.",
   mandates: [
-    "Can we get a volume discount?",
-    "What if we commit for six months?",
-    "Can you fit this into our budget?",
+    "250 tees with our logo, budget $1,500?",
+    "Can you do a better price for 500?",
+    "Can you deliver to Pune by the 12th?",
   ],
-  promptCard: { suggestion: "Customers ask", run: "Explore Proteus AI" },
+  promptCard: { suggestion: "Buyers ask", run: "Ask the agent" },
   steps: [
     {
-      title: "It understands what customers want.",
-      body: "Buyers describe what they need in plain language. Proteus AI extracts product, volume, service level, timeline and budget, and checks what you can deliver before it talks price.",
+      title: "1. Buyers ask, at any hour.",
+      body: "Quantity, budget, design, deadline, in their own words. One conversation covers your whole catalogue, on your store page, your website or from a buyer's own AI agent.",
     },
     {
-      title: "It works out a deal.",
-      body: "Offers are built from your pricing rules, costs and capacity. Proteus AI can propose a package, trade terms, suggest an alternative, or explain why a request doesn’t work.",
+      title: "2. Your agent quotes inside your limits.",
+      body: "It builds offers from your price tiers and checks each one against your margin floor, discount limit and capacity. Big orders wait for your approval.",
     },
     {
-      title: "It gets the agreement done.",
-      body: "Both sides sign the same terms, the buyer funds escrow, and the agreement drives provisioning, usage tracking and settlement. The promise stays connected to what the customer receives.",
+      title: "3. You're paid when they confirm delivery.",
+      body: "Both sides sign the same terms and the buyer pays into escrow before you start. When the buyer confirms delivery, the contract releases the money to you, settled on Arc in under a second.",
     },
   ],
   agent: {
-    title: "What the customer doesn’t see",
+    title: "Order: 230 tees",
     items: [
-      { label: "Available service packages checked", state: "done" },
-      { label: "Estimated fulfillment cost checked", state: "done" },
-      { label: "Permitted discounts and minimum margin checked", state: "done" },
-      { label: "Budget can’t support the full package", state: "done" },
-      { label: "Structuring a smaller offer that works", state: "loading" },
+      { label: "Terms agreed by both sides", state: "done" },
+      { label: "$1,495 held in escrow", state: "done" },
+      { label: "Order delivered", state: "done" },
+      { label: "Buyer confirmed delivery", state: "done" },
+      { label: "Releasing $1,495 to you", state: "loading" },
     ] as { label: string; state: "done" | "loading" }[],
   },
 };
 
-export const decisions = {
-  tag: "Intelligence",
-  heading: "It knows the price.\nMore importantly, it knows why.",
+/** Payment protection for both sides (dark Trust section, id "protection"). */
+export const trust = {
+  tag: "Payment protection",
+  heading: "You never start work unpaid. They never pay for what didn't arrive.",
   description:
-    "A customer asks for 30% off. Is there volume behind it? Spare capacity? Margin left? Those are the calls Proteus AI makes. Not every opportunity is a good deal, and it can tell the difference.",
+    "Every order is paid upfront into escrow, held by a public contract rather than by Proteus, you or the buyer. The AI negotiates; the contract holds the money. What the model says is an input to the deal, never the thing that releases payment.",
+  cards: [
+    { title: "Paid before you start", body: "The buyer funds the full order when both sides agree the terms. You can see the money is there before you buy materials." },
+    { title: "Released on delivery", body: "When the buyer confirms what was delivered, the contract pays you that amount. No invoices to chase." },
+    { title: "Refunds for the rest", body: "Anything not delivered is refundable to the buyer after the agreed term, so new buyers can order with confidence." },
+    { title: "Reviews from real orders only", body: "A buyer can review you only after an order has paid out, and reviews from people linked to the seller are flagged in public." },
+  ],
+};
+
+export const decisions = {
+  tag: "Protect your margins",
+  heading: "Your AI negotiates.\nIt never gives away your margin.",
+  description:
+    "A buyer can ask for 30% off, push back on every offer or try to talk the agent out of your limits. None of it changes what you allow.",
   tabs: [
-    { number: "01", title: "Price with context" },
-    { number: "02", title: "Trade intelligently" },
-    { number: "03", title: "Adapt to change" },
-    { number: "04", title: "Know when to say no" },
+    { number: "01", title: "Never below your floor" },
+    { number: "02", title: "Sized to the budget" },
+    { number: "03", title: "Your prices, your call" },
+    { number: "04", title: "Big orders wait for you" },
   ],
   cards: [
     {
       id: "qYrFueytg",
-      title: "Price with context. Respect capacity. Protect the margin.",
-      body: "Every offer is checked against the cost of delivering it and the capacity to do so. Anything outside your financial limits needs different terms or your approval.",
+      title: "The price comes from your numbers, not the AI.",
+      body: "Every quote is calculated from your price tiers, costs and limits. The AI writes the message around it; a reply that states a number your rules did not produce is replaced before the buyer sees it.",
       search: {
-        wave: "Evaluating the offer against its cost",
-        results: ["Cost of fulfilling it: estimated", "Minimum contribution margin: respected", "Capacity to deliver: available", "Requested discount: within limits"],
+        wave: "Your rules for custom tees",
+        results: ["Cost per tee: $3.00", "Lowest margin: 35%", "Biggest discount: 5% off list", "Ask me before orders over $500"],
       },
     },
     {
       id: "JSCqOTffG",
-      title: "Trade intelligently.",
-      body: "A longer commitment, a different service level or a smaller package often beats a lower price. The best deal is the one both sides can actually make.",
-      wave: "Trading terms, not just price",
+      title: "Sized to the budget, not just discounted.",
+      body: "If the budget does not cover the full order, the agent offers what it does buy at your best tier instead of cutting into your margin. You keep the deal and the margin.",
+      wave: "Fitting the order to the budget",
     },
     {
       id: "lyqPHrB7z",
-      title: "Adapt to new information.",
-      body: "When costs or availability change, Proteus AI can update future offers without unilaterally rewriting accepted agreements.",
-      wave: "Proteus AI is updating offers",
+      title: "Change prices whenever you like.",
+      body: "Update a price, a limit or your capacity at any time. New quotes follow the new numbers, and orders already agreed keep their terms.",
+      wave: "Updating your price list",
       paragraphs: [
-        "Costs and availability changed. Future offers reflect the new information and your margin rules.",
-        "Accepted agreements are not rewritten.",
+        "Custom tees: new prices apply to new quotes.",
+        "Orders already agreed keep their terms.",
       ],
     },
     {
       id: "HKd1Ndk3M",
-      title: "Know when not to close.",
-      body: "Some deals don’t work. The agent says why instead of promising what you can’t keep. Exceptions go to you.",
+      title: "Big orders wait for you.",
+      body: "Orders above your approval limit wait for one tap in your dashboard. Requests your rules cannot meet get a clear no, not a promise you cannot keep.",
       approvals: {
         campaign: "Open negotiations",
         meta: "3 need your decision",
         heading: "Needs you",
         rows: [
-          { handle: "@northwind", note: "30% discount, needs an exception", action: "Approve" },
-          { handle: "@lumen", note: "doesn’t work at this price", action: "Decline" },
-          { handle: "@harbor", note: "alternative package proposed", action: "Review" },
-          { handle: "@kai", note: "accepted within policy", action: "Closed" },
+          { handle: "@hackathon-team", note: "300 tees, above your approval limit", action: "Approve" },
+          { handle: "@buyer-agent", note: "asked below your floor", action: "Decline" },
+          { handle: "@events-studio", note: "bulk pack offered instead", action: "Review" },
+          { handle: "@conf-crew", note: "accepted within your rules", action: "Closed" },
         ],
         you: "Seller",
         menu: ["Approve", "Counter", "Decline"],
@@ -144,66 +176,176 @@ export const decisions = {
   ],
 };
 
-export const verification = {
-  tag: "Control",
-  heading: "Give it responsibility. Not unlimited authority.",
+export const partners = {
+  tag: "Who it's for",
+  heading: "For businesses that answer \"it depends\" when asked the price.",
   description:
-    "You set how the business sells. Proteus AI works inside those limits. It can negotiate; it cannot make up the rules.",
+    "If your customers, or their agents, ask for a quote before they buy, your deal agent can answer them. Live on Arc mainnet today: one merch and print studio, with every order public on chain.",
+  steps: [
+    { number: "01", title: "Custom merch and apparel. Quantity, sizes, print method and per-unit price." },
+    { number: "02", title: "Corporate and event gifting. Box contents, branding and volume pricing." },
+    { number: "03", title: "Event supply. Swag, signage and kits for organisers with a budget and a deadline." },
+    { number: "04", title: "Creative and freelance services. Design, video and content, priced per deliverable." },
+    { number: "05", title: "Wholesale and small-batch makers. Minimum orders, price tiers and repeat buyers." },
+    { number: "06", title: "Print and packaging. Stickers, stationery and packaging, priced by run size." },
+  ],
+};
+
+/**
+ * Before vs after (BeforeAfter component, id "before-after"): the hero's order, a purchasing agent
+ * buying 2,000 branded bottles for three offices, run the usual way and through Proteus. The same
+ * order runs along the ERC-8183 track. Illustrative; no time or revenue savings are claimed.
+ */
+export const beforeAfter = {
+  tag: "Before and after",
+  heading: "2,000 bottles, three countries, two AI agents. Two ways to run it.",
+  description:
+    "The order from the top of this page, from the first request to the last payout, run the usual way and run through Proteus. It's an example; every step on the right is how the product works today, with a status wherever it isn't Live.",
+  stageLabel: "The order",
+  before: { name: "Without Proteus", description: "Email, a PDF quote, a bank wire and an invoice." },
+  after: { name: "With Proteus", description: "Two agents, escrow on Arc and a public record." },
+  rows: [
+    {
+      stage: "The request",
+      before: "A purchasing agent asks for 2,000 branded bottles for offices in London, Singapore and São Paulo, at most $9 each. It can't negotiate with your inbox, so the request waits for a person.",
+      after: "Your deal agent answers their agent in seconds and negotiates inside your floor and their $9 limit. Agent buyers run on Arc testnet today.",
+    },
+    {
+      stage: "The price",
+      before: "Days of email across time zones. They push for a bulk discount, and you guess what still leaves a margin.",
+      after: "Every offer is calculated from your price tiers and costs: 2,000 at $8.40 is $16,800. Orders above your approval limit wait for you.",
+    },
+    {
+      stage: "The terms",
+      before: "Quantity, price and delivery are spread across an email thread and a PDF quote.",
+      after: "Both sides sign the same terms: 2,000 bottles at $8.40, paid per bottle delivered.",
+    },
+    {
+      stage: "The payment",
+      before: "A deposit by international wire, with bank fees and days in transit, to a supplier abroad the buyer has never used.",
+      after: "The buyer funds $16,800 in USDC into escrow on Arc before you order stock, with no network fee to pay.",
+    },
+    {
+      stage: "Delivery and payout",
+      before: "The first batch arrives with 20 dented bottles, and the whole invoice stalls while both sides argue across time zones.",
+      after: "You record only the 1,980 good bottles as delivered, the buyer confirms them, and you're paid $16,632 in USDC. The $168 left for the 20 dented ones is refundable to the buyer after the term.",
+    },
+    {
+      stage: "Trust",
+      before: "Their agent has no way to check you, so it hands back to a person and a reference call.",
+      after: "Their agent checks your ERC-8004 identity on Arc and reviews that can only come from paid orders.",
+    },
+    {
+      stage: "Who carries the risk",
+      before: "You, until the wire clears. The buyer, from the moment they pay.",
+      after: "The escrow contract, for both sides.",
+    },
+  ],
+  closing: "The usual way, one side always goes first and hopes. With Proteus, nobody has to.",
+  footnote: "Illustrative order. Real prices come from each seller's own rules, and we don't claim time or revenue savings. Agent buyers: Testnet. Disputes: In testing. Rules for receiving stablecoins differ by country.",
+};
+
+/**
+ * ERC-8183: the draft agent job standard, drawn as a track with one example order moving along it
+ * (dark Erc8183 component, id "erc-8183"). Each "adds" item sits at the step where it applies.
+ * The ERC-8183-compatible interface is Planned, not built.
+ */
+export const erc8183 = {
+  tag: "ERC-8183",
+  heading: "Agents are getting a standard way to order. Proteus orders already fit it.",
+  description:
+    "ERC-8183 is a draft standard for paid work between agents: a client locks the budget in escrow, a provider delivers, and an evaluator approves payment. A Proteus order follows the same steps, with what a real business needs on top.",
+  roles: [
+    { name: "Client", proteus: "The buyer, or their AI agent" },
+    { name: "Provider", proteus: "You, the seller" },
+    { name: "Evaluator", proteus: "The buyer's signed acceptance" },
+  ],
+  order: "Following the same order: 2,000 bottles at $8.40",
+  addsLabel: "Proteus adds",
+  steps: [
+    {
+      state: "Open",
+      standard: "Job and budget set",
+      amount: "$16,800 agreed",
+      proteus: "Negotiated in your rules. Both sides sign.",
+      adds: [{ title: "Negotiated price", status: "Live", body: "The standard takes the budget as given." }],
+    },
+    {
+      state: "Funded",
+      standard: "Budget locked in escrow",
+      amount: "$16,800 locked",
+      proteus: "Paid into escrow before you start. No gas for the buyer.",
+      adds: [],
+    },
+    {
+      state: "Submitted",
+      standard: "Provider delivers",
+      amount: "1,980 delivered",
+      proteus: "You record only the good bottles.",
+      adds: [{ title: "Disputes", status: "In testing", body: "The buyer can freeze the order for an arbiter instead of confirming. Proteus holds the arbiter key today." }],
+    },
+    {
+      state: "Completed",
+      standard: "Evaluator approves, provider paid",
+      amount: "$16,632 paid to you",
+      proteus: "The buyer confirms all 1,980 recorded. Paid in USDC.",
+      branch: { state: "Rejected or expired", amount: "$168 refunded", proteus: "The unspent balance for the 20 dented bottles, after the term + 3 days." },
+      adds: [
+        { title: "Paid per unit delivered", status: "Live", body: "Not all or nothing: the unrecorded rest is refunded." },
+        { title: "Reviews", status: "Live", body: "Only after a payout, on ERC-8004." },
+      ],
+    },
+  ] as { state: string; standard: string; amount: string; proteus: string; branch?: { state: string; amount: string; proteus: string }; adds: { title: string; status: string; body: string }[] }[],
+  closing: "Why it matters: when the interface ships, any ERC-8183 agent can order from you with no custom integration, on your prices and limits.",
+  footnote: "Status: Proteus orders run on DealEscrow on Arc mainnet today (Live). The ERC-8183-compatible interface is Planned and not built yet. ERC-8183 is a draft standard, and Arc lists it on testnet.",
+};
+
+/** Agent to agent: what the AI decides, buyers' agents, what they verify (Verification component, id "agents"). */
+export const verification = {
+  tag: "Agent to agent",
+  heading: "Your agent can sell to theirs.",
+  description:
+    "More orders will start with a buyer's AI agent that prices, pays and confirms outcomes on its own. Your deal agent negotiates with it under the same rules a person gets, and everything a careful agent should check is public on Arc.",
   counts: {
-    title: "Your products. Your economics.",
-    body: "What you sell, which packages exist, what each costs, and the margin and capacity rules behind them.",
-    chips: ["Products", "Packages", "Costs", "Pricing rules", "Minimum margins", "Capacity", "Discount limits"],
+    title: "What the AI decides, and what it can't.",
+    body: "It reads the request, chooses which offers to make and explains them. Code computes every price from your rules, and only signatures release money.",
+    chips: ["Reads the request", "Chooses the offer", "Explains the terms", "Price: your rules", "Floor: your rules", "Release: signatures", "Refund: the contract"],
   },
   pay: {
-    title: "Your approvals. Your visibility.",
-    body: "Choose what closes automatically and what waits for your signature. Every offer, approval, agreement and payment is inspectable.",
+    title: "A buyer's agent with a budget it can't exceed.",
+    body: "Claude or any MCP client can negotiate, verify you on Arc, fund and settle within a per-deal mandate its owner sets. Proven on Arc testnet; a hosted buyer agent is Coming soon.",
   },
   real: {
-    title: "Your flexibility.",
-    body: "Discount limits, negotiable commitments, payment terms and the exceptions you allow.",
-    signals: ["Discounts", "Commitments", "Terms", "Exceptions", "Approvals"],
+    title: "What a buyer's agent checks before it pays.",
+    body: "Your ERC-8004 identity, the policy commitment your quote came from, the wallet that gets paid and your record of settled orders.",
+    signals: ["Identity", "Price policy", "Payout wallet", "Settled orders", "Reviews"],
   },
   order: {
-    title: "The agent can negotiate. It cannot make up the rules.",
-    body: "The model proposes. Deterministic policy checks decide. The agreement moves the money.",
+    title: "The model proposes. The contract pays.",
+    body: "Only signatures move money: both sides on the terms, then the buyer on what was delivered.",
     waveA: "The model proposes terms",
-    waveB: "Policy checks enforce, payments execute",
-    chips: ["Model", "Policy"],
+    waveB: "Signatures release the money",
+    chips: ["Model", "Contract"],
   },
 };
 
-export const partners = {
-  tag: "Use cases",
-  heading: "Every business sells differently. Proteus AI works with that.",
-  description:
-    "Negotiate the work, not just the subscription. Different workloads deserve different agreements, and custom infrastructure shouldn’t need a custom sales process.",
-  steps: [
-    { number: "01", title: "AI customer support. Sell the right level of automation: resolutions, integrations, volume, spend limits." },
-    { number: "02", title: "AI voice. Turn a messy requirement into a clear offer: call volume, minutes, concurrency, commitments." },
-    { number: "03", title: "AI inference and compute. Sell capacity to real demand: workload, model, compute cost, term." },
-    { number: "04", title: "APIs and developer infrastructure. Answer developers without a sales call: coverage, rate limits, volume, terms." },
-    { number: "05", title: "AP and AR automation. Price the work by invoice, not by seat: volume, approval rules, exceptions, term." },
-    { number: "06", title: "Compliance and screening. Sell checks per counterparty: coverage, turnaround, retention, volume." },
-  ],
-};
-
+/** Why Arc: the Arc and Circle pieces behind the product, each with its docs status (Comparison component, id "why-arc"). */
 export const comparison = {
-  tag: "Differentiation",
-  heading: "A chatbot can answer a question. Proteus AI can make a deal.",
+  tag: "Built on Arc and Circle",
+  heading: "Why this runs on Arc.",
   description:
-    "You already have a place for questions, software for quotes and tools for billing. The commercial decision between them is still manual. Proteus AI connects the decision to the transaction.",
+    "Small negotiated orders are only worth escrowing when fees are in dollars and settlement is instant: on Arc, gas is paid in USDC and payments settle in under a second. Live: used on Arc mainnet. Testnet: proven on Arc testnet. In testing: built, not yet used by a real customer.",
   cards: [
-    { icon: "/assets/JXfbymshMLyfsl2323zgdqBGL4.svg", threshold: 0.46, title: "Understand the request", body: "Go beyond keywords and identify what the customer is actually trying to buy." },
-    { icon: "/assets/oj7jXSrLMVYLxliKOyzXN6J1ZRs.svg", threshold: 0.46, title: "Evaluate the economics", body: "Understand the price, the expected cost, and the conditions that make the deal acceptable." },
-    { icon: "/assets/bD52TK3MrelH1Oc6avERVA1JXw4.svg", threshold: 0.46, title: "Negotiate the terms", body: "Make offers and counteroffers within the authority the seller has granted." },
-    { icon: "/assets/GUrpYsrYM8fPXMf7BXBghK727Bs.svg", threshold: 0.71, title: "Execute the agreement", body: "Connect accepted terms to payment and service delivery." },
-    { icon: "/assets/vBsEOrQoXzW0ffeVyss7E7BMXc.svg", threshold: 0.42, title: "Keep the record", body: "Make the decision, agreement, and financial activity inspectable." },
-    { icon: "/assets/fBC0zzbZpTAZaOtfiJwmWF4bgO4.svg", threshold: 0.28, title: "When the customer is another agent", body: "A buyer agent knows its requirements, budget and deadline. Through the same API it can request a quote, accept terms and complete an authorized purchase, under the same seller policies a person gets." },
+    { icon: "/assets/JXfbymshMLyfsl2323zgdqBGL4.svg", threshold: 0.46, title: "DealEscrow · Live", body: "Holds each order's USDC and pays out only against both sides' EIP-712 signatures. Source-verified, not upgradeable, no fee logic and fuzz-tested; not yet audited. An ERC-8183-compatible interface is planned." },
+    { icon: "/assets/bD52TK3MrelH1Oc6avERVA1JXw4.svg", threshold: 0.46, title: "ERC-8004 identity and reviews · Live", body: "Each seller registers its agent from its own wallet, commits every price policy on chain, and earns reviews only from settled orders." },
+    { icon: "/assets/oj7jXSrLMVYLxliKOyzXN6J1ZRs.svg", threshold: 0.46, title: "Gasless funding and Circle Wallets", body: "Gasless funding: Live. Buyers fund with a USDC permit and Proteus pays the gas. Email sign-in that creates a Circle user-controlled wallet on Arc: Testnet. On mainnet you sign in with your own wallet until it's switched on." },
+    { icon: "/assets/GUrpYsrYM8fPXMf7BXBghK727Bs.svg", threshold: 0.71, title: "CCTP with Bridge Kit · Live", body: "Teams that already hold USDC, such as DAOs, hackathons and conferences, pay directly; others bring it from other chains inside the app." },
+    { icon: "/assets/vBsEOrQoXzW0ffeVyss7E7BMXc.svg", threshold: 0.42, title: "MCP, HTTP and x402 · Testnet", body: "Buyers' agents negotiate and pay through MCP or plain HTTP within a mandate; one-off calls pay with x402 through Circle's facilitator or Gateway batching. Works with a Circle Agent Wallet." },
+    { icon: "/assets/fBC0zzbZpTAZaOtfiJwmWF4bgO4.svg", threshold: 0.28, title: "Your own channels", body: "Website embed: Testnet. WhatsApp on your own number: In testing. Seller API and webhooks: In testing. The code is open on GitHub." },
   ],
 };
 
-
-/** "How Proteus AI compares": assessed from each vendor's public product pages in October 2026. */
+/** "How Proteus AI compares": assessed from each vendor's public product pages in October 2026. Not on the landing page; the docs render it. */
 export type CompareMark = "yes" | "partial" | "not-core" | "planned";
 export interface CompareVendor {
   name: string;
@@ -229,11 +371,11 @@ export const compare = {
     "Automated deal closing",
     "USDC payments and programmable settlement",
     "Usage-based fulfillment and reconciliation",
-    "Designed for small AI and internet businesses",
+    "Designed for small businesses that sell by quote",
   ],
   proteus: {
     name: "Proteus AI",
-    description: "The autonomous deal desk for internet businesses, in one flow.",
+    description: "The deal network for small businesses and AI agents, in one flow.",
     href: "/app",
     logo: "/assets/proteus-ai-wordmark.png",
     logoHeight: 18,
@@ -243,110 +385,66 @@ export const compare = {
   vendors: [
     { name: "DealHub", logo: "/assets/vendors/dealhub.svg", logoHeight: 13, description: "CPQ, DealRoom and billing for midsize and enterprise sales teams.", href: "https://dealhub.io", marks: ["not-core", "partial", "yes", "partial", "not-core", "partial", "not-core"], notes: [undefined, "Discount thresholds, approvals", undefined, "E-signature in DealRoom", undefined, "Usage pricing in billing", undefined] },
     { name: "Pactum AI", logo: "/assets/vendors/pactum.svg", logoHeight: 16, description: "Autonomous supplier negotiations for enterprise procurement.", href: "https://pactum.com", marks: ["yes", "partial", "partial", "partial", "not-core", "not-core", "not-core"], notes: ["Supplier side, for buyers", "Negotiates to savings targets", "Price, payment, rebate terms", "Agreements via ERP integration", undefined, undefined, undefined] },
-    { name: "Nue", logo: "/assets/vendors/nue.svg", logoHeight: 14, description: "Salesforce-native quote-to-revenue with usage billing.", href: "https://www.nue.io", marks: ["not-core", "not-core", "yes", "partial", "not-core", "yes", "partial"], notes: [undefined, undefined, undefined, "Quote to order in Salesforce", undefined, "Rating and billing", "SaaS scale-ups"] },
-    { name: "Sequence", logo: "/assets/vendors/sequence.svg", logoHeight: 22, description: "Billing and CPQ for B2B SaaS with custom contracts.", href: "https://www.sequencehq.com", marks: ["not-core", "not-core", "yes", "partial", "not-core", "yes", "partial"], notes: [undefined, undefined, undefined, "Signed quotes auto-execute", undefined, undefined, "Startups and scale-ups"] },
-    { name: "Metronome", logo: "/assets/vendors/metronome-wordmark.svg", logoHeight: 20, description: "Usage-based billing infrastructure, now part of Stripe.", href: "https://metronome.com", marks: ["not-core", "not-core", "yes", "not-core", "not-core", "yes", "partial"], notes: [undefined, undefined, "Contracts and overrides", undefined, undefined, "Metering and invoicing", "Self-serve starter plan"] },
+    { name: "Nue", logo: "/assets/vendors/nue.svg", logoHeight: 14, description: "Salesforce-native quote-to-revenue with usage billing.", href: "https://www.nue.io", marks: ["not-core", "not-core", "yes", "partial", "not-core", "yes", "not-core"], notes: [undefined, undefined, undefined, "Quote to order in Salesforce", undefined, "Rating and billing", "SaaS scale-ups"] },
+    { name: "Sequence", logo: "/assets/vendors/sequence.svg", logoHeight: 22, description: "Billing and CPQ for B2B SaaS with custom contracts.", href: "https://www.sequencehq.com", marks: ["not-core", "not-core", "yes", "partial", "not-core", "yes", "not-core"], notes: [undefined, undefined, undefined, "Signed quotes auto-execute", undefined, undefined, "Startups and scale-ups"] },
+    { name: "Metronome", logo: "/assets/vendors/metronome-wordmark.svg", logoHeight: 20, description: "Usage-based billing infrastructure, now part of Stripe.", href: "https://metronome.com", marks: ["not-core", "not-core", "yes", "not-core", "not-core", "yes", "not-core"], notes: [undefined, undefined, "Contracts and overrides", undefined, undefined, "Metering and invoicing", "Self-serve starter plan"] },
   ] as CompareVendor[],
   closing: "Others help you quote, negotiate, or bill. Proteus AI is built to take a deal from the first conversation to the final transaction.",
   footnote: "Assessed from each vendor's public product pages in October 2026. Names and logos belong to their owners and are shown for identification only. Proteus AI marks reflect what is implemented today. USDC settlement runs on Arc mainnet and testnet.",
 };
 
-export interface Plan {
-  name: string;
-  value: number;
-  period: string;
-  description: string;
-  features: string[];
-  cta: { label: string; href: string };
-  primary?: boolean;
-  tag?: string;
-}
-
-/** Not rendered: this copy doc has no pricing section, so `<Pricing />` is left out of App.tsx. Kept so the section compiles. */
-export const pricing = {
-  tag: "Pricing",
-  heading: "Pricing",
-  description: "",
-  toggle: { left: "Testnet", right: "Mainnet", badge: "" },
-  ownerNow: { name: "Seller", value: 0, period: "", description: "", features: [], cta: { label: "Get early access", href: links.earlyAccess } } as Plan,
-  partner: { name: "Buyer", value: 0, period: "", description: "", features: [], cta: { label: "Negotiate a deal", href: links.explore }, primary: true } as Plan,
-  mainnet: { name: "Mainnet", value: 0, period: "", description: "", features: [], cta: { label: "See how it works", href: links.howItWorks } } as Plan,
-  testnet: { name: "Testnet", value: 0, period: "", description: "", features: [], cta: { label: "See how it works", href: links.howItWorks } } as Plan,
-  includes: "INCLUDES",
-};
-
-export const trust = {
-  tag: "Payments",
-  heading: "When the deal is made, the money should follow.",
-  description:
-    "Built with Circle and Arc so an accepted agreement and its USDC payment are one thing. Money moves because both sides signed, never because a model decided.",
-  cards: [
-    { title: "Signed and funded", body: "Price, package, volume and payment conditions are signed by both sides, then funded by the buyer." },
-    { title: "Usage-based delivery", body: "Delivered units are metered against the prepaid commitment." },
-    { title: "Settled and refunded", body: "The seller is paid for countersigned usage. Unused balance goes back to the buyer." },
-    { title: "Verifiable records", body: "Every deal links to its onchain settlement evidence." },
-  ],
-};
-
-export const record = {
-  tag: "Business insights",
-  heading: "Every negotiation tells you something about your business.",
-  description:
-    "A discount request, five asks for the same integration, deals that keep failing at one price: each one is a signal. Proteus AI turns conversations into a commercial record you can learn from.",
-  entries: [
-    { quote: "Four of the last five buyers asked for Shopify before price. Demand tells you what to build next.", name: "Northwind Commerce", role: "Demand", company: "illustrative example", initials: "NC", portrait: { src: "/assets/logos/mark-northwind.png", alt: "Northwind Commerce" } },
-    { quote: "Offers above $1.20 a call get countered. Offers at $1.10 close. Pricing shows where the market actually is.", name: "Lumen Voice", role: "Pricing", company: "illustrative example", initials: "LV", portrait: { src: "/assets/logos/mark-lumen.png", alt: "Lumen Voice" } },
-    { quote: "A 250-contract deal at $14 clears a 35% margin after review cost. Deal quality compares price to what delivery costs.", name: "Meridian Legal", role: "Deal quality", company: "illustrative example", initials: "ML", portrait: { src: "/assets/logos/mark-meridian.png", alt: "Meridian Legal" } },
-    { quote: "Of six accepted offers, five were funded and four fully used. Performance follows a deal from signed to settled.", name: "Harbor Logistics", role: "Performance", company: "illustrative example", initials: "HL", portrait: { src: "/assets/logos/mark-harbor.png", alt: "Harbor Logistics" } },
-    { quote: "Two quotes waited for the owner this week, both above the $4,000 threshold. Exceptions show what needed a signature and why.", name: "Vantage API", role: "Exceptions", company: "illustrative example", initials: "VA", portrait: { src: "/assets/logos/mark-vantage.png", alt: "Vantage API" } },
-    { quote: "Every offer, counteroffer, approval and settlement sits in one record with the transaction hash beside it.", name: "Kaidata", role: "Visibility", company: "illustrative example", initials: "KD", portrait: { src: "/assets/logos/mark-kaidata.png", alt: "Kaidata" } },
-    { quote: "Deals kept failing at 200 images. Buyers wanted 400 with approval built in. The pattern became a new tier.", name: "Orbit Labs", role: "Signal", company: "illustrative example", initials: "OL", portrait: { src: "/assets/logos/mark-orbit.png", alt: "Orbit Labs" } },
-  ],
-};
-
 export const faq = {
   tag: "FAQ",
   heading: "Frequently asked questions",
-  description: "What it is, who it is for, what you control, and what is live.",
+  description: "What it does, what it costs, how you get paid, what happens when something goes wrong, and what is live today.",
   items: [
-    { q: "What is Proteus AI?", a: "The autonomous deal service desk for internet businesses. It negotiates custom terms within your rules, has both sides sign, and connects the agreement to payment and delivery." },
-    { q: "Who is it for?", a: "AI and API companies, developer infrastructure, and internet businesses whose customers need custom packages, usage commitments or negotiated pricing." },
-    { q: "Does it replace a salesperson?", a: "It handles eligible negotiations end to end. Large or unusual deals can still involve people." },
-    { q: "Can it offer discounts?", a: "Yes, within the limits you set. It prefers trading terms, such as a smaller package or a longer commitment, over cutting price." },
-    { q: "How does it know a deal is profitable?", a: "It checks projected contribution margin against the costs and policies you supply before any offer goes out. Accuracy depends on your inputs." },
-    { q: "Can it change a deal after payment?", a: "No. Accepted terms are signed by both sides and hold for the term. Changes follow the agreement." },
-    { q: "What does the seller control?", a: "Products, costs, pricing rules, minimum margin, capacity, approval thresholds and payout wallet." },
-    { q: "Can customers pay in USDC?", a: "Yes. Deals are funded into escrow and settled in USDC on Arc through Circle’s tooling. Today this runs on Arc testnet." },
-    { q: "Where does the money live?", a: "In a Circle Wallet. Every account gets one at sign-in: a user-controlled wallet on Arc whose key is split between Circle and a PIN only you know, so every payment is approved by you. AI agents bring a Circle Agent Wallet with spending limits their owner sets. MetaMask and other wallets work too." },
-    { q: "Can another AI agent negotiate with Proteus AI?", a: "Yes, through the same API a person uses: request a quote, accept terms, fund and call the service." },
-    { q: "How do I get started?", a: "Sign in, publish one product with its tiers, costs and margin floor, point it at your endpoint, and let customers negotiate. Close one good deal, then add more." },
-    { q: "Is Proteus AI live?", a: "The full loop runs on Arc testnet today: negotiation, signed terms, escrow, metered delivery, settlement and refund. The same contract is deployed on Arc mainnet, where we have run one real loop with our own USDC. Mainnet access for customers follows an audit." },
+    { q: "What is Proteus AI?", a: "The deal network for businesses and AI agents on Arc, starting with businesses that sell custom orders. Your deal agent answers buyers and negotiates inside your prices and limits, the buyer pays into escrow before you start, and the money is released to you when they confirm delivery." },
+    { q: "How is this different from a payment link or an escrow service?", a: "A payment link gets you paid but leaves the quoting to you and gives the buyer no protection. An escrow service protects both sides but charges a fee on each deal, and you still quote by hand. Proteus quotes, negotiates and holds the payment in one flow, with no fee on your orders." },
+    { q: "What does the AI actually decide?", a: "It reads each request, decides which offers to make, sizes them to the buyer's budget and explains the terms. It does not set prices, which are computed in code from your rules, and it never moves money: only the buyer's and the seller's signatures do. A reply that states a number your rules did not produce is replaced before the buyer sees it." },
+    { q: "Can the AI agree to a bad deal?", a: "No. Prices are calculated from your tiers, costs and limits, not by the AI. It cannot go below your margin floor or past your discount limit, and orders above your approval limit wait for you." },
+    { q: "Can my buyers' AI agents buy from me?", a: "Yes. A buyer's agent can negotiate, check your identity and price policy on Arc, and fund the order within a limit its owner sets, through MCP or plain HTTP. This is proven on Arc testnet, not yet on mainnet. A hosted buyer agent you can use in the browser is Coming soon." },
+    { q: "What does it cost?", a: "Nothing during the pilot: no subscription, no listing fee and no cut of your orders. Buyers never pay a fee. Pilot sellers will be told before any fee applies." },
+    { q: "How do I get paid?", a: "In USDC, a digital dollar issued by Circle, sent to the wallet you sign up with. You are paid for what the buyer confirms as delivered. Rules for receiving stablecoins differ by country, so check yours, including tax, before you start." },
+    { q: "Why USDC and Arc?", a: "Because escrow has to be cheap and instant to make sense for a $1,500 order. On Arc, network fees are paid in USDC rather than a volatile token, payments settle in under a second, and the ERC-8004 identity and reputation registries are already live. Circle's tools let buyers sign in, fund without gas and bring USDC from other chains." },
+    { q: "How does Proteus relate to ERC-8183?", a: "ERC-8183 is a draft Ethereum standard for paid jobs between agents: the client funds escrow, the provider delivers, and an evaluator completes the job (paying the provider) or rejects it (refunding the client). A Proteus order follows that lifecycle with the buyer as evaluator, and adds the parts the standard leaves open: negotiating the price inside your rules, paying only for the units the seller records as delivered (the rest is refunded) rather than all or nothing, a dispute path for the buyer and reviews from settled orders. DealEscrow does not implement the ERC-8183 interface today; a compatible version is planned, so agents built for the standard can order from you directly." },
+    { q: "What if a buyer never confirms delivery?", a: "Then the money is not released, and after the term and a 3-day grace period the unconfirmed amount becomes refundable to the buyer. Only the buyer can open a dispute through Proteus today, so record each delivery with proof and use your approval limit for large orders from new buyers. Delivery dates agreed in chat are not part of the signed terms." },
+    { q: "How are disputes settled?", a: "The buyer can open a dispute through Proteus instead of confirming delivery, and the arbiter splits the money still in escrow between the two sides. Disputes are In testing: today Proteus holds the arbiter key and there is no deadline for a decision. An independent arbiter and a dispute timeout are Coming soon." },
+    { q: "Do my buyers need crypto?", a: "They need USDC. Teams that already hold it pay directly; others can bring it from another network inside the app. Funding an order needs no network fee: the buyer signs and Proteus pays the gas." },
+    { q: "Who holds the money and the keys?", a: "Orders wait in the escrow contract, never in a Proteus account. Your wallet owns your account and receives every payout. Proteus holds an encrypted key that countersigns offers on your behalf; it cannot send your payouts anywhere else." },
+    { q: "Is it safe?", a: "The escrow contract is public, source-verified, not upgradeable and covered by unit and invariant tests. It has not been independently audited yet. Every known gap is listed in the docs under Limits and known gaps." },
+    { q: "Is Proteus AI live?", a: "Yes, on Arc mainnet. One real business is listed so far, Shoonya Store, a merch studio. Its first customer order, 6.60 USDC, paid out on 11 Nov 2026; the buyer wallet was later found linked to a Shoonya team account, and the public review says so. AI agents buying is proven on Arc testnet, not yet on mainnet." },
+    { q: "How do I start?", a: "Sign in with your wallet, add a product with its price tiers and private limits, and register your business in one step. It takes about 5 minutes, and you can practise with free test money first." },
+    { q: "How do I get help?", a: "The docs cover setup, fees, security and limits. For questions or problems, open an issue on GitHub; the whole codebase is public there." },
   ],
 };
 
 export const footer = {
-  heading: "Let your business do more of the selling.",
-  line: "Customers already tell you what they need, with budgets and deadlines. Proteus AI gives them someone ready to make the deal: an agent that knows your economics, negotiates within your rules and moves the opportunity to payment.",
-  cta: { label: "Negotiate a deal", href: links.explore },
+  heading: "Answer every buyer in seconds.\nGet paid for what you deliver.",
+  line: "Your deal agent quotes people and their AI agents inside your rules. Escrow on Arc holds the money before you start and pays you in USDC when delivery is confirmed. Free during the pilot.",
+  cta: { label: "Start free", href: links.sell },
   brand: "Proteus AI",
-  tagline: "Your business, ready to make a deal.",
+  tagline: "The deal network for businesses and AI agents, built on Arc.",
   columnTitle: "Product",
   columns: [
-    { label: "Product", href: "/#features" },
     { label: "How it works", href: "/#how-it-works" },
-    { label: "Use cases", href: "/#partners" },
+    { label: "Payment protection", href: "/#protection" },
+    { label: "For agents", href: "/#agents" },
+    { label: "Why Arc", href: "/#why-arc" },
     { label: "FAQ", href: "/#faqs" },
+    { label: "Seller quickstart", href: links.sellerQuickstart },
+    { label: "Security", href: links.security },
     { label: "Docs", href: links.docs },
-    { label: "Blog", href: links.blog },
+    { label: "Get help", href: links.help },
     { label: "GitHub", href: links.github },
   ],
   copyright: "© 2026 Proteus AI. Built with Circle and Arc.",
   right: { label: "Public records", href: links.record },
 };
 
+/** Mirrors the <title> and meta tags in site/index.html; keep the two in step. */
 export const meta = {
-  title: "Proteus AI | The autonomous deal service desk for internet businesses",
-  description: "Proteus AI negotiates custom deals for internet businesses, protects the margin, and turns the agreement into a paid transaction.",
-  ogTitle: "Your business should be able to make a deal.",
-  ogDescription: "Meet Proteus AI, the autonomous deal service desk for internet businesses. It understands what you sell, what it costs, and which deals are worth closing.",
+  title: "Proteus AI | Win the order in minutes, get paid when it's delivered",
+  description: "Proteus is an AI sales agent for businesses that sell custom orders. It negotiates with your buyers and their AI agents inside your prices and limits, and every order is paid upfront into escrow on Arc and released to you in USDC when the buyer confirms delivery.",
+  ogTitle: "Win the order in minutes. Get paid when it's delivered.",
+  ogDescription: "An AI sales agent that negotiates inside your rules, with every order paid upfront into USDC escrow on Arc and released when the buyer confirms delivery.",
 };

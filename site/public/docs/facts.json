@@ -1907,7 +1907,7 @@
     "vendors": [
       {
         "name": "Proteus AI",
-        "description": "The autonomous deal desk for internet businesses, in one flow."
+        "description": "The deal network for small businesses and AI agents, in one flow."
       },
       {
         "name": "DealHub",
@@ -2125,7 +2125,7 @@
         ]
       },
       {
-        "capability": "Designed for small AI and internet businesses",
+        "capability": "Designed for small businesses that sell by quote",
         "marks": [
           {
             "vendor": "Proteus AI",
@@ -2141,17 +2141,17 @@
           },
           {
             "vendor": "Nue",
-            "mark": "Partial",
+            "mark": "Not core focus",
             "note": "SaaS scale-ups"
           },
           {
             "vendor": "Sequence",
-            "mark": "Partial",
+            "mark": "Not core focus",
             "note": "Startups and scale-ups"
           },
           {
             "vendor": "Metronome",
-            "mark": "Partial",
+            "mark": "Not core focus",
             "note": "Self-serve starter plan"
           }
         ]
