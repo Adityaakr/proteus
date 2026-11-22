@@ -67,7 +67,7 @@ export function knowledgeLines(facts: ComposeInput["facts"]): string {
   const lines = [
     ...k.options.map((o) => `${clip(o.name, 30)}: ${o.values.slice(0, 30).map((v) => clip(v, 40)).join(", ")}`),
     ...(k.variants.length && !k.options.length ? [`Variants: ${k.variants.slice(0, 20).map((v) => clip(v, 60)).join(", ")}`] : []),
-    ...k.notes.slice(0, 4).map((n) => clip(n)),
+    ...k.notes.slice(0, 8).map((n) => clip(n)),
     ...k.policies.slice(0, 3).map((p) => `${p.kind} policy: ${clip(p.summary, 240)}`),
   ];
   return lines.length ? lines.map((l) => `- ${l}`).join("\n") : "none";

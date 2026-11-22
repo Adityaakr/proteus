@@ -332,22 +332,31 @@ POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport 
 ```
 
 - `BuilderImport`:
-  - `{ id, url, status: "running"|"ready"|"failed"|"published", progress[], error, transcript[], org, network, helpers: { model, firecrawl } }`.
-  - Once read: `result` (the scraped catalog: brand, products, policies, hints, sources tried, suggested FX rate), `answers` (the seller's own, including private floors), `draft` (`{ included, ready, next[], items[] }`) and `published`.
+  - `{ id, url, status: "running"|"ready"|"failed"|"published", progress[], error, transcript[], org, network, helpers: { model, browser: "local"|"cloud"|"off", firecrawl } }`.
+  - Once read: `result` (the scraped catalog: brand, products, policies, hints, sources tried, suggested FX rate, `elsewhere` catalogues on other services, `browser: { engine, pages }` when pages were rendered), `answers` (the seller's own, including private floors), `draft` (`{ included, ready, next[], items[] }`, each item with `check: true` when it was read from page text) and `published`.
+  - Each product carries its `source`: `shopify`, `woocommerce`, `json-ld` and `browser` (structured data on a rendered page) are exact; `page-layout`, `firecrawl` and `page-text` were read from what the page shows and are marked for the seller to check.
 - Only the account that started an import can read it. Answers are stored encrypted (`catalog_imports.answers_enc`).
 - Source chain, first that yields products:
   1. Shopify `/products.json`.
   2. WooCommerce `/wp-json/wc/store/v1/products`.
-  3. schema.org Product/Offer JSON-LD on sitemap product pages.
-  4. Firecrawl, when `FIRECRAWL_API_KEY` is set.
-  5. Page text read by the deployment's model.
+  3. schema.org Product/Offer JSON-LD on product pages from the sitemap or the homepage's links (`/products/`, `/product-page/` and similar paths).
+  4. A real browser ([`importer/browser-source.ts`](../server/src/services/importer/browser-source.ts)), unless `IMPORTER_BROWSER=off`:
+     - It opens the homepage, then the most promising pages: menu and shop links, category and collection pages, routes behind shop buttons, and next-page links. It skips account, cart, blog and policy pages.
+     - On each page it scrolls, presses "load more", and takes, in order: structured data the rendered page carries; product cards and a product's own page read from the layout (name, price and currency as shown, options); with no prices anywhere, the site's list of product types.
+     - When nothing has a price and a model is configured, the model reads the rendered text.
+     - Engine: `BROWSER_CDP_URL` (a cloud browser) when set, else headless Chromium on the server.
+  5. Without a working browser: Firecrawl when `FIRECRAWL_API_KEY` is set, then the static page text read by the deployment's model.
 
-  Model output is kept only when the product name and its price appear in the page text.
+  Model output is kept only when the product name, its price and each option value appear in the page text. No source invents a price: a product without one shown stays priceless until the seller sets it.
+- Catalogues on another service (DocSend, Google Drive, Dropbox, Notion, Canva, or a linked PDF) are listed in `result.elsewhere` and never opened.
 - Limits:
   - robots.txt is honoured.
   - At most 60 product pages and 90 requests per import, with a 400 ms pause between them.
   - Each response is capped at 2 MB, and each request times out after 12 s.
   - https on port 443 only. Private, loopback and link-local addresses are refused inside the socket's DNS lookup, at every redirect ([`lib/net-guard.ts`](../server/src/lib/net-guard.ts)).
+  - The browser: at most 24 pages, 150 s, 4,000 requests and 60 MB per import, two browsers per server at once.
+    - It does not load images, fonts, media, analytics or other sites' frames. WebSockets and service workers are blocked, and robots.txt applies to every page and data request on the seller's site. It never logs in, fills a form or buys.
+    - A local browser reaches the network only through [`importer/egress-proxy.ts`](../server/src/services/importer/egress-proxy.ts). The proxy allows CONNECT to port 443 only, resolves the host itself, refuses private, loopback and link-local addresses, and connects to the address it checked. Loopback is forced through the proxy too.
   - 8 imports per account per hour.
 - `AnswersPatch`:
   - `{ businessName?, businessType?, usdRate?, include?: { [productKey]: boolean }, products?/categories?: { [key]: PriceRule }, defaults?: PriceRule & { maxUnitsPerDeal?, approvalThresholdUsd?, termDays? }, floorsSet?, bulkAnswered?, customOrders? }`.

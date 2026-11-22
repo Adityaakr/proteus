@@ -15,6 +15,8 @@ for (const p of [resolve(process.cwd(), ".env"), resolve(process.cwd(), "server/
   }
 }
 
+/** An empty line copied from .env.example ("FIRECRAWL_API_KEY=") means unset, not an invalid value. */
+const unsetIfEmpty = <T extends z.ZodType>(schema: T) => z.preprocess((v) => (v === "" ? undefined : v), schema);
 const hex32 = z.string().regex(/^0x[0-9a-fA-F]{64}$/);
 const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/);
 
@@ -53,7 +55,16 @@ const Env = z.object({
   OPENROUTER_API_KEY: z.string().optional(),
   OPENROUTER_MODEL: z.string().default("anthropic/claude-sonnet-4.5"),
   /** Optional. Lets the website importer render pages that need JavaScript through Firecrawl. Off when unset. */
-  FIRECRAWL_API_KEY: z.string().min(8).optional(),
+  FIRECRAWL_API_KEY: unsetIfEmpty(z.string().min(8).optional()),
+  /**
+   * The website importer opens JavaScript-only sites in a real browser. "auto" (default) uses headless Chromium on
+   * this server when one is installed (`npx playwright install chromium`, or set BROWSER_EXECUTABLE_PATH); "off"
+   * never starts a browser. BROWSER_CDP_URL points it at a cloud browser instead (a wss:// Chrome DevTools URL from
+   * Browserless, Browserbase, Steel or similar, carrying that provider's key).
+   */
+  IMPORTER_BROWSER: unsetIfEmpty(z.enum(["auto", "off"]).default("auto")),
+  BROWSER_EXECUTABLE_PATH: unsetIfEmpty(z.string().optional()),
+  BROWSER_CDP_URL: unsetIfEmpty(z.string().regex(/^wss?:\/\//, "a ws:// or wss:// Chrome DevTools URL").optional()),
   /** Google OAuth client (Web application) that lets a buyer connect its Google Calendar to a scheduling service. */
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
@@ -117,6 +128,8 @@ export const features = {
   network: networkOf(env.CHAIN_ID),
   openrouter: Boolean(env.OPENROUTER_API_KEY),
   firecrawl: Boolean(env.FIRECRAWL_API_KEY),
+  /** Which browser the website importer may use: a cloud one (BROWSER_CDP_URL), one on this server, or none. */
+  importerBrowser: env.IMPORTER_BROWSER === "off" ? ("off" as const) : env.BROWSER_CDP_URL ? ("cloud" as const) : ("local" as const),
   anthropic: Boolean(env.ANTHROPIC_API_KEY),
   privyDevBypass: env.PRIVY_DEV_BYPASS === "1" && env.NODE_ENV !== "production",
   circle: Boolean(env.CIRCLE_API_KEY && env.CIRCLE_ENTITY_SECRET && env.CIRCLE_WALLET_ID),

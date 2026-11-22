@@ -4,7 +4,15 @@
  * seller confirms it. Prices stay in the website's currency until the seller confirms a USDC conversion.
  */
 
-export type SourceId = "shopify" | "woocommerce" | "json-ld" | "firecrawl" | "page-text";
+/**
+ * Where a product came from. The first four are exact (a store API or structured data the site publishes, also when
+ * the browser had to render the page to see it). "page-layout" and "page-text" were read off the visible page, by
+ * the layout or by a model, and are shown to the seller as "read from page text, please check".
+ */
+export type SourceId = "shopify" | "woocommerce" | "json-ld" | "browser" | "page-layout" | "firecrawl" | "page-text";
+
+/** Sources whose products the seller must check: they were read from what the page shows, not from catalog data. */
+export const CHECK_SOURCES: ReadonlySet<SourceId> = new Set(["page-layout", "firecrawl", "page-text"]);
 
 export interface ImportedVariant {
   name: string;
@@ -76,6 +84,10 @@ export interface ImportResult {
   pagesFetched: number;
   /** Set when a cap stopped the read early. */
   limited?: string;
+  /** Catalogues the site points to on another service (DocSend, Google Drive, a PDF) that the importer does not open. */
+  elsewhere?: { url: string; host: string; label: string }[];
+  /** Set when pages were opened in a browser. */
+  browser?: { engine: string; pages: number };
 }
 
 export type BusinessType = "merch" | "apparel" | "packaging" | "food" | "beauty" | "home" | "electronics" | "services" | "other";
@@ -88,6 +100,17 @@ export const LIMITS = {
   /** Products kept from any source. */
   products: 120,
   bytesPerResponse: 2 * 1024 * 1024,
+  /** Pages opened in the browser in one import (home, shop and category pages, next pages, product pages). */
+  renderedPages: 24,
+  /** The whole browser read, after which the products found so far are kept. */
+  crawlMs: 150_000,
+  /** One page: load, scroll and "load more". */
+  renderMs: 20_000,
+  /** Requests the browser may make in one import (scripts, data calls). */
+  renderRequests: 4_000,
+  /** Bytes in and out of the browser in one import. */
+  renderBytes: 60 * 1024 * 1024,
+  renderTextChars: 30_000,
   /** Pause between two requests to the seller's site. */
   delayMs: 400,
   textPerField: 600,

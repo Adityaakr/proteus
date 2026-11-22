@@ -37,7 +37,8 @@ export function extractRuleBased(input: ExtractInput): Requirements {
 
   // Desired units: "2,000 resolutions", "around 2000 answers", "1500 units"
   const unitWord = input.unitLabel.replace(/s$/, "");
-  const unitsRe = new RegExp(`([\\d,]+)\\s*(?:eligible |ai |automated |order-status |order status )?(?:${unitWord}s?|units|answers|resolutions|calls|requests? (?:per|a) month)`, "i");
+  // Goods are also counted in generic words: "60 bars of soap", "200 pcs", "50 pairs".
+  const unitsRe = new RegExp(`([\\d,]+)\\s*(?:eligible |ai |automated |order-status |order status )?(?:${unitWord}s?|units|answers|resolutions|calls|requests? (?:per|a) month|pieces|pcs|items|bars|pairs|packs|sets)\\b`, "i");
   const units = latest.match(unitsRe) ?? (req.desiredUnits ? null : text.match(unitsRe));
   if (units?.[1]) {
     const n = BigInt(units[1].replace(/,/g, ""));
@@ -118,6 +119,11 @@ export function composeRuleBased(input: ComposeInput): string {
   if (k) {
     if (/colou?rs?|sizes?|variants?|options?/.test(lastBuyer)) for (const o of k.options.slice(0, 2)) lines.push(`${o.name}: ${o.values.slice(0, 12).join(", ")}${o.values.length > 12 ? ` and ${o.values.length - 12} more` : ""}.`);
     if (/minimum|moq|bulk|custom|logo|print|brand/.test(lastBuyer)) lines.push(...k.notes.filter((n) => /minimum|bulk|custom|sold as listed/i.test(n)).slice(0, 2));
+    // Lead times and samples, as the seller's own site states them.
+    if (/how long|lead time|turnaround|production|deliver|dispatch|ship|sample|\bdays?\b/.test(lastBuyer)) {
+      const said = k.notes.filter((n) => /\bdays?\b|weeks?|deliver|production|dispatch|ship|sample/i.test(n) && !lines.includes(n)).slice(0, 3);
+      if (said.length) lines.push(`From ${input.catalog?.sellerName ?? "the seller"}'s site: ${said.join(" ")}`);
+    }
     const pol = /ship|deliver/.test(lastBuyer) ? k.policies.find((p) => p.kind === "shipping") : /return|refund|exchange/.test(lastBuyer) ? k.policies.find((p) => p.kind === "returns") : undefined;
     if (pol) lines.push(`From ${input.catalog?.sellerName ?? "the seller"}'s ${pol.kind} policy: ${pol.summary.slice(0, 220)}`);
   }

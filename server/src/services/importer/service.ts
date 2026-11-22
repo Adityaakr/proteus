@@ -22,9 +22,10 @@ import { limit } from "../../lib/ratelimit";
 import { createOrg, createProduct, userOrg } from "../accounts";
 import { counterAskText, counterReply, productFacts } from "../negotiation";
 import { applyStated, buildDraft, emptyAnswers, engineFor, MAX_PUBLISH, parseFloorsCsv, parseStated, STORE_CATEGORY, toCreateInput, usdString, type BuilderAnswers, type Draft, type DraftItem, type StatedAnswers, type StatedRule } from "./draft";
+import { pageRenderer } from "./browser";
 import { pageExtractor, renderedPages, suggestUsdRate } from "./providers";
 import { normalizeSiteUrl, runImport } from "./run";
-import type { BusinessType, ImportProgress, ImportResult } from "./types";
+import { CHECK_SOURCES, type BusinessType, type ImportProgress, type ImportResult } from "./types";
 
 type Row = typeof schema.catalogImports.$inferSelect;
 type StoredResult = ImportResult & { fx?: { currency: string; rate: string; asOf: string; source: string } | null };
@@ -105,6 +106,7 @@ export async function runInBackground(importId: string, url: string, deps: Parti
       fetch: deps.fetch ?? safeFetch,
       extractor: deps.extractor ?? pageExtractor(),
       rendered: deps.rendered ?? renderedPages(),
+      renderer: "renderer" in deps ? deps.renderer : pageRenderer(),
       delayMs: deps.delayMs,
       onProgress: (p) => {
         // A "working" line is replaced by the next line with the same stem ("Reading product pages (10 of 40)").
@@ -136,8 +138,13 @@ export async function runInBackground(importId: string, url: string, deps: Parti
 function summaryLine(r: StoredResult): string {
   const priced = r.products.filter((p) => p.price).length;
   const cats = new Set(r.products.map((p) => p.category).filter(Boolean)).size;
-  if (!r.products.length) return `I read ${r.site.host} but found no products I can sell from. You can still add them with the product form.`;
-  return `I read ${r.brand.name ?? r.site.host}: ${r.products.length} products${cats ? ` in ${cats} categories` : ""}. ${priced === r.products.length ? "Every one has a price" : `${priced} show a price${r.fx ? ` in ${r.fx.currency}` : ""} and ${r.products.length - priced} are quote-only`}. I need a few answers from you before your deal agent can sell them.`;
+  const how = r.browser ? ` I opened ${r.browser.pages} page${r.browser.pages === 1 ? "" : "s"} in a browser to see them the way a shopper does.` : "";
+  const away = r.elsewhere?.length ? ` Your catalogue link opens on ${r.elsewhere[0]!.host}, which I do not open; give me its prices here instead.` : "";
+  if (!r.products.length) return `I read ${r.site.host} but found no products I can sell from.${how}${away} You can try your shop page's address, or add products with the product form.`;
+  const checked = r.products.filter((p) => CHECK_SOURCES.has(p.source)).length;
+  const check = checked ? ` I read ${checked === r.products.length ? "them" : `${checked} of them`} from what your pages show, not from catalog data, so please check each name and price.` : "";
+  const prices = priced === r.products.length ? "Every one has a price" : priced === 0 ? "Your site shows no prices, so I will ask you for them" : `${priced} show a price${r.fx ? ` in ${r.fx.currency}` : ""} and ${r.products.length - priced} are quote-only`;
+  return `I read ${r.brand.name ?? r.site.host}: ${r.products.length} products${cats ? ` in ${cats} categories` : ""}. ${prices}.${how}${check}${away} I need a few answers from you before your deal agent can sell them.`;
 }
 
 /* ---------------------------------------------------------------- view */
@@ -149,6 +156,7 @@ const itemView = (i: DraftItem) => ({
   category: i.category,
   included: i.included,
   unitLabel: i.unitLabel,
+  check: i.check,
   source: i.source ?? null,
   listUsd: i.listUsd !== undefined ? usdString(i.listUsd) : null,
   floorUsd: i.floorUsd !== undefined ? usdString(i.floorUsd) : null,
@@ -487,7 +495,10 @@ export async function publishImport(userId: string, importId: string, body: { co
   return importView(userId, importId);
 }
 
-/** Which optional helpers this deployment has (no secrets): a model for page text and chat answers, and Firecrawl. */
+/**
+ * Which optional helpers this deployment has (no secrets): a model for page text and chat answers, a browser for
+ * JavaScript sites (a cloud one, one on this server, or none), and Firecrawl.
+ */
 export function importerFeatures() {
-  return { model: features.anthropic ? CLAUDE_FOR["import:extract"]!.model : features.openrouter ? env.OPENROUTER_MODEL : null, firecrawl: features.firecrawl };
+  return { model: features.anthropic ? CLAUDE_FOR["import:extract"]!.model : features.openrouter ? env.OPENROUTER_MODEL : null, browser: features.importerBrowser, firecrawl: features.firecrawl };
 }

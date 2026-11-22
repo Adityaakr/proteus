@@ -242,6 +242,29 @@ describe("the agent answers from imported website facts", () => {
     expect(reply).toContain("Minimum order 10 tees.");
     expect(reply).not.toContain("separate product");
   });
+
+  it("counts goods in generic words: bars, pieces, pairs", async () => {
+    const { extractRuleBased } = await import("../src/agent/rule-based");
+    const base = { unitLabel: "piece", prior: { integrations: [], notes: [], openQuestions: [] } };
+    expect(extractRuleBased({ ...base, turns: [{ role: "buyer", content: "We want 60 bars of your soap, budget around $480" }] } as never).desiredUnits).toBe(60n);
+    expect(extractRuleBased({ ...base, turns: [{ role: "buyer", content: "Need 200 pcs by March" }] } as never).desiredUnits).toBe(200n);
+  });
+
+  it("answers lead times and samples from the FAQ the site states", async () => {
+    const { composeRuleBased } = await import("../src/agent/rule-based");
+    const notes = ["Minimum order 50 hoodies.", "How long does production take? 8–10 days standard.", "Can I get samples? Yes! Happy to send samples before full production."];
+    const reply = composeRuleBased({
+      productName: "Hoodies",
+      unitLabel: "hoodie",
+      requirements: { integrations: [], notes: [], openQuestions: [] },
+      offers: [],
+      rejected: [],
+      injectionDetected: false,
+      turns: [{ role: "buyer", content: "How long does production take, and can we get a sample first?" }],
+      facts: { termDays: 30, refundPolicy: "r", billableUnit: "b", supportedIntegrations: [], capabilities: [], knowledge: { options: [], variants: [], notes, policies: [] } },
+    });
+    expect(reply).toContain("From the seller's site: How long does production take? 8–10 days standard. Can I get samples? Yes! Happy to send samples before full production.");
+  });
 });
 
 describe("a Shopify store", () => {

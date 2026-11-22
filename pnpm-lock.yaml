@@ -108,6 +108,9 @@ importers:
       openai:
         specifier: ^7.34.0
         version: 7.34.0(undici@6.19.7)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(zod@4.6.7)
+      playwright-core:
+        specifier: 1.64.1
+        version: 1.64.1
       postgres:
         specifier: ^3.4.9
         version: 3.4.9

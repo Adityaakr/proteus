@@ -14,7 +14,8 @@ export interface SourceOutcome {
   pages?: { url: string; html: string }[];
 }
 
-export const PRODUCT_PATH = /\/(products?|p|item|items|shop\/[^/]+\/[^/]+|store\/[^/]+)\/[^/?#]{2,}/i;
+/** Product pages by path: /products/x, /p/x, /item/x, /shop/cat/x, /store/x, and Wix's /product-page/x. */
+export const PRODUCT_PATH = /\/(products?|product-page|p|item|items|shop\/[^/]+\/[^/]+|store\/[^/]+)\/[^/?#]{2,}/i;
 
 const isJson = (ct: string, body: string) => /json/i.test(ct) || /^\s*[[{]/.test(body);
 const safeJson = (body: string): unknown => {
@@ -200,7 +201,7 @@ export interface PageText {
 /** A model that lists products from page text. The text is untrusted; results are checked against it. */
 export interface PageExtractor {
   readonly name: string;
-  extract(pages: PageText[], siteName: string): Promise<{ name: string; price?: string; currency?: string; category?: string; description?: string; url?: string }[]>;
+  extract(pages: PageText[], siteName: string): Promise<{ name: string; price?: string; currency?: string; category?: string; description?: string; url?: string; options?: { name: string; values: string[] }[] }[]>;
 }
 
 /** A rendered-page provider (Firecrawl) for sites whose catalog only appears after JavaScript runs. */
@@ -236,7 +237,12 @@ export function verifyAgainstText(items: Awaited<ReturnType<PageExtractor["extra
       }
     })();
     const description = cleanText(it.description, LIMITS.textPerField) || undefined;
-    products.push({ key: stableKey(url, name), name, description, url, category: cleanText(it.category, 60) || undefined, price, currency: price ? cleanText(it.currency, 3).toUpperCase() || undefined : undefined, variants: [], options: [], hints: description ? hintsFrom(description, 3) : [], source });
+    // An option value the text does not contain is dropped, like a price it does not contain.
+    const options = (it.options ?? [])
+      .map((o) => ({ name: cleanText(o.name, 30), values: o.values.map((v) => cleanText(v, 40)).filter((v) => v && corpus.includes(squash(v))).slice(0, 30) }))
+      .filter((o) => o.name && o.values.length)
+      .slice(0, 4);
+    products.push({ key: stableKey(url, name), name, description, url, category: cleanText(it.category, 60) || undefined, price, currency: price ? cleanText(it.currency, 3).toUpperCase() || undefined : undefined, variants: [], options, hints: description ? hintsFrom(description, 3) : [], source });
   }
   return { products, dropped };
 }

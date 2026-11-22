@@ -3,7 +3,9 @@
  * policies and order hints. Scraped text that reads like instructions to an AI is dropped and counted, never passed on.
  */
 import { BlockedUrlError, checkPublicHttpsUrl } from "../../lib/net-guard";
-import { cleanText, hintsFrom, jsonLdObjects, linksOf, metaTags, socialLinks, titleOf, typeIs, visibleText } from "./html";
+import type { PageRenderer } from "./browser";
+import { browserSource, elsewhereOf, type BrowserReadResult } from "./browser-source";
+import { cleanText, faqHints, hintsFrom, jsonLdObjects, linksOf, metaTags, socialLinks, titleOf, typeIs, visibleText } from "./html";
 import { SiteFetcher, type RawFetch } from "./site-fetcher";
 import { pageTextSource, PRODUCT_PATH, shopifySource, structuredSource, wooSource, type PageExtractor, type RenderedPages } from "./sources";
 import { LIMITS, type BusinessType, type ImportProgress, type ImportResult, type ImportedBrand, type ImportedPolicy, type ImportedProduct, type SourceReport } from "./types";
@@ -12,6 +14,8 @@ export interface ImportDeps {
   fetch: RawFetch;
   extractor?: PageExtractor;
   rendered?: RenderedPages;
+  /** A real browser for sites that need JavaScript (local headless Chromium or a cloud browser). */
+  renderer?: PageRenderer;
   onProgress?: (p: ImportProgress) => void;
   delayMs?: number;
 }
@@ -56,7 +60,8 @@ function brandOf(html: string, url: string): ImportedBrand {
   const logoRaw = (org?.logo && typeof org.logo === "object" ? (org.logo as { url?: string }).url : org?.logo) ?? links.find((l) => l.rel.includes("apple-touch-icon"))?.url ?? links.find((l) => l.rel.split(/\s+/).includes("icon") && /\.(png|svg)(\?|$)/i.test(l.url))?.url;
   let logoUrl: string | undefined;
   try {
-    logoUrl = typeof logoRaw === "string" && new URL(logoRaw, url).protocol === "https:" ? new URL(logoRaw, url).toString() : undefined;
+    // A site builder's own icon (wix.com/favicon.ico) is not the seller's logo.
+    logoUrl = typeof logoRaw === "string" && new URL(logoRaw, url).protocol === "https:" && !/(^|\.)(wix|squarespace|weebly|webflow|godaddy|framer)\.com$/i.test(new URL(logoRaw, url).hostname) ? new URL(logoRaw, url).toString() : undefined;
   } catch {
     logoUrl = undefined;
   }
@@ -127,6 +132,10 @@ export async function runImport(input: string, deps: ImportDeps): Promise<Import
     return out.products.length > 0;
   };
 
+  // The plain HTML of an app built with JavaScript is an empty shell: its text, links and products appear only in a browser.
+  const shell = visibleText(homepage, 4_000).length < 300;
+  let viewed: BrowserReadResult | undefined;
+
   progress("Looking for a store catalog", "working");
   if (!(await tryPlatform(() => shopifySource(site, homepage))) && !(await tryPlatform(() => wooSource(site, homepage)))) {
     const s = await structuredSource(site, homepage, homeUrl, (n, of) => {
@@ -136,17 +145,41 @@ export async function runImport(input: string, deps: ImportDeps): Promise<Import
     siteUrls = s.siteUrls;
     if (s.products.length) products = s.products;
     else {
-      for (const o of await pageTextSource(site, homepage, homeUrl, deps.extractor, brand.name ?? start.hostname, deps.rendered)) {
-        sources.push(o.report);
-        if (o.products.length) products = o.products;
+      if (deps.renderer) {
+        progress(shell ? "The site is built with JavaScript; opening it in a browser" : "No catalog data; opening the site in a browser", "working");
+        viewed = await browserSource(site, deps.renderer, homeUrl, { extractor: deps.extractor, siteName: brand.name ?? start.hostname, progress, delayMs: deps.delayMs });
+        sources.push(...viewed.reports);
+        if (viewed.products.length) products = viewed.products;
+        if (viewed.rendered) progress(`Read ${viewed.rendered} page${viewed.rendered === 1 ? "" : "s"} in the browser`, "done", viewed.engine);
+      } else sources.push({ source: "browser", status: "skipped", detail: "no browser is available on this server, so pages that need JavaScript were not opened" });
+      // Without a working browser: a rendering service and the model on the plain page text.
+      if (!viewed?.rendered) {
+        for (const o of await pageTextSource(site, homepage, homeUrl, deps.extractor, brand.name ?? start.hostname, deps.rendered)) {
+          sources.push(o.report);
+          if (o.products.length) products = o.products;
+        }
       }
     }
   }
   products = dedupe(products).slice(0, LIMITS.products);
 
+  // The rendered homepage fills in what the empty shell lacked: social links, logo, description.
+  const seenHome = viewed?.home;
+  if (seenHome && shell) {
+    const b = brandOf(seenHome.html, seenHome.url);
+    brand.socials = { ...b.socials, ...Object.fromEntries(Object.entries(brand.socials).filter(([, v]) => v)) };
+    brand.logoUrl ??= b.logoUrl;
+    brand.description ??= b.description;
+  }
+  const elsewhere = [...(viewed?.elsewhere ?? [])];
+  for (const l of linksOf(homepage, homeUrl)) {
+    const away = elsewhereOf({ url: l.url, text: l.text }, (u) => site.sameSite(u));
+    if (away && !elsewhere.some((e) => e.url === away.url)) elsewhere.push(away);
+  }
+
   // Store policies: shipping, returns, custom-order and terms pages linked from the homepage or listed in the sitemap.
   const policies: ImportedPolicy[] = [];
-  const candidates = [...new Set([...linksOf(homepage, homeUrl).map((l) => l.url), ...siteUrls])].filter((u) => {
+  const candidates = [...new Set([...linksOf(homepage, homeUrl).map((l) => l.url), ...(viewed?.links ?? []), ...siteUrls])].filter((u) => {
     const x = new URL(u);
     return site.sameSite(x) && !PRODUCT_PATH.test(x.pathname);
   });
@@ -185,8 +218,12 @@ export async function runImport(input: string, deps: ImportDeps): Promise<Import
     brand.description = undefined;
     screened++;
   }
-  const homeText = visibleText(homepage, 20_000);
-  const hints = [...hintsFrom(homeText, 4), ...policies.flatMap((p) => hintsFrom(p.summary, 2))].filter((h) => !looksLikeInstructions(h)).slice(0, 6);
+  // The rendered text keeps its line breaks, so a heading or an FAQ question is not glued to the next line.
+  const staticText = visibleText(homepage, 20_000);
+  const homeText = seenHome && seenHome.text.length > staticText.length ? seenHome.text.slice(0, 20_000) : staticText;
+  const faq = seenHome ? faqHints(seenHome.text, 4) : [];
+  const lines = [...faq, ...hintsFrom(homeText, 4), ...policies.flatMap((p) => hintsFrom(p.summary, 2))];
+  const hints = lines.filter((h, i) => !looksLikeInstructions(h) && !lines.some((o, j) => j !== i && o.length > h.length && o.includes(h)) && lines.indexOf(h) === i).slice(0, 8);
   if (screened) sources.push({ source: "policies", status: "blocked", detail: `${screened} piece${screened > 1 ? "s" : ""} of text read like instructions to an AI and ${screened > 1 ? "were" : "was"} left out` });
 
   const priced = products.filter((p) => p.price).length;
@@ -197,9 +234,11 @@ export async function runImport(input: string, deps: ImportDeps): Promise<Import
     products,
     policies,
     hints,
-    businessType: guessType(products, `${titleOf(homepage)} ${brand.description ?? ""} ${homeText}`),
+    businessType: guessType(products, `${titleOf(homepage)} ${brand.description ?? ""} ${homeText.replace(/\s+/g, " ")}`),
     sources,
-    pagesFetched: site.requests,
+    pagesFetched: site.requests + (viewed?.rendered ?? 0),
+    ...(elsewhere.length ? { elsewhere: elsewhere.filter((e) => !looksLikeInstructions(e.label)).slice(0, 5) } : {}),
+    ...(viewed?.rendered ? { browser: { engine: viewed.engine, pages: viewed.rendered } } : {}),
     ...(site.budgetLeft <= 0 ? { limited: `stopped after ${site.requests} requests` } : products.length >= LIMITS.products ? { limited: `kept the first ${LIMITS.products} products` } : {}),
   };
 }

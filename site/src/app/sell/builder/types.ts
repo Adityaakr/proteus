@@ -43,8 +43,15 @@ export interface ImportResult {
   sources: SourceReport[];
   pagesFetched: number;
   limited?: string;
+  /** Catalogues the site points to on another service (DocSend, Google Drive, a PDF); not opened. */
+  elsewhere?: { url: string; host: string; label: string }[];
+  /** Set when pages were opened in a browser. */
+  browser?: { engine: string; pages: number };
   fx?: { currency: string; rate: string; asOf: string; source: string } | null;
 }
+
+/** Sources read from what a page shows (layout or a model) rather than from catalog data. */
+export const CHECK_SOURCES = new Set(["page-layout", "firecrawl", "page-text"]);
 
 export interface PriceRule {
   priceUsd?: string;
@@ -76,6 +83,8 @@ export interface DraftItem {
   category: string;
   included: boolean;
   unitLabel: string;
+  /** Read from what the website's pages show, not from catalog data: the seller checks it. */
+  check: boolean;
   source: { amount: string; currency: string } | null;
   listUsd: string | null;
   floorUsd: string | null;
@@ -103,7 +112,7 @@ export interface BuilderImport {
   transcript: { at: string; role: "seller" | "agent"; text: string }[];
   org: { id: string; slug: string; name: string } | null;
   network: "testnet" | "mainnet";
-  helpers: { model: string | null; firecrawl: boolean };
+  helpers: { model: string | null; browser?: "local" | "cloud" | "off"; firecrawl: boolean };
   result: ImportResult | null;
   answers: BuilderAnswers | null;
   draft: { included: number; ready: number; next: Question[]; items: DraftItem[]; maxPublish: number } | null;

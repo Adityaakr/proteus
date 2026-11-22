@@ -254,7 +254,7 @@ export function productFromMeta(html: string, pageUrl: string): ImportedProduct 
   };
 }
 
-const HINT_RE = /\bMOQ\b|minimum order|min\.? order|minimum quantity|\bbulk\b|wholesale|custom(?:i[sz]ed|i[sz]able)? (?:order|print|logo|branding)|made to order|lead time|dispatch(?:es|ed)? (?:in|within)|ships? (?:in|within)|deliver(?:y|ed)? (?:in|within)|request a quote/i;
+const HINT_RE = /\bMOQ\b|\bsamples?\b|\b\d+\s*(?:[-–]|to)\s*\d+\s*(?:working |business )?days\b|minimum order|min\.? order|minimum quantity|\bbulk\b|wholesale|custom(?:i[sz]ed|i[sz]able)? (?:order|print|logo|branding)|made to order|lead time|dispatch(?:es|ed)? (?:in|within)|ships? (?:in|within)|deliver(?:y|ed)? (?:in|within)|request a quote/i;
 
 /**
  * Short sentences about minimum orders, bulk, custom work and delivery times, deduplicated. Only real sentences count:
@@ -262,9 +262,13 @@ const HINT_RE = /\bMOQ\b|minimum order|min\.? order|minimum quantity|\bbulk\b|wh
  */
 export function hintsFrom(text: string, max = 6): string[] {
   const out: string[] = [];
-  for (const raw of text.split(/(?<=[.!?])\s+/)) {
+  for (const raw of text.split(/(?<=[.!?])\s+|\n+/)) {
     const line = cleanText(raw, 400);
-    if (line.length < 12 || line.length > 220 || !HINT_RE.test(line)) continue;
+    // A question on its own ("What's the MOQ?") is not a fact; faqHints pairs it with its answer.
+    if (line.length < 12 || line.length > 220 || line.endsWith("?") || !HINT_RE.test(line)) continue;
+    // A list of search keywords ("handmade soap wholesale, natural soap brands, ...") is not an order fact.
+    const parts = line.split(",").filter((x) => x.trim());
+    if (parts.length >= 3 && parts.every((x) => x.trim().split(/\s+/).length <= 5)) continue;
     const norm = line.toLowerCase();
     if (out.some((x) => x.toLowerCase() === norm)) continue;
     out.push(line);
@@ -281,6 +285,27 @@ const SOCIAL: [keyof { x: 1; instagram: 1; farcaster: 1 }, RegExp][] = [
 
 export function socialLinks(links: { url: string }[]): { x?: string; instagram?: string; farcaster?: string } {
   const out: { x?: string; instagram?: string; farcaster?: string } = {};
-  for (const l of links) for (const [k, re] of SOCIAL) if (!out[k] && re.test(l.url)) out[k] = l.url.replace(/\/$/, "");
+  for (const l of links) {
+    // Share links carry tracking tags ("?s=21&t=..."): the profile is the path.
+    const bare = l.url.replace(/[?#].*$/, "");
+    for (const [k, re] of SOCIAL) if (!out[k] && re.test(bare)) out[k] = bare.replace(/\/$/, "");
+  }
+  return out;
+}
+
+/**
+ * An FAQ written as a question line followed by its answer ("What's the MOQ?" / "Usually starts at 50 pieces") reads
+ * as one line, so an order fact keeps its question. Only pairs about orders, samples or lead times are kept.
+ */
+export function faqHints(text: string, max = 6): string[] {
+  const lines = text.split(/\n+/).map((l) => cleanText(l, 300)).filter((l) => l && !/^[+\-–×✕›‹⌄∨]$/.test(l));
+  const out: string[] = [];
+  for (let i = 0; i < lines.length - 1 && out.length < max; i++) {
+    const q = lines[i]!;
+    const a = lines[i + 1]!;
+    if (!q.endsWith("?") || q.length > 120 || a.endsWith("?") || a.length < 3) continue;
+    const line = `${q} ${a}`;
+    if (line.length <= 220 && HINT_RE.test(line) && !out.some((x) => x.toLowerCase() === line.toLowerCase())) out.push(line);
+  }
   return out;
 }

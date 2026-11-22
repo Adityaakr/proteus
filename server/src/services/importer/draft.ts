@@ -7,7 +7,7 @@
  */
 import { fromMicro, pluralUnit, toMicro, type CostModel, type Micro, type Policy, type Product } from "@proteus/domain";
 import type { ProductCreateInput } from "../accounts";
-import type { BusinessType, ImportResult, ImportedProduct } from "./types";
+import { CHECK_SOURCES, type BusinessType, type ImportResult, type ImportedProduct } from "./types";
 
 /** Per product, per category or store-wide rules. Every value is a decimal string as the seller typed it. */
 export interface PriceRule {
@@ -56,6 +56,8 @@ export interface DraftItem {
   moq: bigint;
   bulk?: { minUnits: bigint; priceUsd: Micro };
   unitLabel: string;
+  /** Read from what the page shows (layout or model), not from catalog data: the seller checks it before publishing. */
+  check: boolean;
   /** Blocking: the product cannot be published until these are fixed. */
   issues: string[];
 }
@@ -130,10 +132,20 @@ const UNIT_WORDS: [RegExp, string][] = [
   [/\b(diar(y|ies)|notebooks?|journals?)\b/i, "notebook"],
   [/\b(pins?|badges?)\b/i, "pin"],
   [/\bkeychains?\b/i, "keychain"],
+  [/\bjerseys?\b/i, "jersey"],
+  [/\bsoaps?\b/i, "bar"],
+  [/\bcandles?\b/i, "candle"],
+  [/\bumbrellas?\b/i, "umbrella"],
+  [/\bmagnets?\b/i, "magnet"],
+  [/\b(socks?|sliders?|slippers?|sandals?|shoes?|sneakers?|footwear)\b/i, "pair"],
+  [/\b(plush(ie|y)?s?|toys?)\b/i, "toy"],
+  [/\blanyards?\b/i, "lanyard"],
+  [/\b(posters?|prints?)\b/i, "print"],
 ];
 
-export function unitLabelFor(name: string): string {
-  return UNIT_WORDS.find(([re]) => re.test(name))?.[1] ?? "piece";
+/** The unit a buyer counts in, from the product's name ("Logo Hoodie" → hoodie), else its description (a soap → bar). */
+export function unitLabelFor(name: string, description?: string): string {
+  return UNIT_WORDS.find(([re]) => re.test(name))?.[1] ?? (description && /\bsoaps?\b/i.test(description) ? "bar" : undefined) ?? "piece";
 }
 
 export function slugify(s: string): string {
@@ -207,7 +219,7 @@ export function buildDraft(result: ImportResult, a: BuilderAnswers, takenSlugs: 
     let slug = slugify(p.name);
     for (let i = 2; slugs.has(slug); i++) slug = `${slugify(p.name).slice(0, 36)}-${i}`;
     if (included) slugs.add(slug);
-    items.push({ key: p.key, name: p.name.slice(0, 80), slug, category: categoryOf(p), included, source: p.price && p.currency ? { amount: p.price, currency: p.currency } : undefined, listUsd, floorUsd, floorBasis, moq, bulk, unitLabel: unitLabelFor(p.name), issues });
+    items.push({ key: p.key, name: p.name.slice(0, 80), slug, category: categoryOf(p), included, source: p.price && p.currency ? { amount: p.price, currency: p.currency } : undefined, listUsd, floorUsd, floorBasis, moq, bulk, unitLabel: unitLabelFor(p.name, p.description), check: CHECK_SOURCES.has(p.source), issues });
   }
   const inc = items.filter((i) => i.included);
   const next: Question[] = [];
@@ -252,12 +264,15 @@ export function toCreateInput(item: DraftItem, p: ImportedProduct, ctx: PublishC
     ...(item.bulk ? [`${item.bulk.minUnits} or more ${plural} get the bulk price.`] : []),
     ...(custom ? [custom.accepted ? `Custom orders welcome${custom.note ? `: ${custom.note}` : ""}.` : "Sold as listed; no custom work."] : []),
     ...p.hints.slice(0, 2),
-  ].map((n) => n.slice(0, 200));
+    // Store-wide facts the site states (an FAQ's lead times, samples, minimums), screened when the site was read.
+    ...ctx.result.hints.filter((h) => !p.hints.includes(h)).slice(0, 4),
+  ].map((n) => n.slice(0, 220));
   return {
     name: item.name,
     slug: item.slug,
     unitLabel: item.unitLabel,
-    billableUnit: `One ${item.name.toLowerCase().slice(0, 120)} delivered to the buyer's address, confirmed by ${ctx.businessName.slice(0, 80)} with proof.`,
+    // "Jerseys (one piece)": a site may name a product type in the plural, so the unit carries the count.
+    billableUnit: `${item.name.slice(0, 120)} (one ${item.unitLabel}), delivered to the buyer's address and confirmed by ${ctx.businessName.slice(0, 80)} with proof.`,
     capabilities: [
       ...options.map((o) => `${o.values.length} ${o.name.toLowerCase()}${o.values.length > 1 && !/s$/i.test(o.name) ? "s" : ""}`),
       ...(custom?.accepted ? ["Custom branding"] : []),

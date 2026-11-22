@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUp, Bot, Check, CheckCircle2, CircleDashed, ExternalLink, FileUp, Globe, Loader2, Lock, RotateCcw, ShieldCheck, Sparkles, Store, XCircle } from "lucide-react";
+import { ArrowUp, Bot, Check, CheckCircle2, CircleDashed, ExternalLink, Eye, FileUp, Globe, Loader2, Lock, RotateCcw, ShieldCheck, Sparkles, Store, XCircle } from "lucide-react";
 import { ActionButton, Card, Field, MonoValue, Notice, StatusTag } from "../../seller/kit";
 import { errorMessage } from "../../seller/transport";
 import { SellerMark } from "../../ui/SellerMark";
@@ -18,7 +18,7 @@ import { AgentIdentityCard } from "../developers/IdentityCards";
 import { useMe } from "../hooks";
 import { useAuth, v1 } from "../v1";
 import { isMock } from "../../lib/api";
-import type { AnswersPatch, BuilderImport, BusinessType, DraftItem, ImportResult, Question, TestNegotiation } from "./types";
+import { CHECK_SOURCES, type AnswersPatch, type BuilderImport, type BusinessType, type DraftItem, type ImportResult, type Question, type TestNegotiation } from "./types";
 import b from "./builder.module.css";
 
 const TYPES: { id: BusinessType; label: string }[] = [
@@ -100,7 +100,7 @@ export default function CreateAgent() {
       <div className={b.layout}>
         <section className={b.thread} aria-label="Conversation with your deal agent builder">
           <Agent>
-            Hi{me.org ? `, ${me.org.name}` : ""}. What is your website? A shop on Shopify or WooCommerce, or any site whose product pages carry product data, works best.
+            Hi{me.org ? `, ${me.org.name}` : ""}. What is your website? Any site that shows what you sell works: a Shopify or WooCommerce store, a Wix, Webflow or Framer site, an app built with JavaScript, or one page with a price list.
           </Agent>
           {!view ? (
             <UrlForm onStart={(u) => start.mutate(u)} pending={start.isPending} error={start.isError ? errorMessage(start.error) : null} />
@@ -149,7 +149,7 @@ function UrlForm({ onStart, pending, error, initial = "" }: { onStart: (u: strin
       <Field id="site-url" label="Your website" hideLabel placeholder="yourshop.com" value={url} onChange={(e) => setUrl(e.target.value)} inputMode="url" autoComplete="url" />
       <ActionButton type="submit" loading={pending} loadingLabel="Starting" iconLeft={<Globe size={15} />}>Read my website</ActionButton>
       {error && <Notice tone="danger">{error}</Notice>}
-      <p className={b.fine}>Read-only: I follow your robots.txt, read at most 60 product pages, and never log in or submit forms.</p>
+      <p className={b.fine}>Read-only: I follow your robots.txt, open your pages in a browser when they need JavaScript, and never log in, buy or submit forms.</p>
     </form>
   );
 }
@@ -199,6 +199,12 @@ function Flow({ view, setView, onRetry, retrying }: { view: BuilderImport; setVi
           <Agent wide>
             <p>{view.transcript[0]?.text}</p>
             <CatalogCard result={r} />
+            {r.products.length === 0 && (
+              <>
+                <p>Try the address of the page that lists your products (your shop or catalogue page), or <Link to="/app/sell/start">add products by hand</Link>.</p>
+                <UrlForm onStart={onRetry} pending={retrying} error={null} initial={view.url} />
+              </>
+            )}
           </Agent>
           {r.products.length > 0 && (
             <>
@@ -207,7 +213,7 @@ function Flow({ view, setView, onRetry, retrying }: { view: BuilderImport; setVi
               {ask("products", <ProductsQ r={r} d={d.items} busy={busy} err={err} onSave={(p) => save.mutate(p)} />, <>Open to deals: <strong>{d.included}</strong> of {r.products.length} products</>)}
               {needsPrices && ask("prices", <PricesQ r={r} d={d.items} busy={busy} err={err} onSave={(p) => save.mutate(p)} />, <>Prices added for quote-only items</>)}
               {ask("floors", <FloorsQ view={view} busy={busy} err={err} onSave={(p) => save.mutate(p)} setView={setView} />, <>Floors set: {floorSummary(d.items)}</>)}
-              {ask("bulk", <BulkQ a={a} busy={busy} err={err} onSave={(p) => save.mutate(p)} />, <>{bulkSummary(a)}</>)}
+              {ask("bulk", <BulkQ a={a} r={r} busy={busy} err={err} onSave={(p) => save.mutate(p)} />, <>{bulkSummary(a)}</>)}
               {ask("custom", <CustomQ busy={busy} err={err} onSave={(p) => save.mutate(p)} />, <>{a.customOrders?.accepted ? `Custom orders welcome${a.customOrders.note ? `: ${a.customOrders.note}` : ""}` : "No custom work"}</>)}
               {view.transcript.slice(1).filter((t) => !t.text.startsWith("Published ")).map((t, i) => (t.role === "seller" ? <Seller key={i}>{t.text}</Seller> : <Agent key={i}>{t.text}</Agent>))}
               {allAnswered && view.status !== "published" && (
@@ -266,6 +272,7 @@ function CatalogCard({ result }: { result: ImportResult }) {
   }, [result.products]);
   const shown = all ? result.products : result.products.slice(0, 8);
   const brand = result.brand;
+  const checked = result.products.filter((p) => CHECK_SOURCES.has(p.source)).length;
   return (
     <div className={b.catalog}>
       <div className={b.brand}>
@@ -287,6 +294,25 @@ function CatalogCard({ result }: { result: ImportResult }) {
           </li>
         ))}
       </ul>
+      {checked > 0 && (
+        <Notice tone="warn" title="Read from page text, please check">
+          {checked === result.products.length ? "These products" : `${checked} of these products`} came from what your pages show, not from catalog data. Check each name and price before you publish, and leave out anything that is not a product you sell. I never fill in a price your site does not show.
+        </Notice>
+      )}
+      {result.elsewhere && result.elsewhere.length > 0 && (
+        <Notice tone="info" title="Your catalogue is somewhere I do not open">
+          <span>
+            Your site links to {result.elsewhere.map((e, i) => <span key={e.url}>{i ? " and " : ""}<a href={e.url} target="_blank" rel="noreferrer noopener">{e.label}</a> on {e.host}</span>)}. I only read your own website, so give me those prices in the questions below or in the chat.
+          </span>
+        </Notice>
+      )}
+      {result.hints.length > 0 && (
+        <div className={b.facts}>
+          <strong>What your site says about orders</strong>
+          <ul>{result.hints.slice(0, 5).map((h) => <li key={h}>{h}</li>)}</ul>
+          <span className={b.fine}>Your agent answers buyers from these.</span>
+        </div>
+      )}
       <div className={b.cats}>
         {groups.map(([c, ps]) => <span key={c} className={b.cat}>{c} <span className={b.dim}>{ps.length}</span></span>)}
       </div>
@@ -300,10 +326,11 @@ function CatalogCard({ result }: { result: ImportResult }) {
                   <span className={b.prod}>
                     {p.imageUrl ? <img src={p.imageUrl} alt="" loading="lazy" referrerPolicy="no-referrer" className={b.thumb} /> : <span className={b.thumb} aria-hidden />}
                     {p.url ? <a href={p.url} target="_blank" rel="noreferrer noopener">{p.name}</a> : p.name}
+                    {CHECK_SOURCES.has(p.source) && <CheckTag />}
                   </span>
                 </td>
                 <td>{p.category ?? "—"}</td>
-                <td>{p.price && p.currency ? localPrice(p.price, p.currency) : <span className={b.dim}>Quote only</span>}</td>
+                <td>{p.price && p.currency ? localPrice(p.price, p.currency) : <span className={b.dim}>{CHECK_SOURCES.has(p.source) ? "No price shown" : "Quote only"}</span>}</td>
                 <td className={b.dim}>{p.options.map((o) => `${o.values.length} ${o.name.toLowerCase()}${o.values.length > 1 ? "s" : ""}`).join(", ") || "—"}</td>
               </tr>
             ))}
@@ -317,7 +344,15 @@ function CatalogCard({ result }: { result: ImportResult }) {
   );
 }
 
-const SOURCE_LABEL: Record<string, string> = { shopify: "Shopify", woocommerce: "WooCommerce", sitemap: "Sitemap", "json-ld": "Product data", firecrawl: "Firecrawl", "page-text": "Page text", policies: "Policies" };
+const SOURCE_LABEL: Record<string, string> = { shopify: "Shopify", woocommerce: "WooCommerce", sitemap: "Sitemap", "json-ld": "Product data", browser: "Browser", "page-layout": "Page layout", firecrawl: "Firecrawl", "page-text": "Page text", policies: "Policies" };
+
+function CheckTag() {
+  return (
+    <span className={b.checkTag} title="Read from page text, please check">
+      <Eye size={11} aria-hidden /> Check
+    </span>
+  );
+}
 
 type QProps = { busy: boolean; err: ReactNode; onSave: (p: AnswersPatch) => void };
 
@@ -357,7 +392,31 @@ function RateQ({ r, a, busy, err, onSave }: QProps & { r: ImportResult; a: NonNu
   );
 }
 
-function ProductsQ({ r, d, busy, err, onSave }: QProps & { r: ImportResult; d: DraftItem[] }) {
+function ProductsQ(props: QProps & { r: ImportResult; d: DraftItem[] }) {
+  return props.r.products.some((p) => p.price) ? <ProductsByCategory {...props} /> : <ProductsOneByOne {...props} />;
+}
+
+/** A site with no prices: the seller picks the products one by one and prices them in the next question. */
+function ProductsOneByOne({ r, d, busy, err, onSave }: QProps & { r: ImportResult; d: DraftItem[] }) {
+  const [picked, setPicked] = useState<Record<string, boolean>>(() => Object.fromEntries(r.products.map((p) => [p.key, Boolean(d.find((i) => i.key === p.key)?.included)])));
+  const count = Object.values(picked).filter(Boolean).length;
+  return (
+    <div className={b.q}>
+      <p>Your site shows no prices, so pick the products your deal agent should sell. You give each one a price next; the rest stay off.</p>
+      <ul className={b.pickList}>
+        {r.products.map((p) => (
+          <li key={p.key}>
+            <label className={b.checkLine}><input type="checkbox" checked={Boolean(picked[p.key])} onChange={(e) => setPicked({ ...picked, [p.key]: e.target.checked })} /> {p.name}</label>
+          </li>
+        ))}
+      </ul>
+      {err}
+      <div><ActionButton size="sm" loading={busy} disabled={count === 0} onClick={() => onSave({ include: Object.fromEntries(r.products.map((p) => [p.key, Boolean(picked[p.key])])) })}>Continue with {count} product{count === 1 ? "" : "s"}</ActionButton></div>
+    </div>
+  );
+}
+
+function ProductsByCategory({ r, d, busy, err, onSave }: QProps & { r: ImportResult; d: DraftItem[] }) {
   const cats = useMemo(() => {
     const m = new Map<string, { priced: string[]; quote: string[] }>();
     for (const p of r.products) {
@@ -508,8 +567,18 @@ function FloorsQ({ view, busy, err, onSave, setView }: QProps & { view: BuilderI
   );
 }
 
-function BulkQ({ a, busy, err, onSave }: QProps & { a: NonNullable<BuilderImport["answers"]> }) {
-  const [moq, setMoq] = useState(a.defaults.moq ?? "1");
+/** A minimum order in units that the site states ("MOQ ... starts at 50 pieces"); a money minimum ("$250") is not one. */
+function moqFromSite(hints: string[]): { units: string; line: string } | undefined {
+  for (const line of hints) {
+    const m = /\b(?:moq|minimum order(?: quantity)?|min\.? order|order minimum|starts? at)\b[^0-9$₹€£]{0,40}([$₹€£])?\s?(\d{1,6})\s*(pieces|pcs|units|items|pairs|sets|nos)?/i.exec(line);
+    if (m && !m[1] && Number(m[2]) > 1) return { units: m[2]!, line };
+  }
+  return undefined;
+}
+
+function BulkQ({ a, r, busy, err, onSave }: QProps & { a: NonNullable<BuilderImport["answers"]>; r: ImportResult }) {
+  const site = moqFromSite(r.hints);
+  const [moq, setMoq] = useState(a.defaults.moq ?? site?.units ?? "1");
   const [min, setMin] = useState(a.defaults.bulkMinUnits ?? "");
   const [off, setOff] = useState(a.defaults.bulkDiscountPct ?? "");
   const int = (v: string) => /^\d+$/.test(v.trim()) && Number(v) > 0;
@@ -517,6 +586,7 @@ function BulkQ({ a, busy, err, onSave }: QProps & { a: NonNullable<BuilderImport
   return (
     <div className={b.q}>
       <p>Do you have a minimum order, or a better price for bulk? I add the bulk price as its own tier, and it can never go below your floor.</p>
+      {site && !a.defaults.moq && <p className={b.fine}>From your site: “{site.line}” I filled in {site.units}.</p>}
       <div className={b.inline}>
         <span className="body3">Minimum order</span>
         <Field id="moq" label="Minimum order units" hideLabel value={moq} onChange={(e) => setMoq(e.target.value)} inputMode="numeric" className={b.tiny} />
@@ -568,7 +638,7 @@ function Review({ view, setView }: { view: BuilderImport; setView: (v: BuilderIm
           <tbody>
             {items.map((i) => (
               <tr key={i.key} className={i.issues.length ? b.issueRow : ""}>
-                <td>{i.name}<span className={b.fine}>{i.moq !== "1" ? `min ${i.moq} ${i.unitLabel}s` : `per ${i.unitLabel}`}</span></td>
+                <td>{i.name}{i.check && <CheckTag />}<span className={b.fine}>{i.moq !== "1" ? `min ${i.moq} ${i.unitLabel}s` : `per ${i.unitLabel}`}</span></td>
                 <td>{i.source ? localPrice(i.source.amount, i.source.currency) : "—"}</td>
                 <td>{usd(i.listUsd)}</td>
                 <td>{i.bulk ? `${i.bulk.minUnits}+ at ${usd(i.bulk.priceUsd)}` : "—"}</td>
@@ -631,6 +701,7 @@ function PublishCard({ view, setView, tested }: { view: BuilderImport; setView: 
   const pub = useMutation({ mutationFn: () => v1.builder.publish(view.id), onSuccess: (v) => { setView(v); refetchMe(); } });
   const wallet = me?.wallets?.find((w) => w.primary)?.address;
   const blocked = d.items.filter((i) => i.included && i.issues.length).length;
+  const toCheck = d.items.filter((i) => i.included && i.check).length;
   return (
     <div className={b.q}>
       <p>
@@ -640,7 +711,10 @@ function PublishCard({ view, setView, tested }: { view: BuilderImport; setView: 
       {!view.org && wallet && <p className={b.fine}>Owner and payout wallet: <MonoValue value={wallet} short /></p>}
       {!view.org && !wallet && <Notice tone="warn" title="Link a wallet first">Payouts need a wallet. Add one from your account, then come back: your answers are saved.</Notice>}
       {!tested && <Notice tone="info">Tip: run the test negotiation above first.</Notice>}
-      <label className={b.checkLine}><input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} /> I checked these prices and floors. Publish them.</label>
+      <label className={b.checkLine}>
+        <input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} />
+        {toCheck ? `I checked these prices and floors, and the ${toCheck} product${toCheck === 1 ? "" : "s"} read from page text. Publish them.` : "I checked these prices and floors. Publish them."}
+      </label>
       {pub.isError && <Notice tone="danger" title="Could not publish">{errorMessage(pub.error)}</Notice>}
       <div><ActionButton icon loading={pub.isPending} loadingLabel="Publishing" disabled={!ok || blocked > 0 || (!view.org && !wallet) || d.included > d.maxPublish} onClick={() => pub.mutate()}>Publish my deal agent</ActionButton></div>
     </div>
@@ -720,7 +794,7 @@ function Summary({ view }: { view: BuilderImport | undefined }) {
       {view?.draft && <p className={b.fine}>{view.draft.included} products open to deals, {view.draft.ready} ready.</p>}
       {view && (
         <p className={b.fine}>
-          Reading page text with a model: {view.helpers.model ?? "off on this server"}. Firecrawl rendering: {view.helpers.firecrawl ? "on" : "off (optional)"}.
+          Browser for JavaScript sites: {view.helpers.browser === "cloud" ? "cloud browser" : view.helpers.browser === "off" ? "off" : "on this server"}. Reading page text with a model: {view.helpers.model ?? "off on this server"}. Firecrawl rendering: {view.helpers.firecrawl ? "on" : "off (optional)"}.
         </p>
       )}
       <p className={b.fine}>Prefer forms? <Link to="/app/sell/start">Add a product by hand</Link>.</p>
