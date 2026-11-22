@@ -154,6 +154,9 @@ export const ruleBasedAdapter: AgentAdapter = {
     steps.push({ at: now(), label: "Drafting the reply from approved options", state: "done" });
     return { reply: composeRuleBased(input), steps };
   },
+  async consult(input) {
+    return { result: input.fallback, steps: [{ at: now(), label: `Recommended ${input.fallback.picks.map((p) => p.slug).join(", ")} from the catalogue`, state: "done" }] };
+  },
 };
 
 function summarize(r: Requirements): string {

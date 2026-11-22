@@ -51,10 +51,11 @@ function StoreView({ seller }: { seller: PublicSeller }) {
   const { wallet } = useAuth();
   const [error, setError] = useState<string | null>(null);
   // Opens the full negotiation page in store mode, on the product asked about; it follows the buyer to others.
-  const open = async (productSlug: string, starter: string | null) => {
+  // `all`: the buyer has not chosen a product, so the chat starts on all products and recommends.
+  const open = async (productSlug: string, starter: string | null, all = false) => {
     setError(null);
     try {
-      const n = await startStoreChat(seller.slug, productSlug, wallet?.address);
+      const n = await startStoreChat(seller.slug, productSlug, wallet?.address, [], all ? "all" : "product");
       navigate(`/app/negotiations/${n.id}`, { state: starter ? { starter } : undefined });
     } catch (e) {
       setError(errorMessage(e));
@@ -164,7 +165,7 @@ function StoreView({ seller }: { seller: PublicSeller }) {
 }
 
 /** Same rail as a product page: one way in to the whole store's deal desk. */
-function StoreRail({ seller, open }: { seller: PublicSeller; open: (productSlug: string, starter: string | null) => void; }) {
+function StoreRail({ seller, open }: { seller: PublicSeller; open: (productSlug: string, starter: string | null, all?: boolean) => void; }) {
   const products = seller.products;
   const first = products[0];
   const starters = products.slice(0, 3).map((p) => ({ slug: p.slug, text: p.starters?.[0] ?? `What can you offer for ${p.name.toLowerCase()}?` }));
@@ -175,7 +176,7 @@ function StoreRail({ seller, open }: { seller: PublicSeller; open: (productSlug:
         <h2 className={d.railTitle}>A prepaid deal on your terms</h2>
         <p className={d.railText}>One agent for everything {seller.name} makes. Ask about any product, quantity or date; funds are held in escrow until you confirm delivery.</p>
         {first && (
-          <ActionButton size="lg" fullWidth icon onClick={() => open(first.slug, null)}>
+          <ActionButton size="lg" fullWidth icon onClick={() => open(first.slug, null, products.length > 1)}>
             Talk to {possessive(seller.name)} agent
           </ActionButton>
         )}

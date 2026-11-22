@@ -1,6 +1,6 @@
 import { formatUsd, toMicro, type Requirements, pluralUnit } from "@proteus/domain";
 import { askClaude, CLAUDE_FOR } from "../lib/claude";
-import { knowledgeFigures, knowledgeLines, type AgentAdapter, type AgentStep, type ComposeInput, type ExtractInput } from "./adapter";
+import { acceptConsult, CONSULT_SCHEMA, CONSULT_SYSTEM, consultContent, knowledgeFigures, knowledgeLines, type AgentAdapter, type AgentStep, type ComposeInput, type ConsultInput, type ExtractInput } from "./adapter";
 import { composeRuleBased, extractRuleBased } from "./rule-based";
 
 /**
@@ -104,6 +104,17 @@ export function createAnthropicAdapter(): AgentAdapter {
       } catch (e) {
         steps.push({ at: iso(), label: "Model reply failed, used deterministic reply", state: "done", detail: String((e as Error).message).slice(0, 200) });
         return { reply: fallback, steps };
+      }
+    },
+
+    async consult(input: ConsultInput) {
+      try {
+        const res = await askClaude(CLAUDE_FOR["chat:consult"]!, { maxTokens: 2_000, system: CONSULT_SYSTEM, content: consultContent(input), jsonSchema: CONSULT_SCHEMA as unknown as Record<string, unknown> });
+        if (res.stopReason === "refusal" || !res.json) throw new Error(`no structured output (${res.stopReason})`);
+        const { result, rejected } = acceptConsult(res.json, input);
+        return { result, steps: [{ at: iso(), label: rejected.length ? `Recommendation by ${res.model}; replaced what failed the checks` : `Recommendation by ${res.model} from the catalogue`, state: rejected.length ? "blocked" : "done", ...(rejected.length ? { detail: rejected.join(", ") } : {}) }] };
+      } catch (e) {
+        return { result: input.fallback, steps: [{ at: iso(), label: "Model recommendation failed, used the deterministic one", state: "done", detail: String((e as Error).message).slice(0, 200) }] };
       }
     },
   };

@@ -23,6 +23,12 @@ export const MessageBody = z.object({
   content: z.string().min(1).max(4000),
 });
 
+export const ConsultBody = z.object({
+  content: z.string().min(1).max(4000),
+  /** The product the conversation is on, if any; an open question then leaves it out of the recommendation. */
+  current: z.string().min(1).max(200).optional(),
+});
+
 export const CounterBody = z.object({
   candidateId: z.string().min(1),
   targetTotal: MicroString.optional(),

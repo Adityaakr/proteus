@@ -1,11 +1,12 @@
 import { and, eq } from "drizzle-orm";
 import { Hono, type Context } from "hono";
-import { AcceptBody, CounterBody, MessageBody, StartNegotiationBody } from "@proteus/domain";
+import { AcceptBody, ConsultBody, CounterBody, MessageBody, StartNegotiationBody } from "@proteus/domain";
 import type { Address, Hex } from "viem";
 import { db, schema } from "../db";
 import { HttpError, json, toBig } from "../lib/http";
 import { loadProductById, loadProductBySlugs, publicProduct } from "../services/catalog";
 import { routeToProduct } from "../services/storefront";
+import { addConsultMessage } from "../services/consult";
 import { addBuyerMessage, assertNegotiationAccess, counter, negotiationView, startNegotiation } from "../services/negotiation";
 import { env, features } from "../env";
 import { acceptQuote, createQuote, quoteView } from "../services/quotes";
@@ -131,6 +132,17 @@ publicRoutes.post("/negotiations/:id/messages", async (c) => {
   await negotiationAccess(c);
   const body = MessageBody.parse(await c.req.json());
   return json(c, await addBuyerMessage(c.req.param("id"), body.content));
+});
+
+/**
+ * An open question in a store conversation ("suggest me some good merch"): the agent recommends products from the
+ * seller's catalogue and asks follow-up questions, without moving the conversation to one product.
+ */
+publicRoutes.post("/negotiations/:id/consult", async (c) => {
+  limit(`neg-msg:${clientIp((n) => c.req.header(n))}`, 60);
+  await negotiationAccess(c);
+  const body = ConsultBody.parse(await c.req.json());
+  return json(c, await addConsultMessage(c.req.param("id"), body.content, body.current));
 });
 
 publicRoutes.post("/negotiations/:id/counter", async (c) => {

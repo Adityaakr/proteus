@@ -144,7 +144,7 @@ export interface Turn {
   role: "buyer" | "agent" | "system";
   content: string;
   createdAt: string;
-  kind?: "message" | "offers" | "decision" | "clarify";
+  kind?: "message" | "offers" | "decision" | "clarify" | "consult";
   decision?: { decision: string; reasons: string[] };
 }
 

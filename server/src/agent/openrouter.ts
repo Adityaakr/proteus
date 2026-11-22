@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { formatUsd, toMicro, type Requirements, pluralUnit } from "@proteus/domain";
 import { env } from "../env";
-import { knowledgeFigures, knowledgeLines, type AgentAdapter, type AgentStep, type ComposeInput, type ExtractInput } from "./adapter";
+import { acceptConsult, CONSULT_SCHEMA, CONSULT_SYSTEM, consultContent, knowledgeFigures, knowledgeLines, type AgentAdapter, type AgentStep, type ComposeInput, type ConsultInput, type ExtractInput } from "./adapter";
 import { composeRuleBased, extractRuleBased } from "./rule-based";
 
 /**
@@ -124,6 +124,27 @@ export function createOpenRouterAdapter(): AgentAdapter {
       } catch (e) {
         steps.push({ at: iso(), label: "Model reply failed, used deterministic reply", state: "done", detail: String((e as Error).message).slice(0, 200) });
         return { reply: fallback, steps };
+      }
+    },
+
+    async consult(input: ConsultInput) {
+      try {
+        const res = await client.chat.completions.create({
+          model,
+          max_tokens: 600,
+          messages: [
+            { role: "system", content: `${CONSULT_SYSTEM} Call the tool exactly once.` },
+            { role: "user", content: consultContent(input) },
+          ],
+          tools: [{ type: "function", function: { name: "recommend", description: "Recommend products from the catalogue and ask follow-up questions.", parameters: CONSULT_SCHEMA as unknown as Record<string, unknown> } }],
+          tool_choice: { type: "function", function: { name: "recommend" } },
+        });
+        const call = res.choices[0]?.message.tool_calls?.[0];
+        if (!call || call.type !== "function") throw new Error("no tool call");
+        const { result, rejected } = acceptConsult(JSON.parse(call.function.arguments), input);
+        return { result, steps: [{ at: iso(), label: rejected.length ? `Recommendation by ${model}; replaced what failed the checks` : `Recommendation by ${model} from the catalogue`, state: rejected.length ? "blocked" : "done", ...(rejected.length ? { detail: rejected.join(", ") } : {}) }] };
+      } catch (e) {
+        return { result: input.fallback, steps: [{ at: iso(), label: "Model recommendation failed, used the deterministic one", state: "done", detail: String((e as Error).message).slice(0, 200) }] };
       }
     },
   };
