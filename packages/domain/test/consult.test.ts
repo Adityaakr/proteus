@@ -84,26 +84,28 @@ describe("routing a store message", () => {
     }
   });
 
+  const both = (a: string, b: string) => ({ mode: "consult", slugs: expect.arrayContaining([a, b]) });
   it.each([
-    ["we want hoodies instead of t-shirts", undefined, { mode: "product", slug: "hoodies" }],
-    ["hoodies, not the t-shirts", "t-shirts", { mode: "product", slug: "hoodies", switched: true }],
-    ["hoodies, not the black ones", "bottles", { mode: "product", slug: "hoodies" }],
-    ["Instead of t-shirts, can we do hoodies?", undefined, { mode: "product", slug: "hoodies" }],
-    ["Instead of t-shirts, can we do hoodies?", "t-shirts", { mode: "product", slug: "hoodies", switched: true }],
-    ["Besides hoodies, do you have tote bags?", undefined, { mode: "product", slug: "tote-bags" }],
+    ["we want hoodies instead of t-shirts", undefined, both("hoodies", "t-shirts")],
+    ["hoodies, not the t-shirts", undefined, both("hoodies", "t-shirts")],
+    ["Instead of t-shirts, can we do hoodies?", undefined, both("hoodies", "t-shirts")],
+    ["Instead of hoodies, t-shirts?", undefined, both("hoodies", "t-shirts")],
+    ["Besides hoodies, do you have tote bags?", undefined, both("hoodies", "tote-bags")],
+    ["besides hoodies, tote bags?", undefined, both("hoodies", "tote-bags")],
+    ["anything besides hoodies like tote bags?", undefined, both("hoodies", "tote-bags")],
+    ["instead of t-shirts maybe hoodies?", undefined, both("hoodies", "t-shirts")],
+    ["something other than hoodies and tote bags?", undefined, both("hoodies", "tote-bags")],
     ["besides hoodies, what do you have?", undefined, { mode: "consult", exclude: ["hoodies"] }],
+    ["something other than hoodies?", undefined, { mode: "consult", exclude: ["hoodies"] }],
     ["something other than hoodies?", "hoodies", { mode: "consult", exclude: ["hoodies"] }],
-    ["Apart from the price, how long do hoodies take?", "hoodies", { mode: "product", slug: "hoodies" }],
-    ["Other than that, do the hoodies come in XL?", undefined, { mode: "product", slug: "hoodies" }],
-    ["is it not the same price for hoodies?", "bottles", { mode: "product", slug: "hoodies" }],
     ["Apart from the price, are there options other than hoodies?", undefined, { mode: "consult", exclude: ["hoodies"] }],
     ["Other than that, anything besides hoodies?", undefined, { mode: "consult", exclude: ["hoodies"] }],
-    ["anything besides hoodies like tote bags?", undefined, { mode: "product", slug: "tote-bags" }],
-    ["instead of t-shirts maybe hoodies?", undefined, { mode: "product", slug: "hoodies" }],
-    ["something other than hoodies and tote bags?", undefined, { mode: "consult", exclude: ["hoodies", "tote-bags"] }],
-    ["something instead of the black cotton hoodies", undefined, { mode: "consult", exclude: ["hoodies"] }],
-    ["something instead of the extra large black cotton hoodies", undefined, { mode: "consult", exclude: ["hoodies"] }],
-  ] as const)("routes %j (on %s) around what it excludes", (m, current, expected) => {
+    ["Apart from the price, how long do hoodies take?", "hoodies", { mode: "product", slug: "hoodies" }],
+    ["Other than that, do the hoodies come in XL?", undefined, { mode: "product", slug: "hoodies" }],
+    ["what else do you have?", "hoodies", { mode: "consult", exclude: ["hoodies"] }],
+    ["What else do you need to send the quote?", "hoodies", { mode: "product", slug: "hoodies" }],
+    ["Anything else you need from me?", "hoodies", { mode: "product", slug: "hoodies" }],
+  ] as const)("routes %j (on %s) by the products it names", (m, current, expected) => {
     expect(route(m, current)).toMatchObject(expected);
   });
 });

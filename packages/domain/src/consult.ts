@@ -47,20 +47,18 @@ const stem = (w: string) => w.replace(/(ies)$/, "y").replace(/(xes|ches|shes|ses
  * price?" or "what are my options?" on a product are about that product.
  */
 const DISCOVERY = /\b(what (else )?(do|can) you (have|make|offer|sell)|what else (would|could|might) (work|fit|suit)|(anything|something) else (you |that you )?(have|make|offer|sell)|(have|got|show me|suggest|recommend) (anything|something) else|alternatives?|(other|different|more) (merch|products|items|options|ideas|suggestions|things|stuff)|(some|any) (good |other )?(merch|products|items)|browse|(your|the) catalog(ue)?)\b/i;
-/** "...besides hoodies", "hoodies instead of tees": the products named right after these words are the ones to leave out. */
-const EXCLUDE = /\b(besides|other than|apart from|instead of|except|not the)\b/gi;
-/** Before the excluded product: where a new phrase starts ("other than that", "not the same price for hoodies"). */
-const OBJECT_STOP = /^(,|for|as|can|could|do|does|did|is|are|was|we|i|you|please|but|so|with|that|this|which|how|what|would|will)$/i;
-/** Between excluded products: "besides hoodies and tote bags", "other than tees, stickers or the bottles". */
-const OBJECT_JOIN = /^(,|and|or|the|&)$/i;
+/** "something other than hoodies?": the words right after these name a product the buyer wants left out. */
+const EXCLUDE = /\b(?:besides|instead of|other than|except)\s+(?:the\s+)?([^\s,.;:!?]+(?:\s+[^\s,.;:!?]+)?)/gi;
 
 /**
  * Which product a buyer message is about, or that it is an open question to consult on.
  *
- * - One product clearly named (its name or unit): that product. A product named after "instead of", "besides" and the
- *   like is left out, not chosen.
- * - Several products named equally, nothing matched while no product is chosen, or (while on a product) an explicit
- *   ask for something else: consult, with the products the message did point at first.
+ * - One product clearly named (its name or unit): that product, unless it comes right after "besides", "instead of",
+ *   "other than" or "except" ("something other than hoodies?"): then consult, leaving it out.
+ * - Several products named ("hoodies or t-shirts?", "hoodies instead of t-shirts"): consult, listing them, or stay on
+ *   the current product when it is one of them.
+ * - Nothing matched while no product is chosen, or (while on a product) an explicit ask for something else ("what else
+ *   do you have?"): consult, with the products the message did point at first, leaving out the current one.
  * - Nothing matched while on a product ("make it 200", "which tier do you recommend?"): stay on it.
  */
 export function routeMessage(message: string, products: readonly ConsultProduct[], opts: { current?: string; sellerName?: string } = {}): RouteDecision {
@@ -78,7 +76,7 @@ export function routeMessage(message: string, products: readonly ConsultProduct[
       const strong = new Set([...words(p.name), p.unitLabel.toLowerCase(), pluralUnit(p.unitLabel).toLowerCase()].map(stem));
       const hits = [...said].filter((w) => strong.has(w));
       const weakHits = [...said].filter((w) => !strong.has(w) && !common.has(w) && weakSets[i]!.has(w));
-      return { slug: p.slug, strong: hits.length, weak: weakHits.length, hits: [...hits, ...weakHits] };
+      return { slug: p.slug, strong: hits.length, weak: weakHits.length, strongHits: hits, hits: [...hits, ...weakHits] };
     });
     return {
       named: scored.filter((s) => s.strong > 0).sort((a, b) => b.strong - a.strong || b.weak - a.weak),
@@ -86,43 +84,19 @@ export function routeMessage(message: string, products: readonly ConsultProduct[
     };
   };
 
-  // Each exclusion leaves out the run of products right after it; the text around those runs says what is asked for.
-  const exclude: string[] = [];
-  const leaveOut = (phrase: string[]) => {
-    const n = phrase.length ? score(phrase.join(" ")).named : [];
-    for (const s of n) if (s.strong === n[0]!.strong && !exclude.includes(s.slug)) exclude.push(s.slug);
-  };
-  let rest = message;
-  for (const ex of message.matchAll(EXCLUDE)) {
-    const from = ex.index + ex[0].length;
-    let phrase: string[] = [];
-    let to = -1;
-    let lead = 0;
-    for (const t of message.slice(from).split(/[.;:!?]/)[0]!.matchAll(/[^\s,]+|,/g)) {
-      if (score(t[0]).named.length) {
-        phrase.push(t[0]);
-        to = from + t.index + t[0].length;
-        continue;
-      }
-      leaveOut(phrase);
-      phrase = [];
-      if (to >= 0 ? !OBJECT_JOIN.test(t[0]) : OBJECT_STOP.test(t[0]) || ++lead > 8) break;
-    }
-    leaveOut(phrase);
-    if (to >= 0) rest = rest.slice(0, from) + " ".repeat(to - from) + rest.slice(to);
-  }
-  const asked = score(rest);
-  const named = asked.named.filter((s) => !exclude.includes(s.slug));
-  const pointed = asked.pointed.filter((s) => !exclude.includes(s.slug));
+  const scored = score(message);
+  // "tote bags" names Tote Bags; PVC Bags only shares its "bag", so it is not named on its own.
+  const named = scored.named.filter((s) => !scored.named.some((t) => t.strong > s.strong && s.strongHits.every((w) => t.strongHits.includes(w))));
+  const only = named.length === 1 ? named[0]! : undefined;
+  const exclude = only && [...message.matchAll(EXCLUDE)].some((m) => score(m[1]!).named.some((s) => s.slug === only.slug)) ? [only.slug] : [];
+  const pointed = scored.pointed.filter((s) => !exclude.includes(s.slug));
 
-  const top = named[0];
-  const tied = top ? named.filter((s) => s.strong === top.strong && s.weak === top.weak) : [];
-  if (top && tied.length === 1) {
-    return { mode: "product", slug: top.slug, switched: Boolean(current && current !== top.slug), reason: `named ${top.hits.join(", ")}` };
+  if (only && !exclude.length) {
+    return { mode: "product", slug: only.slug, switched: Boolean(current && current !== only.slug), reason: `named ${only.hits.join(", ")}` };
   }
-  if (tied.length > 1) {
-    if (current && tied.some((s) => s.slug === current) && !discovery) return { mode: "product", slug: current, switched: false, reason: "continuing the current product" };
-    return { mode: "consult", slugs: tied.slice(0, 4).map((s) => s.slug), exclude, reason: `several products match ${top!.hits.join(", ")}` };
+  if (named.length > 1) {
+    if (current && named.some((s) => s.slug === current) && !discovery) return { mode: "product", slug: current, switched: false, reason: "continuing the current product" };
+    return { mode: "consult", slugs: named.slice(0, 4).map((s) => s.slug), exclude: [], reason: `several products named: ${named.map((s) => s.strongHits.join(" ")).join(", ")}` };
   }
   if (exclude.length) return { mode: "consult", slugs: pointed.slice(0, 4).map((s) => s.slug), exclude: [...new Set([...exclude, ...(discovery && current ? [current] : [])])], reason: "asked for something other than a named product" };
   if (discovery) return { mode: "consult", slugs: pointed.slice(0, 4).map((s) => s.slug), exclude: current ? [current] : [], reason: "an open question" };
