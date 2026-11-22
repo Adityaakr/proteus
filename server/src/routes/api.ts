@@ -6,6 +6,7 @@ import { sellerSignerAddress } from "../chain/client";
 import { env, features } from "../env";
 import { json } from "../lib/http";
 import { appRoutes } from "./app";
+import { builderRoutes } from "./builder";
 import { dealRoutes } from "./deals";
 import { publicRoutes } from "./public";
 import { meRoutes } from "./me";
@@ -43,6 +44,7 @@ export function apiRoutes() {
   api.route("/", publicRoutes);
   api.route("/", dealRoutes);
   api.route("/", meRoutes);
+  api.route("/", builderRoutes);
   api.route("/", payRoutes);
   api.route("/", appRoutes);
   api.route("/", consoleRoutes);

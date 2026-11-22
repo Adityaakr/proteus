@@ -25,6 +25,7 @@ The buyer's message is read by Claude Haiku into fields (units, budget, integrat
 
 | Rule | Breaks when | Result |
 |---|---|---|
+| Floor price | The prepaid total is below units × the seller's lowest price per unit (set per product, for example by Create your deal agent) | Refused |
 | Margin floor | The expected contribution margin is below the seller's floor | Refused |
 | Positive contribution | The offer would not cover its cost (unless the product is labelled as a test) | Refused |
 | Discount cap | The unit price is further below list than the cap allows | Refused |

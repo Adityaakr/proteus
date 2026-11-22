@@ -23,7 +23,7 @@ export interface Brand {
 export const CATEGORIES = ["support", "voice", "infra", "devtools", "treasury", "payables", "vendors", "operations", "compliance", "logistics", "merch", "data", "legal", "risk", "media", "finance", "health", "other"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
-const MAX_DATA_URL = 96 * 1024;
+export const MAX_DATA_URL = 96 * 1024;
 
 /** Social profiles a seller may show, and the hosts each link must point to. */
 const SOCIAL_HOSTS = { x: ["x.com", "twitter.com"], instagram: ["instagram.com"], farcaster: ["farcaster.xyz", "warpcast.com"] } as const;

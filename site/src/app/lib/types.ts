@@ -401,7 +401,7 @@ export type CandidateWithEconomics = Omit<Offer, "publicReasons"> & { rules: str
 export interface ProductWithPrivate extends PublicProduct {
   id: string;
   maxUnitsPerDeal: UnitsStr;
-  cost: { version: number; variableCostPerUnit: MicroStr; directCostPerDeal: MicroStr; txCostBps: number; freshUntil: number | IsoTime };
+  cost: { version: number; variableCostPerUnit: MicroStr; directCostPerDeal: MicroStr; txCostBps: number; freshUntil: number | IsoTime; floorUnitPrice?: MicroStr };
   policy: {
     version: number;
     minMarginBps: number;

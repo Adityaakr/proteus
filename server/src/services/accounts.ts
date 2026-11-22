@@ -1,7 +1,7 @@
 import { and, desc, eq, sql, type SQL } from "drizzle-orm";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { verifyMessage, type Address, type Hex } from "viem";
-import { formatUsd, toMicro, pluralUnit } from "@proteus/domain";
+import { formatUsd, toMicro, pluralUnit, type ProductKnowledge } from "@proteus/domain";
 import { ensureOrgSigner } from "../chain/signer";
 import { erc20Abi } from "../chain/abi";
 import { publicClient, usdcAddress } from "../chain/client";
@@ -187,7 +187,7 @@ export interface ProductCreateInput {
   maxUnitsPerDeal: string;
   termDays: number;
   refundPolicy: string;
-  cost: { variableCostPerUnitUsd: string; directCostPerDealUsd: string; txCostBps: number };
+  cost: { variableCostPerUnitUsd: string; directCostPerDealUsd: string; txCostBps: number; floorUnitPriceUsd?: string };
   policy: { minMarginBps: number; maxDiscountBps: number; approvalThresholdUsd: string; prepaidMinimumUsd: string; availableCapacityUnits: string; quoteTtlSeconds: number };
   payPerCall?: { priceUsd: string };
   summary?: string;
@@ -196,7 +196,17 @@ export interface ProductCreateInput {
   /** "http": the seller's own endpoint (real). "order-support": first-party sample store (demo). */
   adapter?: "http" | "order-support";
   upstream?: { url: string; authHeader?: string; secret?: string };
+  /**
+   * Goods and offline work the seller delivers itself: no service endpoint. Buyers send order details, the seller records
+   * each delivery with proof (gateway.ts sellerDelivered). Set by the website importer, not by the public product form.
+   */
+  sellerDelivered?: boolean;
+  /** Public facts imported from the seller's own website (variants, list price, policies), for the deal agent and buyers. */
+  knowledge?: ProductKnowledge;
+  /** Suggested buyer openers; a default is generated when absent. */
+  starters?: string[];
 }
+
 
 /** Seller-defined request fields: at most 6, keys derived from labels when missing, types restricted. */
 export function normalizeRequestSpec(spec: { intro?: string; fields: { key?: string; label: string; type: string; required?: boolean; placeholder?: string; hint?: string }[] }) {
@@ -227,7 +237,10 @@ export function validateUpstreamUrl(raw: string): string {
   return u.toString();
 }
 
-export async function createProduct(orgId: string, input: ProductCreateInput) {
+/** A write that must commit together with a new product's rows (the website importer records what it created). */
+export type ProductTxHook = (tx: Parameters<Parameters<typeof db.transaction>[0]>[0], productId: string) => Promise<void>;
+
+export async function createProduct(orgId: string, input: ProductCreateInput, inTx?: ProductTxHook) {
   if (!input.tiers.length) throw new HttpError(400, "at least one tier is required");
   const productId = id("prod");
   const slug = slugify(input.slug ?? input.name);
@@ -248,11 +261,15 @@ export async function createProduct(orgId: string, input: ProductCreateInput) {
     ...(input.request?.fields?.length ? { request: normalizeRequestSpec(input.request) } : {}),
   };
   const adapter = "http" as const;
-  if (!input.upstream?.url) throw new HttpError(400, "an endpoint URL is required; every product runs on the seller's own service");
-  const upstream = adapter === "http" && input.upstream ? { url: validateUpstreamUrl(input.upstream.url), authHeader: input.upstream.authHeader?.trim() || undefined, secretEnc: input.upstream.secret?.trim() ? encryptSecret(input.upstream.secret.trim()) : undefined } : null;
-  await db.insert(schema.products).values({ id: productId, orgId, slug, public: pub, starters: [`We need about ${input.tiers[0]!.includedUnits} ${input.tiers[0]!.includedUnits === "1" ? input.unitLabel : pluralUnit(input.unitLabel)}. What can you offer?`], adapter, upstream, payPerCallPrice: input.payPerCall ? toMicro(input.payPerCall.priceUsd) : null });
-  await db.insert(schema.costModels).values({ id: id("cost"), orgId, productId, version: 1, variableCostPerUnit: toMicro(input.cost.variableCostPerUnitUsd), directCostPerDeal: toMicro(input.cost.directCostPerDealUsd), txCostBps: input.cost.txCostBps, freshUntil: new Date(Date.now() + 30 * 86400 * 1000) });
-  await db.insert(schema.policies).values({ id: id("pol"), orgId, productId, version: 1, minMarginBps: input.policy.minMarginBps, maxDiscountBps: input.policy.maxDiscountBps, approvalThreshold: toMicro(input.policy.approvalThresholdUsd), prepaidMinimum: toMicro(input.policy.prepaidMinimumUsd), availableCapacityUnits: BigInt(input.policy.availableCapacityUnits), quoteTtlSeconds: input.policy.quoteTtlSeconds });
+  if (!input.sellerDelivered && !input.upstream?.url) throw new HttpError(400, "an endpoint URL is required; every product runs on the seller's own service");
+  const upstream = !input.sellerDelivered && input.upstream ? { url: validateUpstreamUrl(input.upstream.url), authHeader: input.upstream.authHeader?.trim() || undefined, secretEnc: input.upstream.secret?.trim() ? encryptSecret(input.upstream.secret.trim()) : undefined } : null;
+  const starters = input.starters?.length ? input.starters.slice(0, 4) : [`We need about ${input.tiers[0]!.includedUnits} ${input.tiers[0]!.includedUnits === "1" ? input.unitLabel : pluralUnit(input.unitLabel)}. What can you offer?`];
+  await db.transaction(async (tx) => {
+    await tx.insert(schema.products).values({ id: productId, orgId, slug, public: { ...pub, ...(input.knowledge ? { knowledge: input.knowledge } : {}) }, starters, adapter, upstream, payPerCallPrice: input.payPerCall ? toMicro(input.payPerCall.priceUsd) : null });
+    await tx.insert(schema.costModels).values({ id: id("cost"), orgId, productId, version: 1, variableCostPerUnit: toMicro(input.cost.variableCostPerUnitUsd), directCostPerDeal: toMicro(input.cost.directCostPerDealUsd), txCostBps: input.cost.txCostBps, floorUnitPrice: input.cost.floorUnitPriceUsd ? toMicro(input.cost.floorUnitPriceUsd) : null, freshUntil: new Date(Date.now() + 30 * 86400 * 1000) });
+    await tx.insert(schema.policies).values({ id: id("pol"), orgId, productId, version: 1, minMarginBps: input.policy.minMarginBps, maxDiscountBps: input.policy.maxDiscountBps, approvalThreshold: toMicro(input.policy.approvalThresholdUsd), prepaidMinimum: toMicro(input.policy.prepaidMinimumUsd), availableCapacityUnits: BigInt(input.policy.availableCapacityUnits), quoteTtlSeconds: input.policy.quoteTtlSeconds });
+    if (inTx) await inTx(tx, productId);
+  });
   return productId;
 }
 

@@ -63,6 +63,7 @@ export function product(raw: W.ProductWithPrivate | Loose): ProductWithPrivate {
       directCostPerDeal: String(r.cost?.directCostPerDeal ?? "0"),
       txCostBps: String(r.cost?.txCostBps ?? "0"),
       freshUntil: typeof fresh === "number" ? fresh : fresh ? Date.parse(String(fresh)) : 0,
+      ...(r.cost?.floorUnitPrice != null ? { floorUnitPrice: String(r.cost.floorUnitPrice) } : {}),
     },
     policy: {
       version: Number(r.policy?.version ?? 0),

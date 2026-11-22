@@ -50,6 +50,8 @@ export interface WireCostModel {
   directCostPerDeal: MicroStr;
   txCostBps: IntStr;
   freshUntil: number;
+  /** Lowest price per unit the agent may offer (FLOOR_PRICE), when the seller set one. */
+  floorUnitPrice?: MicroStr;
 }
 
 export interface WirePolicy {

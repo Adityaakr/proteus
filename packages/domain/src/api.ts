@@ -72,6 +72,8 @@ export const CostUpdateBody = z.object({
   variableCostPerUnit: MicroString,
   directCostPerDeal: MicroString.optional(),
   txCostBps: z.number().int().min(0).max(10000).optional(),
+  /** Lowest price per unit (micro-USDC). Omitted keeps the current floor; null removes it. */
+  floorUnitPrice: MicroString.nullable().optional(),
 });
 
 export type StartNegotiationBody = z.infer<typeof StartNegotiationBody>;

@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, ne } from "drizzle-orm";
-import { evaluateCounteroffer, formatUsd, getQuoteCandidates, toPublicCandidate, type Candidate, type PublicCandidate, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
+import { evaluateCounteroffer, formatUsd, getQuoteCandidates, toPublicCandidate, type Candidate, type CounterDecision, type PublicCandidate, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
 import { detectInjection, getAgentAdapter, redactPersonalData, type AgentStep, type ConversationTurn } from "../agent";
 import { db, schema } from "../db";
 import { HttpError, bigintsToStrings } from "../lib/http";
@@ -216,7 +216,7 @@ export async function addBuyerMessage(negId: string, content: string) {
   });
 
   const catalog = await sellerCatalog(lp);
-  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: ext.requirements, offers: offers.map(toPublicCandidate), rejected: rejected.map(toPublicCandidate), injectionDetected: injection, turns: convo, facts: { termDays: lp.product.termDays, refundPolicy: lp.product.refundPolicy, billableUnit: lp.product.billableUnit, supportedIntegrations: lp.product.supportedIntegrations, capabilities: lp.product.capabilities }, catalog });
+  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: ext.requirements, offers: offers.map(toPublicCandidate), rejected: rejected.map(toPublicCandidate), injectionDetected: injection, turns: convo, facts: productFacts(lp), catalog });
   steps.push(...composed.steps);
   activity.push({ at: iso(), label: offers.length ? "Prepared offers" : "Prepared a reply", state: "done" });
 
@@ -235,6 +235,33 @@ export async function addBuyerMessage(negId: string, content: string) {
 /* counter                                                              */
 /* ------------------------------------------------------------------ */
 
+/** The agent's answer to a counter: deterministic, from the engine's decision only. */
+export function counterReply(d: CounterDecision, askText: string, unitLabel: string): string {
+  if (d.decision === "approved") return `Yes, I can do ${d.candidate.units.toLocaleString()} ${unitFor(d.candidate.units, unitLabel)} for ${formatUsd(d.candidate.prepaidTotal)}. That is within what the seller allows, so you can accept it now.`;
+  if (d.decision === "approval_required") return `${askText} is above what I can agree on my own. I have sent it to the seller for approval. You can still accept one of the standing options meanwhile.`;
+  const reason = toPublicCandidate(d.candidate).publicReasons[0] ?? "it falls outside the seller's policy.";
+  return `I cannot do ${askText}: ${reason.toLowerCase()}${d.alternative ? ` What I can offer at that budget is ${d.alternative.units.toLocaleString()} ${pluralUnit(unitLabel)} for ${formatUsd(d.alternative.prepaidTotal)}.` : ""}`;
+}
+
+/** "50 tees for $400.00" or "60 tees for $480.00": how the buyer's counter reads in the transcript. */
+export function counterAskText(base: Candidate, ask: { targetTotal?: bigint; targetUnits?: bigint }, unitLabel: string): string {
+  return ask.targetTotal !== undefined ? `${base.units.toLocaleString()} ${unitFor(base.units, unitLabel)} for ${formatUsd(ask.targetTotal)}` : `${ask.targetUnits?.toLocaleString()} ${pluralUnit(unitLabel)} for ${formatUsd(base.prepaidTotal)}`;
+}
+
+/** Public facts the agent may answer from: the product's terms and what was imported from the seller's website. */
+export function productFacts(lp: { product: LoadedProduct["product"] }) {
+  const p = lp.product;
+  const k = p.knowledge;
+  return {
+    termDays: p.termDays,
+    refundPolicy: p.refundPolicy,
+    billableUnit: p.billableUnit,
+    supportedIntegrations: p.supportedIntegrations,
+    capabilities: p.capabilities,
+    ...(k ? { knowledge: { options: k.options ?? [], variants: k.variants ?? [], notes: k.notes ?? [], policies: (k.policies ?? []).map((x) => ({ kind: x.kind, summary: x.summary })), sourceUrl: k.sourceUrl } } : {}),
+  };
+}
+
 export async function counter(negId: string, candidateId: string, ask: { targetTotal?: bigint; targetUnits?: bigint }) {
   const { neg, turnRows, lp } = await loadNegotiation(negId);
   const candidates = (neg.candidates as Record<string, unknown>[]).map(reviveCandidate);
@@ -245,7 +272,7 @@ export async function counter(negId: string, candidateId: string, ask: { targetT
   const d = evaluateCounteroffer(ctx, base, ask, req);
   const seq = (turnRows.at(-1)?.seq ?? 0) + 1;
 
-  const askText = ask.targetTotal !== undefined ? `${base.units.toLocaleString()} ${unitFor(base.units, lp.product.unitLabel)} for ${formatUsd(ask.targetTotal)}` : `${ask.targetUnits?.toLocaleString()} ${pluralUnit(lp.product.unitLabel)} for ${formatUsd(base.prepaidTotal)}`;
+  const askText = counterAskText(base, ask, lp.product.unitLabel);
   await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", kind: "message", content: await sealText(lp.org.id, `Counteroffer: ${askText}.`) });
 
   let reply: string;
@@ -256,16 +283,10 @@ export async function counter(negId: string, candidateId: string, ask: { targetT
     else next.push(c);
   };
   const pub = toPublicCandidate(d.candidate);
-  if (d.decision === "approved") {
-    upsert(d.candidate);
-    reply = `Yes, I can do ${d.candidate.units.toLocaleString()} ${unitFor(d.candidate.units, lp.product.unitLabel)} for ${formatUsd(d.candidate.prepaidTotal)}. That is within what the seller allows, so you can accept it now.`;
-  } else if (d.decision === "approval_required") {
-    upsert(d.candidate);
-    reply = `${askText} is above what I can agree on my own. I have sent it to the seller for approval. You can still accept one of the standing options meanwhile.`;
-  } else {
+  if (d.decision === "rejected") {
     if (d.alternative) upsert(d.alternative);
-    reply = `I cannot do ${askText}: ${(pub.publicReasons[0] ?? "it falls outside the seller's policy.").toLowerCase()}${d.alternative ? ` What I can offer at that budget is ${d.alternative.units.toLocaleString()} ${pluralUnit(lp.product.unitLabel)} for ${formatUsd(d.alternative.prepaidTotal)}.` : ""}`;
-  }
+  } else upsert(d.candidate);
+  reply = counterReply(d, askText, lp.product.unitLabel);
 
   await db.insert(schema.decisions).values({
     id: id("dec"),

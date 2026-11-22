@@ -106,4 +106,5 @@ export const RULE_TEXT: Record<string, string> = {
   MAX_UNITS_PER_DEAL: "Above the per-deal unit ceiling",
   UNSUPPORTED_INTEGRATION: "Requested integration not supported",
   COST_MODEL_STALE: "Cost model is stale",
+  FLOOR_PRICE: "Below the floor price per unit",
 };

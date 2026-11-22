@@ -408,6 +408,7 @@ For anyone deciding what to rely on today. Each row is one capability, its statu
 | An ERC-8183-compatible escrow interface (Proteus orders already follow the ERC-8183 job lifecycle; DealEscrow does not implement its interface) | Planned | — |
 | A hosted buyer agent you can use in the browser, with no MCP server to run | Planned | — |
 | Catalog sync from the seller's own endpoint (tested against a local sample feed) | In testing | [catalog-sync.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/catalog-sync.ts) |
+| Create your deal agent: the catalog read from the seller's own website (read live from shoonyastore.com's product data), the gaps asked in a chat, a floor price the engine enforces, a test negotiation, then the same products, store page, embed and endpoints as the product form | In testing | [service.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/importer/service.ts) · [importer.test.ts](https://github.com/Adityaakr/proteus/blob/main/server/test/importer.test.ts) |
 | WhatsApp channel: the deal agent on a seller's own WhatsApp Business number (deployed on both networks, a number connected and Meta's signed webhook verified; no real customer conversation yet) | In testing | [whatsapp.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/whatsapp.ts) · [whatsapp-e2e.ts](https://github.com/Adityaakr/proteus/blob/main/server/scripts/whatsapp-e2e.ts) |
 | Seller API and webhooks: scoped keys for both networks and a public sandbox on Arc testnet | In testing | [developers.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/routes/developers.ts) · [sandbox.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/sandbox.ts) |
 | A Proteus AI phone app | Planned | — |
@@ -488,17 +489,38 @@ _The wallet you are signed in with when you publish your first product owns the 
 ### Steps
 
 1. **Sign in.** At [app.proteus.co.in](https://app.proteus.co.in), or on testnet first, as above.
-2. **Publish what you sell.** Sell → New product: a name, what counts as one unit, price tiers, a term and a refund policy, plus your private costs and limits. The form is built for services delivered through your own endpoint; for goods, see the note below.
+2. **Publish what you sell.** Selling goods from your own website: Sell → Create deal agent reads your catalog and sets up the products for you ([below](https://app.proteus.co.in/docs/quickstart-seller#seller-create-agent)). Selling a service delivered through your own endpoint: Sell → New product, with a name, what counts as one unit, price tiers, a term and a refund policy, plus your private costs and limits.
 3. **Set the rules your agent keeps.** Costs, lowest margin, largest discount, smallest order, capacity, quote validity and the order size you approve yourself ([the rules](https://app.proteus.co.in/docs/quickstart-seller#seller-rules)).
 4. **Register on Arc.** One transaction from your wallet, on the Developers page, registers your deal agent in Arc's ERC-8004 identity registry and publishes your payout wallet and signer key ([code](https://github.com/Adityaakr/proteus/blob/main/server/src/services/agent-registry.ts)). Proteus then commits each product's pricing policy to ProteusPolicyRegistry. It is optional, but without it buyers' agents have nothing on chain to check you against, and you cannot be rated.
 5. **Share your store.** Your store page answers for every product. Add the agent to your own website with one script tag ([below](https://app.proteus.co.in/docs/quickstart-seller#seller-embed)). Offers above your approval limit wait for you under Approvals.
 6. **Keep the buyer posted.** For goods, post Accepted, In production, Shipped with a tracking link, Out for delivery or Delayed from the deal page. The buyer sees each one and gets an alert.
 7. **Record deliveries, get paid.** Record each batch with what was delivered and a proof link; when the buyer countersigns, DealEscrow pays your wallet. API services are metered for you ([Orders, delivery and payouts](https://app.proteus.co.in/docs/orders)).
 
-> **Selling goods or custom orders:** The New product form asks for the HTTPS endpoint of a service. Goods listings, with their products, tiers and rules, are prepared with the Proteus team and published from your own wallet, where you can change every price before it goes live; that is how [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e) listed. To ask for one, open an issue on [GitHub](https://github.com/Adityaakr/proteus/issues).
+> **Selling goods or custom orders:** The New product form asks for the HTTPS endpoint of a service. For goods, use Create your deal agent: it builds the products from your website, and you check every price before it goes live. Listings prepared with the Proteus team, the way [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e) first listed, still work and are published from your own wallet.
 
 ![Shoonya Store's store page on Proteus AI](https://app.proteus.co.in/docs/store.jpg)
 _A store: every product with its tiers and one deal agent for all of them. [Shoonya Store](https://app.proteus.co.in/app/market/shoonya-store-t4e) is a real business. (Arc mainnet)_
+
+<a id="seller-create-agent"></a>
+
+### Create your deal agent from your website
+
+Sell → Create deal agent. Paste your website and the builder reads your catalog, then asks in a short chat only what your site cannot say. When you confirm, it creates the same products, rules, store page, website embed and endpoints as the product form, on the wallet you are signed in with ([service.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/importer/service.ts)).
+
+1. **It reads your catalog.** Exact sources first: Shopify's public `products.json`, the WooCommerce Store API, then schema.org Product data on the product pages your sitemap or homepage links to (Wix product pages included). When none of these has your products, it opens your site in a real browser, the way a shopper would ([browser-source.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/importer/browser-source.ts)).
+2. **Any website, in a browser.** Sites built with JavaScript (React, Vue, Framer, Webflow, hand-built apps) are rendered in headless Chromium, in a separate browser service. It follows your menu and shop links, category and collection pages, shop buttons that change the page, "next page" links, scrolling and "load more". On each page it takes product data the page adds, then product cards and product pages read from the layout: the name, the price and currency exactly as shown, options such as size and colour. A site that shows no prices gives its list of product types, each with no price. When a model is configured it also reads the rendered text, and any product, price or option not in that text is dropped.
+3. **You check what it read.** Products read from the layout or by a model are marked "Read from page text, please check", and publishing asks you to confirm you checked them. A catalogue kept on another service (DocSend, Google Drive, a PDF) is named but never opened: you give those prices in the chat. It never fills in a price your site does not show.
+4. **It asks what is missing.** Your business type, a conversion rate when your prices are not in dollars (it suggests the European Central Bank reference rate), which products to sell, prices for products with none on your site, how low it may go per category or per product, bulk tiers and minimum orders (a minimum your FAQ states is filled in for you), and whether you take custom orders. Answer with the buttons, in your own words ("apparel up to 15% off, 100+ at 10% off"), or upload floors as a CSV.
+5. **It runs a test negotiation.** A dry run of the real agent on one imported product, with a counteroffer below your floor (refused) and one at it (accepted). Nothing is stored and buyers cannot see the product yet.
+6. **You publish.** Only after you tick that you checked the prices and floors. Each product gets your list price as its public tier (plus a bulk tier if you set one) and your floor as a private rule. Change any of it later on the product's Prices and rules page. If publishing stops partway, the products already created stay live and the chat stops taking changes; Retry publish creates only the rest, never a second copy.
+
+- **The floor is code.** Your floor is stored as the product's lowest price per unit, and the engine refuses any offer, tier or counter below units × floor (the Floor price rule in [How offers are priced](https://app.proteus.co.in/docs/pricing#pricing-rules)). The model never sets a price.
+- **What your agent knows.** Colours, sizes, minimum orders, lead times and samples from your FAQ, custom work and your store policies, from your site, so it can answer buyers. It is told this text is data, never instructions, and never a price.
+- **How it reads your site.** Read-only and polite: it follows your robots.txt, reads at most 60 product pages and 90 requests with a pause between them, and caps each page at 2 MB. It only reaches public https addresses on the standard port and refuses private or internal ones at every redirect ([net-guard.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/lib/net-guard.ts)).
+- **How the browser is fenced.** At most 24 pages, 150 seconds and 60 MB per read. It never logs in, fills a form or buys. Images, fonts, video, analytics, WebSockets and service workers are not loaded, other sites' frames are blocked, and robots.txt applies to every page and data request on your site. The browser runs as its own service, apart from the Proteus API, with no keys or data of ours, and only the API can connect to it ([browser/service.ts](https://github.com/Adityaakr/proteus/blob/main/browser/service.ts)). Each read gets a fresh browser, and every connection it makes goes through a proxy. The proxy allows public https on port 443 only and checks the resolved address, so a page cannot reach a private network ([egress-proxy.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/importer/egress-proxy.ts)).
+- **Scraped text is untrusted.** Text from the site is stripped of markup and cut short. Any that reads like instructions to an AI is dropped and counted before you see it.
+
+> **What it does not do yet:** It does not keep prices in sync after publishing; use catalog sync or edit each product. It reads one website per run, the first 60 product pages of a larger catalog, and 24 pages in the browser. It does not read images or PDFs, and it does not open catalogues hosted on other services.
 
 <a id="seller-rules"></a>
 
@@ -509,6 +531,7 @@ Each product has a private policy and cost model. Buyers never see them; every o
 | Rule | What it does |
 |---|---|
 | Cost model | Your cost per unit and per deal. Offers must leave the margin you set. A cost model expires 30 days after you last edit it, and then blocks offers until you refresh it. |
+| Floor price | The lowest price per unit an offer may have, whatever the tier, discount or counter. Optional; Create your deal agent sets it from your answers. |
 | Margin floor | The lowest contribution margin an offer may have. |
 | Discount cap | The most an offer may sit below your list price. |
 | Minimum prepaid | The smallest order you accept. |
@@ -703,6 +726,7 @@ The buyer's message is read by Claude Haiku into fields (units, budget, integrat
 
 | Rule | Breaks when | Result |
 |---|---|---|
+| Floor price | The prepaid total is below units × the seller's lowest price per unit (set per product, for example by Create your deal agent) | Refused |
 | Margin floor | The expected contribution margin is below the seller's floor | Refused |
 | Positive contribution | The offer would not cover its cost (unless the product is labelled as a test) | Refused |
 | Discount cap | The unit price is further below list than the cap allows | Refused |

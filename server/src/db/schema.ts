@@ -171,6 +171,8 @@ export const costModels = pgTable(
     directCostPerDeal: bigint("direct_cost_per_deal", { mode: "bigint" }).notNull(),
     txCostBps: integer("tx_cost_bps").notNull(),
     freshUntil: timestamp("fresh_until", { withTimezone: true }).notNull(),
+    /** Lowest price per unit the agent may offer (micro-USDC), enforced as the FLOOR_PRICE rule. Null: no explicit floor. */
+    floorUnitPrice: bigint("floor_unit_price", { mode: "bigint" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("cost_models_product_version").on(t.productId, t.version)],
@@ -689,6 +691,34 @@ export const sellerApiKeys = pgTable(
     replacedBy: text("replaced_by"),
   },
   (t) => [uniqueIndex("seller_api_keys_hash").on(t.keyHash), index("seller_api_keys_org").on(t.orgId)],
+);
+
+/**
+ * "Create your deal agent": one reading of a seller's website and the seller's answers in the chat that follows. The
+ * scraped catalog (`result`) is the seller's own public website. The answers carry the private floors, so they are
+ * stored encrypted. Nothing becomes a product until the seller confirms; `published` records what was created.
+ */
+export const catalogImports = pgTable(
+  "catalog_imports",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    /** The seller org the products were published to (null until published). */
+    orgId: text("org_id"),
+    url: text("url").notNull(),
+    status: text("status").notNull().default("running"), // running | ready | publishing | failed | published
+    progress: jsonb("progress").notNull().default([]),
+    result: jsonb("result"),
+    /** BuilderAnswers as AES-GCM ciphertext (crypto.ts): floors and discounts are seller-private. */
+    answersEnc: text("answers_enc"),
+    /** The chat transcript the seller sees (agent and seller lines, no secrets). */
+    transcript: jsonb("transcript").notNull().default([]),
+    error: text("error"),
+    published: jsonb("published"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("catalog_imports_user").on(t.userId, t.createdAt)],
 );
 
 /** Recent webhook deliveries per seller (sample tests and real events), trimmed to the newest few dozen. */

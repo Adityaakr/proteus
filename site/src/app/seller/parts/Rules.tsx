@@ -2,7 +2,7 @@ import type { RuleId } from "@proteus/domain";
 import { RULE_TEXT, big, pct } from "../format";
 import s from "./parts.module.css";
 
-const HARD = new Set(["MARGIN_FLOOR_BPS", "NON_POSITIVE_CONTRIBUTION", "MAX_DISCOUNT_BPS", "CAPACITY", "MAX_UNITS_PER_DEAL", "PREPAID_MINIMUM", "COST_MODEL_STALE"]);
+const HARD = new Set(["MARGIN_FLOOR_BPS", "NON_POSITIVE_CONTRIBUTION", "MAX_DISCOUNT_BPS", "CAPACITY", "MAX_UNITS_PER_DEAL", "PREPAID_MINIMUM", "COST_MODEL_STALE", "FLOOR_PRICE"]);
 
 /** Rule ids as monospace chips; the id is the label, and the plain-language reason is the title. */
 export function RuleChips({ rules, emptyText = "None fired" }: { rules: (RuleId | string)[]; emptyText?: string }) {

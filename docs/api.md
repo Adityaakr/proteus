@@ -315,3 +315,58 @@ curl https://app.proteus.co.in/api/v1/seller/deals -H "Authorization: Bearer $PR
 const r = await fetch("https://app.proteus.co.in/api/v1/seller/deals", { headers: { Authorization: `Bearer ${process.env.PROTEUS_SELLER_KEY}` } });
 const { deals } = await r.json();
 ```
+
+## Create your deal agent: website import (2026-11-22)
+
+Signed-in account (`requireAuth`); a seller org is not needed yet. Code: [`services/importer/`](../server/src/services/importer/), routes in [`routes/builder.ts`](../server/src/routes/builder.ts).
+
+```
+POST  /api/builder/imports                { url }             -> BuilderImport (201, status "running"; the read continues in the background)
+GET   /api/builder/imports/latest                              -> BuilderImport | null
+GET   /api/builder/imports/:id                                 -> BuilderImport (poll while status is "running")
+PATCH /api/builder/imports/:id/answers    AnswersPatch         -> BuilderImport
+POST  /api/builder/imports/:id/messages   { text }             -> { understood: string[], view: BuilderImport }
+POST  /api/builder/imports/:id/floors     { csv }              -> { applied, unmatched[], errors[], view }
+POST  /api/builder/imports/:id/test       { productKey?, message?, counterUsd? } -> TestNegotiation (dry run, nothing stored)
+POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport (status "published", published: { orgSlug, products[] })
+```
+
+- `BuilderImport`:
+  - `{ id, url, status: "running"|"ready"|"failed"|"published", progress[], error, transcript[], org, network, helpers: { model, browser: "local"|"cloud"|"off", firecrawl } }`.
+  - Once read: `result` (the scraped catalog: brand, products, policies, hints, sources tried, suggested FX rate, `elsewhere` catalogues on other services, `browser: { engine, pages }` when pages were rendered; `brand.logoUrl` is the site's logo copied as a PNG, JPEG, WebP or script-free SVG data URL under 96 KB, chosen from the header logo image, the JSON-LD Organization logo, the apple-touch-icon, a PNG or SVG icon, then any other page image that says "logo", so a site that refuses hotlinking still shows its logo), `answers` (the seller's own, including private floors), `draft` (`{ included, ready, next[], items[] }`, each item with `check: true` when it was read from page text) and `published`.
+  - Each product carries its `source`: `shopify`, `woocommerce`, `json-ld` and `browser` (structured data on a rendered page) are exact; `page-layout`, `firecrawl` and `page-text` were read from what the page shows and are marked for the seller to check.
+- Only the account that started an import can read it. Answers are stored encrypted (`catalog_imports.answers_enc`).
+- Source chain, first that yields products:
+  1. Shopify `/products.json`.
+  2. WooCommerce `/wp-json/wc/store/v1/products`.
+  3. schema.org Product/Offer JSON-LD on product pages from the sitemap or the homepage's links (`/products/`, `/product-page/` and similar paths).
+  4. A real browser ([`importer/browser-source.ts`](../server/src/services/importer/browser-source.ts)), unless `IMPORTER_BROWSER=off`:
+     - It opens the homepage, then the most promising pages: menu and shop links, category and collection pages, routes behind shop buttons, and next-page links. It skips account, cart, blog and policy pages.
+     - On each page it scrolls, presses "load more", and takes, in order: structured data the rendered page carries; product cards and a product's own page read from the layout (name, price and currency as shown, options); with no prices anywhere, the site's list of product types.
+     - When nothing has a price and a model is configured, the model reads the rendered text.
+     - Engine: the browser at `BROWSER_CDP_URL`: the browser service in [`browser/`](../browser/service.ts), a separate service with no application secrets, or a provider. In production the API never starts a browser itself; without `BROWSER_CDP_URL` it reads only the exact sources and says no browser is available. In development, headless Chromium on the machine.
+  5. Without a working browser: Firecrawl when `FIRECRAWL_API_KEY` is set, then the static page text read by the deployment's model.
+
+  Model output is kept only when the product name, its price and each option value appear in the page text. No source invents a price: a product without one shown stays priceless until the seller sets it.
+- Catalogues on another service (DocSend, Google Drive, Dropbox, Notion, Canva, or a linked PDF) are listed in `result.elsewhere` and never opened.
+- Limits:
+  - robots.txt is honoured.
+  - At most 60 product pages and 90 requests per import, with a 400 ms pause between them.
+  - Each response is capped at 2 MB, and each request times out after 12 s.
+  - https on port 443 only. Private, loopback and link-local addresses are refused inside the socket's DNS lookup, at every redirect ([`lib/net-guard.ts`](../server/src/lib/net-guard.ts)).
+  - The browser: at most 24 pages, 150 s, 4,000 requests and 60 MB per import, two browsers per server at once.
+    - It does not load images, fonts, media, analytics or other sites' frames. WebSockets and service workers are blocked, and robots.txt applies to every page and data request on the seller's site. It never logs in, fills a form or buys.
+    - The browser service, and a local development browser, reach the network only through [`importer/egress-proxy.ts`](../server/src/services/importer/egress-proxy.ts), one proxy and one fresh Chromium per read. The proxy allows CONNECT to port 443 only, resolves the host itself, refuses private, loopback, link-local and `*.internal` (so `*.railway.internal`) addresses, connects to the address it checked, and cuts the read at its byte budget. Loopback is forced through the proxy too. The service accepts a connection only with its `BROWSER_TOKEN`. The API applies the rules above to every request of the remote browser over the DevTools connection.
+  - 8 imports per account per hour.
+- `AnswersPatch`:
+  - `{ businessName?, businessType?, usdRate?, include?: { [productKey]: boolean }, products?/categories?: { [key]: PriceRule }, defaults?: PriceRule & { maxUnitsPerDeal?, approvalThresholdUsd?, termDays? }, floorsSet?, bulkAnswered?, customOrders? }`.
+  - `PriceRule = { priceUsd?, floorUsd?, maxDiscountPct?, moq?, bulkMinUnits?, bulkDiscountPct? }`, all decimal strings.
+- Publish refuses until every question is answered and each included product has a list price and a floor; at most 40 products per publish.
+- Publish creates the org when needed (`createOrg`, the signed-in wallet as owner and payee) and each product through `createProduct`:
+  - Seller-delivered (no endpoint).
+  - Tiers at the list price, plus a bulk tier if one was set.
+  - Cost model with `floorUnitPrice`.
+  - Policy with no margin floor and a discount cap set just wide enough never to refuse a price at or above the floor.
+  - Public `knowledge` (variants, options, notes, store policies) that the deal agent answers from.
+
+`CostUpdateBody` (`PATCH /api/app/products/:id/cost`) also takes `floorUnitPrice` (micro-USDC string, or `null` to remove it). The engine's `FLOOR_PRICE` rule refuses any candidate whose prepaid total is below `units × floorUnitPrice` and gives buyers the shared price reason.

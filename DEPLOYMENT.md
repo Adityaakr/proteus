@@ -62,6 +62,18 @@ The repo carries `railway.json` and `railpack.json`. One Railway service pointed
    `curl -X POST https://<domain>/api/admin/invites -H "authorization: Bearer $ADMIN_TOKEN" -H 'content-type: application/json' -d '{"count":100,"label":"launch"}'`
    `GET /api/admin/invites` lists status and who redeemed what; `POST /api/admin/invites/revoke {"invite":"<id or code>"}` revokes. From a shell with the database URL, `pnpm --filter @proteus/server exec tsx scripts/invites.ts generate 100 --label launch` does the same.
 4. In the Privy dashboard, add `https://<domain>` to the app's allowed origins so login works there.
+6. Create your deal agent reads sites built with JavaScript in a headless browser. The browser runs as its own small service with no application secrets, so a hostile page never runs next to the database, the encryption key or the signer keys. The API image has no Chromium, and with `NODE_ENV=production` the API never starts a browser itself.
+   1. **Create the browser service.** In the same Railway project, choose New, then GitHub Repo, and pick this repository.
+      - Settings, Source: leave Root Directory empty (the build needs the whole repository).
+      - Settings, Config-as-code: set the config file path to `/browser/railway.json`. It builds `browser/Dockerfile`: Debian's Chromium running as the non-root `node` user, with the Chromium sandbox on.
+      - Settings, Networking: do not generate a public domain. The service is reached only over the private network, at `<service-name>.railway.internal`.
+      - Variables: `BROWSER_TOKEN`, a random value of at least 24 characters (for example `openssl rand -hex 32`). Set no database URL and no keys. The service listens on `BROWSER_PORT` (default `3000`), not on Railway's `PORT`, so the URL below stays the same; if you set `BROWSER_PORT`, use that port in the URL.
+      - If the logs show Chromium failing with a sandbox or namespace error, set `BROWSER_SANDBOX=off` on this service only.
+   2. **Point the API at it.** On the API service, set `BROWSER_CDP_URL=ws://<service-name>.railway.internal:3000/?token=<the BROWSER_TOKEN value>`.
+   - **What the browser service does:** each connection with the right token gets a fresh Chromium and its own egress proxy. The proxy allows https on port 443 only, checks the resolved address, refuses private, loopback, link-local and `*.railway.internal` targets, and keeps the per-read byte budget. A connection without the token gets `401`. The API still checks robots.txt, blocks images, media, trackers and WebSockets, and refuses private addresses for every request the remote page makes.
+   - **Instead of the service:** `BROWSER_CDP_URL` may also be a provider's `wss://` Chrome DevTools URL (Browserless, Browserbase, Steel) that carries that provider's key. The browser then runs on the provider's network. `IMPORTER_BROWSER=off` never uses one.
+   - **Without `BROWSER_CDP_URL`:** the importer still reads Shopify, WooCommerce and schema.org product data and says that no browser is available.
+   - **Model:** `ANTHROPIC_API_KEY` (the deployment's existing key) lets it also read rendered page text with Claude. Without it, the browser still reads product cards, prices and product lists from the page layout.
 
 ## Hosting (earlier notes)
 

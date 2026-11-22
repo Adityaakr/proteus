@@ -39,11 +39,12 @@ export function reviveProduct(p: Record<string, unknown>): Product {
     ...(typeof p.summary === "string" && p.summary ? { summary: p.summary } : {}),
     ...(typeof p.category === "string" && p.category ? { category: p.category } : {}),
     ...(p.request && typeof p.request === "object" && Array.isArray((p.request as { fields?: unknown }).fields) ? { request: p.request as Product["request"] } : {}),
+    ...(p.knowledge && typeof p.knowledge === "object" ? { knowledge: p.knowledge as Product["knowledge"] } : {}),
   };
 }
 
 export function costFromRow(r: typeof schema.costModels.$inferSelect): CostModel {
-  return { version: r.version, variableCostPerUnit: r.variableCostPerUnit, directCostPerDeal: r.directCostPerDeal, txCostBps: BigInt(r.txCostBps), freshUntil: r.freshUntil.getTime() };
+  return { version: r.version, variableCostPerUnit: r.variableCostPerUnit, directCostPerDeal: r.directCostPerDeal, txCostBps: BigInt(r.txCostBps), freshUntil: r.freshUntil.getTime(), ...(r.floorUnitPrice !== null ? { floorUnitPrice: r.floorUnitPrice } : {}) };
 }
 
 export function policyFromRow(r: typeof schema.policies.$inferSelect): Policy {
@@ -131,6 +132,7 @@ export function publicProduct(lp: LoadedProduct) {
     summary: p.summary ?? null,
     category: p.category ?? null,
     request: p.request ?? null,
+    knowledge: p.knowledge ?? null,
     maxUnitsPerDeal: p.maxUnitsPerDeal.toString(),
     payPerCallUsd: lp.row.payPerCallPrice ? formatUsd(lp.row.payPerCallPrice, 4) : null,
     service: lp.row.adapter === "http" ? "seller-endpoint" : lp.row.adapter === "demo" ? "example" : "sample-store",

@@ -20,6 +20,9 @@ export const CLAUDE_FOR: Record<string, ClaudeJob> = {
   // Deal-desk chat
   "chat:extract": { model: "claude-haiku-5-5", effort: "low" },
   "chat:reply": { model: "claude-sonnet-5-5", effort: "low" },
+  // Website importer: products from page text, and the seller's chat answers as structured rules
+  "import:extract": { model: "claude-sonnet-5-5", effort: "low" },
+  "import:answers": { model: "claude-haiku-5-5", effort: "low" },
   // Services Proteus runs (adapter "demo"), by product slug
   "callback-booking": { model: "claude-haiku-5-5", effort: "low" },
   "after-hours-answering": { model: "claude-haiku-5-5", effort: "low" },

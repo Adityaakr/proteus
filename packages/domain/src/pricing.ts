@@ -44,6 +44,28 @@ export interface Product {
   termDays: number;
   /** Refund policy text shown to buyers; enforced by the contract's end+grace rule. */
   refundPolicy: string;
+  /** Public facts imported from the seller's own website. Context for the agent's answers; never a source of prices. */
+  knowledge?: ProductKnowledge;
+}
+
+/**
+ * What the website importer learned about one product. All of it comes from the seller's own public site and was shown
+ * to the seller before publishing. Offers never take a number from here: prices come only from tiers and the engine.
+ */
+export interface ProductKnowledge {
+  sourceUrl?: string;
+  /** The list price as the website shows it, before conversion to USDC (rate = website currency per 1 USD). */
+  listPrice?: { amount: string; currency: string; usdRate?: string };
+  /** Variant names, e.g. colours and sizes (at most 30). */
+  variants?: string[];
+  options?: { name: string; values: string[] }[];
+  imageUrl?: string;
+  category?: string;
+  /** Short lines the agent may answer from: minimum order, lead time, customisation. */
+  notes?: string[];
+  /** The seller's store-wide policies as short summaries, each with the page it came from. */
+  policies?: { kind: string; summary: string; url?: string }[];
+  importedAt?: string;
 }
 
 export interface Tier {
@@ -69,6 +91,11 @@ export interface CostModel {
   txCostBps: bigint;
   /** Fresh until this unix ms; stale cost models force conservative handling. */
   freshUntil: number;
+  /**
+   * Lowest price per unit the seller accepts (micro-USDC), whatever the tier, discount or counter. Enforced exactly:
+   * an offer is rejected when its prepaid total is below units x floor. Optional; without it only margin and discount apply.
+   */
+  floorUnitPrice?: Micro;
 }
 
 /** Seller-private commercial policy. NEVER serialized to buyer-facing responses. */
@@ -122,7 +149,8 @@ export type RuleId =
   | "PREPAID_MINIMUM"
   | "MAX_UNITS_PER_DEAL"
   | "UNSUPPORTED_INTEGRATION"
-  | "COST_MODEL_STALE";
+  | "COST_MODEL_STALE"
+  | "FLOOR_PRICE";
 
 export type CandidateStatus = "eligible" | "approval_required" | "rejected";
 
@@ -194,6 +222,7 @@ export function evaluate(
   const expectedContributionMarginBps = expectedRevenue > 0n ? bpsOf(expectedContribution, expectedRevenue) : 0n;
 
   if (now > cost.freshUntil) rules.push("COST_MODEL_STALE");
+  if (cost.floorUnitPrice !== undefined && prepaidTotal < units * cost.floorUnitPrice) rules.push("FLOOR_PRICE");
   if (expectedContribution <= 0n && !policy.allowNonPositiveContribution) rules.push("NON_POSITIVE_CONTRIBUTION");
   if (expectedContributionMarginBps < policy.minMarginBps) rules.push("MARGIN_FLOOR_BPS");
   if (discountBps > policy.maxDiscountBps) rules.push("MAX_DISCOUNT_BPS");
@@ -206,7 +235,7 @@ export function evaluate(
   // Unsupported integrations do not reject the candidate; they are disclosed and excluded from terms.
   if (unsupportedIntegrations.length) rules.push("UNSUPPORTED_INTEGRATION");
 
-  const hardRejects: RuleId[] = ["MARGIN_FLOOR_BPS", "NON_POSITIVE_CONTRIBUTION", "MAX_DISCOUNT_BPS", "CAPACITY", "MAX_UNITS_PER_DEAL", "PREPAID_MINIMUM", "COST_MODEL_STALE"];
+  const hardRejects: RuleId[] = ["MARGIN_FLOOR_BPS", "NON_POSITIVE_CONTRIBUTION", "MAX_DISCOUNT_BPS", "CAPACITY", "MAX_UNITS_PER_DEAL", "PREPAID_MINIMUM", "COST_MODEL_STALE", "FLOOR_PRICE"];
   let status: CandidateStatus = "eligible";
   if (rules.some((r) => hardRejects.includes(r))) status = "rejected";
   else if (prepaidTotal > policy.approvalThreshold) {
@@ -356,6 +385,7 @@ const PUBLIC_REASON: Partial<Record<RuleId, string>> = {
   UNSUPPORTED_INTEGRATION: "One or more requested integrations are not available and are excluded from the terms.",
   APPROVAL_THRESHOLD: "An agreement of this size needs the seller's approval before it can be offered.",
   COST_MODEL_STALE: "The seller's pricing inputs need a refresh before this can be offered.",
+  FLOOR_PRICE: PRICE_REASON,
 };
 
 /** Strip seller-private economics and rule ids. This is the ONLY projection buyers may see. */

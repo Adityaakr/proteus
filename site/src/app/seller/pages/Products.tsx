@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Package } from "lucide-react";
 import { ActionButton, Card, EmptyState, Money, StatusTag } from "../kit";
-import { Plus } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 import { SELL } from "../paths";
 import { useProducts } from "../api";
 import { QueryView } from "../parts/QueryView";
@@ -14,7 +14,7 @@ export default function Products() {
   const q = useProducts();
   return (
     <div className={s.page}>
-      <PageHeader description="What buyers can negotiate for, and the private floor your agent prices against." actions={<ActionButton variant="secondary" size="sm" to={`${SELL}/start`} iconLeft={<Plus size={14} />}>New product</ActionButton>} />
+      <PageHeader description="What buyers can negotiate for, and the private floor your agent prices against." actions={<><ActionButton variant="secondary" size="sm" to={`${SELL}/create`} iconLeft={<Sparkles size={14} />}>Import from my website</ActionButton><ActionButton variant="secondary" size="sm" to={`${SELL}/start`} iconLeft={<Plus size={14} />}>New product</ActionButton></>} />
       <QueryView q={q} label="products">
         {(products) =>
           products.length === 0 ? (

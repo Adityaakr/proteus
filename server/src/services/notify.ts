@@ -8,6 +8,7 @@
  */
 import { createHmac, randomBytes } from "node:crypto";
 import { lookup } from "node:dns/promises";
+import { isPrivateAddress } from "../lib/net-guard";
 import { isIP } from "node:net";
 import { and, asc, desc, eq, lt, notInArray } from "drizzle-orm";
 import { db, schema } from "../db";
@@ -74,16 +75,6 @@ export async function saveSettings(orgId: string, body: { email?: string | null;
 
 /* ---------------------------------------------------------------- SSRF guard */
 
-function privateAddress(ip: string): boolean {
-  const v4 = ip.startsWith("::ffff:") ? ip.slice(7) : ip;
-  if (isIP(v4) === 4) {
-    const [a, b] = v4.split(".").map(Number) as [number, number];
-    return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
-  }
-  const x = ip.toLowerCase();
-  return x === "::1" || x === "::" || x.startsWith("fc") || x.startsWith("fd") || x.startsWith("fe80");
-}
-
 const allowPrivate = () => env.NOTIFY_ALLOW_PRIVATE === "1" && env.NODE_ENV !== "production";
 
 export async function assertPublicHttps(raw: string): Promise<URL> {
@@ -101,7 +92,7 @@ export async function assertPublicHttps(raw: string): Promise<URL> {
   // not fully excluded; the response body is ignored, which keeps the impact to a blind POST.
   const addrs = isIP(host) ? [{ address: host }] : await lookup(host, { all: true }).catch(() => []);
   if (!addrs.length) throw new HttpError(400, "Webhook host does not resolve.");
-  if (addrs.some((a) => privateAddress(a.address))) throw new HttpError(400, "Webhook host resolves to a private or internal address.");
+  if (addrs.some((a) => isPrivateAddress(a.address))) throw new HttpError(400, "Webhook host resolves to a private or internal address.");
   return u;
 }
 

@@ -1,6 +1,6 @@
 /** Sidebar items for the app shell. Kept apart from AppShell so the menu can be checked without rendering the shell. */
 import type { ReactNode } from "react";
-import { Activity, BarChart3, Briefcase, Code2, Handshake, Home, Landmark, LayoutDashboard, MessagesSquare, Package, ShieldCheck, SlidersHorizontal, Store, Users, Wallet } from "lucide-react";
+import { Activity, BarChart3, Briefcase, Code2, Handshake, Home, Landmark, LayoutDashboard, MessagesSquare, Package, ShieldCheck, SlidersHorizontal, Sparkles, Store, Users, Wallet } from "lucide-react";
 
 export interface AppNavItem {
   label: string;
@@ -22,7 +22,10 @@ export const BUY_NAV: AppNavItem[] = [
   { label: "Wallet", to: "/app/wallet", icon: ic(Wallet) },
 ];
 
-export const SELL_NAV_START: AppNavItem[] = [{ label: "Start selling", to: "/app/sell", icon: ic(Briefcase), short: "Sell" }];
+export const SELL_NAV_START: AppNavItem[] = [
+  { label: "Start selling", to: "/app/sell", icon: ic(Briefcase), short: "Sell" },
+  { label: "Create deal agent", to: "/app/sell/create", icon: ic(Sparkles), short: "Create" },
+];
 
 export const SELL_NAV_ORG: AppNavItem[] = [
   { label: "Overview", to: "/app/sell", icon: ic(LayoutDashboard), end: true },
@@ -30,6 +33,7 @@ export const SELL_NAV_ORG: AppNavItem[] = [
   { label: "Deals", to: "/app/sell/deals", icon: ic(Handshake) },
   { label: "Customers", to: "/app/sell/customers", icon: ic(Users) },
   { label: "Products & pricing", to: "/app/sell/products", icon: ic(Package) },
+  { label: "Create deal agent", to: "/app/sell/create", icon: ic(Sparkles) },
   { label: "Payments", to: "/app/sell/payments", icon: ic(Landmark) },
   { label: "Usage & delivery", to: "/app/sell/usage", icon: ic(Activity) },
   { label: "Insights", to: "/app/sell/insights", icon: ic(BarChart3) },
