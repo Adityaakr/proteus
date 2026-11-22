@@ -291,9 +291,34 @@ describe("draft", () => {
   });
 
   it("reads a floor said as 'nothing below' or 'never below', but not a percent", () => {
-    expect(parseStated("nothing below ₹900 on the polo", catalog).rules[0]).toMatchObject({ floorUsd: "local:900" });
+    expect(parseStated("nothing below ₹900 on the polo", catalog).rules[0]).toMatchObject({ floorLocal: "900" });
     expect(parseStated("never below $9 for stickers", catalog).rules[0]).toMatchObject({ target: { kind: "category", name: "Stickers" }, floorUsd: "9" });
     expect(parseStated("never below 10% off", catalog).rules[0]?.floorUsd).toBeUndefined();
+  });
+
+  it("converts a floor stated in rupees at the rate in force, before and after the rate is set or changed", () => {
+    const base = { ...emptyAnswers(), businessName: "Acme", businessType: "merch" as const, include: { p_tee: true } };
+    const stated = applyStated(base, parseStated("nothing below ₹900 on the heavy tee", catalog), catalog);
+    const before = buildDraft(catalog, stated);
+    expect(before.items[0]!.floorUsd).toBeUndefined();
+    expect(before.items[0]!.issues.join(" ")).toMatch(/900 INR needs a INR-to-USD rate/);
+    expect(before.next).toContain("rate");
+    // 900 / 90 = 10.00, and later 900 / 75 = 12.00: the floor follows the rate, it is not frozen at the first one.
+    expect(usdString(buildDraft(catalog, { ...stated, usdRate: "90" }).items[0]!.floorUsd!)).toBe("10");
+    expect(usdString(buildDraft(catalog, { ...stated, usdRate: "75" }).items[0]!.floorUsd!)).toBe("12");
+    const usdLater = applyStated({ ...stated, usdRate: "90" }, parseStated("heavy tee floor $11", catalog), catalog);
+    expect(usdLater.products.p_tee).toEqual({ floorUsd: "11" });
+  });
+
+  it("refuses a rupee amount in a USD field instead of reading it as dollars", () => {
+    const d = buildDraft(catalog, { ...emptyAnswers(), include: { p_box: true }, products: { p_box: { priceUsd: "₹900" } } });
+    const box = d.items.find((i) => i.key === "p_box")!;
+    expect(box.listUsd).toBeUndefined();
+    expect(box.issues).toContain("enter the price as a USD amount above zero");
+    const csv = parseFloorsCsv("product,floor,price\nHeavy Tee,₹900,\nDie-cut Sticker,,Rs 40\n", catalog);
+    expect(csv.applied).toBe(0);
+    expect(csv.errors).toHaveLength(2);
+    for (const e of csv.errors) expect(e).toMatch(/enter a USD amount/);
   });
 
   it("refuses a bulk price below the floor", () => {

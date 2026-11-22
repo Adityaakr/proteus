@@ -191,8 +191,9 @@ export async function latestImport(userId: string) {
 
 /* ---------------------------------------------------------------- answers */
 
-const Dec = z.string().trim().max(20).regex(/^[\d.,$₹%\s]*$/, "a number");
-const Rule = z.object({ priceUsd: Dec.optional(), floorUsd: Dec.optional(), maxDiscountPct: Dec.optional(), moq: Dec.optional(), bulkMinUnits: Dec.optional(), bulkDiscountPct: Dec.optional() }).strict();
+const Dec = z.string().trim().max(20).regex(/^[\d.,%\s]*$/, "a number");
+const Usd = z.string().trim().max(20).regex(/^[\d.,$\s]*$/, "enter a USD amount (no ₹ or other currency)");
+const Rule = z.object({ priceUsd: Usd.optional(), floorUsd: Usd.optional(), maxDiscountPct: Dec.optional(), moq: Dec.optional(), bulkMinUnits: Dec.optional(), bulkDiscountPct: Dec.optional() }).strict();
 const AnswersPatch = z
   .object({
     businessName: z.string().trim().min(2).max(80).optional(),
@@ -202,7 +203,7 @@ const AnswersPatch = z
     include: z.record(z.string().max(40), z.boolean()).optional(),
     products: z.record(z.string().max(40), Rule).optional(),
     categories: z.record(z.string().max(80), Rule).optional(),
-    defaults: Rule.extend({ maxUnitsPerDeal: Dec.optional(), approvalThresholdUsd: Dec.optional(), termDays: Dec.optional() }).optional(),
+    defaults: Rule.extend({ maxUnitsPerDeal: Dec.optional(), approvalThresholdUsd: Usd.optional(), termDays: Dec.optional() }).optional(),
     floorsSet: z.boolean().optional(),
     bulkAnswered: z.boolean().optional(),
     customOrders: z.object({ accepted: z.boolean(), note: z.string().trim().max(120).optional() }).optional(),
@@ -220,7 +221,7 @@ export async function updateAnswers(userId: string, importId: string, body: unkn
     ...a,
     ...Object.fromEntries(Object.entries(patch).filter(([k]) => !["include", "products", "categories", "defaults"].includes(k))),
     include: { ...a.include, ...(patch.include ?? {}) },
-    products: mergeRules(a.products, patch.products),
+    products: mergeRules(a.products, patch.products, (prev, v) => ("floorUsd" in v ? { ...prev, floorLocal: undefined } : prev)),
     categories: mergeRules(a.categories, patch.categories),
     defaults: dropEmpty({ ...a.defaults, ...(patch.defaults ?? {}) }),
   };
@@ -232,9 +233,9 @@ export async function updateAnswers(userId: string, importId: string, body: unkn
 function dropEmpty<T extends Record<string, unknown>>(o: T): T {
   return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== "" && v !== undefined)) as T;
 }
-function mergeRules<T extends Record<string, unknown>>(prev: Record<string, T>, patch: Record<string, T> | undefined): Record<string, T> {
+function mergeRules<T extends Record<string, unknown>>(prev: Record<string, T>, patch: Record<string, T> | undefined, before: (prev: T, v: T) => T = (p) => p): Record<string, T> {
   const out = { ...prev };
-  for (const [k, v] of Object.entries(patch ?? {})) out[k] = dropEmpty({ ...(out[k] ?? {}), ...v }) as T;
+  for (const [k, v] of Object.entries(patch ?? {})) out[k] = dropEmpty({ ...before(out[k] ?? ({} as T), v), ...v }) as T;
   return out;
 }
 
@@ -297,7 +298,7 @@ async function interpret(text: string, result: StoredResult, a: BuilderAnswers):
       const rule: StatedRule = { target };
       if (said(r.maxDiscountPct) && (r.maxDiscountPct as number) <= 90) rule.maxDiscountPct = String(r.maxDiscountPct);
       if (said(r.floorUsd) && (r.floorUsd as number) > 0) rule.floorUsd = String(r.floorUsd);
-      else if (said(r.floorLocal) && (r.floorLocal as number) > 0) rule.floorUsd = `local:${r.floorLocal}`;
+      else if (said(r.floorLocal) && (r.floorLocal as number) > 0) rule.floorLocal = String(r.floorLocal);
       if (said(r.moq) && Number.isInteger(r.moq) && (r.moq as number) > 0) rule.moq = String(r.moq);
       if (said(r.bulkMinUnits) && said(r.bulkDiscountPct) && Number.isInteger(r.bulkMinUnits)) {
         rule.bulkMinUnits = String(r.bulkMinUnits);
@@ -322,7 +323,8 @@ function describe(s: StatedAnswers, result: StoredResult): string[] {
     if (r.include === false) bits.push("left out");
     if (r.include === true) bits.push("open to deals");
     if (r.maxDiscountPct !== undefined) bits.push(r.maxDiscountPct === "0" ? "no discount" : `up to ${r.maxDiscountPct}% off list`);
-    if (r.floorUsd) bits.push(r.floorUsd.startsWith("local:") ? `floor ${r.floorUsd.slice(6)} ${result.fx?.currency ?? ""} (converted once the rate is set)` : `floor $${r.floorUsd} per unit`);
+    if (r.floorUsd) bits.push(`floor $${r.floorUsd} per unit`);
+    if (r.floorLocal) bits.push(`floor ${r.floorLocal}${result.fx?.currency ? ` ${result.fx.currency}` : ""} per unit, converted at your rate`);
     if (r.moq) bits.push(`minimum order ${r.moq}`);
     if (r.bulkMinUnits) bits.push(`${r.bulkMinUnits}+ at ${r.bulkDiscountPct}% off`);
     if (bits.length) out.push(`${name(r.target)}: ${bits.join(", ")}`);

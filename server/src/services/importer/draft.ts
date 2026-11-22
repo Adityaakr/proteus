@@ -15,6 +15,8 @@ export interface PriceRule {
   priceUsd?: string;
   /** Lowest USD price per unit the agent may offer. */
   floorUsd?: string;
+  /** The same floor stated in the website currency; converted at the current rate whenever the draft is built. */
+  floorLocal?: string;
   /** Most the agent may take off the list price, in percent. Used when no floorUsd is set. */
   maxDiscountPct?: string;
   /** Smallest order in units: the first tier's size. */
@@ -79,7 +81,7 @@ export const MAX_PUBLISH = 40;
 
 const MICRO = 1_000_000n;
 const DEC = /^\d+(\.\d{1,6})?$/;
-const clean = (v: string | undefined) => (v ?? "").replace(/[$,\s₹]/g, "");
+const clean = (v: string | undefined) => (v ?? "").replace(/[$,\s]/g, "");
 export const isDecimal = (v: string | undefined) => DEC.test(clean(v));
 const micro = (v: string) => toMicro(clean(v));
 
@@ -165,7 +167,7 @@ function rule(p: ImportedProduct, a: BuilderAnswers): PriceRule {
   const cat = a.categories[categoryOf(p)] ?? {};
   const own = a.products[p.key] ?? {};
   const pick = <K extends keyof PriceRule>(k: K) => own[k] ?? cat[k] ?? a.defaults[k];
-  return { priceUsd: own.priceUsd, floorUsd: own.floorUsd, maxDiscountPct: own.floorUsd ? undefined : pick("maxDiscountPct"), moq: pick("moq"), bulkMinUnits: pick("bulkMinUnits"), bulkDiscountPct: pick("bulkDiscountPct") };
+  return { priceUsd: own.priceUsd, floorUsd: own.floorUsd, floorLocal: own.floorLocal, maxDiscountPct: own.floorUsd || own.floorLocal ? undefined : pick("maxDiscountPct"), moq: pick("moq"), bulkMinUnits: pick("bulkMinUnits"), bulkDiscountPct: pick("bulkDiscountPct") };
 }
 
 export function buildDraft(result: ImportResult, a: BuilderAnswers, takenSlugs: Set<string> = new Set()): Draft {
@@ -178,7 +180,7 @@ export function buildDraft(result: ImportResult, a: BuilderAnswers, takenSlugs: 
     let listUsd: Micro | undefined;
     if (r.priceUsd) {
       if (isDecimal(r.priceUsd) && micro(r.priceUsd) > 0n) listUsd = micro(r.priceUsd);
-      else issues.push("the price must be a USD amount above zero");
+      else issues.push("enter the price as a USD amount above zero");
     } else if (p.price) {
       if (!p.currency) issues.push("the website does not say which currency this price is in; add the USD price");
       else if (p.currency === "USD") listUsd = micro(p.price);
@@ -192,7 +194,15 @@ export function buildDraft(result: ImportResult, a: BuilderAnswers, takenSlugs: 
       if (isDecimal(r.floorUsd) && micro(r.floorUsd) > 0n) {
         floorUsd = micro(r.floorUsd);
         floorBasis = "your floor";
-      } else issues.push("the floor must be a USD amount above zero");
+      } else issues.push("enter the floor as a USD amount above zero");
+    } else if (r.floorLocal) {
+      const cur = p.currency ?? "website currency";
+      if (!a.usdRate) issues.push(`your floor of ${r.floorLocal} ${cur} needs a ${cur}-to-USD rate`);
+      else {
+        floorUsd = convert(r.floorLocal, a.usdRate);
+        if (floorUsd === undefined || floorUsd <= 0n) issues.push("the floor must be an amount above zero");
+        else floorBasis = `your floor (${r.floorLocal} ${cur} at ${a.usdRate} per USD)`;
+      }
     } else if (listUsd !== undefined) {
       const bps = r.maxDiscountPct !== undefined ? pctBps(r.maxDiscountPct) : 0n;
       if (bps === undefined) issues.push("the discount must be a percent from 0 to 90");
@@ -225,7 +235,7 @@ export function buildDraft(result: ImportResult, a: BuilderAnswers, takenSlugs: 
   const inc = items.filter((i) => i.included);
   const next: Question[] = [];
   if (!a.businessName || !a.businessType) next.push("business");
-  if (!a.usdRate && result.products.some((p) => p.price && p.currency && p.currency !== "USD")) next.push("rate");
+  if (!a.usdRate && (result.products.some((p) => p.price && p.currency && p.currency !== "USD") || Object.values(a.products).some((r) => r.floorLocal))) next.push("rate");
   if (!Object.keys(a.include).length) next.push("products");
   if (inc.some((i) => i.listUsd === undefined && !i.source)) next.push("prices");
   if (!a.floorsSet) next.push("floors");
@@ -372,11 +382,24 @@ export function applyStated(a: BuilderAnswers, s: StatedAnswers, result: ImportR
     const fields = Object.fromEntries(Object.entries(price).filter(([, v]) => v !== undefined)) as PriceRule;
     const inTarget = result.products.filter((p) => target.kind === "all" || (target.kind === "category" ? categoryOf(p).toLowerCase() === target.name.toLowerCase() : p.key === target.key));
     if (include !== undefined) for (const p of inTarget) out.include[p.key] = include;
-    if (fields.maxDiscountPct !== undefined || fields.floorUsd !== undefined) out.floorsSet = true;
+    if (fields.maxDiscountPct !== undefined || fields.floorUsd !== undefined || fields.floorLocal !== undefined) out.floorsSet = true;
     if (fields.bulkMinUnits !== undefined || fields.bulkDiscountPct !== undefined) out.bulkAnswered = true;
-    if (fields.floorUsd !== undefined || fields.priceUsd !== undefined) {
-      for (const p of inTarget) out.products[p.key] = { ...out.products[p.key], ...(fields.floorUsd !== undefined ? { floorUsd: fields.floorUsd } : {}), ...(fields.priceUsd !== undefined ? { priceUsd: fields.priceUsd } : {}) };
+    if (fields.floorUsd !== undefined || fields.floorLocal !== undefined || fields.priceUsd !== undefined) {
+      for (const p of inTarget) {
+        const own: PriceRule = { ...out.products[p.key] };
+        if (fields.floorUsd !== undefined) {
+          own.floorUsd = fields.floorUsd;
+          delete own.floorLocal;
+        }
+        if (fields.floorLocal !== undefined) {
+          own.floorLocal = fields.floorLocal;
+          delete own.floorUsd;
+        }
+        if (fields.priceUsd !== undefined) own.priceUsd = fields.priceUsd;
+        out.products[p.key] = own;
+      }
       delete fields.floorUsd;
+      delete fields.floorLocal;
       delete fields.priceUsd;
     }
     if (!Object.keys(fields).length) continue;
@@ -386,7 +409,7 @@ export function applyStated(a: BuilderAnswers, s: StatedAnswers, result: ImportR
       out.categories[name] = { ...out.categories[name], ...fields };
     } else out.products[target.key] = { ...out.products[target.key], ...fields };
   }
-  return resolveLocalFloors(out);
+  return out;
 }
 
 const NUM = String.raw`(\d+(?:\.\d{1,2})?)`;
@@ -426,9 +449,8 @@ export function parseStated(text: string, result: ImportResult): StatedAnswers {
     const floor = new RegExp(String.raw`(?:floor|lowest|min(?:imum)? price|(?:not|nothing|never) below|no lower than|down to)[^\d₹$]{0,20}(₹|rs\.?|inr|\$|usd)?\s*([\d,]+(?:\.\d{1,2})?)\s*(₹|rs|inr|usd|dollars?)?`, "i").exec(c);
     if (floor && !/%/.test(c.slice(floor.index, floor.index + floor[0].length + 2))) {
       const amount = floor[2]!.replace(/,/g, "");
-      const local = /₹|rs|inr/i.test(`${floor[1] ?? ""}${floor[3] ?? ""}`);
-      const rateNow = out.usdRate;
-      r.floorUsd = local ? (rateNow ? usdOf(amount, rateNow) : `local:${amount}`) : amount;
+      if (/₹|rs|inr/i.test(`${floor[1] ?? ""}${floor[3] ?? ""}`)) r.floorLocal = amount;
+      else r.floorUsd = amount;
     }
     const moq = /(?:moq|minimum order|min(?:imum)?\.? (?:order|qty|quantity)|at least)\D{0,12}(\d+)/i.exec(c);
     if (moq) r.moq = moq[1];
@@ -437,11 +459,6 @@ export function parseStated(text: string, result: ImportResult): StatedAnswers {
     if (Object.keys(r).length > 1) out.rules.push(r);
   }
   return out;
-}
-
-function usdOf(local: string, rate: string): string | undefined {
-  const m = convert(local, rate);
-  return m === undefined ? undefined : usdString(m);
 }
 
 function targetOf(clause: string, categories: string[], products: ImportedProduct[]): StatedRule["target"] {
@@ -458,16 +475,6 @@ function targetOf(clause: string, categories: string[], products: ImportedProduc
   });
   if (prod) return { kind: "product", key: prod.key };
   return { kind: "all" };
-}
-
-/** Floors stated in the website currency before a rate was known ("local:900") are converted once the rate is set. */
-export function resolveLocalFloors(a: BuilderAnswers): BuilderAnswers {
-  if (!a.usdRate) return a;
-  const products = { ...a.products };
-  for (const [k, r] of Object.entries(products)) {
-    if (r.floorUsd?.startsWith("local:")) products[k] = { ...r, floorUsd: usdOf(r.floorUsd.slice(6), a.usdRate) };
-  }
-  return { ...a, products };
 }
 
 /* ---------------------------------------------------------------- CSV */
@@ -538,10 +545,11 @@ export function parseFloorsCsv(text: string, result: ImportResult): { rules: Sta
     const r: StatedRule = { target: { kind: "product", key: p.key } };
     head.forEach((h, i) => {
       if (!h || h === "id") return;
-      const v = (row[i] ?? "").replace(/[$%₹\s]/g, "");
+      const v = (row[i] ?? "").replace(/[$%\s]/g, "");
       if (!v) return;
+      const usd = h === "floorUsd" || h === "priceUsd";
       const ok = h === "moq" || h === "bulkMinUnits" ? /^\d+$/.test(v) : h.endsWith("Pct") ? pctBps(v) !== undefined : isDecimal(v) && micro(v) > 0n;
-      if (!ok) errors.push(`row ${n + 2}: ${rows[0]![i]} "${row[i]}" is not valid`);
+      if (!ok) errors.push(`row ${n + 2}: ${rows[0]![i]} "${row[i]}" is not valid${usd ? "; enter a USD amount" : ""}`);
       else r[h] = v;
     });
     if (Object.keys(r).length > 1) rules.push(r);
