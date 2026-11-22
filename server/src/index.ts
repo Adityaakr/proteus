@@ -116,7 +116,7 @@ function docsPreviewShell(shell: string, dist: string) {
   const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
   return (path: string, origin: string) => {
     const page = pages.get(path.replace(/^\/docs\/?/, "").split("/")[0] ?? "");
-    const title = page ? `${page.title} · Proteus AI docs` : "Proteus AI docs: the deal desk for internet businesses";
+    const title = page ? `${page.title} · Proteus AI docs` : "Proteus AI docs: the deal network for small businesses and AI agents on Arc";
     const desc = page?.summary || "How a seller's agent negotiates, both sides sign, and USDC settles on Arc for what is delivered. Built for people and AI agents.";
     const image = `${origin}/og/docs.jpg`;
     const meta = [
@@ -128,7 +128,7 @@ function docsPreviewShell(shell: string, dist: string) {
       `<meta property="og:image" content="${image}" />`,
       `<meta property="og:image:width" content="2400" />`,
       `<meta property="og:image:height" content="1260" />`,
-      `<meta property="og:image:alt" content="Proteus AI docs: the deal desk for internet businesses" />`,
+      `<meta property="og:image:alt" content="Proteus AI docs: the deal network for small businesses" />`,
       `<meta name="twitter:card" content="summary_large_image" />`,
       `<meta name="twitter:title" content="${esc(title)}" />`,
       `<meta name="twitter:description" content="${esc(desc)}" />`,
