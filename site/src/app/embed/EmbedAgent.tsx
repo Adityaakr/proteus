@@ -1,4 +1,4 @@
-import { pluralUnit, sellerGreeting, unitFor, type GreetingProduct } from "@proteus/domain";
+import { pluralUnit, sellerGreeting, switchNegotiation, unitFor, type GreetingProduct } from "@proteus/domain";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -79,9 +79,15 @@ export default function EmbedAgent() {
       slug ||= products[0]!.slug;
       let n = neg;
       if (!n || n.productSlug !== slug) {
-        if (n) setEarlier((x) => [...x, { product: n!.productName ?? n!.productSlug, turns: visibleTurns(n) }]);
         const store = !pickedProduct && products.length > 1 ? (n ? "continue" : "open") : undefined;
-        n = await api.startNegotiation({ sellerSlug, productSlug: slug, ...(store ? { store } : {}) }, { embed: sellerSlug });
+        const moved = await switchNegotiation(
+          n,
+          earlier,
+          () => api.startNegotiation({ sellerSlug, productSlug: slug, ...(store ? { store } : {}) }, { embed: sellerSlug }),
+          (x) => ({ product: x.productName ?? x.productSlug, turns: visibleTurns(x) }),
+        );
+        n = moved.next;
+        setEarlier(moved.history);
         setNeg(n);
       }
       setNeg(await api.sendMessage(n.id, clean));
@@ -158,7 +164,7 @@ export default function EmbedAgent() {
               <div className={e.agentCol}>
                 <div className={e.agentMeta}><b>{agentName}</b></div>
                 <div className={e.greet}>
-                  <p>{greeting.opening}</p>
+                  <p>{greeting.opening}{greeting.catalog && ` ${greeting.catalog}`}</p>
                   {greeting.facts.length > 0 && (
                     <ul className={e.facts} aria-label="Before you order">
                       {greeting.facts.map((f) => (

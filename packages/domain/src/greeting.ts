@@ -30,6 +30,8 @@ export interface GreetingChip {
 export interface SellerGreeting {
   /** "Hi, welcome to Merch Onchain. I can quote ..." */
   opening: string;
+  /** "They make hoodies, t-shirts, jerseys and 16 more." for a store; null for one product. Names only, no prices. */
+  catalog: string | null;
   facts: GreetingFact[];
   closing: string;
   chips: GreetingChip[];
@@ -39,6 +41,8 @@ const LABELS: Record<GreetingFactKind, string> = { moq: "Minimum order", product
 /** Shown in this order; the greeting keeps the first three that the seller's notes cover. */
 const ORDER: GreetingFactKind[] = ["moq", "production", "samples", "delivery"];
 const MAX_FACTS = 3;
+const CATALOG_NAMES = 3;
+const MONEY = /[$€£¥₹]|\b(usdc?|eur|gbp|inr|dollars?|euros?)\b/i;
 
 /** Classifies on the question of an FAQ-style note ("How long does delivery take? ..."), else on the whole line. */
 function kindOf(question: string): GreetingFactKind | null {
@@ -64,7 +68,7 @@ function factText(kind: GreetingFactKind, answer: string): string | null {
   const first = /^.+?[.!](?=\s|$)/.exec(t)?.[0] ?? t;
   let out = first.trim().replace(/!+$/, ".");
   if (!out || out.split(" ").length < 2 && !/\d/.test(out)) return null;
-  if (out.length > 120) return null;
+  if (out.length > 120 || MONEY.test(out)) return null;
   if (!/[.!]$/.test(out)) out += ".";
   // Lower-case the first letter after "Label:" unless it starts an acronym ("MOQ") or a number.
   if (/^[A-Z][a-z]/.test(out)) out = out[0]!.toLowerCase() + out.slice(1);
@@ -100,6 +104,14 @@ export function greetingFacts(products: readonly GreetingProduct[]): GreetingFac
   return facts;
 }
 
+/** "They make backpacks, bottles, t-shirts and 4 more." from the seller's product list, in its order. */
+function catalogLine(products: readonly GreetingProduct[]): string {
+  const names = products.slice(0, CATALOG_NAMES).map((p) => p.name.toLowerCase());
+  const rest = products.length - names.length;
+  const list = rest > 0 ? `${names.join(", ")} and ${rest} more` : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+  return `They make ${list}.`;
+}
+
 /**
  * The greeting for a seller's deal agent. `product` set: the buyer is on one product; otherwise the whole store.
  * Chips cover only what the facts can answer, plus a quote.
@@ -114,6 +126,7 @@ export function sellerGreeting(sellerName: string, products: readonly GreetingPr
   if (facts.some((f) => f.kind === "samples")) chips.push({ label: "Samples?", message: "Can I get a sample first?" });
   return {
     opening: `Hi, welcome to ${sellerName}. I can quote and set up an order for ${what} in seconds.`,
+    catalog: !product && products.length > 1 ? catalogLine(products) : null,
     facts,
     closing: "Tell me what you need, how many and by when, and I will put together options the seller can actually deliver.",
     chips,
@@ -123,5 +136,5 @@ export function sellerGreeting(sellerName: string, products: readonly GreetingPr
 /** The greeting as one plain-text message (the deal desk stores it as the agent's first turn). */
 export function greetingText(g: SellerGreeting): string {
   const facts = g.facts.map((f) => `${f.label}: ${f.text}`).join("\n");
-  return [g.opening, facts, g.closing].filter(Boolean).join("\n\n");
+  return [g.catalog ? `${g.opening} ${g.catalog}` : g.opening, facts, g.closing].filter(Boolean).join("\n\n");
 }

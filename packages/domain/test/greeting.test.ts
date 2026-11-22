@@ -46,3 +46,27 @@ describe("seller greeting", () => {
     expect(greetingText(g)).toBe("Hi, welcome to Kitbox. I can quote and set up an order for boxes in seconds.\n\nTell me what you need, how many and by when, and I will put together options the seller can actually deliver.");
   });
 });
+
+describe("seller greeting catalog and prices", () => {
+  it("names what a store makes from its product list, without prices", () => {
+    const names = ["Hoodies", "T-Shirts", "Jerseys", ...Array.from({ length: 16 }, (_, i) => `Item ${i}`)];
+    const g = sellerGreeting("Merch Onchain", names.map((name) => ({ name })));
+    expect(g.catalog).toBe("They make hoodies, t-shirts, jerseys and 16 more.");
+    expect(sellerGreeting("Merch Onchain", store).catalog).toBe("They make backpacks, bottles and t-shirts.");
+    expect(sellerGreeting("Kitbox", [{ name: "Mugs" }, { name: "Caps" }]).catalog).toBe("They make mugs and caps.");
+    expect(greetingText(sellerGreeting("Merch Onchain", store)).split("\n")[0]).toBe(
+      "Hi, welcome to Merch Onchain. I can quote and set up an order for any of their products in seconds. They make backpacks, bottles and t-shirts.",
+    );
+  });
+
+  it("does not name the catalog when one product is in focus", () => {
+    expect(sellerGreeting("Merch Onchain", store, store[0]).catalog).toBeNull();
+    expect(sellerGreeting("Kitbox", [{ name: "Boxes" }]).catalog).toBeNull();
+  });
+
+  it("drops a site line that carries a price instead of showing it", () => {
+    const priced: GreetingProduct = { name: "Bags", notes: ["Minimum order $500.", "Free shipping over 250 USD.", "Samples cost €20 each."] };
+    expect(greetingFacts([priced])).toEqual([]);
+    expect(greetingText(sellerGreeting("Kitbox", [priced], priced))).not.toMatch(/\$|€|USD/);
+  });
+});
