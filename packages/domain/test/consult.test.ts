@@ -73,7 +73,7 @@ describe("routing a store message", () => {
   });
 
   it("stays on the current product when the buyer asks for advice about it", () => {
-    for (const m of ["can you suggest a better price for 200?", "which tier do you recommend?", "any idea how long production takes?", "is there a first-order discount?"]) {
+    for (const m of ["can you suggest a better price for 200?", "which tier do you recommend?", "any idea how long production takes?", "is there a first-order discount?", "Anything else you need from me?", "What else do you need to send the quote?", "Apart from the price, how long do they take?"]) {
       expect(route(m, "hoodies"), m).toMatchObject({ mode: "product", slug: "hoodies", switched: false });
     }
   });
@@ -89,6 +89,9 @@ describe("routing a store message", () => {
     expect(route("hoodies, not the t-shirts", "t-shirts")).toMatchObject({ mode: "product", slug: "hoodies", switched: true });
     expect(route("besides hoodies, what do you have?")).toMatchObject({ mode: "consult", exclude: ["hoodies"] });
     expect(route("hoodies, not the black ones", "bottles")).toMatchObject({ mode: "product", slug: "hoodies" });
+    expect(route("Apart from the price, how long do hoodies take?", "hoodies")).toMatchObject({ mode: "product", slug: "hoodies" });
+    expect(route("Other than that, do the hoodies come in XL?")).toMatchObject({ mode: "product", slug: "hoodies" });
+    expect(route("is it not the same price for hoodies?", "bottles")).toMatchObject({ mode: "product", slug: "hoodies" });
   });
 });
 

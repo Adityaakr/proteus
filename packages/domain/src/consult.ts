@@ -46,8 +46,8 @@ const stem = (w: string) => w.replace(/(ies)$/, "y").replace(/(xes|ches|shes|ses
  * or more products, alternatives. Kept to explicit asks, since "which tier do you recommend?", "can you suggest a better
  * price?" or "what are my options?" on a product are about that product.
  */
-const DISCOVERY = /\b(what (else )?(do|can) you (have|make|offer|sell)|what else|anything else|something else|alternatives?|(other|different|more) (merch|products|items|options|ideas|suggestions|things|stuff)|(some|any) (good |other )?(merch|products|items)|browse|(your|the) catalog(ue)?)\b/i;
-/** "...besides hoodies", "hoodies instead of tees": a product named after these words is the one to leave out. */
+const DISCOVERY = /\b(what (else )?(do|can) you (have|make|offer|sell)|what else (would|could|might) (work|fit|suit)|(anything|something) else (you |that you )?(have|make|offer|sell)|(have|got|show me|suggest|recommend) (anything|something) else|alternatives?|(other|different|more) (merch|products|items|options|ideas|suggestions|things|stuff)|(some|any) (good |other )?(merch|products|items)|browse|(your|the) catalog(ue)?)\b/i;
+/** "...besides hoodies", "hoodies instead of tees": a product named right after these words is the one to leave out. */
 const EXCLUDE = /\b(besides|other than|apart from|instead of|except|not the)\b/i;
 
 /**
@@ -83,7 +83,8 @@ export function routeMessage(message: string, products: readonly ConsultProduct[
   };
 
   const ex = EXCLUDE.exec(message);
-  const exclude = ex ? score(message.slice(ex.index + ex[0].length)).named.map((s) => s.slug) : [];
+  const object = ex ? message.slice(ex.index + ex[0].length).split(/[,.;:!?]/)[0]!.split(/\s+/).filter(Boolean).slice(0, 3).join(" ") : "";
+  const exclude = object ? score(object).named.map((s) => s.slug) : [];
   const asked = score(exclude.length ? message.slice(0, ex!.index) : message);
   const named = asked.named.filter((s) => !exclude.includes(s.slug));
   const pointed = asked.pointed.filter((s) => !exclude.includes(s.slug));
