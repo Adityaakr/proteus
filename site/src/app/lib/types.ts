@@ -109,6 +109,8 @@ export interface PublicProduct {
   termDays: number;
   refundPolicy: string;
   starters: string[];
+  /** Public lines the seller's own website gave (minimum order, lead time, samples); never a source of prices. */
+  knowledge?: { notes?: string[] } | null;
   network?: NetworkLabel;
 }
 

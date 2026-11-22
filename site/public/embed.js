@@ -12,7 +12,12 @@
   if (!s || !s.dataset.seller) return;
   var origin = new URL(s.src).origin;
   var seller = encodeURIComponent(s.dataset.seller);
-  var src = origin + "/embed/" + seller + (s.dataset.product ? "?product=" + encodeURIComponent(s.dataset.product) : "");
+  var inlineMode = s.dataset.mode === "inline";
+  var query = [];
+  if (s.dataset.product) query.push("product=" + encodeURIComponent(s.dataset.product));
+  // Inline cards have nothing to close, so the agent hides its close button.
+  if (inlineMode) query.push("inline=1");
+  var src = origin + "/embed/" + seller + (query.length ? "?" + query.join("&") : "");
   var color = /^#[0-9a-f]{6}$/i.test(s.dataset.color || "") ? s.dataset.color : "#1b4dff";
 
   function frame(style) {
@@ -24,9 +29,10 @@
     return f;
   }
 
-  if (s.dataset.mode === "inline") {
+  if (inlineMode) {
+    // A contained chat card, centred in its container: never wider than a chat widget.
     var h = parseInt(s.dataset.height || "620", 10) || 620;
-    var inline = frame("width:100%;max-width:440px;height:" + h + "px;border-radius:16px;box-shadow:0 0 0 1px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.08);");
+    var inline = frame("display:block;width:100%;max-width:420px;margin:0 auto;height:" + h + "px;border-radius:18px;box-shadow:0 0 0 1px rgba(0,0,0,.08),0 16px 40px -16px rgba(16,24,40,.22);");
     s.parentNode.insertBefore(inline, s);
     return;
   }
@@ -41,10 +47,11 @@
   }
   btn.onclick = function () {
     if (panel) return close();
+    // Phones get the whole screen; anything wider gets a narrow panel above the button, the size of the chat card.
     var mobile = window.innerWidth < 520;
     panel = frame(mobile
       ? "position:fixed;inset:0;width:100%;height:100%;z-index:2147483647;"
-      : "position:fixed;right:20px;bottom:20px;width:400px;height:min(640px,calc(100vh - 40px));z-index:2147483647;border-radius:18px;box-shadow:0 16px 48px rgba(0,0,0,.22);");
+      : "position:fixed;right:20px;bottom:20px;width:min(400px,calc(100vw - 40px));height:min(660px,calc(100vh - 40px));z-index:2147483647;border-radius:20px;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 24px 56px -12px rgba(16,24,40,.32);");
     document.body.appendChild(panel);
     btn.style.display = "none";
   };

@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { sellerGreeting } from "@proteus/domain";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -139,6 +140,17 @@ export default function Negotiate() {
     return () => window.clearTimeout(t);
   }, [turns]);
   const working = send.isPending || counter.isPending;
+
+  // Before the buyer's first message: quick starts that match the greeting (the seller's own facts, plus a quote).
+  const fresh = Boolean(negQ.data) && firstBuyer === -1 && !(chain && chain.prior.length > 0);
+  const sellerQ = useQuery({ queryKey: qk.seller(negQ.data?.sellerSlug ?? ""), queryFn: () => api.seller(negQ.data!.sellerSlug), enabled: fresh, staleTime: 60_000 });
+  const quickStarts = useMemo(() => {
+    const sd = sellerQ.data;
+    if (!sd || !negQ.data) return [];
+    const items = sd.products.map((p) => ({ name: p.name, notes: p.knowledge?.notes ?? [] }));
+    const self = items[sd.products.findIndex((p) => p.slug === negQ.data!.productSlug)];
+    return sellerGreeting(sd.name, items, chain && items.length > 1 ? undefined : self).chips;
+  }, [sellerQ.data, negQ.data, chain]);
   useEffect(() => {
     const el = threadRef.current;
     if (!el) return;
@@ -262,6 +274,13 @@ export default function Negotiate() {
                 {turns.map((t, i) => (
                   <TurnView key={t.id} turn={t} grouped={i > 0 && turns[i - 1]!.role === t.role && t.role !== "system"} isNew={!(seenIds.current?.has(t.id) ?? true)} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
                 ))}
+                {fresh && !pendingText && !working && neg.status === "open" && quickStarts.length > 0 && (
+                  <motion.div key="quick-starts" className={n.quickStarts} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={T_DEFAULT}>
+                    {quickStarts.map((c) => (
+                      <button key={c.label} type="button" className={n.quickStart} onClick={() => send.mutate(c.message)}>{c.label}</button>
+                    ))}
+                  </motion.div>
+                )}
                 {pendingText && (
                   <TurnView key="pending-buyer" turn={{ id: "pending", role: "buyer", content: pendingText, createdAt: new Date().toISOString() }} isNew agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
                 )}

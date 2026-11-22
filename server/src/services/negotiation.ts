@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, ne } from "drizzle-orm";
-import { evaluateCounteroffer, formatUsd, getQuoteCandidates, toPublicCandidate, type Candidate, type CounterDecision, type PublicCandidate, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
+import { evaluateCounteroffer, formatUsd, getQuoteCandidates, greetingText, sellerGreeting, toPublicCandidate, type Candidate, type CounterDecision, type GreetingProduct, type PublicCandidate, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
 import { detectInjection, getAgentAdapter, redactPersonalData, type AgentStep, type ConversationTurn } from "../agent";
 import { db, schema } from "../db";
 import { HttpError, bigintsToStrings } from "../lib/http";
@@ -115,30 +115,30 @@ export async function negotiationView(negId: string) {
  */
 export type StoreOpening = "open" | "continue";
 
-/** "custom oversized tees (from $6.50 a tee)", for every listed product of the seller, cheapest unit price first per product. */
-async function storeLines(lp: LoadedProduct): Promise<string[]> {
-  const rows = await db.select({ id: schema.products.id }).from(schema.products).where(and(eq(schema.products.orgId, lp.org.id), eq(schema.products.active, true)));
-  const lines: string[] = [];
-  for (const r of rows.slice(0, 8)) {
-    const p = publicProduct(await loadProductById(r.id));
-    const cheapest = Math.min(...p.tiers.map((t) => Number(t.unitPriceUsd.replace(/[^0-9.]/g, ""))));
-    lines.push(Number.isFinite(cheapest) ? `${p.name.toLowerCase()} (from $${cheapest.toFixed(2)} a ${p.unitLabel})` : p.name.toLowerCase());
-  }
-  return lines;
+/** Every listed product of the seller, with the public lines its website gave (for the store greeting's facts). */
+async function storeProducts(lp: LoadedProduct): Promise<GreetingProduct[]> {
+  const rows = await db.select({ p: schema.products.public }).from(schema.products).where(and(eq(schema.products.orgId, lp.org.id), eq(schema.products.active, true)));
+  return rows.map(({ p }) => {
+    const v = p as { name?: unknown; knowledge?: { notes?: unknown } };
+    const notes = Array.isArray(v.knowledge?.notes) ? v.knowledge.notes.filter((n): n is string => typeof n === "string") : [];
+    return { name: String(v.name ?? ""), notes };
+  });
 }
 
-function greeting(lp: LoadedProduct, store: StoreOpening | undefined, lines: string[]): string {
+/**
+ * The agent's first message: a short welcome, the key facts from the seller's own site (minimum order, production
+ * time, samples) and an invitation to say what is needed. Prices are not listed here; the agent quotes them when asked.
+ */
+function greeting(lp: LoadedProduct, store: StoreOpening | undefined, products: GreetingProduct[]): string {
   if (store === "continue") return `Now on ${lp.product.name.toLowerCase()}.`;
-  if (store === "open" && lines.length > 1) {
-    const list = `${lines.slice(0, -1).join(", ")} and ${lines.at(-1)}`;
-    return `Hi, I am the deal desk for ${lp.org.name}. ${lp.org.name} makes ${list}. Tell me what you need, how many and by when, and your budget, and I will put together options the seller can actually deliver.`;
-  }
-  return `Hi, I am the deal desk for ${lp.org.name}, here for ${lp.product.name.toLowerCase()}. Tell me what you need, how many ${pluralUnit(lp.product.unitLabel)} and by when, and the budget you are working with. I will put together options the seller can actually deliver.`;
+  if (store === "open" && products.length > 1) return greetingText(sellerGreeting(lp.org.name, products));
+  const self: GreetingProduct = { name: lp.product.name, notes: lp.product.knowledge?.notes ?? [] };
+  return greetingText(sellerGreeting(lp.org.name, [self], self));
 }
 
 export async function startNegotiation(sellerSlug: string, productSlug: string, buyerAddress?: string, store?: StoreOpening) {
   const lp = await loadProductBySlugs(sellerSlug, productSlug);
-  const lines = store === "open" ? await storeLines(lp) : [];
+  const storeItems = store === "open" ? await storeProducts(lp) : [];
   const negId = id("neg");
   const access = negotiationKey();
   const requirements: Requirements = { integrations: [], notes: [], openQuestions: [] };
@@ -149,7 +149,7 @@ export async function startNegotiation(sellerSlug: string, productSlug: string, 
     seq: 1,
     role: "agent",
     kind: "message",
-    content: await sealText(lp.org.id, greeting(lp, store, lines)),
+    content: await sealText(lp.org.id, greeting(lp, store, storeItems)),
   });
   // The key is returned only here. Every later read or write of this negotiation presents it (X-Negotiation-Key),
   // so a forwarded or leaked negotiation id alone does not expose the buyer's conversation.
