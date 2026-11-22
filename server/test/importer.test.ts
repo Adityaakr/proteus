@@ -290,6 +290,34 @@ describe("draft", () => {
     expect(d.next).not.toContain("rate");
   });
 
+  it("reads the currency written next to a stated floor, attached or spaced, before or after the number", () => {
+    const cases: [string, "local" | "usd"][] = [
+      ["nothing below INR900", "local"],
+      ["nothing below INR 900", "local"],
+      ["nothing below ₹900", "local"],
+      ["nothing below Rs. 900", "local"],
+      ["nothing below rs900", "local"],
+      ["nothing below 900rs", "local"],
+      ["nothing below 900 rupees", "local"],
+      ["nothing below 900 rupee", "local"],
+      ["nothing below 900 INR", "local"],
+      ["nothing below 900 dollars", "usd"],
+      ["nothing below $900", "usd"],
+      ["nothing below US$900", "usd"],
+      ["nothing below USD 900", "usd"],
+      ["floor 20 dollars", "usd"],
+      ["nothing below 900", "usd"],
+      ["floor for hers 900", "usd"],
+      ["nothing below 900 rsvp", "usd"],
+    ];
+    for (const [phrase, kind] of cases) {
+      const rule = parseStated(phrase, catalog).rules[0];
+      const amount = phrase.includes("20") ? "20" : "900";
+      expect(rule, phrase).toMatchObject(kind === "local" ? { floorLocal: amount } : { floorUsd: amount });
+      expect(kind === "local" ? rule?.floorUsd : rule?.floorLocal, phrase).toBeUndefined();
+    }
+  });
+
   it("reads a floor said as 'nothing below' or 'never below', but not a percent", () => {
     expect(parseStated("nothing below ₹900 on the polo", catalog).rules[0]).toMatchObject({ floorLocal: "900" });
     expect(parseStated("nothing below Rs 900 on the polo", catalog).rules[0]).toMatchObject({ floorLocal: "900" });

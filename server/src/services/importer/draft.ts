@@ -414,6 +414,19 @@ export function applyStated(a: BuilderAnswers, s: StatedAnswers, result: ImportR
 
 const NUM = String.raw`(\d+(?:\.\d{1,2})?)`;
 
+/** Currency markers a seller may write next to a floor, before or after the number, attached or spaced. */
+const CURRENCY_MARKERS: { kind: "local" | "usd"; pattern: string }[] = [
+  { kind: "local", pattern: String.raw`₹|rs\.?|inr|rupees?` },
+  { kind: "usd", pattern: String.raw`us\$|\$|usd|dollars?` },
+];
+const MARKER = CURRENCY_MARKERS.map((m) => m.pattern).join("|");
+
+/** "local" when a whole marker next to the number is the website currency; otherwise USD (no marker means USD). */
+function floorCurrency(...markers: (string | undefined)[]): "local" | "usd" {
+  const local = new RegExp(String.raw`^(?:${CURRENCY_MARKERS.find((m) => m.kind === "local")!.pattern})$`, "i");
+  return markers.some((m) => m !== undefined && local.test(m)) ? "local" : "usd";
+}
+
 /**
  * Rules from plain words, without a model: "apparel 15% off", "stickers no discount", "100+ at 10% off",
  * "minimum order 25", "rate 92.5", "floor for the NFC card is 9.50", "skip packaging", "we do custom logos".
@@ -429,7 +442,7 @@ export function parseStated(text: string, result: ImportResult): StatedAnswers {
     else if (/\b(yes|we do|we can|accept|welcome|available|offer)\b/.test(lower)) out.customOrders = { accepted: true, note: /\blogos?\b/.test(lower) ? "logo printing" : undefined };
   }
   const categories = [...new Set(result.products.map(categoryOf))];
-  const clauses = text.split(/[;\n]|,(?!\d{3})|\.(?:\s|$)|\band\b|\bbut\b/i).map((c) => c.trim()).filter(Boolean);
+  const clauses = text.split(/[;\n]|,(?!\d{3})|(?<!\brs)\.(?:\s|$)|\band\b|\bbut\b/i).map((c) => c.trim()).filter(Boolean);
   for (const clause of clauses) {
     const c = clause.toLowerCase();
     const target = targetOf(c, categories, result.products);
@@ -446,10 +459,10 @@ export function parseStated(text: string, result: ImportResult): StatedAnswers {
       const pct = new RegExp(String.raw`${NUM}\s*%`).exec(c);
       if (pct && /off|lower|discount|less|below|down|go|max|up to|upto/.test(c)) r.maxDiscountPct = pct[1];
     }
-    const floor = new RegExp(String.raw`(?:floor|lowest|min(?:imum)? price|(?:not|nothing|never) below|no lower than|down to)[^\d₹$]{0,20}?(₹|\brs\.?|\binr\b|\$|\busd\b)?\s*([\d,]+(?:\.\d{1,2})?)\s*(₹|rs\b|inr\b|usd\b|dollars?\b)?`, "i").exec(c);
+    const floor = new RegExp(String.raw`(?:floor|lowest|min(?:imum)? price|(?:not|nothing|never) below|no lower than|down to)[^\d₹$]{0,20}?(?:(?<![a-z])(${MARKER}))?\s*([\d,]+(?:\.\d{1,2})?)\s*(?:(${MARKER})(?![a-z]))?`, "i").exec(c);
     if (floor && !/%/.test(c.slice(floor.index, floor.index + floor[0].length + 2))) {
       const amount = floor[2]!.replace(/,/g, "");
-      if ([floor[1], floor[3]].some((g) => g !== undefined && /^(₹|rs\.?|inr)$/i.test(g))) r.floorLocal = amount;
+      if (floorCurrency(floor[1], floor[3]) === "local") r.floorLocal = amount;
       else r.floorUsd = amount;
     }
     const moq = /(?:moq|minimum order|min(?:imum)?\.? (?:order|qty|quantity)|at least)\D{0,12}(\d+)/i.exec(c);
