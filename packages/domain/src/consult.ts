@@ -49,6 +49,8 @@ const stem = (w: string) => w.replace(/(ies)$/, "y").replace(/(xes|ches|shes|ses
 const DISCOVERY = /\b(what (else )?(do|can) you (have|make|offer|sell)|what else (would|could|might) (work|fit|suit)|(anything|something) else (you |that you )?(have|make|offer|sell)|(have|got|show me|suggest|recommend) (anything|something) else|alternatives?|(other|different|more) (merch|products|items|options|ideas|suggestions|things|stuff)|(some|any) (good |other )?(merch|products|items)|browse|(your|the) catalog(ue)?)\b/i;
 /** "...besides hoodies", "hoodies instead of tees": a product named right after these words is the one to leave out. */
 const EXCLUDE = /\b(besides|other than|apart from|instead of|except|not the)\b/i;
+/** What an exclusion word applies to: up to five words, ending at punctuation or where a new phrase starts ("that", "can we", "for"). */
+const OBJECT = /^(?:\s*(?!(?:for|can|could|do|does|did|is|are|was|we|i|you|please|but|so|with|that|this|which|how|what|would|will)\b)[^\s,.;:!?]+){0,5}/i;
 
 /**
  * Which product a buyer message is about, or that it is an open question to consult on.
@@ -83,9 +85,10 @@ export function routeMessage(message: string, products: readonly ConsultProduct[
   };
 
   const ex = EXCLUDE.exec(message);
-  const object = ex ? message.slice(ex.index + ex[0].length).split(/[,.;:!?]/)[0]!.split(/\s+/).filter(Boolean).slice(0, 3).join(" ") : "";
-  const exclude = object ? score(object).named.map((s) => s.slug) : [];
-  const asked = score(exclude.length ? message.slice(0, ex!.index) : message);
+  const after = ex ? message.slice(ex.index + ex[0].length) : "";
+  const object = OBJECT.exec(after)![0];
+  const exclude = object.trim() ? score(object).named.map((s) => s.slug) : [];
+  const asked = score(exclude.length ? `${message.slice(0, ex!.index)} ${after.slice(object.length)}` : message);
   const named = asked.named.filter((s) => !exclude.includes(s.slug));
   const pointed = asked.pointed.filter((s) => !exclude.includes(s.slug));
 

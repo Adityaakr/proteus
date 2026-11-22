@@ -92,6 +92,10 @@ describe("routing a store message", () => {
     expect(route("Apart from the price, how long do hoodies take?", "hoodies")).toMatchObject({ mode: "product", slug: "hoodies" });
     expect(route("Other than that, do the hoodies come in XL?")).toMatchObject({ mode: "product", slug: "hoodies" });
     expect(route("is it not the same price for hoodies?", "bottles")).toMatchObject({ mode: "product", slug: "hoodies" });
+    expect(route("Instead of t-shirts, can we do hoodies?", "t-shirts")).toMatchObject({ mode: "product", slug: "hoodies", switched: true });
+    expect(route("Instead of t-shirts, can we do hoodies?")).toMatchObject({ mode: "product", slug: "hoodies" });
+    expect(route("Besides hoodies, do you have tote bags?")).toMatchObject({ mode: "product", slug: "tote-bags" });
+    expect(route("something instead of the black cotton hoodies")).toMatchObject({ mode: "consult", exclude: ["hoodies"] });
   });
 });
 
