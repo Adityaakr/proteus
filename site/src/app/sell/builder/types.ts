@@ -99,7 +99,6 @@ export interface PublishedView {
   orgSlug: string;
   orgName: string;
   products: { id: string; slug: string; name: string }[];
-  skipped: { slug: string; reason: string }[];
   at: string;
 }
 

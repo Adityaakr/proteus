@@ -376,6 +376,37 @@ describe("draft", () => {
   });
 });
 
+describe("publishing", () => {
+  it("a publish that fails partway, then a retry, creates each product once", async () => {
+    const { createPending } = await import("../src/services/importer/service");
+    const items = ["a", "b", "c"].map((k) => ({ key: k, slug: `s-${k}`, name: k.toUpperCase() })) as never[];
+    const createdInDb: string[] = [];
+    let down = true;
+    const create = async (i: { key: string }) => {
+      if (i.key === "b" && down) throw new Error("database unavailable");
+      createdInDb.push(i.key);
+      return `prod_${i.key}`;
+    };
+    let saved: { key: string; id: string; slug: string; name: string }[] = [];
+    const record = async (p: typeof saved) => void (saved = p);
+    await expect(createPending(items, [], create, record)).rejects.toThrow("database unavailable");
+    expect(saved.map((p) => p.key)).toEqual(["a"]);
+    down = false;
+    const done = await createPending(items, saved, create, record);
+    expect(createdInDb).toEqual(["a", "b", "c"]);
+    expect(done.map((p) => [p.key, p.id])).toEqual([["a", "prod_a"], ["b", "prod_b"], ["c", "prod_c"]]);
+    expect(await createPending(items, done, create, record)).toEqual(done);
+    expect(createdInDb).toHaveLength(3);
+  });
+
+  it("gives long names the slug the product form stores: no trailing dash, at most 40 characters", () => {
+    const name = `${"a".repeat(39)} bcd`;
+    const cat = { ...catalog, products: [{ ...catalog.products[0]!, key: "x1", name }, { ...catalog.products[0]!, key: "x2", name }] };
+    const slugs = buildDraft(cat, emptyAnswers()).items.map((i) => i.slug);
+    expect(slugs).toEqual(["a".repeat(39), `${"a".repeat(36)}-2`]);
+  });
+});
+
 describe("bulk and floor at the same percent", () => {
   it("never puts the bulk tier a cent below the floor", () => {
     for (const [price, rate] of [["1050", "92.68"], ["1599", "92.68"], ["999", "83.3"], ["7", "92.68"]] as const) {

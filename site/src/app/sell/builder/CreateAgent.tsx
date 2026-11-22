@@ -728,7 +728,6 @@ function Done({ view }: { view: BuilderImport }) {
   return (
     <div className={b.q}>
       <p><CheckCircle2 size={15} className={b.ok} aria-hidden /> Your deal agent is live for <strong>{p.products.length} product{p.products.length === 1 ? "" : "s"}</strong>. It quotes from your list prices, negotiates down to your floors and no further, and every deal is paid into USDC escrow on Arc.</p>
-      {p.skipped.length > 0 && <Notice tone="warn">Skipped: {p.skipped.map((s) => `${s.slug} (${s.reason})`).join(", ")}.</Notice>}
       <div className={b.outputs}>
         <Card title="Your store page" subtitle="One deal agent for every product. Share it anywhere." actions={<StatusTag network={view.network} />}>
           <MonoValue value={`${origin}/app/market/${p.orgSlug}`} copy label="store link" />

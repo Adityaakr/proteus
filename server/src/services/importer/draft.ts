@@ -151,7 +151,7 @@ export function unitLabelFor(name: string, description?: string): string {
 }
 
 export function slugify(s: string): string {
-  return s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "product";
+  return s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+/, "").slice(0, 40).replace(/-+$/, "") || "product";
 }
 
 const categoryOf = (p: ImportedProduct) => (p.category?.trim() || "Other");
@@ -228,7 +228,7 @@ export function buildDraft(result: ImportResult, a: BuilderAnswers, takenSlugs: 
     }
 
     let slug = slugify(p.name);
-    for (let i = 2; slugs.has(slug); i++) slug = `${slugify(p.name).slice(0, 36)}-${i}`;
+    for (let i = 2; slugs.has(slug); i++) slug = `${slugify(p.name).slice(0, 36).replace(/-+$/, "")}-${i}`;
     if (included) slugs.add(slug);
     items.push({ key: p.key, name: p.name.slice(0, 80), slug, category: categoryOf(p), included, source: p.price && p.currency ? { amount: p.price, currency: p.currency } : undefined, listUsd, floorUsd, floorBasis, moq, bulk, unitLabel: unitLabelFor(p.name, p.description), check: CHECK_SOURCES.has(p.source), issues });
   }
