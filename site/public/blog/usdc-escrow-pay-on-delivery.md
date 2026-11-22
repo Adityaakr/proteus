@@ -1,6 +1,6 @@
 # Get paid on delivery: USDC escrow for small business orders
 
-> How USDC escrow lets a buyer pay up front and a business get paid only for what it delivers, with refunds of anything not delivered, no gas for buyers and funding from 25 chains.
+> How USDC escrow lets a buyer pay up front and a business get paid only for what it delivers, with refunds of anything not delivered, no gas on Arc for buyers, and funding from 25 chains.
 
 Aditya, founder of Proteus AI · published 2026-11-11, updated 2026-11-22 · 5 min read · https://app.proteus.co.in/blog/usdc-escrow-pay-on-delivery
 
@@ -24,7 +24,7 @@ Small businesses live with this every day. It shows up as 50% deposits, invoices
 1. **Both sides sign the same terms.** Units, price, term and the seller's payout address, signed by the buyer and by the seller's signing key as EIP-712 typed data. Neither side can change them after.
 2. **The buyer funds the escrow.** The USDC moves into our DealEscrow contract on Arc. With a USDC permit the buyer signs once, and our relayer submits it and pays the gas.
 3. **The seller delivers.** For an API, every call is metered. For physical goods, the seller records each delivered batch with a note and, if they want, a proof link.
-4. **The buyer countersigns.** The buyer signs the total the seller has recorded so far, all of it or none of it. Nothing moves without this signature.
+4. **The buyer countersigns.** The buyer signs the total the seller has recorded so far, all of it or none of it. No ordinary payout happens without this signature; the only other ways money leaves escrow are the refund after the term and an arbiter's split in a dispute.
 5. **The escrow pays the seller.** DealEscrow checks the buyer's acceptance against the seller's signed delivery record and pays the difference since the last settlement, straight to the seller's own wallet.
 6. **The rest can go back.** After the term plus a grace period (3 days by default), or as soon as the seller closes early, the unspent balance is refundable to the buyer. Anyone can trigger it, and it cannot be paused.
 
@@ -84,7 +84,7 @@ Yes. Circle CCTP brings native USDC to Arc from 25 chains, including Solana, wit
 
 ### What happens if the seller never delivers?
 
-Nothing is paid without the buyer's countersignature. After the term plus a grace period, the unspent balance is refundable to the buyer, and that refund cannot be paused.
+The seller is not paid without the buyer's countersignature; only a dispute the buyer opens can lead to an arbiter's split. After the term plus a grace period, the unspent balance is refundable to the buyer, and that refund cannot be paused.
 
 ### What if the buyer never confirms delivery?
 

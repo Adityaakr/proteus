@@ -21,7 +21,7 @@ The buyer's wallet signs the terms, permit and acceptances and funds DealEscrow.
 | DealEscrow | Code; the owner can pause new deals and replace the arbiter | Release USDC against signatures; settlement and refunds keep working while paused | Let anyone, the owner included, withdraw buyer funds; it is not upgradeable |
 | Arbiter | Proteus deployer key (also the owner) | Split the unspent balance of a disputed deal | Touch settled funds; there is no timeout yet |
 | Relayer | Proteus key | Submit transactions, pay gas, call the refund once it opens (it only ever pays the buyer) | Pay a seller without both parties' signatures |
-| Seller signer | Per-seller key, encrypted, held by Proteus | Countersign terms, deliveries and policies; end a term early; on chain, open a dispute (no Proteus route does); hold pay-per-call payments until swept | Pay out without the buyer's Acceptance, or change the payee of a deal already signed. Revoking it stops Proteus using it, which also stops settlement on deals it signed |
+| Seller signer | Per-seller key, encrypted, held by Proteus | Countersign terms, deliveries and policies; end a term early; on chain, open a dispute (no Proteus route does); hold pay-per-call payments until swept | Pay out on its own (settlement also needs the buyer's Acceptance, a dispute split the arbiter), or change the payee of a deal already signed. Revoking it stops Proteus using it, which also stops settlement on deals it signed |
 | Pricing engine | Proteus's server | Enforce the seller's rules | Be proven by the commitment alone |
 | Delivery | Seller confirms, buyer countersigns | Trigger payment once countersigned | Be verified by Proteus |
 

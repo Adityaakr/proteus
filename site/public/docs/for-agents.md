@@ -55,7 +55,7 @@ For developers building agents that buy on Proteus, and for AI assistants readin
 | `POST` | `/negotiations` | { sellerSlug, productSlug, buyerAddress? } → negotiation with buyerKey (send it as X-Negotiation-Key on every /negotiations/{id} call) |
 | `GET` | `/negotiations/{id}` | the conversation and current offers (X-Negotiation-Key, or the signed-in buyer) |
 | `POST` | `/negotiations/{id}/messages` | { content } → agent reply and offers |
-| `POST` | `/negotiations/{id}/counter` | { candidateId, targetTotal? | targetUnits? } → decision |
+| `POST` | `/negotiations/{id}/counter` | { candidateId, targetTotal? \| targetUnits? } → decision |
 | `POST` | `/negotiations/{id}/quotes` | { candidateId } → quote (or approval_required) |
 | `GET` | `/quotes/{id}?buyer=0x…` | EIP-712 typed data to sign |
 | `POST` | `/quotes/{id}/accept` | { buyerAddress, buyerSignature } → deal |
@@ -73,7 +73,7 @@ For developers building agents that buy on Proteus, and for AI assistants readin
 | `GET` | `/deals/{id}/timeline` | the buyer's order history: progress (paid, accepted, in production, shipped, delivered, seller paid), tracking, every update with its transaction (buyer wallet or the deal's service key only) |
 | `GET` | `/deals/{id}/notifications` | where the buyer hears about this deal: email, Telegram, webhook (buyer only) |
 | `PUT` | `/deals/{id}/notifications` | { email?, telegramChatId?, webhookUrl? } → settings; a new webhook returns its signing secret once |
-| `POST` | `/deals/{id}/requests/{requestId}/status` | { status: confirmed | done | cancelled } → the buyer marks a request in its inbox |
+| `POST` | `/deals/{id}/requests/{requestId}/status` | { status: confirmed \| done \| cancelled } → the buyer marks a request in its inbox |
 | `GET` | `/services/{product}/inbox` | Bearer key; scheduling services only: the newest 200 requests on the deal, each with its full note and mark |
 | `GET` | `/services/{product}/customer-link` | Bearer key; the business's customer link and website embed code (scheduling services) |
 | `POST` | `/services/{product}/customer-link` | Bearer key; create the link, or replace it so the old one stops working (DELETE turns it off) |

@@ -23,7 +23,7 @@ _Usage and delivery: each delivered unit with its outcome and signed receipt. (A
 
 ### Batches and short deliveries
 
-Record what actually went out, batch by batch. If 200 tees were ordered and 180 shipped, record 180: the buyer can confirm those and you are paid for 180. A buyer confirms all recorded units at once and cannot confirm part of a recorded batch, so record only what you stand behind. The 20 that were never delivered stay in escrow and become refundable to the buyer after the term.
+Record what actually went out, batch by batch. If 200 tees were ordered and 180 shipped, record 180: the buyer can confirm those and you are paid for 180. A buyer confirms all recorded units at once and cannot confirm part of a recorded batch, so record only what you stand behind. The 20 that were never delivered stay in escrow and become refundable to the buyer after the term plus grace, or at once if you close the term early.
 
 <a id="orders-deadlines"></a>
 
@@ -33,7 +33,7 @@ Record what actually went out, batch by batch. If 200 tees were ordered and 180 
 |---|---|
 | Quote | An offer must be signed and funded within the quote validity you set. An order waiting for your approval uses the same window. |
 | Term | Runs for the product's term in days, counted from when the quote was made, not from funding. |
-| Payment | Possible until the term ends plus the grace period (3 days by default). After that, deliveries the buyer has not confirmed can only be refunded to the buyer. |
+| Payment | Possible until the term ends plus the grace period (3 days by default). After that, deliveries the buyer has not confirmed are refunded to the buyer, unless a dispute is opened before the refund is claimed. |
 | Refund | Opens at the end of the term plus grace, or at once if you close the term early. |
 
 <a id="orders-wrong"></a>

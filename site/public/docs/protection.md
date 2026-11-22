@@ -6,7 +6,7 @@ _Escrow, delivery, refunds and disputes, in plain words, for both sides of an or
 
 For sellers and buyers deciding whether to trust an order with someone they have not worked with before. You will learn where the money is at each step, what releases it, what happens when something goes wrong, and what Proteus itself can and cannot do.
 
-> **Nobody goes first on trust:** The buyer pays before the seller starts, but the money waits in a public contract, DealEscrow on Arc. It moves to the seller only when the buyer confirms delivery, and back to the buyer only when refunds open after the term.
+> **Nobody goes first on trust:** The buyer pays before the seller starts, but the money waits in a public contract, DealEscrow on Arc. It moves to the seller when the buyer confirms delivery and back to the buyer when refunds open after the term; if a dispute is opened, the arbiter decides how what is left is split.
 
 <a id="protection-steps"></a>
 
@@ -20,15 +20,15 @@ For sellers and buyers deciding whether to trust an order with someone they have
 | Confirmed | Escrow → the seller's wallet | The buyer countersigns everything recorded so far, and the contract pays exactly that. |
 | After the term | Escrow → the buyer | Whatever was not paid out is refundable after the term plus a grace period (3 days by default), or at once if the seller closes the term early. |
 
-_Every step is a transaction on Arc you can open on the explorer. The detail, for developers: [The money path](https://app.proteus.co.in/docs/money-path)._
+_Funding, every payout and every refund is a transaction on Arc you can open on the explorer; signing the terms and recording a delivery happen off chain. The detail, for developers: [The money path](https://app.proteus.co.in/docs/money-path)._
 
 <a id="protection-sellers"></a>
 
 ### What it means for sellers
 
 - **You never start unpaid.** The whole order is in escrow before you start. The deal page shows the balance, reconciled from the contract, and links the funding transaction on Arc.
-- **Get confirmed batch by batch.** Record each batch as it ships and ask the buyer to countersign. Each confirmation pays you for everything recorded so far. Recording a delivery does not alert the buyer, so post an update too ([Orders, delivery and payouts](https://app.proteus.co.in/docs/orders)).
-- **Confirm before the deadline.** Payment is possible until the term ends plus the grace period. After that, anything the buyer has not confirmed can only go back to the buyer.
+- **Get confirmed batch by batch.** Record each batch as it ships and ask the buyer to countersign. Each confirmation covers everything recorded so far and pays you the part not yet paid. Recording a delivery does not alert the buyer, so post an update too ([Orders, delivery and payouts](https://app.proteus.co.in/docs/orders)).
+- **Confirm before the deadline.** Payment is possible until the term ends plus the grace period. After that, anything the buyer has not confirmed goes back to the buyer as a refund, unless a dispute is opened before the refund is claimed.
 - **If a buyer never confirms.** You are not paid, and today you cannot open a dispute yourself: only the buyer can. Keep delivery records with proof and order updates with tracking, and remind the buyer before the deadline.
 - **Your payout wallet.** Payouts go to the wallet that owned your account when you published your first product. No setting changes it, and on each order it is fixed in the terms both sides sign.
 
@@ -55,7 +55,7 @@ _Every step is a transaction on Arc you can open on the explorer. The detail, fo
 ### What Proteus can and cannot do
 
 - **Cannot take the money.** DealEscrow pays only an order's payee and its buyer. There is no owner withdrawal, and the contract cannot be upgraded ([DealEscrow.sol](https://github.com/Adityaakr/proteus/blob/main/contracts/src/DealEscrow.sol)).
-- **Cannot pay the seller without the buyer.** Every payout needs the buyer's signed confirmation and the seller signer's delivery record over the same units.
+- **Pays the seller on confirmation or a dispute decision.** A normal payout needs the buyer's signed confirmation and the seller signer's delivery record over the same units. The one exception is a dispute, where the arbiter can split what is left between the seller and the buyer.
 - **Can end a term early.** Through the seller's signer key, which makes the unspent balance refundable to the buyer at once.
 - **Can freeze and split an order.** Proteus holds the seller's signer key and the arbiter key, so on chain it could open a dispute on any funded order and split what is left between the seller and the buyer. No Proteus route opens one for a seller today.
 

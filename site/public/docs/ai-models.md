@@ -17,7 +17,7 @@ Deal desk: buyer text from any channel has emails, phone and card numbers remove
 | Job | Model | Effort | Why |
 |---|---|---|---|
 | Reading a buyer's requirements in chat | Claude Haiku 5.5 | low | structured output: units, budget, integrations |
-| Writing the deal desk's replies | Claude Sonnet 5.5 | low | only figures from the offers, the buyer's budget and the seller's other products; any other figure falls back to the fixed reply |
+| Writing the deal desk's replies | Claude Sonnet 5.5 | low | a dollar amount or a number of four or more digits that is not among the offers, the buyer's budget or the seller's other products falls back to the fixed reply |
 | Callback booking, after-hours answering | Claude Haiku 5.5 | low | fast, well-specified records |
 | AI receptionist service | Claude Sonnet 5.5 | low | talks to customers; asks one question at a time |
 | Invoice processing, screening checks | Claude Sonnet 5.5 | medium | reads PDFs and images directly |

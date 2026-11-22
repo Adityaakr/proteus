@@ -104,7 +104,7 @@ const r = await res.json();`}</Code>
               <li><span className={`${s.chip} ${s.chipWarn}`}>handoff</span><span>The service passed the request to a human. Nothing is billed.</span></li>
               <li><span className={`${s.chip} ${s.chipBad}`}>failed</span><span>The service could not do it, timed out, errored, or the deal's units are used up. Nothing is billed.</span></li>
             </ul>
-            <p>Every result, billed or not, carries a receipt digest signed by the seller's signer key. <code>units</code> is a number; the running totals in <code>deal</code> are strings. Amounts are micro-USDC: <code>200000</code> is $0.20, and <code>remaining</code> is what is still unbilled from your prepaid amount.</p>
+            <p>Every result, billed or not, carries a receipt digest, normally signed by the seller's signer key; if signing failed, <code>sellerSignature</code> is <code>null</code>, so check that it has a value before you countersign. <code>units</code> is a number; the running totals in <code>deal</code> are strings. Amounts are micro-USDC: <code>200000</code> is $0.20, and <code>remaining</code> is what is still unbilled from your prepaid amount.</p>
           </section>
 
           <section id="errors" className={s.section}>
@@ -133,7 +133,7 @@ const r = await res.json();`}</Code>
             <h2 className={s.h2}><span className={s.num}>05</span>Settling usage</h2>
             <p>Metering alone moves no money. When you are ready, the deal page's "Sign usage to settle" asks your wallet to sign the cumulative units and amount, with no gas, and the escrow pays the seller exactly that amount minus what was already settled. Settle as often as you like. The signature request is prepared fresh each time and expires after an hour.</p>
             <div className={`${s.callout} ${s.calloutWarn}`}>
-              <b>Settle before the term ends plus the grace period</b> (3 days by default). After that, settlement reverts: usage you did not countersign can no longer be paid from escrow, and the balance can only come back to you as a refund. Calls still meter after the term ends, so settle what you want the seller paid in time.
+              <b>Settle before the term ends plus the grace period</b> (3 days by default). After that, settlement reverts: usage you did not countersign can no longer be paid from escrow, and the balance comes back to you as a refund, unless a dispute is opened before it is claimed. Calls still meter after the term ends, so settle what you want the seller paid in time.
             </div>
             <div className={s.callout}>
               <b>Nothing here is a promise.</b> The escrow contract checks both signatures before it releases a cent, every settlement has a transaction hash you can open on the explorer, and after the term plus grace, or earlier if the seller closes the term, "Request refund of unused balance" returns the rest to your wallet. See <Link to="/docs/protection">How payment protection works</Link>.
