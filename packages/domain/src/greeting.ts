@@ -42,7 +42,7 @@ const LABELS: Record<GreetingFactKind, string> = { moq: "Minimum order", product
 const ORDER: GreetingFactKind[] = ["moq", "production", "samples", "delivery"];
 const MAX_FACTS = 3;
 const CATALOG_NAMES = 3;
-const MONEY = /[$€£¥₹]|\b(usdc?|eur|gbp|inr|dollars?|euros?)\b/i;
+const MONEY = /[$€£¥₹]|\b(usdc?|eur|gbp|inr|rs|rupees?|dollars?|euros?)\b/i;
 
 /** Classifies on the question of an FAQ-style note ("How long does delivery take? ..."), else on the whole line. */
 function kindOf(question: string): GreetingFactKind | null {
