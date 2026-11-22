@@ -10,6 +10,6 @@ COPY server/src/lib/net-guard.ts server/src/lib/net-guard.ts
 COPY server/src/services/importer/egress-proxy.ts server/src/services/importer/egress-proxy.ts
 COPY browser/service.ts browser/main.ts browser/
 USER node
-ENV NODE_ENV=production PORT=3000
+ENV NODE_ENV=production BROWSER_PORT=3000
 EXPOSE 3000
 CMD ["tsx", "browser/main.ts"]

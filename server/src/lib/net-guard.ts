@@ -113,6 +113,8 @@ export interface SafeResponse {
   body: string;
   /** True when the body was cut at maxBytes. */
   truncated: boolean;
+  /** The raw body, when the request asked for bytes (body is then empty). */
+  bytes?: Buffer;
 }
 
 export interface SafeFetchOptions {
@@ -127,6 +129,8 @@ export interface SafeFetchOptions {
   headers?: Record<string, string>;
   method?: "GET" | "POST";
   body?: string;
+  /** Keep the body as bytes (an image) instead of decoding it as UTF-8 text. */
+  bytes?: boolean;
 }
 
 export const IMPORTER_USER_AGENT = "ProteusAI-Importer/1.0 (+https://ai.proteus.co.in/docs/quickstart-seller)";
@@ -146,11 +150,11 @@ export async function safeFetch(raw: string, opts: SafeFetchOptions = {}): Promi
       url = checkPublicHttpsUrl(new URL(res.redirect, url).toString());
       continue;
     }
-    return { url: url.toString(), status: res.status, contentType: res.contentType, body: res.body, truncated: res.truncated };
+    return { url: url.toString(), status: res.status, contentType: res.contentType, body: res.body, truncated: res.truncated, ...(res.bytes ? { bytes: res.bytes } : {}) };
   }
 }
 
-function requestOnce(url: URL, opts: SafeFetchOptions, maxBytes: number, timeoutMs: number): Promise<{ status: number; contentType: string; body: string; truncated: boolean; redirect?: string }> {
+function requestOnce(url: URL, opts: SafeFetchOptions, maxBytes: number, timeoutMs: number): Promise<{ status: number; contentType: string; body: string; truncated: boolean; bytes?: Buffer; redirect?: string }> {
   return new Promise((resolve, reject) => {
     const req = httpsRequest(
       url,
@@ -181,7 +185,10 @@ function requestOnce(url: URL, opts: SafeFetchOptions, maxBytes: number, timeout
         const chunks: Buffer[] = [];
         let size = 0;
         let truncated = false;
-        const finish = () => resolve({ status, contentType: String(res.headers["content-type"] ?? ""), body: Buffer.concat(chunks).toString("utf8"), truncated });
+        const finish = () => {
+          const raw = Buffer.concat(chunks);
+          resolve({ status, contentType: String(res.headers["content-type"] ?? ""), body: opts.bytes ? "" : raw.toString("utf8"), ...(opts.bytes ? { bytes: raw } : {}), truncated });
+        };
         stream.on("data", (chunk: Buffer) => {
           if (truncated) return;
           const room = maxBytes - size;

@@ -113,6 +113,53 @@ describe("the browser service", () => {
     expect(upgradedPath).toMatch(/^\/devtools\/browser\/abc 127\.0\.0\.1:\d+$/);
   });
 
+  it("stops the browser and its proxy when the client leaves while the browser is still starting", async () => {
+    let started!: () => void;
+    const starting = new Promise<void>((r) => (started = r));
+    let finish!: () => void;
+    const held = new Promise<void>((r) => (finish = r));
+    let closed = 0;
+    let launches = 0;
+    let proxyUrl = "";
+    const slow = await startBrowserService({
+      token,
+      port: 0,
+      host: "127.0.0.1",
+      maxOpen: 1,
+      launch: async (url) => {
+        launches++;
+        proxyUrl = url;
+        started();
+        await held;
+        return { wsUrl: "ws://127.0.0.1:9/devtools/browser/x", close: async () => void closed++ };
+      },
+    });
+    const s = connect(slow.port, "127.0.0.1", () => s.write(`GET /?token=${token} HTTP/1.1\r\nHost: x\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n`));
+    s.on("error", () => undefined);
+    await starting;
+    s.destroy();
+    await new Promise((r) => setTimeout(r, 50));
+    finish();
+    for (let i = 0; i < 100 && !closed; i++) await new Promise((r) => setTimeout(r, 10));
+    expect(closed).toBe(1);
+    const proxyGone = await new Promise<boolean>((resolve) => {
+      const p = connect(Number(new URL(proxyUrl).port), "127.0.0.1");
+      p.on("connect", () => (p.destroy(), resolve(false)));
+      p.on("error", () => resolve(true));
+    });
+    expect(proxyGone).toBe(true);
+    const again = await new Promise<string>((resolve) => {
+      const c = connect(slow.port, "127.0.0.1", () => c.write(`GET /?token=${token} HTTP/1.1\r\nHost: x\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n`));
+      let got = "";
+      c.on("data", (b) => (got += b.toString()));
+      c.on("close", () => resolve(got));
+      c.on("error", () => resolve(got));
+    });
+    expect(again).not.toMatch(/503/);
+    expect(launches).toBe(2);
+    await slow.close();
+  });
+
   it("refuses a token that is too short to start", async () => {
     await expect(startBrowserService({ token: "short", port: 0, launch })).rejects.toThrow(/at least 24/);
   });

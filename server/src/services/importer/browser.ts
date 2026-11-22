@@ -53,6 +53,9 @@ export interface PageRenderer {
 
 export const BROWSER_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 ProteusAI-Importer/1.0 (+https://ai.proteus.co.in/docs/quickstart-seller)";
 
+/** Every reading context, local or remote: no service workers (their requests would skip the route checks), no downloads. */
+const CONTEXT_OPTIONS = { userAgent: BROWSER_USER_AGENT, viewport: { width: 1280, height: 900 }, serviceWorkers: "block", acceptDownloads: false, locale: "en-US" } as const;
+
 /** Requests the browser never makes: they are heavy and carry no catalog text. */
 const SKIP_TYPES = new Set(["image", "media", "font", "manifest", "texttrack", "beacon", "ping", "csp_report"]);
 /** Analytics and ad beacons: never needed to read a catalog, and they keep a page from going quiet. */
@@ -266,7 +269,7 @@ export function localBrowser(cfg: BrowserConfig = env): PageRenderer | undefined
       try {
         proxy = await startEgressProxy({ maxBytes: LIMITS.renderBytes });
         const browser = await launchLocal(proxy, executable);
-        const context = await browser.newContext({ userAgent: BROWSER_USER_AGENT, viewport: { width: 1280, height: 900 }, serviceWorkers: "block", acceptDownloads: false, locale: "en-US" });
+        const context = await browser.newContext(CONTEXT_OPTIONS);
         const p = proxy;
         return session(context, rules, async () => {
           await browser.close().catch(() => undefined);
@@ -297,14 +300,16 @@ export function cloudBrowser(cfg: BrowserConfig = env): PageRenderer | undefined
     kind: "cloud",
     async open(rules) {
       const free = await slot();
+      let browser: Browser | undefined;
       try {
-        const browser = await (await playwright()).connectOverCDP(endpoint, { timeout: 30_000 });
-        const context = browser.contexts()[0] ?? (await browser.newContext({ userAgent: BROWSER_USER_AGENT, viewport: { width: 1280, height: 900 }, serviceWorkers: "block", acceptDownloads: false }));
+        const b = (browser = await (await playwright()).connectOverCDP(endpoint, { timeout: 30_000 }));
+        const context = await b.newContext(CONTEXT_OPTIONS);
         return session(context, rules, async () => {
-          await browser.close().catch(() => undefined);
+          await b.close().catch(() => undefined);
           free();
         });
       } catch (e) {
+        await browser?.close().catch(() => undefined);
         free();
         throw new Error(`the cloud browser at ${host} could not be reached (${String((e as Error).message).split("\n")[0]!.slice(0, 120)})`);
       }

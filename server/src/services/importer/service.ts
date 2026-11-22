@@ -467,7 +467,7 @@ export async function publishImport(userId: string, importId: string, body: { co
   const businessName = (answers.businessName ?? result.brand.name ?? "").trim();
   let org = await userOrg(userId);
   if (!org) {
-    const brand = { website: result.brand.website, tagline: (answers.tagline ?? result.brand.tagline ?? result.brand.description ?? "").slice(0, 140) || undefined, category: STORE_CATEGORY[(answers.businessType ?? "other") as BusinessType], ...(Object.keys(result.brand.socials).length ? { socials: result.brand.socials } : {}), ...(result.brand.logoUrl && /\.(png|svg|jpe?g|webp)(\?|$)/i.test(result.brand.logoUrl) ? { logoUrl: result.brand.logoUrl } : {}) };
+    const brand = { website: result.brand.website, tagline: (answers.tagline ?? result.brand.tagline ?? result.brand.description ?? "").slice(0, 140) || undefined, category: STORE_CATEGORY[(answers.businessType ?? "other") as BusinessType], ...(Object.keys(result.brand.socials).length ? { socials: result.brand.socials } : {}), ...(result.brand.logoUrl && /^data:image\/|\.(png|svg|jpe?g|webp)(\?|$)/i.test(result.brand.logoUrl) ? { logoUrl: result.brand.logoUrl } : {}) };
     try {
       await createOrg(userId, businessName, undefined, brand);
     } catch (e) {

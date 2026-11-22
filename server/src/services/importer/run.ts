@@ -6,6 +6,7 @@ import { BlockedUrlError, checkPublicHttpsUrl } from "../../lib/net-guard";
 import type { PageRenderer } from "./browser";
 import { browserSource, elsewhereOf, type BrowserReadResult } from "./browser-source";
 import { cleanText, faqHints, hintsFrom, jsonLdObjects, linksOf, metaTags, socialLinks, titleOf, typeIs, visibleText } from "./html";
+import { inlineLogo, logoCandidates } from "./logo";
 import { SiteFetcher, type RawFetch } from "./site-fetcher";
 import { pageTextSource, PRODUCT_PATH, shopifySource, structuredSource, wooSource, type PageExtractor, type RenderedPages } from "./sources";
 import { LIMITS, type BusinessType, type ImportProgress, type ImportResult, type ImportedBrand, type ImportedPolicy, type ImportedProduct, type SourceReport } from "./types";
@@ -57,14 +58,7 @@ function brandOf(html: string, url: string): ImportedBrand {
   const site = ld.find((o) => typeIs(o, "WebSite"));
   const links = linksOf(html, url);
   const name = cleanText(m["og:site_name"] ?? org?.name ?? site?.name ?? m["application-name"] ?? titleOf(html).split(/[|–—-]/)[0], 80) || new URL(url).hostname.replace(/^www\./, "");
-  const logoRaw = (org?.logo && typeof org.logo === "object" ? (org.logo as { url?: string }).url : org?.logo) ?? links.find((l) => l.rel.includes("apple-touch-icon"))?.url ?? links.find((l) => l.rel.split(/\s+/).includes("icon") && /\.(png|svg)(\?|$)/i.test(l.url))?.url;
-  let logoUrl: string | undefined;
-  try {
-    // A site builder's own icon (wix.com/favicon.ico) is not the seller's logo.
-    logoUrl = typeof logoRaw === "string" && new URL(logoRaw, url).protocol === "https:" && !/(^|\.)(wix|squarespace|weebly|webflow|godaddy|framer)\.com$/i.test(new URL(logoRaw, url).hostname) ? new URL(logoRaw, url).toString() : undefined;
-  } catch {
-    logoUrl = undefined;
-  }
+  const logoUrl = logoCandidates(html, url)[0];
   const description = cleanText(m.description ?? m["og:description"] ?? org?.description, 300) || undefined;
   const title = titleOf(html);
   const slogan = cleanText(org?.slogan, 140) || (title.includes("|") || title.includes(" - ") ? cleanText(title.split(/[|]| - /).slice(1).join(" ").trim(), 140) : "") || undefined;
@@ -171,6 +165,8 @@ export async function runImport(input: string, deps: ImportDeps): Promise<Import
     brand.logoUrl ??= b.logoUrl;
     brand.description ??= b.description;
   }
+  const logo = await inlineLogo(site, [...new Set([...logoCandidates(homepage, homeUrl), ...(seenHome && shell ? logoCandidates(seenHome.html, seenHome.url) : [])])]);
+  if (logo) brand.logoUrl = logo;
   const elsewhere = [...(viewed?.elsewhere ?? [])];
   for (const l of linksOf(homepage, homeUrl)) {
     const away = elsewhereOf({ url: l.url, text: l.text }, (u) => site.sameSite(u));

@@ -119,6 +119,58 @@ describe("a whole import against a fake site", () => {
   });
 });
 
+describe("the seller's logo", () => {
+  const png = (n: number) => Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(n, 7)]);
+  const home = `<html><head><title>Shoonya Store</title>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="icon" href="/favicon.ico">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Shoonya Store","logo":{"@type":"ImageObject","url":"https://www.shoonyastore.com/brand/org-logo.png"}}</script></head>
+<body><header><nav><a href="/"><img alt="Shoonya Store Logo" src="/_next/image?url=%2Fshoonya-logo.png&amp;w=256&amp;q=75"></a></nav></header><main>${"Custom merch and apparel. ".repeat(20)}</main></body></html>`;
+  const site = (assets: Record<string, { type: string; bytes: Buffer }>) => {
+    const asked: string[] = [];
+    const fetch = async (url: string, opts?: { bytes?: boolean }): Promise<SafeResponse> => {
+      const u = new URL(url);
+      const key = u.pathname + u.search;
+      if (u.pathname === "/") return { url, status: 200, contentType: "text/html", body: home, truncated: false };
+      const a = assets[key];
+      if (opts?.bytes) asked.push(key);
+      if (!a) return { url, status: 404, contentType: "text/html", body: "", truncated: false, ...(opts?.bytes ? { bytes: Buffer.from("<h1>Not found</h1>") } : {}) };
+      return { url, status: 200, contentType: a.type, body: "", truncated: false, bytes: a.bytes };
+    };
+    return { fetch, asked };
+  };
+
+  it("inlines the header logo, the original file behind a Next.js image URL, as a data URL", async () => {
+    const logo = png(500);
+    const s = site({ "/shoonya-logo.png": { type: "image/png", bytes: logo }, "/brand/org-logo.png": { type: "image/png", bytes: png(10) } });
+    const r = await runImport("https://www.shoonyastore.com", { fetch: s.fetch, delayMs: 0 });
+    expect(r.brand.logoUrl).toBe(`data:image/png;base64,${logo.toString("base64")}`);
+    expect(s.asked).toEqual(["/shoonya-logo.png"]);
+  });
+
+  it("falls back to the next candidate when one is too big or is not the image it claims", async () => {
+    const org = png(64);
+    const s = site({
+      "/shoonya-logo.png": { type: "image/png", bytes: png(120 * 1024) },
+      "/_next/image?url=%2Fshoonya-logo.png&w=256&q=75": { type: "image/png", bytes: Buffer.from("<html>not an image</html>") },
+      "/brand/org-logo.png": { type: "image/png", bytes: org },
+    });
+    const r = await runImport("https://www.shoonyastore.com", { fetch: s.fetch, delayMs: 0 });
+    expect(r.brand.logoUrl).toBe(`data:image/png;base64,${org.toString("base64")}`);
+    expect(s.asked).toEqual(["/shoonya-logo.png", "/_next/image?url=%2Fshoonya-logo.png&w=256&q=75", "/brand/org-logo.png"]);
+  });
+
+  it("never inlines an SVG that carries a script", async () => {
+    const clean = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><circle r="4"/></svg>');
+    const s = site({
+      "/shoonya-logo.png": { type: "image/svg+xml", bytes: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"></svg>') },
+      "/_next/image?url=%2Fshoonya-logo.png&w=256&q=75": { type: "image/svg+xml", bytes: Buffer.from("<svg><script>alert(1)</script></svg>") },
+      "/brand/org-logo.png": { type: "image/svg+xml", bytes: clean },
+    });
+    const r = await runImport("https://www.shoonyastore.com", { fetch: s.fetch, delayMs: 0 });
+    expect(r.brand.logoUrl).toBe(`data:image/svg+xml;base64,${clean.toString("base64")}`);
+  });
+});
+
 describe("page text from a model", () => {
   it("keeps only products and prices the page actually shows", () => {
     const pages = [{ url: "https://acme.example/", text: "Terry Luxe tee from ₹550. Carbon Polo, quote-based." }];

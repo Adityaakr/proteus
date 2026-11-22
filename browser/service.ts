@@ -134,28 +134,40 @@ export async function startBrowserService(opts: BrowserServiceOptions): Promise<
     let proxy: EgressProxy | undefined;
     let browser: LaunchedBrowser | undefined;
     let ended = false;
-    const end = async () => {
-      if (ended) return;
-      ended = true;
-      client.destroy();
+    let launching = true;
+    let released = false;
+    const release = async () => {
+      if (released) return;
+      released = true;
       await browser?.close().catch(() => undefined);
       await proxy?.close().catch(() => undefined);
       open--;
     };
-    client.on("error", () => void end());
-    client.on("close", () => void end());
+    const end = () => {
+      if (ended) return;
+      ended = true;
+      client.destroy();
+      if (!launching) void release();
+    };
+    client.on("error", end);
+    client.on("end", end);
+    client.on("close", end);
+    client.resume();
     try {
       proxy = await startEgressProxy({ maxBytes: opts.maxBytes ?? 40 * 1024 * 1024 });
-      browser = await launch(proxy.url);
+      if (!ended) browser = await launch(proxy.url);
     } catch {
-      if (!client.destroyed) refuse(client, "502 Bad Gateway");
-      return end();
+      if (!ended) refuse(client, "502 Bad Gateway");
     }
-    if (ended) return end();
+    launching = false;
+    if (ended || !browser) {
+      end();
+      return release();
+    }
     const target = new URL(browser.wsUrl);
     const upstream = connect(Number(target.port), target.hostname);
-    upstream.on("error", () => void end());
-    upstream.on("close", () => void end());
+    upstream.on("error", end);
+    upstream.on("close", end);
     upstream.once("connect", () => {
       const lines = [`GET ${target.pathname} HTTP/1.1`, `host: ${target.host}`];
       for (let i = 0; i < req.rawHeaders.length; i += 2) {

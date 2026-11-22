@@ -333,7 +333,7 @@ POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport 
 
 - `BuilderImport`:
   - `{ id, url, status: "running"|"ready"|"failed"|"published", progress[], error, transcript[], org, network, helpers: { model, browser: "local"|"cloud"|"off", firecrawl } }`.
-  - Once read: `result` (the scraped catalog: brand, products, policies, hints, sources tried, suggested FX rate, `elsewhere` catalogues on other services, `browser: { engine, pages }` when pages were rendered), `answers` (the seller's own, including private floors), `draft` (`{ included, ready, next[], items[] }`, each item with `check: true` when it was read from page text) and `published`.
+  - Once read: `result` (the scraped catalog: brand, products, policies, hints, sources tried, suggested FX rate, `elsewhere` catalogues on other services, `browser: { engine, pages }` when pages were rendered; `brand.logoUrl` is the site's logo copied as a PNG, JPEG, WebP or script-free SVG data URL under 96 KB, chosen from the header logo image, the JSON-LD Organization logo, the apple-touch-icon, then a PNG or SVG icon, so a site that refuses hotlinking still shows its logo), `answers` (the seller's own, including private floors), `draft` (`{ included, ready, next[], items[] }`, each item with `check: true` when it was read from page text) and `published`.
   - Each product carries its `source`: `shopify`, `woocommerce`, `json-ld` and `browser` (structured data on a rendered page) are exact; `page-layout`, `firecrawl` and `page-text` were read from what the page shows and are marked for the seller to check.
 - Only the account that started an import can read it. Answers are stored encrypted (`catalog_imports.answers_enc`).
 - Source chain, first that yields products:

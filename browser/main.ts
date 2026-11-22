@@ -1,7 +1,7 @@
 import { startBrowserService } from "./service";
 
 const token = process.env.BROWSER_TOKEN ?? "";
-const port = Number(process.env.PORT ?? 3000);
+const port = Number(process.env.BROWSER_PORT ?? 3000);
 startBrowserService({ token, port })
   .then((s) => console.log(`[browser] listening on port ${s.port}${process.env.BROWSER_SANDBOX === "off" ? " (Chromium sandbox off)" : ""}`))
   .catch((e) => {

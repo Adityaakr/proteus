@@ -82,6 +82,30 @@ export class SiteFetcher {
     }
   }
 
+  /**
+   * GET an asset (an image) for this site: it may live on another public https host such as a CDN. On this site
+   * robots.txt applies; every host passes the raw fetch's own guard. Null when refused or unreachable.
+   */
+  async asset(target: string, opts: SafeFetchOptions = {}): Promise<SafeResponse | null> {
+    let u: URL;
+    try {
+      u = new URL(target, this.origin);
+    } catch {
+      return null;
+    }
+    if (u.protocol !== "https:") return null;
+    if (this.sameSite(u) && !this.robots.allowed(u.pathname + u.search)) {
+      this.disallowed++;
+      return null;
+    }
+    if (this.budgetLeft <= 0) return null;
+    try {
+      return await this.fetchRaw(u.toString(), opts);
+    } catch {
+      return null;
+    }
+  }
+
   private async fetchRaw(url: string, opts: SafeFetchOptions) {
     const wait = (this.opts.delayMs ?? LIMITS.delayMs) - (Date.now() - this.last);
     if (wait > 0 && this.requests > 0) await new Promise((r) => setTimeout(r, wait));
