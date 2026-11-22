@@ -36,9 +36,11 @@ export function extractRuleBased(input: ExtractInput): Requirements {
   if (budget?.[1]) req.budget = toMicro(budget[1].replace(/,/g, ""));
 
   // Desired units: "2,000 resolutions", "around 2000 answers", "1500 units"
-  const unitWord = input.unitLabel.replace(/s$/, "");
+  const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const unitWord = esc(input.unitLabel.replace(/s$/, ""));
+  const unitPlural = esc(pluralUnit(input.unitLabel));
   // Goods are also counted in generic words: "60 bars of soap", "200 pcs", "50 pairs".
-  const unitsRe = new RegExp(`([\\d,]+)\\s*(?:eligible |ai |automated |order-status |order status )?(?:${unitWord}s?|units|answers|resolutions|calls|requests? (?:per|a) month|pieces|pcs|items|bars|pairs|packs|sets)\\b`, "i");
+  const unitsRe = new RegExp(`([\\d,]+)\\s*(?:eligible |ai |automated |order-status |order status )?(?:${unitWord}s?|${unitPlural}|units|answers|resolutions|calls|requests? (?:per|a) month|pieces|pcs|items|bars|pairs|packs|sets)\\b`, "i");
   const units = latest.match(unitsRe) ?? (req.desiredUnits ? null : text.match(unitsRe));
   if (units?.[1]) {
     const n = BigInt(units[1].replace(/,/g, ""));

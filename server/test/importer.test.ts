@@ -412,6 +412,11 @@ describe("the agent answers from imported website facts", () => {
     const base = { unitLabel: "piece", prior: { integrations: [], notes: [], openQuestions: [] } };
     expect(extractRuleBased({ ...base, turns: [{ role: "buyer", content: "We want 60 bars of your soap, budget around $480" }] } as never).desiredUnits).toBe(60n);
     expect(extractRuleBased({ ...base, turns: [{ role: "buyer", content: "Need 200 pcs by March" }] } as never).desiredUnits).toBe(200n);
+    const box = { ...base, unitLabel: "box" };
+    expect(extractRuleBased({ ...box, turns: [{ role: "buyer", content: "we need 100 boxes for a team event" }] } as never).desiredUnits).toBe(100n);
+    expect(extractRuleBased({ ...box, turns: [{ role: "buyer", content: "just 1 box please" }] } as never).desiredUnits).toBe(1n);
+    expect(extractRuleBased({ ...base, unitLabel: "pouch", turns: [{ role: "buyer", content: "300 pouches by Friday" }] } as never).desiredUnits).toBe(300n);
+    expect(extractRuleBased({ ...base, unitLabel: "glass", turns: [{ role: "buyer", content: "48 glasses for the cafe" }] } as never).desiredUnits).toBe(48n);
   });
 
   it("answers lead times and samples from the FAQ the site states", async () => {

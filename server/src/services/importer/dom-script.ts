@@ -285,7 +285,7 @@ export const DOM_SCRIPT = String.raw`(function (opts) {
   var shopButtons = [];
   document.querySelectorAll("button, [role=button]").forEach(function (b) {
     var bt = squash(b.innerText || b.getAttribute("aria-label") || "");
-    if (bt && bt.length <= 40 && /shop|store|catalog|catalogue|collection|products|merch|browse|menu|order now|buy/i.test(bt) && visible(b) && shopButtons.indexOf(bt) < 0 && shopButtons.length < 4) shopButtons.push(bt);
+    if (bt && bt.length <= 40 && /shop|store|catalog|catalogue|collection|products|merch|browse|menu/i.test(bt) && !/buy|order now|add to (cart|bag|basket)|checkout/i.test(bt) && visible(b) && shopButtons.indexOf(bt) < 0 && shopButtons.length < 4) shopButtons.push(bt);
   });
 
   var html = document.documentElement.outerHTML;
