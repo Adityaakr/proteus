@@ -56,7 +56,7 @@ export default function LoginPage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={T_DEFAULT} className={s.cardWrap}>
           <Card>
             <div className={s.head}>
-              <h1 className={`${s.title} ${s.titleLong}`}>The autonomous deal service desk for internet businesses</h1>
+              <h1 className={`${s.title} ${s.titleLong}`}>The deal network for small businesses and AI agents</h1>
             </div>
             {provider === "circle" && !mock ? (
               <CircleSignIn onDone={() => navigate(next, { replace: true })} />
