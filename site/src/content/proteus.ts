@@ -40,7 +40,7 @@ export const nav = {
 
 export const hero = {
   tag: "The deal network for businesses and AI agents, built on",
-  /** Network name shown with its mark after the tag; empty hides it. */
+  /** Network name shown with its mark after the tag. */
   tagNetwork: "Arc",
   headline: "Win the order in minutes. Get paid when it's delivered.",
   subhead:
@@ -406,9 +406,8 @@ export interface Plan {
 }
 
 /**
- * Pricing: the plans proposed for after the pilot (amounts await the captain's approval, see
- * copy-v3.md). Every feature is free during the pilot and there is no billing yet, so every CTA
- * starts free. The toggle switches all three cards between monthly and yearly.
+ * Pricing: the plans for after the pilot. Every feature is free during the pilot and there is no
+ * billing yet, so every CTA starts free. The toggle switches all three cards between monthly and yearly.
  */
 export const pricing = {
   tag: "Pricing",

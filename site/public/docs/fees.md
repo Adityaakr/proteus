@@ -11,7 +11,7 @@ For sellers and buyers budgeting a deal. You will learn what Proteus charges (no
 - **No fee hidden in the contract.** DealEscrow has no fee logic and no proxy; a fee could not be added to it later.
 - **Pay per call has no fee either.** The full x402 price goes to the seller's signer key or payee ([The money path](https://app.proteus.co.in/docs/money-path#money-x402)).
 - **Proteus pays the running costs.** Model calls, hosting and the relayer's gas for funding, settling, one-click refunds and policy commits.
-- **After the pilot.** Not set yet. Pilot sellers will be told before any fee applies; a fee could not touch deals on the current DealEscrow.
+- **After the pilot.** Three plans, a flat subscription billed separately: Starter is free with up to 3 products and 10 paid orders a month, Growth is $29 (₹1,999 in India) a month, and Business is $99 (₹6,999 in India) a month; yearly billing saves two months. Nothing is ever taken from an order and buyers never pay a fee. Pilot sellers will be told before any plan applies.
 
 > This page is about what Proteus charges. How the seller's agent prices its offers is [a separate page](https://app.proteus.co.in/docs/pricing).
 

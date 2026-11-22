@@ -247,7 +247,7 @@ export const TRUST = [
 export const FEES = {
   pilot: "No Proteus fee during the pilot: no subscription, no listing fee, no cut of deals or per-call payments.",
   onChain: "DealEscrow has no fee logic: settle pays the seller's payee the full accepted amount, and refunds return the full unspent balance. The contract is not upgradeable, so a fee cannot be added to it later.",
-  afterPilot: "Not set yet. Pilot sellers will be told before any fee applies; a fee could not touch deals on the current DealEscrow.",
+  afterPilot: "Three plans, a flat subscription billed separately: Starter is free with up to 3 products and 10 paid orders a month, Growth is $29 (₹1,999 in India) a month, and Business is $99 (₹6,999 in India) a month; yearly billing saves two months. Nothing is ever taken from an order and buyers never pay a fee. Pilot sellers will be told before any plan applies.",
   gas: [
     ["Register the seller's agent on Arc (ERC-8004)", "The seller's wallet, once"],
     ["Commit pricing policies", "Proteus (relayer)"],
@@ -1221,7 +1221,7 @@ const PAGES: DocSection[] = [
         { title: "Not without a paid order", text: "Every counted rating needs USDC settled on chain for that exact deal." },
         { title: "Not with a wallet it funded on Arc or through the same bridge source", text: "The link check flags it publicly and it does not count." },
         { title: "Still possible: a second wallet funded from an exchange", text: "That leaves no link on Arc. It still costs a real order per buyer, counts as one wallet-only vote, and the score shows how few buyers stand behind it. Ratings raise the cost of faking; they do not prove independence." },
-        { title: "Next", text: "Writing link flags on chain with ERC-8004 `appendResponse` so every indexer sees them, and a fee after the pilot so each fake order costs money." },
+        { title: "Next", text: "Writing link flags on chain with ERC-8004 `appendResponse` so every indexer sees them, and paid plans after the pilot, billed as a flat subscription rather than a cut of each order." },
       ] },
       { kind: "h3", id: "ratings-before-checks", text: "Ratings given before the checks" },
       { kind: "p", text: "The checks went live on Nov 12, 2026 (20:00 UTC) and apply to every rating from then on. Ratings given earlier were checked too; if one turns out linked to the seller it still counts, and it is listed publicly as `counted_before_checks` with the reason, never as clear. One rating is in this group: Shoonya Store's first, given Nov 11, whose buyer wallet the check found linked to a Shoonya team account in Proteus." },
