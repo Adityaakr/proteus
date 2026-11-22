@@ -126,6 +126,14 @@ describe("is it listed", () => {
     expect(answersCustomRequest("I would like a quote for classic t-shirt.", "Caps", all)).toBe(false);
     expect(answersCustomRequest("200 pieces by march, buyer@example.com", "Caps", all)).toBe(true);
   });
+  it("a colour at the end of a product's name is not its kind: the reply naming that colour is still the custom request", () => {
+    const blackTee: ListedProduct = { name: "Classic Tee - Black", unitLabel: "piece", category: "Apparel" };
+    const store = [blackTee, sweatshirt];
+    expect(findUnlisted("i want caps", blackTee, [sweatshirt])).toMatchObject({ alsoListed: false, items: [{ phrase: "caps" }] });
+    expect(findUnlisted("i want tees", blackTee, [sweatshirt])).toBeUndefined();
+    expect(answersCustomRequest("100 black caps by friday, priya@example.com", "Caps", store)).toBe(true);
+    expect(answersCustomRequest("can i get 20 of the classic tee", "Caps", store)).toBe(false);
+  });
   it("a word only in a summary or the middle of a name does not make a kind listed", () => {
     const steel: ListedProduct = { name: "Steel Water Bottle", unitLabel: "bottle", category: "Drinkware", summary: "steel bottle with screw cap" };
     const loop: ListedProduct = { name: "Loop Cap Bottle", unitLabel: "bottle", category: "Drinkware" };
