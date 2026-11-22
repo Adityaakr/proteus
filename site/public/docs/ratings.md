@@ -60,7 +60,7 @@ _Code: [rating-integrity.ts](https://github.com/Adityaakr/proteus/blob/main/serv
 - **Not without a paid order.** Every counted rating needs USDC settled on chain for that exact deal.
 - **Not with a wallet it funded on Arc or through the same bridge source.** The link check flags it publicly and it does not count.
 - **Still possible: a second wallet funded from an exchange.** That leaves no link on Arc. It still costs a real order per buyer, counts as one wallet-only vote, and the score shows how few buyers stand behind it. Ratings raise the cost of faking; they do not prove independence.
-- **Next.** Writing link flags on chain with ERC-8004 `appendResponse` so every indexer sees them, and paid plans after the pilot, billed as a flat subscription rather than a cut of each order.
+- **Next.** Writing link flags on chain with ERC-8004 `appendResponse` so every indexer sees them, and a fee after the pilot so each fake order costs money.
 
 <a id="ratings-before-checks"></a>
 

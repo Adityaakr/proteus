@@ -1701,7 +1701,7 @@
   "fees": {
     "pilot": "No Proteus fee during the pilot: no subscription, no listing fee, no cut of deals or per-call payments.",
     "onChain": "DealEscrow has no fee logic: settle pays the seller's payee the full accepted amount, and refunds return the full unspent balance. The contract is not upgradeable, so a fee cannot be added to it later.",
-    "afterPilot": "Three plans, a flat subscription billed separately: Starter is free with up to 3 products and 10 paid orders a month, Growth is $29 (₹1,999 in India) a month, and Business is $99 (₹6,999 in India) a month; yearly billing saves two months. Nothing is ever taken from an order and buyers never pay a fee. Pilot sellers will be told before any plan applies.",
+    "afterPilot": "Not set yet. Pilot sellers will be told before any fee applies; a fee could not touch deals on the current DealEscrow.",
     "gas": [
       [
         "Register the seller's agent on Arc (ERC-8004)",

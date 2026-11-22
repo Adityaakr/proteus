@@ -30,7 +30,6 @@ export const nav = {
     { label: "How it works", href: "/#how-it-works" },
     { label: "Payment protection", href: "/#protection" },
     { label: "For agents", href: "/#agents" },
-    { label: "Pricing", href: "/#pricing" },
     { label: "FAQ", href: "/#faqs" },
     { label: "Docs", href: links.docs },
   ],
@@ -394,86 +393,6 @@ export const compare = {
   footnote: "Assessed from each vendor's public product pages in October 2026. Names and logos belong to their owners and are shown for identification only. Proteus AI marks reflect what is implemented today. USDC settlement runs on Arc mainnet and testnet.",
 };
 
-export interface Plan {
-  name: string;
-  value: number;
-  period: string;
-  description: string;
-  features: string[];
-  cta: { label: string; href: string };
-  primary?: boolean;
-  tag?: string;
-}
-
-/**
- * Pricing: the plans for after the pilot. Every feature is free during the pilot and there is no
- * billing yet, so every CTA starts free. The toggle switches all three cards between monthly and yearly.
- */
-export const pricing = {
-  tag: "Pricing",
-  heading: "Start free. Upgrade when the orders do.",
-  description:
-    "Every feature is free for pilot sellers. After the pilot, these are the plans, and you'll be told before anything is billed. Plans are a flat subscription billed separately: nothing is ever taken from an order, and buyers never pay a fee.",
-  toggle: { left: "Monthly", right: "Yearly", badge: "2 months free" },
-  monthly: [
-    {
-      name: "Starter",
-      value: 0,
-      period: "forever",
-      description: "For trying Proteus on your first orders. Up to 3 products and 10 paid orders a month.",
-      features: ["AI deal agent on your store page", "Price tiers, margin floor and discount limit", "Payment held in escrow on every order", "The full agreed amount paid out to you", "Practice with free test money first"],
-      cta: { label: "Start free", href: links.sell },
-    },
-    {
-      name: "Growth",
-      tag: "Recommended",
-      value: 29,
-      period: "/month",
-      description: "For a studio quoting every week. ₹1,999 a month in India. Up to 100 paid orders a month.",
-      features: ["Everything in Starter, unlimited products", "Agent on your own website", "Approval for big orders", "Alerts and accounting export", "WhatsApp agent (in testing)"],
-      cta: { label: "Try Growth free in the pilot", href: links.sell },
-      primary: true,
-    },
-    {
-      name: "Business",
-      value: 99,
-      period: "/month",
-      description: "For a business running its sales through Proteus. ₹6,999 a month in India. Unlimited orders.",
-      features: ["Everything in Growth", "Seller API and signed webhooks (in testing)", "Catalogue sync from your system (in testing)", "Team access for your staff (coming soon)", "Priority help with setup"],
-      cta: { label: "Try Business free in the pilot", href: links.sell },
-    },
-  ] as Plan[],
-  yearly: [
-    {
-      name: "Starter",
-      value: 0,
-      period: "forever",
-      description: "For trying Proteus on your first orders. Up to 3 products and 10 paid orders a month.",
-      features: ["AI deal agent on your store page", "Price tiers, margin floor and discount limit", "Payment held in escrow on every order", "The full agreed amount paid out to you", "Practice with free test money first"],
-      cta: { label: "Start free", href: links.sell },
-    },
-    {
-      name: "Growth",
-      tag: "Recommended",
-      value: 24,
-      period: "/month, billed yearly",
-      description: "$290 a year, or ₹19,990 in India. Up to 100 paid orders a month.",
-      features: ["Everything in Starter, unlimited products", "Agent on your own website", "Approval for big orders", "Alerts and accounting export", "WhatsApp agent (in testing)"],
-      cta: { label: "Try Growth free in the pilot", href: links.sell },
-      primary: true,
-    },
-    {
-      name: "Business",
-      value: 83,
-      period: "/month, billed yearly",
-      description: "$990 a year, or ₹69,990 in India. Unlimited orders.",
-      features: ["Everything in Growth", "Seller API and signed webhooks (in testing)", "Catalogue sync from your system (in testing)", "Team access for your staff (coming soon)", "Priority help with setup"],
-      cta: { label: "Try Business free in the pilot", href: links.sell },
-    },
-  ] as Plan[],
-  includes: "INCLUDES",
-};
-
 export const faq = {
   tag: "FAQ",
   heading: "Frequently asked questions",
@@ -484,7 +403,7 @@ export const faq = {
     { q: "What does the AI actually decide?", a: "It reads each request, decides which offers to make, sizes them to the buyer's budget and explains the terms. It does not set prices, which are computed in code from your rules, and it never moves money: only the buyer's and the seller's signatures do. A reply that states a number your rules did not produce is replaced before the buyer sees it." },
     { q: "Can the AI agree to a bad deal?", a: "No. Prices are calculated from your tiers, costs and limits, not by the AI. It cannot go below your margin floor or past your discount limit, and orders above your approval limit wait for you." },
     { q: "Can my buyers' AI agents buy from me?", a: "Yes. A buyer's agent can negotiate, check your identity and price policy on Arc, and fund the order within a limit its owner sets, through MCP or plain HTTP. This is proven on Arc testnet, not yet on mainnet. A hosted buyer agent you can use in the browser is Coming soon." },
-    { q: "What does it cost?", a: "Every feature is free during the pilot. After it, Starter stays free and paid plans start at $29 a month (₹1,999 in India); you'll be told before anything is billed. Proteus never takes a cut of an order, and buyers never pay a fee." },
+    { q: "What does it cost?", a: "Nothing during the pilot: no subscription, no listing fee and no cut of your orders. Buyers never pay a fee. Pilot sellers will be told before any fee applies." },
     { q: "How do I get paid?", a: "In USDC, a digital dollar issued by Circle, sent to the wallet you sign up with. You are paid for what the buyer confirms as delivered. Rules for receiving stablecoins differ by country, so check yours, including tax, before you start." },
     { q: "Why USDC and Arc?", a: "Because escrow has to be cheap and instant to make sense for a $1,500 order. On Arc, network fees are paid in USDC rather than a volatile token, payments settle in under a second, and the ERC-8004 identity and reputation registries are already live. Circle's tools let buyers sign in, fund without gas and bring USDC from other chains." },
     { q: "How does Proteus relate to ERC-8183?", a: "ERC-8183 is a draft Ethereum standard for paid jobs between agents: the client funds escrow, the provider delivers, and an evaluator completes the job (paying the provider) or rejects it (refunding the client). A Proteus order follows that lifecycle with the buyer as evaluator, and adds the parts the standard leaves open: negotiating the price inside your rules, paying only for the units the seller records as delivered (the rest is refunded) rather than all or nothing, a dispute path for the buyer and reviews from settled orders. DealEscrow does not implement the ERC-8183 interface today; a compatible version is planned, so agents built for the standard can order from you directly." },
@@ -509,7 +428,6 @@ export const footer = {
   columns: [
     { label: "How it works", href: "/#how-it-works" },
     { label: "Payment protection", href: "/#protection" },
-    { label: "Pricing", href: "/#pricing" },
     { label: "For agents", href: "/#agents" },
     { label: "Why Arc", href: "/#why-arc" },
     { label: "FAQ", href: "/#faqs" },

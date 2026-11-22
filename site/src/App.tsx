@@ -9,7 +9,6 @@ import { Verification } from "./sections/Verification";
 import { Partners } from "./sections/Partners";
 import { Erc8183 } from "./sections/Erc8183";
 import { Comparison } from "./sections/Comparison";
-import { Pricing } from "./sections/Pricing";
 import { Trust } from "./sections/Trust";
 import { Faq } from "./sections/Faq";
 import { Footer } from "./sections/Footer";
@@ -19,7 +18,7 @@ import { Footer } from "./sections/Footer";
  * (Hero), who it is for (Logos line), how it works (HowItWorks), one order without and with Proteus
  * (BeforeAfter), payment protection (dark Trust, id "protection"), margin control (Decisions),
  * seller types (Partners), why Arc with a status per part (dark Comparison, id "why-arc"), agent to
- * agent (Verification, id "agents"), the ERC-8183 standard (dark Erc8183), pricing, FAQ.
+ * agent (Verification, id "agents"), the ERC-8183 standard (dark Erc8183), FAQ.
  */
 export default function App() {
   return (
@@ -36,7 +35,6 @@ export default function App() {
         <Comparison />
         <Verification />
         <Erc8183 />
-        <Pricing />
         <Faq />
       </main>
       <Footer />
