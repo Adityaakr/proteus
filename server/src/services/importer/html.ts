@@ -126,6 +126,16 @@ export function normPrice(v: unknown): string | undefined {
   return s.replace(/^0+(?=\d)/, "");
 }
 
+/**
+ * Every whole number written in the text, normalized ("1,299.00" is 1299, "15%" is 15). Used to confirm a number a
+ * model returned is one the text states, not digits found inside another number.
+ */
+export function numbersIn(text: string): Set<number> {
+  const out = new Set<number>();
+  for (const m of text.matchAll(/\d+(?:,\d+)*(?:\.\d+)?/g)) out.add(Number(m[0].replace(/,/g, "")));
+  return out;
+}
+
 export function stableKey(...parts: (string | undefined)[]): string {
   return "p_" + createHash("sha256").update(parts.filter(Boolean).join("|")).digest("hex").slice(0, 12);
 }

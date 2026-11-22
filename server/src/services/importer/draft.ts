@@ -180,7 +180,8 @@ export function buildDraft(result: ImportResult, a: BuilderAnswers, takenSlugs: 
       if (isDecimal(r.priceUsd) && micro(r.priceUsd) > 0n) listUsd = micro(r.priceUsd);
       else issues.push("the price must be a USD amount above zero");
     } else if (p.price) {
-      if ((p.currency ?? "USD") === "USD") listUsd = micro(p.price);
+      if (!p.currency) issues.push("the website does not say which currency this price is in; add the USD price");
+      else if (p.currency === "USD") listUsd = micro(p.price);
       else if (a.usdRate) listUsd = convert(p.price, a.usdRate);
       else issues.push(`needs a ${p.currency}-to-USD rate`);
     } else issues.push("the website shows no price; add one or leave it out");
@@ -224,7 +225,7 @@ export function buildDraft(result: ImportResult, a: BuilderAnswers, takenSlugs: 
   const inc = items.filter((i) => i.included);
   const next: Question[] = [];
   if (!a.businessName || !a.businessType) next.push("business");
-  if (!a.usdRate && result.products.some((p) => p.price && (p.currency ?? "USD") !== "USD")) next.push("rate");
+  if (!a.usdRate && result.products.some((p) => p.price && p.currency && p.currency !== "USD")) next.push("rate");
   if (!Object.keys(a.include).length) next.push("products");
   if (inc.some((i) => i.listUsd === undefined && !i.source)) next.push("prices");
   if (!a.floorsSet) next.push("floors");
@@ -422,7 +423,7 @@ export function parseStated(text: string, result: ImportResult): StatedAnswers {
       const pct = new RegExp(String.raw`${NUM}\s*%`).exec(c);
       if (pct && /off|lower|discount|less|below|down|go|max|up to|upto/.test(c)) r.maxDiscountPct = pct[1];
     }
-    const floor = new RegExp(String.raw`(?:floor|lowest|min(?:imum)? price|not below|no lower than|down to)[^\d₹$]{0,20}(₹|rs\.?|inr|\$|usd)?\s*([\d,]+(?:\.\d{1,2})?)\s*(₹|rs|inr|usd|dollars?)?`, "i").exec(c);
+    const floor = new RegExp(String.raw`(?:floor|lowest|min(?:imum)? price|(?:not|nothing|never) below|no lower than|down to)[^\d₹$]{0,20}(₹|rs\.?|inr|\$|usd)?\s*([\d,]+(?:\.\d{1,2})?)\s*(₹|rs|inr|usd|dollars?)?`, "i").exec(c);
     if (floor && !/%/.test(c.slice(floor.index, floor.index + floor[0].length + 2))) {
       const amount = floor[2]!.replace(/,/g, "");
       const local = /₹|rs|inr/i.test(`${floor[1] ?? ""}${floor[3] ?? ""}`);

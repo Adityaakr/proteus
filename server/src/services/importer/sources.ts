@@ -3,7 +3,7 @@
  * WooCommerce), then schema.org structured data on product pages found through the sitemap, then (optional) a
  * rendered-page provider, then the page text read by a model. Each source says what it tried and why it stopped.
  */
-import { cleanText, hintsFrom, jsonLdObjects, linksOf, normPrice, productFromMeta, productsFromJsonLd, sitemapLocs, stableKey, visibleText } from "./html";
+import { cleanText, hintsFrom, jsonLdObjects, linksOf, normPrice, numbersIn, productFromMeta, productsFromJsonLd, sitemapLocs, stableKey, visibleText } from "./html";
 import type { SiteFetcher } from "./site-fetcher";
 import { LIMITS, type ImportedProduct, type SourceReport } from "./types";
 
@@ -213,12 +213,12 @@ export interface RenderedPages {
 const squash = (s: string) => s.toLowerCase().replace(/[^a-z0-9₹$€£]+/g, " ").trim();
 
 /**
- * Keeps only what the page text actually says: the product name must appear in the text, and so must its price's
- * digits. A model that invents a product or a price (or follows an instruction planted in the page) gets dropped here.
+ * Keeps only what the page text actually says: the product name must appear in the text, and its price must be a
+ * number the text shows. A model that invents a product or a price (or follows an instruction planted in the page) gets dropped here.
  */
 export function verifyAgainstText(items: Awaited<ReturnType<PageExtractor["extract"]>>, pages: PageText[], source: "page-text" | "firecrawl"): { products: ImportedProduct[]; dropped: number } {
   const corpus = squash(pages.map((p) => p.text).join(" \n "));
-  const digits = pages.map((p) => p.text).join(" ").replace(/[,\s]/g, "");
+  const shown = numbersIn(pages.map((p) => p.text).join(" \n "));
   const products: ImportedProduct[] = [];
   let dropped = 0;
   for (const it of items.slice(0, LIMITS.products)) {
@@ -228,7 +228,7 @@ export function verifyAgainstText(items: Awaited<ReturnType<PageExtractor["extra
       continue;
     }
     let price = normPrice(it.price);
-    if (price && !digits.includes(price.replace(/\.0+$/, ""))) price = undefined;
+    if (price && !shown.has(Number(price))) price = undefined;
     const url = (() => {
       try {
         return it.url && new URL(it.url).protocol === "https:" ? new URL(it.url).toString() : undefined;

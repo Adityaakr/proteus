@@ -24,6 +24,7 @@ import { counterAskText, counterReply, productFacts } from "../negotiation";
 import { applyStated, buildDraft, emptyAnswers, engineFor, MAX_PUBLISH, parseFloorsCsv, parseStated, STORE_CATEGORY, toCreateInput, usdString, type BuilderAnswers, type Draft, type DraftItem, type StatedAnswers, type StatedRule } from "./draft";
 import { pageRenderer } from "./browser";
 import { pageExtractor, renderedPages, suggestUsdRate } from "./providers";
+import { numbersIn } from "./html";
 import { normalizeSiteUrl, runImport } from "./run";
 import { CHECK_SOURCES, type BusinessType, type ImportProgress, type ImportResult } from "./types";
 
@@ -285,8 +286,8 @@ async function interpret(text: string, result: StoredResult, a: BuilderAnswers):
     });
     const o = res.json as { rules?: Record<string, unknown>[]; usdRate?: number | null; customOrders?: { accepted: boolean; note: string | null } | null; noBulk?: boolean } | undefined;
     if (!o || !Array.isArray(o.rules)) return baseline;
-    const digits = text.replace(/[,\s]/g, "");
-    const said = (n: unknown) => typeof n === "number" && Number.isFinite(n) && n >= 0 && digits.includes(String(n).replace(/\.0+$/, ""));
+    const stated = numbersIn(text);
+    const said = (n: unknown) => typeof n === "number" && Number.isFinite(n) && n >= 0 && stated.has(n);
     const keys = new Set(result.products.map((p) => p.key));
     const rules: StatedRule[] = [];
     for (const r of o.rules) {

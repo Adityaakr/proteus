@@ -167,7 +167,7 @@ function Flow({ view, setView, onRetry, retrying }: { view: BuilderImport; setVi
   const next = d?.next ?? [];
   const current: Question | undefined = open ?? next[0];
   const answered = (qq: Question) => !next.includes(qq) && qq !== open;
-  const needsRate = Boolean(r?.products.some((p) => p.price && (p.currency ?? "USD") !== "USD"));
+  const needsRate = Boolean(r?.products.some((p) => p.price && p.currency && p.currency !== "USD"));
   const needsPrices = Boolean(d?.items.some((i) => i.included && !i.source && !i.listUsd)) || Boolean(a?.products && Object.values(a.products).some((x) => x.priceUsd));
   const count = view.transcript.length;
   useEffect(() => {
@@ -330,7 +330,7 @@ function CatalogCard({ result }: { result: ImportResult }) {
                   </span>
                 </td>
                 <td>{p.category ?? "—"}</td>
-                <td>{p.price && p.currency ? localPrice(p.price, p.currency) : <span className={b.dim}>{CHECK_SOURCES.has(p.source) ? "No price shown" : "Quote only"}</span>}</td>
+                <td>{p.price && p.currency ? localPrice(p.price, p.currency) : p.price ? <>{p.price} <span className={b.dim}>(currency not shown)</span></> : <span className={b.dim}>{CHECK_SOURCES.has(p.source) ? "No price shown" : "Quote only"}</span>}</td>
                 <td className={b.dim}>{p.options.map((o) => `${o.values.length} ${o.name.toLowerCase()}${o.values.length > 1 ? "s" : ""}`).join(", ") || "—"}</td>
               </tr>
             ))}
@@ -464,7 +464,7 @@ function PricesQ({ r, d, busy, err, onSave }: QProps & { r: ImportResult; d: Dra
   const valid = missing.every((i) => skip[i.key] || /^\d+(\.\d{1,4})?$/.test((prices[i.key] ?? "").trim()));
   return (
     <div className={b.q}>
-      <p>These show no price on your site. Give each a list price in USD, or leave it out. Your agent never quotes a product without a price.</p>
+      <p>These show no price, or no currency, on your site. Give each a list price in USD, or leave it out. Your agent never quotes a product without a price.</p>
       <ul className={b.priceList}>
         {missing.map((i) => {
           const p = r.products.find((x) => x.key === i.key);
@@ -771,7 +771,7 @@ function Composer({ view, setView }: { view: BuilderImport; setView: (v: Builder
 function Summary({ view }: { view: BuilderImport | undefined }) {
   const r = view?.result;
   const next = view?.draft?.next ?? [];
-  const needsRate = Boolean(r?.products.some((p) => p.price && (p.currency ?? "USD") !== "USD"));
+  const needsRate = Boolean(r?.products.some((p) => p.price && p.currency && p.currency !== "USD"));
   const state = (q: (typeof STEPS)[number]["q"]): "done" | "todo" | "skip" => {
     if (!view) return "todo";
     if (q === "read") return view.status === "running" || view.status === "failed" ? "todo" : "done";

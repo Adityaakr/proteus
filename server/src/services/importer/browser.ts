@@ -1,16 +1,18 @@
 /**
  * A real browser for sites whose catalog only appears after JavaScript runs (React, Vue, Wix, Framer, Webflow and
- * hand-built single-page apps). Two engines, no account needed for the first:
+ * hand-built single-page apps). Two engines:
  *
- * - local: headless Chromium on this server through playwright-core. Every connection goes through the importer's
- *   egress proxy (https port 443 only, no private or loopback address, a byte budget), loopback is forced through the
- *   proxy too, WebSockets and service workers are blocked, images/fonts/media are not loaded, and robots.txt is
- *   checked for every page and data request to the seller's site.
- * - cloud: any Chrome DevTools endpoint set in BROWSER_CDP_URL (Browserless, Browserbase, Steel or your own). The
- *   browser then runs on that provider's network, so the egress proxy is not needed; the other rules still apply.
+ * - cloud: a Chrome DevTools endpoint in BROWSER_CDP_URL. In production this is the only engine: the browser runs in
+ *   its own service that holds no application secrets (browser/ in this repo, reached over the private network with
+ *   its token), or at a provider such as Browserless. The browser service sends every connection through the same
+ *   egress proxy as the local engine.
+ * - local (development only, never when NODE_ENV=production): headless Chromium on this machine through
+ *   playwright-core. Every connection goes through the importer's egress proxy (https port 443 only, no private or
+ *   loopback address, a byte budget), and loopback is forced through the proxy too.
  *
- * The browser only reads: it scrolls, presses "load more" and opens the site's own shop buttons; it never fills in
- * a form, signs in or buys anything.
+ * For both, WebSockets and service workers are blocked, images/fonts/media are not loaded, and robots.txt is checked
+ * for every page and data request to the seller's site. The browser only reads: it scrolls, presses "load more" and
+ * opens the site's own shop buttons; it never fills in a form, signs in or buys anything.
  */
 import { existsSync } from "node:fs";
 import type { Browser, BrowserContext, Page, Route } from "playwright-core";
@@ -58,12 +60,12 @@ const TRACKERS = /(^|\.)(google-analytics\.com|googletagmanager\.com|doubleclick
 /** Requests that read the seller's site and so follow its robots.txt. */
 const READS = new Set(["document", "xhr", "fetch", "eventsource"]);
 
-/** The Debian package the Railway image installs (railpack.json); used without configuration when present. */
-export const SYSTEM_CHROMIUM = "/usr/bin/chromium";
-
-/** BROWSER_EXECUTABLE_PATH when set, else the system Chromium when installed, else undefined (Playwright's own). */
-export function pickExecutable(configured: string | undefined, exists: (path: string) => boolean): string | undefined {
-  return configured ?? (exists(SYSTEM_CHROMIUM) ? SYSTEM_CHROMIUM : undefined);
+/** The settings that decide which browser the importer uses. */
+export interface BrowserConfig {
+  NODE_ENV: string;
+  IMPORTER_BROWSER: "auto" | "off";
+  BROWSER_CDP_URL?: string;
+  BROWSER_EXECUTABLE_PATH?: string;
 }
 
 const SYSTEM_BROWSERS = [
@@ -94,7 +96,7 @@ async function playwright() {
   return (await import("playwright-core")).chromium;
 }
 
-async function launchLocal(proxy: EgressProxy): Promise<Browser> {
+async function launchLocal(proxy: EgressProxy, executable: string | undefined): Promise<Browser> {
   const chromium = await playwright();
   const base = {
     headless: true,
@@ -103,10 +105,8 @@ async function launchLocal(proxy: EgressProxy): Promise<Browser> {
     proxy: { server: proxy.url },
     args: ["--disable-dev-shm-usage", "--disable-background-networking", "--no-pings", "--force-webrtc-ip-handling-policy=disable_non_proxied_udp", "--webrtc-ip-handling-policy=disable_non_proxied_udp", "--disable-features=DnsOverHttps,WebRtcHideLocalIpsWithMdns"],
   };
-  // BROWSER_EXECUTABLE_PATH, else /usr/bin/chromium (the production image); else Playwright's own download
-  // (`npx playwright install chromium`), else any system Chrome.
-  const chosen = pickExecutable(env.BROWSER_EXECUTABLE_PATH, existsSync);
-  const tries: (string | undefined)[] = chosen ? [chosen] : [undefined, ...SYSTEM_BROWSERS.filter((p) => existsSync(p))];
+  // BROWSER_EXECUTABLE_PATH, else Playwright's own download (`npx playwright install chromium`), else any system Chrome.
+  const tries: (string | undefined)[] = executable ? [executable] : [undefined, ...SYSTEM_BROWSERS.filter((p) => existsSync(p))];
   let last: unknown;
   for (const executablePath of tries) {
     try {
@@ -253,18 +253,19 @@ export function session(context: BrowserContext, rules: RenderRules, after: () =
   };
 }
 
-/** Headless Chromium on this server, or undefined when the importer's browser is switched off. */
-export function localBrowser(): PageRenderer | undefined {
-  if (env.IMPORTER_BROWSER === "off") return undefined;
+/** Headless Chromium on this machine; undefined in production (the API never runs a browser) or when switched off. */
+export function localBrowser(cfg: BrowserConfig = env): PageRenderer | undefined {
+  if (cfg.IMPORTER_BROWSER === "off" || cfg.NODE_ENV === "production") return undefined;
+  const executable = cfg.BROWSER_EXECUTABLE_PATH;
   return {
-    name: "headless Chromium on this server",
+    name: "headless Chromium on this machine",
     kind: "local",
     async open(rules) {
       const free = await slot();
       let proxy: EgressProxy | undefined;
       try {
         proxy = await startEgressProxy({ maxBytes: LIMITS.renderBytes });
-        const browser = await launchLocal(proxy);
+        const browser = await launchLocal(proxy, executable);
         const context = await browser.newContext({ userAgent: BROWSER_USER_AGENT, viewport: { width: 1280, height: 900 }, serviceWorkers: "block", acceptDownloads: false, locale: "en-US" });
         const p = proxy;
         return session(context, rules, async () => {
@@ -281,10 +282,10 @@ export function localBrowser(): PageRenderer | undefined {
   };
 }
 
-/** A cloud browser at BROWSER_CDP_URL (a wss:// Chrome DevTools endpoint that carries its own key). */
-export function cloudBrowser(): PageRenderer | undefined {
-  const endpoint = env.BROWSER_CDP_URL;
-  if (!endpoint || env.IMPORTER_BROWSER === "off") return undefined;
+/** The browser at BROWSER_CDP_URL (a ws:// or wss:// Chrome DevTools endpoint that carries its own token). */
+export function cloudBrowser(cfg: BrowserConfig = env): PageRenderer | undefined {
+  const endpoint = cfg.BROWSER_CDP_URL;
+  if (!endpoint || cfg.IMPORTER_BROWSER === "off") return undefined;
   let host = "cloud browser";
   try {
     host = new URL(endpoint).hostname;
@@ -311,7 +312,7 @@ export function cloudBrowser(): PageRenderer | undefined {
   };
 }
 
-/** The cloud browser when one is configured, else the local one. */
-export function pageRenderer(): PageRenderer | undefined {
-  return cloudBrowser() ?? localBrowser();
+/** The browser at BROWSER_CDP_URL when one is configured, else (outside production) a local one. */
+export function pageRenderer(cfg: BrowserConfig = env): PageRenderer | undefined {
+  return cloudBrowser(cfg) ?? localBrowser(cfg);
 }

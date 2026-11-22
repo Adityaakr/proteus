@@ -57,10 +57,11 @@ const Env = z.object({
   /** Optional. Lets the website importer render pages that need JavaScript through Firecrawl. Off when unset. */
   FIRECRAWL_API_KEY: unsetIfEmpty(z.string().min(8).optional()),
   /**
-   * The website importer opens JavaScript-only sites in a real browser. "auto" (default) uses headless Chromium on
-   * this server when one is installed (`npx playwright install chromium`, or set BROWSER_EXECUTABLE_PATH); "off"
-   * never starts a browser. BROWSER_CDP_URL points it at a cloud browser instead (a wss:// Chrome DevTools URL from
-   * Browserless, Browserbase, Steel or similar, carrying that provider's key).
+   * The website importer opens JavaScript-only sites in a real browser at BROWSER_CDP_URL: a Chrome DevTools URL that
+   * carries its token, such as the browser service in browser/ on the private network
+   * (ws://<service>.railway.internal:3000/?token=...) or a provider (wss://...). In production that is the only
+   * browser; without it, production reads only the exact sources. In development "auto" (default) also uses headless
+   * Chromium on this machine (`npx playwright install chromium`, or set BROWSER_EXECUTABLE_PATH). "off" never uses one.
    */
   IMPORTER_BROWSER: unsetIfEmpty(z.enum(["auto", "off"]).default("auto")),
   BROWSER_EXECUTABLE_PATH: unsetIfEmpty(z.string().optional()),
@@ -129,7 +130,7 @@ export const features = {
   openrouter: Boolean(env.OPENROUTER_API_KEY),
   firecrawl: Boolean(env.FIRECRAWL_API_KEY),
   /** Which browser the website importer may use: a cloud one (BROWSER_CDP_URL), one on this server, or none. */
-  importerBrowser: env.IMPORTER_BROWSER === "off" ? ("off" as const) : env.BROWSER_CDP_URL ? ("cloud" as const) : ("local" as const),
+  importerBrowser: env.IMPORTER_BROWSER === "off" ? ("off" as const) : env.BROWSER_CDP_URL ? ("cloud" as const) : env.NODE_ENV === "production" ? ("off" as const) : ("local" as const),
   anthropic: Boolean(env.ANTHROPIC_API_KEY),
   privyDevBypass: env.PRIVY_DEV_BYPASS === "1" && env.NODE_ENV !== "production",
   circle: Boolean(env.CIRCLE_API_KEY && env.CIRCLE_ENTITY_SECRET && env.CIRCLE_WALLET_ID),

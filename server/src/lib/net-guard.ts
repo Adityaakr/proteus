@@ -10,25 +10,59 @@ import { isIP } from "node:net";
 import { createBrotliDecompress, createGunzip, createInflate } from "node:zlib";
 import type { Readable } from "node:stream";
 
+function privateV4(a: number, b: number, c: number): boolean {
+  return (
+    a === 0 || a === 10 || a === 127 || a >= 224 ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 192 && b === 0 && (c === 0 || c === 2)) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    (a === 198 && b === 51 && c === 100) ||
+    (a === 203 && b === 0 && c === 113)
+  );
+}
+
+/** The eight 16-bit groups of an IPv6 address (any spelling, including a dotted IPv4 tail), or null. */
+function hextets(ip: string): number[] | null {
+  let s = ip.toLowerCase().split("%")[0]!;
+  const tail = /(\d+\.\d+\.\d+\.\d+)$/.exec(s);
+  if (tail) {
+    if (isIP(tail[1]!) !== 4) return null;
+    const [a, b, c, d] = tail[1]!.split(".").map(Number) as [number, number, number, number];
+    s = `${s.slice(0, -tail[1]!.length)}${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`;
+  }
+  const halves = s.split("::");
+  if (halves.length > 2) return null;
+  const head = halves[0] ? halves[0].split(":") : [];
+  const rest = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  const fill = halves.length === 2 ? 8 - head.length - rest.length : 0;
+  if (fill < 0) return null;
+  const groups = [...head, ...Array<string>(fill).fill("0"), ...rest];
+  if (groups.length !== 8 || groups.some((g) => !/^[0-9a-f]{1,4}$/.test(g))) return null;
+  return groups.map((g) => parseInt(g, 16));
+}
+
 /** Loopback, private, link-local, carrier-grade NAT, documentation, benchmark, multicast and reserved ranges. */
 export function isPrivateAddress(ip: string): boolean {
-  const v4 = ip.toLowerCase().startsWith("::ffff:") ? ip.slice(7) : ip;
-  if (isIP(v4) === 4) {
-    const [a, b, c] = v4.split(".").map(Number) as [number, number, number];
-    return (
-      a === 0 || a === 10 || a === 127 || a >= 224 ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      (a === 100 && b >= 64 && b <= 127) ||
-      (a === 192 && b === 0 && (c === 0 || c === 2)) ||
-      (a === 198 && (b === 18 || b === 19)) ||
-      (a === 198 && b === 51 && c === 100) ||
-      (a === 203 && b === 0 && c === 113)
-    );
+  if (isIP(ip) === 4) {
+    const [a, b, c] = ip.split(".").map(Number) as [number, number, number];
+    return privateV4(a, b, c);
   }
-  const x = ip.toLowerCase();
-  return x === "::1" || x === "::" || x.startsWith("fc") || x.startsWith("fd") || x.startsWith("fe80") || x.startsWith("ff") || x.startsWith("2001:db8") || x.startsWith("64:ff9b");
+  const g = hextets(ip);
+  if (!g) return true;
+  // IPv4-mapped (::ffff:a.b.c.d) and IPv4-compatible (::a.b.c.d, which also covers :: and ::1), in any spelling.
+  if (g.slice(0, 5).every((x) => x === 0) && (g[5] === 0xffff || g[5] === 0)) return privateV4(g[6]! >> 8, g[6]! & 0xff, g[7]! >> 8);
+  // 6to4 (2002:AABB:CCDD::) carries an IPv4 address too.
+  if (g[0] === 0x2002) return privateV4(g[1]! >> 8, g[1]! & 0xff, g[2]! >> 8);
+  return (
+    (g[0]! & 0xfe00) === 0xfc00 ||
+    (g[0]! & 0xff80) === 0xfe80 ||
+    g[0]! >= 0xff00 ||
+    (g[0] === 0x2001 && (g[1] === 0x0db8 || g[1] === 0)) ||
+    (g[0] === 0x64 && g[1] === 0xff9b)
+  );
 }
 
 export class BlockedUrlError extends Error {

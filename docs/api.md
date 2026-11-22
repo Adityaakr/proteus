@@ -344,7 +344,7 @@ POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport 
      - It opens the homepage, then the most promising pages: menu and shop links, category and collection pages, routes behind shop buttons, and next-page links. It skips account, cart, blog and policy pages.
      - On each page it scrolls, presses "load more", and takes, in order: structured data the rendered page carries; product cards and a product's own page read from the layout (name, price and currency as shown, options); with no prices anywhere, the site's list of product types.
      - When nothing has a price and a model is configured, the model reads the rendered text.
-     - Engine: `BROWSER_CDP_URL` (a cloud browser) when set, else headless Chromium on the server.
+     - Engine: the browser at `BROWSER_CDP_URL`: the browser service in [`browser/`](../browser/service.ts), a separate service with no application secrets, or a provider. In production the API never starts a browser itself; without `BROWSER_CDP_URL` it reads only the exact sources and says no browser is available. In development, headless Chromium on the machine.
   5. Without a working browser: Firecrawl when `FIRECRAWL_API_KEY` is set, then the static page text read by the deployment's model.
 
   Model output is kept only when the product name, its price and each option value appear in the page text. No source invents a price: a product without one shown stays priceless until the seller sets it.
@@ -356,7 +356,7 @@ POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport 
   - https on port 443 only. Private, loopback and link-local addresses are refused inside the socket's DNS lookup, at every redirect ([`lib/net-guard.ts`](../server/src/lib/net-guard.ts)).
   - The browser: at most 24 pages, 150 s, 4,000 requests and 60 MB per import, two browsers per server at once.
     - It does not load images, fonts, media, analytics or other sites' frames. WebSockets and service workers are blocked, and robots.txt applies to every page and data request on the seller's site. It never logs in, fills a form or buys.
-    - A local browser reaches the network only through [`importer/egress-proxy.ts`](../server/src/services/importer/egress-proxy.ts). The proxy allows CONNECT to port 443 only, resolves the host itself, refuses private, loopback and link-local addresses, and connects to the address it checked. Loopback is forced through the proxy too.
+    - The browser service, and a local development browser, reach the network only through [`importer/egress-proxy.ts`](../server/src/services/importer/egress-proxy.ts), one proxy and one fresh Chromium per read. The proxy allows CONNECT to port 443 only, resolves the host itself, refuses private, loopback, link-local and `*.internal` (so `*.railway.internal`) addresses, connects to the address it checked, and cuts the read at its byte budget. Loopback is forced through the proxy too. The service accepts a connection only with its `BROWSER_TOKEN`. The API applies the rules above to every request of the remote browser over the DevTools connection.
   - 8 imports per account per hour.
 - `AnswersPatch`:
   - `{ businessName?, businessType?, usdRate?, include?: { [productKey]: boolean }, products?/categories?: { [key]: PriceRule }, defaults?: PriceRule & { maxUnitsPerDeal?, approvalThresholdUsd?, termDays? }, floorsSet?, bulkAnswered?, customOrders? }`.

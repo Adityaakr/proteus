@@ -9,7 +9,8 @@ import { createServer, type Server } from "node:http";
 import { connect } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Browser, BrowserContext } from "playwright-core";
-import { pickExecutable, session, type PageRenderer, type RenderRules } from "../src/services/importer/browser";
+import { pageRenderer, session, type PageRenderer, type RenderRules } from "../src/services/importer/browser";
+import { startBrowserService, type Launcher } from "../../browser/service";
 import { browserSource, elsewhereOf, pageKey, parseShownPrice, scoreLink, tidyName } from "../src/services/importer/browser-source";
 import { allowedTarget, startEgressProxy } from "../src/services/importer/egress-proxy";
 import { faqHints, hintsFrom } from "../src/services/importer/html";
@@ -21,7 +22,7 @@ describe("egress proxy", () => {
   it("allows only public hosts on port 443", () => {
     expect(allowedTarget("shop.example.com:443")).toEqual({ host: "shop.example.com", port: 443 });
     expect(allowedTarget("93.184.216.34:443")).not.toBeNull();
-    for (const bad of ["shop.example.com:80", "127.0.0.1:443", "10.0.0.8:443", "192.168.1.1:443", "169.254.169.254:443", "[::1]:443", "localhost:443", "printer.local:443", "db.internal:443", "a.localhost:443", "nonsense"]) expect(allowedTarget(bad)).toBeNull();
+    for (const bad of ["shop.example.com:80", "127.0.0.1:443", "10.0.0.8:443", "192.168.1.1:443", "169.254.169.254:443", "[::1]:443", "localhost:443", "printer.local:443", "db.internal:443", "a.localhost:443", "postgres.railway.internal:443", "[::ffff:7f00:1]:443", "[::ffff:a9fe:a9fe]:443", "[fd12:3456::1]:443", "nonsense"]) expect(allowedTarget(bad)).toBeNull();
   });
 
   it("refuses CONNECT to private targets and any plain-http request", async () => {
@@ -46,11 +47,114 @@ describe("egress proxy", () => {
   });
 });
 
-describe("which browser binary", () => {
-  it("uses BROWSER_EXECUTABLE_PATH, else the system Chromium the production image installs, else Playwright's", () => {
-    expect(pickExecutable("/opt/chrome", () => true)).toBe("/opt/chrome");
-    expect(pickExecutable(undefined, (p) => p === "/usr/bin/chromium")).toBe("/usr/bin/chromium");
-    expect(pickExecutable(undefined, () => false)).toBeUndefined();
+describe("which browser the importer uses", () => {
+  const cdp = "ws://browser.railway.internal:3000/?token=abc";
+  it("in production renders only through BROWSER_CDP_URL and never launches a local browser", () => {
+    expect(pageRenderer({ NODE_ENV: "production", IMPORTER_BROWSER: "auto" })).toBeUndefined();
+    expect(pageRenderer({ NODE_ENV: "production", IMPORTER_BROWSER: "auto", BROWSER_EXECUTABLE_PATH: "/usr/bin/chromium" })).toBeUndefined();
+    expect(pageRenderer({ NODE_ENV: "production", IMPORTER_BROWSER: "auto", BROWSER_CDP_URL: cdp })).toMatchObject({ kind: "cloud", name: "cloud browser (browser.railway.internal)" });
+    expect(pageRenderer({ NODE_ENV: "production", IMPORTER_BROWSER: "off", BROWSER_CDP_URL: cdp })).toBeUndefined();
+  });
+  it("in development may use a local browser", () => {
+    expect(pageRenderer({ NODE_ENV: "development", IMPORTER_BROWSER: "auto" })?.kind).toBe("local");
+    expect(pageRenderer({ NODE_ENV: "development", IMPORTER_BROWSER: "auto", BROWSER_CDP_URL: cdp })?.kind).toBe("cloud");
+  });
+});
+
+describe("the browser service", () => {
+  const token = "t0ken-for-the-browser-service-test";
+  let launched: string[] = [];
+  let devtools: Server;
+  let upgradedPath = "";
+  let svc: Awaited<ReturnType<typeof startBrowserService>>;
+  const launch: Launcher = async (proxyUrl) => {
+    launched.push(proxyUrl);
+    const port = (devtools.address() as { port: number }).port;
+    return { wsUrl: `ws://127.0.0.1:${port}/devtools/browser/abc`, close: async () => undefined };
+  };
+  const upgrade = (path: string) =>
+    new Promise<string>((resolve) => {
+      const s = connect(svc.port, "127.0.0.1", () => s.write(`GET ${path} HTTP/1.1\r\nHost: browser.railway.internal\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\r\n`));
+      let got = "";
+      s.on("data", (b) => {
+        got += b.toString();
+        if (got.includes("\r\n\r\n")) s.destroy();
+      });
+      s.on("close", () => resolve(got));
+      s.on("error", () => resolve(got));
+      setTimeout(() => s.destroy(), 3_000);
+    });
+  beforeAll(async () => {
+    devtools = createServer();
+    devtools.on("upgrade", (req, socket) => {
+      upgradedPath = `${req.url} ${req.headers.host}`;
+      socket.end("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n");
+    });
+    await new Promise<void>((r) => devtools.listen(0, "127.0.0.1", () => r()));
+    svc = await startBrowserService({ token, port: 0, host: "127.0.0.1", launch });
+  });
+  afterAll(async () => {
+    await svc.close();
+    devtools.close();
+  });
+
+  it("refuses a connection without the right token and starts no browser for it", async () => {
+    launched = [];
+    expect(await upgrade("/")).toMatch(/^HTTP\/1\.1 401/);
+    expect(await upgrade("/?token=wrong")).toMatch(/^HTTP\/1\.1 401/);
+    expect(await upgrade(`/?token=${token}x`)).toMatch(/^HTTP\/1\.1 401/);
+    expect(launched).toEqual([]);
+  });
+
+  it("with the token, starts a browser behind its own egress proxy and connects to its DevTools", async () => {
+    launched = [];
+    expect(await upgrade(`/?token=${token}`)).toMatch(/^HTTP\/1\.1 101/);
+    expect(launched).toHaveLength(1);
+    expect(upgradedPath).toMatch(/^\/devtools\/browser\/abc 127\.0\.0\.1:\d+$/);
+  });
+
+  it("refuses a token that is too short to start", async () => {
+    await expect(startBrowserService({ token: "short", port: 0, launch })).rejects.toThrow(/at least 24/);
+  });
+
+  it("its browser's proxy refuses private and Railway-internal targets", async () => {
+    let proxyUrl = "";
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((r) => (release = r));
+    const probe = await startBrowserService({
+      token,
+      port: 0,
+      host: "127.0.0.1",
+      launch: async (url) => {
+        proxyUrl = url;
+        await held;
+        throw new Error("no browser in this test");
+      },
+    });
+    const pending = new Promise<string>((resolve) => {
+      const s = connect(probe.port, "127.0.0.1", () => s.write(`GET /?token=${token} HTTP/1.1\r\nHost: x\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n`));
+      let got = "";
+      s.on("data", (b) => (got += b.toString()));
+      s.on("close", () => resolve(got));
+      s.on("error", () => resolve(got));
+    });
+    while (!proxyUrl) await new Promise((r) => setTimeout(r, 10));
+    const port = Number(new URL(proxyUrl).port);
+    const ask = (target: string) =>
+      new Promise<string>((resolve) => {
+        const s = connect(port, "127.0.0.1", () => s.write(`CONNECT ${target} HTTP/1.1\r\nHost: ${target}\r\n\r\n`));
+        let got = "";
+        s.on("data", (b) => (got += b.toString()));
+        s.on("close", () => resolve(got));
+        s.on("error", () => resolve(got));
+        setTimeout(() => s.destroy(), 2_000);
+      });
+    for (const target of ["127.0.0.1:443", "10.0.0.5:443", "169.254.169.254:443", "[fd12::10]:443", "[::ffff:7f00:1]:443", "api.railway.internal:443", "example.com:80"]) {
+      expect(await ask(target), target).toMatch(/^HTTP\/1\.1 403/);
+    }
+    release();
+    expect(await pending).toMatch(/^HTTP\/1\.1 502/);
+    await probe.close();
   });
 });
 
