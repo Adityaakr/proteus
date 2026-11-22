@@ -7,6 +7,7 @@
  */
 import type * as T from "./types";
 import type * as D from "../sell/developers/types";
+import type * as B from "../sell/builder/types";
 export type * from "./types";
 
 const BASE = "/api";
@@ -307,6 +308,18 @@ export const api = {
   meDeals: () => request<T.DealSummary[]>("GET", "/me/deals"),
   meActivity: () => request<T.MeActivity>("GET", "/me/activity"),
   createOrg: (body: { name: string; slug?: string; brand?: T.SellerBrand }) => request<T.MeOrg>("POST", "/orgs", { body }),
+
+  /* Create your deal agent: read a website, answer the questions, test, publish (signed-in account). */
+  builder: {
+    start: (url: string) => request<B.BuilderImport>("POST", "/builder/imports", { body: { url } }),
+    latest: () => request<B.BuilderImport | null>("GET", "/builder/imports/latest"),
+    get: (id: string) => request<B.BuilderImport>("GET", `/builder/imports/${enc(id)}`),
+    answers: (id: string, patch: B.AnswersPatch) => request<B.BuilderImport>("PATCH", `/builder/imports/${enc(id)}/answers`, { body: patch }),
+    message: (id: string, text: string) => request<{ understood: string[]; view: B.BuilderImport }>("POST", `/builder/imports/${enc(id)}/messages`, { body: { text } }),
+    floorsCsv: (id: string, csv: string) => request<{ applied: number; unmatched: string[]; errors: string[]; view: B.BuilderImport }>("POST", `/builder/imports/${enc(id)}/floors`, { body: { csv } }),
+    test: (id: string, body: { productKey?: string; message?: string; counterUsd?: string } = {}) => request<B.TestNegotiation>("POST", `/builder/imports/${enc(id)}/test`, { body }),
+    publish: (id: string) => request<B.BuilderImport>("POST", `/builder/imports/${enc(id)}/publish`, { body: { confirm: true } }),
+  },
   /** Removes a seller account that was never used and is not on Arc (published from the wrong wallet). */
   discardOrg: () => request<{ discarded: string }>("DELETE", "/app/org"),
   market: () => request<T.MarketItem[]>("GET", "/market"),

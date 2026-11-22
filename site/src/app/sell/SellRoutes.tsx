@@ -32,6 +32,7 @@ const StartSelling = lazy(() => import("./onboarding/StartSelling"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Developers = lazy(() => import("./pages/Developers"));
 const ImportListing = lazy(() => import("./pages/ImportListing"));
+const CreateAgent = lazy(() => import("./builder/CreateAgent"));
 
 /** Use the app's QueryClient when one is provided above us; otherwise bring our own. */
 function EnsureQueryClient({ children }: { children: ReactNode }) {
@@ -69,8 +70,8 @@ function NoOrg() {
       <EmptyState
         icon={<Store size={20} />}
         title="You are not selling yet"
-        description="Publish a product first. It takes one screen: your public tiers and the private floor your agent prices against."
-        action={<ActionButton to={SELL} icon>Start selling</ActionButton>}
+        description="Create your deal agent from your website, or publish a product on one screen: your public tiers and the private floor your agent prices against."
+        action={<span style={{ display: "inline-flex", gap: 8, flexWrap: "wrap" }}><ActionButton to={`${SELL}/create`} icon>Create from my website</ActionButton><ActionButton to={SELL} variant="secondary">Add a product by hand</ActionButton></span>}
       />
     </div>
   );
@@ -126,6 +127,7 @@ export default function SellRoutes() {
       <Routes>
         <Route index element={<SellIndexPage />} />
         <Route path="start" element={<Page title="New product"><AddProduct /></Page>} />
+        <Route path="create" element={<Page title="Create your deal agent"><CreateAgent /></Page>} />
         <Route path="products" element={<Page title="Products & pricing">{guarded(<Products />)}</Page>} />
         <Route path="products/:id" element={<Page title="Products & pricing">{guarded(<ProductDetail />)}</Page>} />
         <Route path="negotiations" element={<Page title="Negotiations">{guarded(<Negotiations />)}</Page>} />

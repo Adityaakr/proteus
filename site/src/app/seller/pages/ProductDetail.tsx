@@ -166,6 +166,7 @@ function PrivateSummary({ p }: { p: ProductWithPrivate }) {
         <Fig label="Quote validity" value={duration(p.policy.quoteTtlSeconds)} />
       </div>
       <div className={s.figs}>
+        <Fig label="Floor price per unit" value={p.cost.floorUnitPrice ? <Money micro={p.cost.floorUnitPrice} digits={4} /> : <span style={{ fontSize: 14 }}>None set</span>} />
         <Fig label="Variable cost per unit" value={<Money micro={p.cost.variableCostPerUnit} digits={4} />} />
         <Fig label="Direct cost per deal" value={<Money micro={p.cost.directCostPerDeal} />} />
         <Fig label="Transaction cost" value={pct(p.cost.txCostBps)} />
@@ -317,7 +318,7 @@ function TiersForm({ p }: { p: ProductWithPrivate }) {
 
 function CostForm({ p }: { p: ProductWithPrivate }) {
   const m = useUpdateCost(p.id);
-  const init = () => ({ variable: microToInput(p.cost.variableCostPerUnit), direct: microToInput(p.cost.directCostPerDeal), tx: p.cost.txCostBps });
+  const init = () => ({ floor: p.cost.floorUnitPrice ? microToInput(p.cost.floorUnitPrice) : "", variable: microToInput(p.cost.variableCostPerUnit), direct: microToInput(p.cost.directCostPerDeal), tx: p.cost.txCostBps });
   const [f, setF] = useState(init);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState<number | null>(null);
@@ -331,18 +332,21 @@ function CostForm({ p }: { p: ProductWithPrivate }) {
     const variable = usdToMicro(f.variable);
     const direct = usdToMicro(f.direct);
     const tx = Number(f.tx);
+    const floor = String(f.floor).trim() ? usdToMicro(String(f.floor)) : null;
+    if (floor === undefined) err.floor = "Enter a dollar amount, or leave it empty for no floor";
     if (variable === undefined) err.variable = "Enter a dollar amount, up to 6 decimals";
     if (direct === undefined) err.direct = "Enter a dollar amount";
     if (!Number.isInteger(tx) || tx < 0 || tx > 10000) err.tx = "Whole basis points, 0 to 10,000";
     setErrors(err);
     if (Object.keys(err).length) return;
-    const body: CostUpdateBody = { variableCostPerUnit: variable!, directCostPerDeal: direct, txCostBps: tx };
+    const body: CostUpdateBody = { variableCostPerUnit: variable!, directCostPerDeal: direct, txCostBps: tx, floorUnitPrice: floor };
     m.mutate(body, { onSuccess: (np) => setSaved(np.cost.version) });
   };
   return (
     <SellerOnly title="Simulate an upstream cost change: future quotes only" description="Use this when a supplier or model price moves. Signed deals keep their terms; only new candidates are re-evaluated.">
       <form className={s.formBox} onSubmit={submit} noValidate>
         <div className={s.formGrid2}>
+          <Field label="Floor price per unit ($)" inputMode="decimal" value={f.floor} onChange={set("floor")} error={errors.floor} hint="The agent never offers less per unit. Empty: no floor" />
           <Field label="Variable cost per unit ($)" inputMode="decimal" value={f.variable} onChange={set("variable")} error={errors.variable} hint="Fulfillment cost of one billable unit" />
           <Field label="Direct cost per deal ($)" inputMode="decimal" value={f.direct} onChange={set("direct")} error={errors.direct} hint="Provisioning and setup" />
           <Field label="Transaction cost (bps)" inputMode="numeric" value={f.tx} onChange={set("tx")} error={errors.tx} hint="Of revenue. 50 bps = 0.5%" />

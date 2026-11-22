@@ -1587,6 +1587,22 @@
       "label": "In testing"
     },
     {
+      "claim": "Create your deal agent: the catalog read from the seller's own website (read live from shoonyastore.com's product data), the gaps asked in a chat, a floor price the engine enforces, a test negotiation, then the same products, store page, embed and endpoints as the product form",
+      "network": "offchain",
+      "status": "tested-offchain",
+      "evidence": [
+        {
+          "label": "service.ts",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/server/src/services/importer/service.ts"
+        },
+        {
+          "label": "importer.test.ts",
+          "url": "https://github.com/Adityaakr/proteus/blob/main/server/test/importer.test.ts"
+        }
+      ],
+      "label": "In testing"
+    },
+    {
       "claim": "WhatsApp channel: the deal agent on a seller's own WhatsApp Business number (deployed on both networks, a number connected and Meta's signed webhook verified; no real customer conversation yet)",
       "network": "offchain",
       "status": "tested-offchain",
@@ -1679,6 +1695,11 @@
     },
     {
       "claim": "Catalog sync from the seller's own endpoint (tested against a local sample feed)",
+      "status": "tested-offchain",
+      "label": "In testing"
+    },
+    {
+      "claim": "Create your deal agent: the catalog read from the seller's own website (read live from shoonyastore.com's product data), the gaps asked in a chat, a floor price the engine enforces, a test negotiation, then the same products, store page, embed and endpoints as the product form",
       "status": "tested-offchain",
       "label": "In testing"
     },

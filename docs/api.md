@@ -315,3 +315,49 @@ curl https://app.proteus.co.in/api/v1/seller/deals -H "Authorization: Bearer $PR
 const r = await fetch("https://app.proteus.co.in/api/v1/seller/deals", { headers: { Authorization: `Bearer ${process.env.PROTEUS_SELLER_KEY}` } });
 const { deals } = await r.json();
 ```
+
+## Create your deal agent: website import (2026-11-22)
+
+Signed-in account (`requireAuth`); a seller org is not needed yet. Code: [`services/importer/`](../server/src/services/importer/), routes in [`routes/builder.ts`](../server/src/routes/builder.ts).
+
+```
+POST  /api/builder/imports                { url }             -> BuilderImport (201, status "running"; the read continues in the background)
+GET   /api/builder/imports/latest                              -> BuilderImport | null
+GET   /api/builder/imports/:id                                 -> BuilderImport (poll while status is "running")
+PATCH /api/builder/imports/:id/answers    AnswersPatch         -> BuilderImport
+POST  /api/builder/imports/:id/messages   { text }             -> { understood: string[], view: BuilderImport }
+POST  /api/builder/imports/:id/floors     { csv }              -> { applied, unmatched[], errors[], view }
+POST  /api/builder/imports/:id/test       { productKey?, message?, counterUsd? } -> TestNegotiation (dry run, nothing stored)
+POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport (status "published", published: { orgSlug, products[] })
+```
+
+- `BuilderImport`:
+  - `{ id, url, status: "running"|"ready"|"failed"|"published", progress[], error, transcript[], org, network, helpers: { model, firecrawl } }`.
+  - Once read: `result` (the scraped catalog: brand, products, policies, hints, sources tried, suggested FX rate), `answers` (the seller's own, including private floors), `draft` (`{ included, ready, next[], items[] }`) and `published`.
+- Only the account that started an import can read it. Answers are stored encrypted (`catalog_imports.answers_enc`).
+- Source chain, first that yields products:
+  1. Shopify `/products.json`.
+  2. WooCommerce `/wp-json/wc/store/v1/products`.
+  3. schema.org Product/Offer JSON-LD on sitemap product pages.
+  4. Firecrawl, when `FIRECRAWL_API_KEY` is set.
+  5. Page text read by the deployment's model.
+
+  Model output is kept only when the product name and its price appear in the page text.
+- Limits:
+  - robots.txt is honoured.
+  - At most 60 product pages and 90 requests per import, with a 400 ms pause between them.
+  - Each response is capped at 2 MB, and each request times out after 12 s.
+  - https on port 443 only. Private, loopback and link-local addresses are refused inside the socket's DNS lookup, at every redirect ([`lib/net-guard.ts`](../server/src/lib/net-guard.ts)).
+  - 8 imports per account per hour.
+- `AnswersPatch`:
+  - `{ businessName?, businessType?, usdRate?, include?: { [productKey]: boolean }, products?/categories?: { [key]: PriceRule }, defaults?: PriceRule & { maxUnitsPerDeal?, approvalThresholdUsd?, termDays? }, floorsSet?, bulkAnswered?, customOrders? }`.
+  - `PriceRule = { priceUsd?, floorUsd?, maxDiscountPct?, moq?, bulkMinUnits?, bulkDiscountPct? }`, all decimal strings.
+- Publish refuses until every question is answered and each included product has a list price and a floor; at most 40 products per publish.
+- Publish creates the org when needed (`createOrg`, the signed-in wallet as owner and payee) and each product through `createProduct`:
+  - Seller-delivered (no endpoint).
+  - Tiers at the list price, plus a bulk tier if one was set.
+  - Cost model with `floorUnitPrice`.
+  - Policy with no margin floor and a discount cap set just wide enough never to refuse a price at or above the floor.
+  - Public `knowledge` (variants, options, notes, store policies) that the deal agent answers from.
+
+`CostUpdateBody` (`PATCH /api/app/products/:id/cost`) also takes `floorUnitPrice` (micro-USDC string, or `null` to remove it). The engine's `FLOOR_PRICE` rule refuses any candidate whose prepaid total is below `units × floorUnitPrice` and gives buyers the shared price reason.

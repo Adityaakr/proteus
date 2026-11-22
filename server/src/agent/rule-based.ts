@@ -111,6 +111,14 @@ export function composeRuleBased(input: ComposeInput): string {
   const asked = (input.catalog?.products ?? []).filter((p) => [p.unitLabel, pluralUnit(p.unitLabel), ...p.name.toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 3 && !GENERIC.has(w))].some((w) => w && new RegExp(`\\b${w.toLowerCase()}`).test(lastBuyer)));
   if (asked.length) lines.unshift(`${asked.map((p) => `${p.name} ${p.smallestPack ? `(from ${p.smallestPack}) ` : ""}`).join("and ")}${asked.length > 1 ? "are" : "is"} a separate product from ${input.catalog!.sellerName}. Open it on the seller's page and its agent will make you an offer there.`);
   else if (!fits.length && input.catalog?.products.length) lines.push(`${input.catalog.sellerName} also offers ${input.catalog.products.map((p) => (p.smallestPack ? `${p.name} (from ${p.smallestPack})` : p.name)).join(", ")}. Open any of them on the seller's page to get an offer there.`);
+  // Questions the website facts answer: colours and sizes, minimum order, delivery, returns, custom work.
+  const k = input.facts?.knowledge;
+  if (k) {
+    if (/colou?rs?|sizes?|variants?|options?/.test(lastBuyer)) for (const o of k.options.slice(0, 2)) lines.push(`${o.name}: ${o.values.slice(0, 12).join(", ")}${o.values.length > 12 ? ` and ${o.values.length - 12} more` : ""}.`);
+    if (/minimum|moq|bulk|custom|logo|print|brand/.test(lastBuyer)) lines.push(...k.notes.filter((n) => /minimum|bulk|custom|sold as listed/i.test(n)).slice(0, 2));
+    const pol = /ship|deliver/.test(lastBuyer) ? k.policies.find((p) => p.kind === "shipping") : /return|refund|exchange/.test(lastBuyer) ? k.policies.find((p) => p.kind === "returns") : undefined;
+    if (pol) lines.push(`From ${input.catalog?.sellerName ?? "the seller"}'s ${pol.kind} policy: ${pol.summary.slice(0, 220)}`);
+  }
   if (requirements.openQuestions.length) lines.push(requirements.openQuestions[0]!);
   if (!lines.length) lines.push(`Tell me what you need: expected ${pluralUnit(unitLabel)} per month, your budget, and any integrations, and I will put together options.`);
   return lines.join("\n\n");

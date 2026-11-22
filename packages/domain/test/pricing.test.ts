@@ -107,3 +107,27 @@ describe("candidates", () => {
     expect(a.candidateId).toBe(b.candidateId);
   });
 });
+
+describe("floor price", () => {
+  // A seller who prices against a floor only: no cost, no margin, a wide discount cap. The floor alone must hold.
+  const floorCost: CostModel = { version: 2, variableCostPerUnit: 0n, directCostPerDeal: 0n, txCostBps: 0n, freshUntil: Date.now() + 86_400_000, floorUnitPrice: 800_000n };
+  const open: Policy = { ...policy, minMarginBps: 0n, maxDiscountBps: 9000n, prepaidMinimum: 0n };
+  const fctx: EvaluationContext = { product, cost: floorCost, policy: open, now: Date.now() };
+  const req = { desiredUnits: 1500n, integrations: [], notes: [], openQuestions: [] };
+  const base = getQuoteCandidates(fctx, req).find((c) => c.units === 1500n)!;
+
+  it("refuses one micro-USDC below units x floor and accepts exactly at it", () => {
+    const below = evaluateCounteroffer(fctx, base, { targetTotal: 1500n * 800_000n - 1n }, req);
+    expect(below.decision).toBe("rejected");
+    expect(below.candidate.rules).toContain("FLOOR_PRICE");
+    expect(evaluateCounteroffer(fctx, base, { targetTotal: 1500n * 800_000n }, req).decision).not.toBe("rejected");
+  });
+  it("gives buyers the shared price reason, not which limit fired", () => {
+    const below = evaluate(fctx, { tier: product.tiers[0]!, units: 1500n, unitPrice: { num: 700_000n, den: 1n }, origin: "counter", requested: req });
+    expect(toPublicCandidate(below).publicReasons).toEqual(["That price is outside what the seller can offer for this package."]);
+  });
+  it("does nothing when no floor is set", () => {
+    const c = evaluate(ctx, { tier: product.tiers[0]!, units: 1500n, unitPrice: product.tiers[0]!.unitPrice, origin: "tier", requested: req });
+    expect(c.rules).not.toContain("FLOOR_PRICE");
+  });
+});

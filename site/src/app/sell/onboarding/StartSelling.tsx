@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus, Sparkles, Trash2 } from "lucide-react";
 import { ActionButton, Card, Field, Notice } from "../../seller/kit";
 import { SellerOnly } from "../../seller/parts/SellerOnly";
@@ -65,6 +65,9 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
         <p className="body3">
           Describe what you sell, set public tiers, and give your negotiation agent the private floor it can never cross. Buyers only ever see the public part.
         </p>
+        <Notice tone="info" title="Selling goods from your own website?">
+          Let your deal agent read your catalog instead: give it your website, answer a few questions, and it sets up your products and floors for you. <Link to={sellPath("create")}>Create your deal agent from your website</Link>.
+        </Notice>
         <button type="button" className={s.textBtn} onClick={() => { setF({ ...EXAMPLE, businessName: hasOrg ? "" : EXAMPLE.businessName }); setTouched({}); }}>
           <Sparkles size={14} aria-hidden />
           Fill with the order support example

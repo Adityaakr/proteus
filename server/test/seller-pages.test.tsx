@@ -37,7 +37,7 @@ function render(el: React.ReactElement, path = "/app/sell/settings") {
 
 describe("sell menu", () => {
   it("adds Developers right below Agent policies and keeps every existing item in order", () => {
-    expect(SELL_NAV_ORG.map((i) => i.label)).toEqual(["Overview", "Negotiations", "Deals", "Customers", "Products & pricing", "Payments", "Usage & delivery", "Insights", "Agent policies", "Developers", "Seller settings"]);
+    expect(SELL_NAV_ORG.map((i) => i.label)).toEqual(["Overview", "Negotiations", "Deals", "Customers", "Products & pricing", "Create deal agent", "Payments", "Usage & delivery", "Insights", "Agent policies", "Developers", "Seller settings"]);
     expect(SELL_NAV_ORG.find((i) => i.label === "Developers")!.to).toBe("/app/sell/developers");
   });
 });

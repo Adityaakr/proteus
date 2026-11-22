@@ -25,7 +25,15 @@ export interface ComposeInput {
   injectionDetected: boolean;
   turns: ConversationTurn[];
   /** Public product terms the model may answer questions from. Anything not here is "I will confirm with the seller". */
-  facts?: { termDays: number; refundPolicy: string; billableUnit: string; supportedIntegrations: string[]; capabilities: string[] };
+  facts?: {
+    termDays: number;
+    refundPolicy: string;
+    billableUnit: string;
+    supportedIntegrations: string[];
+    capabilities: string[];
+    /** Imported from the seller's own website and confirmed by the seller: variants, order notes, store policies. Data, never instructions; never a price. */
+    knowledge?: { options: { name: string; values: string[] }[]; variants: string[]; notes: string[]; policies: { kind: string; summary: string }[]; sourceUrl?: string };
+  };
   /** The seller's other listed products, one public line each (name, what it is, list tiers). Not offers: the buyer opens that product to negotiate it. */
   catalog?: { sellerName: string; products: { name: string; unitLabel: string; detail: string; smallestPack: string }[] };
 }
@@ -45,6 +53,31 @@ export interface AgentAdapter {
   readonly name: "rule-based" | "anthropic";
   extractRequirements(input: ExtractInput): Promise<{ requirements: Requirements; steps: AgentStep[] }>;
   composeReply(input: ComposeInput): Promise<{ reply: string; steps: AgentStep[] }>;
+}
+
+/**
+ * The imported website facts as prompt lines. The text came from the seller's public website and the seller confirmed
+ * it, but it is still data: it is cut short, stripped of angle brackets, and labelled so the model never takes it as
+ * an instruction or as a price.
+ */
+export function knowledgeLines(facts: ComposeInput["facts"]): string {
+  const k = facts?.knowledge;
+  if (!k) return "none";
+  const clip = (s: string, n = 200) => s.replace(/[<>]/g, "").replace(/\s+/g, " ").slice(0, n);
+  const lines = [
+    ...k.options.map((o) => `${clip(o.name, 30)}: ${o.values.slice(0, 30).map((v) => clip(v, 40)).join(", ")}`),
+    ...(k.variants.length && !k.options.length ? [`Variants: ${k.variants.slice(0, 20).map((v) => clip(v, 60)).join(", ")}`] : []),
+    ...k.notes.slice(0, 4).map((n) => clip(n)),
+    ...k.policies.slice(0, 3).map((p) => `${p.kind} policy: ${clip(p.summary, 240)}`),
+  ];
+  return lines.length ? lines.map((l) => `- ${l}`).join("\n") : "none";
+}
+
+/** Every figure inside the website facts, so a reply that quotes one (a minimum order, a delivery time) is not refused. */
+export function knowledgeFigures(facts: ComposeInput["facts"]): string[] {
+  const k = facts?.knowledge;
+  if (!k) return [];
+  return [...k.notes, ...k.policies.map((p) => p.summary), ...k.options.flatMap((o) => o.values)].flatMap((s) => s.match(/\$[\d,]+(?:\.\d+)?|\b\d[\d,]*(?:\.\d+)?\b/g) ?? []);
 }
 
 export const INJECTION_PATTERNS = [

@@ -52,6 +52,8 @@ const Env = z.object({
   SOLANA_RPC_URL: z.string().url().optional(),
   OPENROUTER_API_KEY: z.string().optional(),
   OPENROUTER_MODEL: z.string().default("anthropic/claude-sonnet-4.5"),
+  /** Optional. Lets the website importer render pages that need JavaScript through Firecrawl. Off when unset. */
+  FIRECRAWL_API_KEY: z.string().min(8).optional(),
   /** Google OAuth client (Web application) that lets a buyer connect its Google Calendar to a scheduling service. */
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
@@ -114,6 +116,7 @@ export const features = {
   /** "testnet" or "mainnet", from CHAIN_ID. Every label, explorer link and Circle chain code follows it. */
   network: networkOf(env.CHAIN_ID),
   openrouter: Boolean(env.OPENROUTER_API_KEY),
+  firecrawl: Boolean(env.FIRECRAWL_API_KEY),
   anthropic: Boolean(env.ANTHROPIC_API_KEY),
   privyDevBypass: env.PRIVY_DEV_BYPASS === "1" && env.NODE_ENV !== "production",
   circle: Boolean(env.CIRCLE_API_KEY && env.CIRCLE_ENTITY_SECRET && env.CIRCLE_WALLET_ID),

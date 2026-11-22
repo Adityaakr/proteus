@@ -38,6 +38,7 @@ export async function updateCost(lp: LoadedProduct, body: CostUpdateBody) {
     variableCostPerUnit: toBig(body.variableCostPerUnit),
     directCostPerDeal: body.directCostPerDeal ? toBig(body.directCostPerDeal) : prev.directCostPerDeal,
     txCostBps: body.txCostBps ?? prev.txCostBps,
+    floorUnitPrice: body.floorUnitPrice === undefined ? prev.floorUnitPrice : body.floorUnitPrice === null ? null : toBig(body.floorUnitPrice),
     freshUntil: new Date(Date.now() + 30 * 86400 * 1000),
   });
 }
