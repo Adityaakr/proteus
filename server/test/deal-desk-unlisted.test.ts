@@ -20,9 +20,9 @@ vi.mock("../src/lib/claude", () => ({
 import type { ComposeInput, UnlistedAsk } from "../src/agent/adapter";
 import { createAnthropicAdapter } from "../src/agent/anthropic";
 import { composeRuleBased, ruleBasedAdapter } from "../src/agent/rule-based";
-import { answersCustomRequest, findUnlisted, itemsText, requestedItems, sameKindListed, type ListedProduct } from "../src/agent/unlisted";
+import { answersCustomRequest, findUnlisted, itemsText, requestedItems, sameKindListed, unlistedConsultation, type ListedProduct } from "../src/agent/unlisted";
 import { unitLabelFor } from "../src/services/importer/draft";
-import { pickRoute, rankProducts } from "../src/services/storefront";
+import { routeMessage, type ConsultProduct } from "@proteus/domain";
 
 /** The Shoonya Store case: the buyer is on the sweatshirt and asks for caps; the store lists apparel, no caps. */
 const sweatshirt: ListedProduct = { name: "Unbranded Sweatshirt", unitLabel: "sweatshirt", category: "Apparel", summary: "Unbranded sweatshirt from Shoonya Store.", smallestPack: "10 sweatshirts for $86.30" };
@@ -198,18 +198,24 @@ describe("'i want caps' on a store that lists caps (shoonyastore.com, with its c
     { slug: "baseball-cap", name: "Baseball Cap", unitLabel: "cap", capabilities: [] },
     { slug: "utility-cap", name: "Utility Cap", unitLabel: "cap", capabilities: [] },
   ];
-  it("the store desk routes 'hey i want caps' to a cap by name, before a hat sold per cap or a cap bottle", () => {
-    const ranked = rankProducts("hey i want caps", store);
-    expect(ranked.slice(0, 2).map((r) => r.slug)).toEqual(["baseball-cap", "utility-cap"]);
-    expect(ranked.findIndex((r) => r.slug === "bucket-hat")).toBeGreaterThan(1);
-    expect(ranked.findIndex((r) => r.slug === "loop-cap-bottle")).toBeGreaterThan(1);
+  const route = (m: string, products: typeof store, current?: string) => routeMessage(m, products, { current, sellerName: "Shoonya Store" });
+  it("the store desk answers 'hey i want caps' with the caps, named by their names, not a hat sold per cap or a cap bottle", () => {
+    for (const current of [undefined, "unbranded-sweatshirt"]) {
+      const d = route("hey i want caps", store, current);
+      expect(d.mode, current).toBe("consult");
+      expect(d.mode === "consult" && d.slugs, current).toEqual(["baseball-cap", "utility-cap"]);
+    }
+    // With one cap listed, the conversation moves to it.
+    expect(route("hey i want caps", store.filter((p) => p.slug !== "utility-cap"), "unbranded-sweatshirt")).toMatchObject({ mode: "product", slug: "baseball-cap", switched: true });
+    // Names before units: the cap bottle before the hat sold per cap; the hat is still found by its unit on its own.
+    expect(route("hey i want caps", store.filter((p) => !/cap$/.test(p.slug)))).toMatchObject({ mode: "product", slug: "loop-cap-bottle" });
+    expect(route("hey i want caps", store.filter((p) => !/cap/.test(p.slug)))).toMatchObject({ mode: "product", slug: "bucket-hat" });
   });
 
-  it("the conversation moves from the sweatshirt to a cap, and a follow-up about 'it' stays on that cap", () => {
+  it("a follow-up about 'it' stays on the cap, even when its words are in another cap's summary; naming another cap moves", () => {
     const withSummary = [...store, { slug: "ivy-flat-cap", name: "Ivy Flat Cap", unitLabel: "cap", capabilities: [], summary: "A flat cap, available in one colour." }];
-    expect(pickRoute(rankProducts("hey i want caps", withSummary), "unbranded-sweatshirt")).toMatchObject({ productSlug: "baseball-cap", switched: true });
-    expect(pickRoute(rankProducts("is it available in any other colour?", withSummary), "utility-cap")).toMatchObject({ productSlug: "utility-cap", switched: false });
-    expect(pickRoute(rankProducts("what about the ivy flat cap?", withSummary), "utility-cap")).toMatchObject({ productSlug: "ivy-flat-cap", switched: true });
+    expect(route("is it available in any other colour?", withSummary, "utility-cap")).toMatchObject({ mode: "product", slug: "utility-cap", switched: false });
+    expect(route("what about the ivy flat cap?", withSummary, "utility-cap")).toMatchObject({ mode: "product", slug: "ivy-flat-cap", switched: true });
   });
 
   it("on a cap, the other caps are offered as a choice; the hat and the bottle are not caps", () => {
@@ -246,5 +252,40 @@ describe("'i want caps' on a store that lists caps (shoonyastore.com, with its c
     expect(req.system).toMatch(/SAME KIND LISTED is not none/);
     expect(req.content).toMatch(/SAME KIND LISTED: 3 caps in all, this product and Utility Cap \(from 1 cap for \$4\.10\); Legionnaire Cap/);
     expect(reply).toBe(nextText);
+  });
+});
+
+describe("'i want caps' on the store's own deal desk, before any product is chosen (all products)", () => {
+  const products: ConsultProduct[] = [
+    { slug: "unbranded-sweatshirt", name: "Unbranded Sweatshirt", unitLabel: "sweatshirt", summary: sweatshirt.summary, capabilities: [], fromPrice: "$8.63", minUnits: 10 },
+    { slug: "classic-t-shirt", name: "Classic T-Shirt", unitLabel: "t-shirt", capabilities: [], fromPrice: "$5.20", minUnits: 10 },
+    { slug: "steel-water-bottle", name: "Steel Water Bottle", unitLabel: "bottle", capabilities: [], fromPrice: "$6.40", minUnits: 25 },
+    { slug: "canvas-tote", name: "Canvas Tote", unitLabel: "tote", capabilities: [], fromPrice: "$3.80", minUnits: 25 },
+  ];
+  const listed = [sweatshirt, ...others];
+
+  it("routes to a recommendation, which says caps are not listed, recommends the closest apparel and offers a custom request", () => {
+    expect(routeMessage("hey i want caps", products, { sellerName: "Shoonya Store" }).mode).toBe("consult");
+    const missing = findUnlisted("hey i want caps", listed[0]!, listed.slice(1))!;
+    const { result, text, items } = unlistedConsultation("Shoonya Store", products, missing, ["hey i want caps"]);
+    expect(items).toBe("Caps");
+    expect(result.intro).toBe("Caps are not something Shoonya Store lists. The closest listed products are:");
+    expect(result.picks.map((p) => p.slug)).toEqual(["unbranded-sweatshirt", "classic-t-shirt"]);
+    expect(result.questions).toEqual(["If you want caps made, I can send Shoonya Store a custom request: reply with how many you need, by when, and how they can reach you."]);
+    expect(text).toMatch(/^Caps are not something Shoonya Store lists\. The closest listed products are:\n\n• Unbranded Sweatshirt, from \$8\.63 a sweatshirt/);
+    expect(text).not.toMatch(/bottle|tote/i);
+  });
+
+  it("nothing listed is close: shows what the store does list, still with the custom request offer", () => {
+    const missing = findUnlisted("do you have umbrellas?", listed[0]!, listed.slice(1))!;
+    const { result, text } = unlistedConsultation("Shoonya Store", products, missing, ["do you have umbrellas?"]);
+    expect(result.intro).toBe("Umbrellas are not something Shoonya Store lists. Here is what Shoonya Store does list:");
+    expect(result.picks.length).toBeGreaterThanOrEqual(2);
+    expect(text).toMatch(/custom request/);
+  });
+
+  it("the buyer's answer to the offer is the custom request; asking for a listed product is not", () => {
+    expect(answersCustomRequest("50 by friday, reach me at buyer@example.com", "Caps", listed)).toBe(true);
+    expect(answersCustomRequest("I would like a quote for classic t-shirt.", "Caps", listed)).toBe(false);
   });
 });

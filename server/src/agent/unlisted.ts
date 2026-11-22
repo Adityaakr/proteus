@@ -6,6 +6,9 @@
  * counts as listed. Used with or without a model; a model's own reading of the request can add items to check.
  */
 
+import { consult, pickLine, type Consultation, type ConsultProduct } from "@proteus/domain";
+import { unlistedLines } from "./adapter";
+
 export interface ListedProduct {
   name: string;
   unitLabel: string;
@@ -256,4 +259,20 @@ export function sameKindListed(message: string, others: ListedProduct[], extra: 
   const asked = [...requestedItems(message), ...extra.flatMap((e) => requestedItems(`i want ${e}`))];
   if (!asked.length) return [];
   return others.filter((p) => asked.some((it) => isKind(p, it)));
+}
+
+/**
+ * The store-wide reply ("all products", no product chosen yet) to a buyer asking only for something the seller does
+ * not list: says so plainly, recommends the closest listed products (or a few the seller does list when nothing is
+ * close) and offers a custom request. Deterministic, with or without a model. `text` is the message as stored.
+ */
+export function unlistedConsultation(sellerName: string, products: readonly ConsultProduct[], missing: Unlisted, buyerTexts: readonly string[], exclude: readonly string[] = []): { result: Consultation; text: string; items: string } {
+  const items = itemsText(missing.items);
+  const closest = missing.closest.map((c) => products.find((p) => p.name === c.name)).filter((p): p is ConsultProduct => Boolean(p));
+  const [notListed, offer] = unlistedLines({ items, alsoListed: false, closest: [], listed: [], sellerName });
+  const base = consult(sellerName, products, buyerTexts, { pointed: closest.map((p) => p.slug), exclude });
+  const picks = closest.length ? base.picks.filter((p) => closest.some((c) => c.slug === p.slug)) : base.picks;
+  const intro = `${notListed} ${closest.length ? (picks.length > 1 ? "The closest listed products are:" : "The closest listed product is:") : `Here is what ${sellerName} does list:`}`;
+  const result: Consultation = { ...base, intro, picks, questions: [offer!] };
+  return { result, items, text: [intro, picks.map((p) => `• ${pickLine(p)}`).join("\n"), offer].join("\n\n") };
 }

@@ -187,12 +187,11 @@ export async function addBuyerMessage(negId: string, content: string) {
   await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", content: await sealText(lp.org.id, content) });
 
   const listed = await listedProducts(lp);
-  const current = { ...listedOf(lp.product), id: lp.row.id };
+  const current = { ...listedOf(lp.product), id: lp.row.id, slug: lp.row.slug };
   const others = listed.filter((p) => p.id !== lp.row.id);
 
   // The agent offered to send the seller a custom request for an unlisted item, and this message is that request.
-  const last = turnRows.at(-1);
-  const pending = last?.role === "agent" ? ((last.payload as { customRequest?: { items?: unknown } } | null)?.customRequest?.items as string | undefined) : undefined;
+  const pending = pendingCustomRequest(turnRows);
   if (pending && answersCustomRequest(content, pending, [current, ...others])) return sendCustomRequest(negId, lp, seq, pending, content, started);
 
   const adapter = getAgentAdapter();
@@ -264,7 +263,7 @@ export async function addBuyerMessage(negId: string, content: string) {
 /* unlisted items and custom requests                                   */
 /* ------------------------------------------------------------------ */
 
-type Listed = ListedProduct & { id: string };
+export type Listed = ListedProduct & { id: string; slug: string };
 
 /** "10 sweatshirts for $86.30": the smallest list pack, as the buyer would see it. */
 function listedOf(p: Product): ListedProduct {
@@ -273,9 +272,9 @@ function listedOf(p: Product): ListedProduct {
 }
 
 /** Every product the seller lists, in one read: what "is this listed?" is checked against. */
-async function listedProducts(lp: LoadedProduct): Promise<Listed[]> {
-  const rows = await db.select({ id: schema.products.id, pub: schema.products.public }).from(schema.products).where(and(eq(schema.products.orgId, lp.org.id), eq(schema.products.active, true)));
-  return rows.map((r) => ({ ...listedOf(reviveProduct(r.pub as Record<string, unknown>)), id: r.id }));
+export async function listedProducts(lp: LoadedProduct): Promise<Listed[]> {
+  const rows = await db.select({ id: schema.products.id, slug: schema.products.slug, pub: schema.products.public }).from(schema.products).where(and(eq(schema.products.orgId, lp.org.id), eq(schema.products.active, true)));
+  return rows.map((r) => ({ ...listedOf(reviveProduct(r.pub as Record<string, unknown>)), id: r.id, slug: r.slug }));
 }
 
 /** No offers for an item the seller does not list: the reply says so plainly, names the closest listed products and offers a custom request. */
@@ -303,7 +302,14 @@ async function replyUnlisted(negId: string, lp: LoadedProduct, seq: number, unli
 }
 
 /** Sends the seller the buyer's custom request (kept with this conversation, notified on the seller's channels without the buyer's text). */
-async function sendCustomRequest(negId: string, lp: LoadedProduct, seq: number, items: string, content: string, started: number) {
+/** The items of a custom request the agent's last turn offered to send, if it did. */
+export function pendingCustomRequest(turnRows: { role: string; payload: unknown }[]): string | undefined {
+  const last = turnRows.at(-1);
+  const items = last?.role === "agent" ? (last.payload as { customRequest?: { items?: unknown } } | null)?.customRequest?.items : undefined;
+  return typeof items === "string" ? items : undefined;
+}
+
+export async function sendCustomRequest(negId: string, lp: LoadedProduct, seq: number, items: string, content: string, started: number) {
   const contact = /@|\+?\d[\d\s().-]{8,}\d/.test(content);
   const reply = `I have sent ${lp.org.name} your custom request for ${items.toLowerCase()}, with your message. They decide whether they can make it and get back to you${contact ? "" : "; if you have not left an email or phone number, add one here so they can reach you"}. Anything ${lp.org.name} lists, I can quote right here.`;
   await db.insert(schema.decisions).values({

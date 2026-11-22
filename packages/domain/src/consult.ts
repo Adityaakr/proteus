@@ -59,7 +59,8 @@ const EXCLUDE = /\b(?:besides|instead of|other than|except)\s+(?:the\s+)?([^\s,.
  *   the current product when it is one of them.
  * - Nothing matched while no product is chosen, or (while on a product) an explicit ask for something else ("what else
  *   do you have?"): consult, with the products the message did point at first, leaving out the current one.
- * - Nothing matched while on a product ("make it 200", "which tier do you recommend?"): stay on it.
+ * - Nothing named while on a product ("make it 200", "which tier do you recommend?", "is it available in any other
+ *   colour?"): stay on it, even when the words appear in another product's summary.
  */
 export function routeMessage(message: string, products: readonly ConsultProduct[], opts: { current?: string; sellerName?: string } = {}): RouteDecision {
   const own = new Set(words(opts.sellerName ?? "").map(stem));
@@ -73,20 +74,26 @@ export function routeMessage(message: string, products: readonly ConsultProduct[
     const said = new Set(words(text).map(stem).filter((w) => !own.has(w)));
     const common = new Set([...said].filter((w) => weakSets.filter((s) => s.has(w)).length > Math.max(1, products.length / 2)));
     const scored = products.map((p, i) => {
-      const strong = new Set([...words(p.name), p.unitLabel.toLowerCase(), pluralUnit(p.unitLabel).toLowerCase()].map(stem));
+      const nameWords = words(p.name).map(stem);
+      const strong = new Set([...nameWords, p.unitLabel.toLowerCase(), pluralUnit(p.unitLabel).toLowerCase()].map(stem));
       const hits = [...said].filter((w) => strong.has(w));
       const weakHits = [...said].filter((w) => !strong.has(w) && !common.has(w) && weakSets[i]!.has(w));
-      return { slug: p.slug, strong: hits.length, weak: weakHits.length, strongHits: hits, hits: [...hits, ...weakHits] };
+      // How the product is named: by the word that ends its name ("Baseball Cap"), elsewhere in its name ("Loop Cap
+      // Bottle"), or only by its unit (a Bucket Hat sold per "cap").
+      const head = nameWords.filter((w) => /[a-z]/.test(w)).at(-1);
+      const by = hits.some((w) => w === head) ? 2 : hits.some((w) => nameWords.includes(w)) ? 1 : 0;
+      return { slug: p.slug, strong: hits.length, weak: weakHits.length, by, strongHits: hits, hits: [...hits, ...weakHits] };
     });
     return {
-      named: scored.filter((s) => s.strong > 0).sort((a, b) => b.strong - a.strong || b.weak - a.weak),
+      named: scored.filter((s) => s.strong > 0).sort((a, b) => b.strong - a.strong || b.by - a.by || b.weak - a.weak),
       pointed: scored.filter((s) => s.strong > 0 || s.weak > 0).sort((a, b) => b.strong * 3 + b.weak - (a.strong * 3 + a.weak)),
     };
   };
 
   const scored = score(message);
-  // "tote bags" names Tote Bags; PVC Bags only shares its "bag", so it is not named on its own.
-  const named = scored.named.filter((s) => !scored.named.some((t) => t.strong > s.strong && s.strongHits.every((w) => t.strongHits.includes(w))));
+  // "tote bags" names Tote Bags; PVC Bags only shares its "bag", so it is not named on its own. Likewise "caps" names
+  // the caps, not a "Loop Cap Bottle" or a hat that happens to be sold per cap: names before units.
+  const named = scored.named.filter((s) => !scored.named.some((t) => (t.strong > s.strong || (t.strong === s.strong && t.by > s.by)) && s.strongHits.every((w) => t.strongHits.includes(w))));
   const only = named.length === 1 ? named[0]! : undefined;
   const exclude = only && [...message.matchAll(EXCLUDE)].some((m) => score(m[1]!).named.some((s) => s.slug === only.slug)) ? [only.slug] : [];
   const pointed = scored.pointed.filter((s) => !exclude.includes(s.slug));
@@ -100,7 +107,9 @@ export function routeMessage(message: string, products: readonly ConsultProduct[
   }
   if (exclude.length) return { mode: "consult", slugs: pointed.slice(0, 4).map((s) => s.slug), exclude: [...new Set([...exclude, ...(discovery && current ? [current] : [])])], reason: "asked for something other than a named product" };
   if (discovery) return { mode: "consult", slugs: pointed.slice(0, 4).map((s) => s.slug), exclude: current ? [current] : [], reason: "an open question" };
-  if (current && (!pointed.length || pointed.some((s) => s.slug === current))) return { mode: "product", slug: current, switched: false, reason: "continuing the current product" };
+  // On a product, words that are only in other products' summaries ("is it available in any other colour?") never
+  // move the conversation: it moves when the buyer names a product or asks for something else.
+  if (current) return { mode: "product", slug: current, switched: false, reason: "continuing the current product" };
   return { mode: "consult", slugs: pointed.slice(0, 4).map((s) => s.slug), exclude: [], reason: pointed.length ? "related products, none named" : "no product named yet" };
 }
 
