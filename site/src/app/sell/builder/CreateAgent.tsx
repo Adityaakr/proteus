@@ -160,6 +160,7 @@ function Flow({ view, setView, onRetry, retrying }: { view: BuilderImport; setVi
   const [open, setOpen] = useState<Question | null>(null);
   const [test, setTest] = useState<TestNegotiation | null>(null);
   const save = useMutation({ mutationFn: (patch: AnswersPatch) => v1.builder.answers(view.id, patch), onSuccess: (v) => { setView(v); setOpen(null); } });
+  const more = useMutation({ mutationFn: () => v1.builder.continue(view.id), onSuccess: setView });
   const endRef = useRef<HTMLDivElement>(null);
   const r = view.result;
   const a = view.answers;
@@ -200,7 +201,7 @@ function Flow({ view, setView, onRetry, retrying }: { view: BuilderImport; setVi
         <>
           <Agent wide>
             <p>{view.transcript[0]?.text}</p>
-            <CatalogCard result={r} />
+            <CatalogCard result={r} reading={view.status === "running"} onMore={frozen ? undefined : () => more.mutate()} moreError={more.isError ? errorMessage(more.error) : null} />
             {r.products.length === 0 && (
               <>
                 <p>Try the address of the page that lists your products (your shop or catalogue page), or <Link to="/app/sell/start">add products by hand</Link>.</p>
@@ -266,7 +267,7 @@ function ProgressList({ view }: { view: BuilderImport }) {
   );
 }
 
-function CatalogCard({ result }: { result: ImportResult }) {
+function CatalogCard({ result, reading, onMore, moreError }: { result: ImportResult; reading?: boolean; onMore?: () => void; moreError?: string | null }) {
   const [all, setAll] = useState(false);
   const groups = useMemo(() => {
     const m = new Map<string, ImportResult["products"]>();
@@ -341,7 +342,17 @@ function CatalogCard({ result }: { result: ImportResult }) {
         </table>
       </div>
       {result.products.length > 8 && <button type="button" className={b.textBtn} onClick={() => setAll(!all)}>{all ? "Show fewer" : `Show all ${result.products.length}`}</button>}
-      {result.limited && <p className={b.fine}>I {result.limited}. You can add more products later with the product form.</p>}
+      {result.unread && result.unread.urls.length > 0 ? (
+        <div className={b.facts}>
+          <span>I read {result.unread.total - result.unread.urls.length} of your {result.unread.total} product pages{result.unread.stoppedBy ? ` before ${result.unread.stoppedBy} stopped me` : ""}. {result.unread.urls.length} {result.unread.urls.length === 1 ? "page is" : "pages are"} not read yet.</span>
+          {onMore && (
+            <div>
+              <ActionButton variant="secondary" loading={reading} loadingLabel="Reading" onClick={onMore}>Read the other {result.unread.urls.length} pages</ActionButton>
+            </div>
+          )}
+          {moreError && <Notice tone="danger">{moreError}</Notice>}
+        </div>
+      ) : result.limited ? <p className={b.fine}>I {result.limited}. You can add more products later with the product form.</p> : null}
       {result.policies.length > 0 && <p className={b.fine}>Policies read: {result.policies.map((p) => <a key={p.url} href={p.url} target="_blank" rel="noreferrer noopener">{p.kind}</a>).reduce<ReactNode[]>((acc, el, i) => (i ? [...acc, ", ", el] : [el]), [])}. Your agent answers buyers from them.</p>}
     </div>
   );

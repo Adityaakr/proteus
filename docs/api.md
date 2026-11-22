@@ -58,10 +58,13 @@ Negotiation = {
   turns: [{ id, role: "buyer"|"agent"|"system", content, createdAt, kind?: "message"|"offers"|"decision"|"clarify",
             offers?: [Offer], decision?: { decision, reasons[], alternative?: Offer } }],
   offers: [Offer],                      // current eligible + approval_required candidates (public projection)
+  // An agent turn with customRequest: { items } answered a request for something the seller does not list (below).
   activity: [{ at, label, state: "done"|"working" }],   // sanitized progress for ReasoningText/AgentActivity on the buyer side
 }
 Offer = PublicCandidate from @proteus/domain plus { unitPriceUsd, prepaidTotalUsd, overagePriceUsd? }
 ```
+
+A buyer who asks for a kind of product the seller does not list ("i want caps" at a store with no caps) gets no offers for it. The server checks every kind the message asks for (read by rule, and by the model when one is configured) against every listed product's name, unit, category, summary and capabilities ([`agent/unlisted.ts`](../server/src/agent/unlisted.ts)). When none is listed, the reply says so plainly, names the closest listed products (the same kind, then the same family, such as other apparel) or what the seller lists, and offers to send the seller a custom request. The product's requirements and offers stay as they were. When the buyer's next message answers that offer (a yes, a quantity or date, contact details, or the item again), the agent records a `custom_request` decision, keeps the message in the conversation for the seller, and notifies the seller (`custom_request` event, without the buyer's text). A message that also asks for something listed gets that product's offers and the same note about the rest. When the seller lists several products of the kind asked for ("i want caps" at a store with fourteen caps), the store desk moves to one of them, ranked by the product's name before its unit, and the reply names the others with their smallest list pack so the buyer can choose.
 
 ## Quotes and acceptance
 
@@ -335,6 +338,7 @@ POST  /api/builder/imports/:id/messages   { text }             -> { understood: 
 POST  /api/builder/imports/:id/floors     { csv }              -> { applied, unmatched[], errors[], view }
 POST  /api/builder/imports/:id/test       { productKey?, message?, counterUsd? } -> TestNegotiation (dry run, nothing stored)
 POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport (status "published", published: { orgSlug, products[] })
+POST  /api/builder/imports/:id/continue                        -> BuilderImport (status "running"; reads the product pages in result.unread, from where the read stopped)
 ```
 
 - `BuilderImport`:
@@ -357,7 +361,7 @@ POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport 
 - Catalogues on another service (DocSend, Google Drive, Dropbox, Notion, Canva, or a linked PDF) are listed in `result.elsewhere` and never opened.
 - Limits:
   - robots.txt is honoured.
-  - At most 60 product pages and 90 requests per import, with a 400 ms pause between them.
+  - Product pages: the whole catalogue, up to 400 pages, 180 s and 160 MB in one read, and 480 requests per import, with a 400 ms pause between them. Progress counts against every product page the site lists ("Reading product pages (140 of 200)"). When a budget stops the read, `result.unread` is `{ urls[], total, stoppedBy }`, `result.limited` says how many pages were not read, and `POST .../continue` reads the rest with fresh budgets; the products read so far, and the seller's answers about them, stay.
   - Each response is capped at 2 MB, and each request times out after 12 s.
   - https on port 443 only. Private, loopback and link-local addresses are refused inside the socket's DNS lookup, at every redirect ([`lib/net-guard.ts`](../server/src/lib/net-guard.ts)).
   - The browser: at most 24 pages, 150 s, 4,000 requests and 60 MB per import, two browsers per server at once.
@@ -367,12 +371,12 @@ POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport 
 - `AnswersPatch`:
   - `{ businessName?, businessType?, usdRate?, include?: { [productKey]: boolean }, products?/categories?: { [key]: PriceRule }, defaults?: PriceRule & { maxUnitsPerDeal?, approvalThresholdUsd?, termDays? }, floorsSet?, bulkAnswered?, customOrders? }`.
   - `PriceRule = { priceUsd?, floorUsd?, maxDiscountPct?, moq?, bulkMinUnits?, bulkDiscountPct? }`, all decimal strings.
-- Publish refuses until every question is answered and each included product has a list price and a floor; at most 40 products per publish.
+- Publish refuses until every question is answered and each included product has a list price and a floor; at most 400 products per publish (every product one import can keep).
 - Publish creates the org when needed (`createOrg`, the signed-in wallet as owner and payee) and each product through `createProduct`:
   - Seller-delivered (no endpoint).
   - Tiers at the list price, plus a bulk tier if one was set.
   - Cost model with `floorUnitPrice`.
   - Policy with no margin floor and a discount cap set just wide enough never to refuse a price at or above the floor.
-  - Public `knowledge` (variants, options, notes, store policies) that the deal agent answers from.
+  - Public `knowledge` (variants, options, notes, store policies) that the deal agent answers from. A colour the site gives only as a swatch code (`#273a6b`) is stored and shown as the nearest plain colour name (`navy`); products imported before this are named when read.
 
 `CostUpdateBody` (`PATCH /api/app/products/:id/cost`) also takes `floorUnitPrice` (micro-USDC string, or `null` to remove it). The engine's `FLOOR_PRICE` rule refuses any candidate whose prepaid total is below `units × floorUnitPrice` and gives buyers the shared price reason.

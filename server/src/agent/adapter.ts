@@ -36,6 +36,51 @@ export interface ComposeInput {
   };
   /** The seller's other listed products, one public line each (name, what it is, list tiers). Not offers: the buyer opens that product to negotiate it. */
   catalog?: { sellerName: string; products: { name: string; unitLabel: string; detail: string; smallestPack: string }[] };
+  /**
+   * The buyer asked for kinds of product the seller does not list (checked on the server against every listed
+   * product). When nothing else asked for is listed, offers and rejected are empty: the reply says plainly the item
+   * is not listed, names the closest listed products, and offers to send the seller a custom request.
+   */
+  unlisted?: UnlistedAsk;
+  /**
+   * The seller's other listed products of the kind the buyer asked for ("i want caps": the other caps), with this
+   * product's own offers. The reply offers the buyer the choice among them; they are not offers here.
+   */
+  choices?: { kind: string; products: { name: string; smallestPack: string }[]; total: number; sellerName: string };
+}
+
+/** "Shoonya Store lists 14 caps: this Baseball Cap, Utility Cap (from 1 cap for $4.10), ... Tell me which one you want." */
+export function choiceLine(c: NonNullable<ComposeInput["choices"]>, productName: string): string {
+  const show = c.products.map((p) => `${p.name}${p.smallestPack ? ` (from ${p.smallestPack})` : ""}`);
+  const more = c.total - c.products.length;
+  const list = [`this ${productName}`, ...show];
+  const text = more > 0 ? `${list.join(", ")} and ${more} more` : `${list.slice(0, -1).join(", ")} and ${list.at(-1)}`;
+  return `${c.sellerName} lists ${c.total + 1} ${c.kind.toLowerCase()}: ${text}. Tell me which one you want, or how many of this one.`;
+}
+
+export interface UnlistedAsk {
+  /** "Caps", "Caps and mugs". */
+  items: string;
+  /** The buyer also asked for something listed, so this product's offers still apply. */
+  alsoListed: boolean;
+  closest: { name: string; smallestPack: string; current: boolean }[];
+  /** A few of the seller's listed product names, for when nothing listed is close. */
+  listed: string[];
+  sellerName: string;
+}
+
+/** What the reply says about an unlisted item, with or without a model: plain, the closest listed products, and the custom request offer. */
+export function unlistedLines(u: UnlistedAsk): string[] {
+  const plural = / and |s$/i.test(u.items);
+  const lines = [`${u.items} ${plural ? "are" : "is"} not something ${u.sellerName} lists.`];
+  const show = (c: UnlistedAsk["closest"][number]) => {
+    const notes = [c.current ? "the product we are on" : "", c.smallestPack ? `from ${c.smallestPack}` : ""].filter(Boolean);
+    return `${c.name}${notes.length ? ` (${notes.join(", ")})` : ""}`;
+  };
+  if (u.closest.length) lines[0] += ` The closest ${u.closest.length > 1 ? "listed products are" : "listed product is"} ${u.closest.length > 1 ? `${u.closest.slice(0, -1).map(show).join(", ")} and ${show(u.closest.at(-1)!)}` : show(u.closest[0]!)}. If one of them works, ask me about it.`;
+  else if (u.listed.length) lines[0] += ` ${u.sellerName} lists ${u.listed.length > 1 ? `${u.listed.slice(0, -1).join(", ")} and ${u.listed.at(-1)}` : u.listed[0]}.`;
+  lines.push(`If you want ${u.items.toLowerCase()} made, I can send ${u.sellerName} a custom request: reply with how many you need, by when, and how they can reach you.`);
+  return lines;
 }
 
 /** An open question on a store conversation: recommend from the seller's catalogue. */
@@ -64,7 +109,8 @@ export interface AgentStep {
  */
 export interface AgentAdapter {
   readonly name: "rule-based" | "anthropic";
-  extractRequirements(input: ExtractInput): Promise<{ requirements: Requirements; steps: AgentStep[] }>;
+  /** `askedFor`: kinds of product the buyer's last message asks for ("caps"), as the adapter read them; the server checks them against the listed products. */
+  extractRequirements(input: ExtractInput): Promise<{ requirements: Requirements; steps: AgentStep[]; askedFor?: string[] }>;
   composeReply(input: ComposeInput): Promise<{ reply: string; steps: AgentStep[] }>;
   /** Recommends two to four catalogue products and asks what is still unknown. Never names a price itself. */
   consult(input: ConsultInput): Promise<{ result: Consultation; steps: AgentStep[] }>;

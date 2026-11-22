@@ -43,6 +43,8 @@ export interface ImportResult {
   sources: SourceReport[];
   pagesFetched: number;
   limited?: string;
+  /** Product pages a time, byte or request budget left unread; the seller can continue the read. */
+  unread?: { urls: string[]; total: number; stoppedBy?: string };
   /** Catalogues the site points to on another service (DocSend, Google Drive, a PDF); not opened. */
   elsewhere?: { url: string; host: string; label: string }[];
   /** Set when pages were opened in a browser. */

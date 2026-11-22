@@ -84,6 +84,11 @@ export interface ImportResult {
   pagesFetched: number;
   /** Set when a cap stopped the read early. */
   limited?: string;
+  /**
+   * Product pages a time, byte or request budget kept this read from, in reading order. The seller can continue the
+   * read from here; `total` is how many product pages the site lists.
+   */
+  unread?: { urls: string[]; total: number; stoppedBy?: string };
   /** Catalogues the site points to on another service (DocSend, Google Drive, a PDF) that the importer does not open. */
   elsewhere?: { url: string; host: string; label: string }[];
   /** Set when pages were opened in a browser. */
@@ -93,12 +98,18 @@ export interface ImportResult {
 export type BusinessType = "merch" | "apparel" | "packaging" | "food" | "beauty" | "home" | "electronics" | "services" | "other";
 
 export const LIMITS = {
-  /** Product pages read through the structured-data source. */
-  productPages: 60,
+  /** Product pages read through the structured-data source: a whole catalogue of a few hundred products. */
+  productPages: 400,
+  /** Reading product pages in one go stops after this long; the seller can continue the read. */
+  productPagesMs: 180_000,
+  /** And after this many bytes of product pages. */
+  productPageBytes: 160 * 1024 * 1024,
   /** Every request in one import, including robots.txt and sitemaps. */
-  totalRequests: 90,
+  totalRequests: 480,
+  /** Requests kept back from the product pages for the policy pages and the logo that follow them. */
+  reservedRequests: 16,
   /** Products kept from any source. */
-  products: 120,
+  products: 400,
   bytesPerResponse: 2 * 1024 * 1024,
   /** Pages opened in the browser in one import (home, shop and category pages, next pages, product pages). */
   renderedPages: 24,
