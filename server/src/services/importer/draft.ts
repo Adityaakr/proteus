@@ -442,7 +442,7 @@ export function parseStated(text: string, result: ImportResult): StatedAnswers {
     else if (/\b(yes|we do|we can|accept|welcome|available|offer)\b/.test(lower)) out.customOrders = { accepted: true, note: /\blogos?\b/.test(lower) ? "logo printing" : undefined };
   }
   const categories = [...new Set(result.products.map(categoryOf))];
-  const clauses = text.split(/[;\n]|,(?!\d{3})|(?<!\brs)\.(?:\s|$)|\band\b|\bbut\b/i).map((c) => c.trim()).filter(Boolean);
+  const clauses = text.split(/[;\n]|,(?!\d{3})|(?<!\brs)\.(?:\s|$)|(?<=\brs)\.(?=\s|$)(?!\s*\d)|\band\b|\bbut\b/i).map((c) => c.trim()).filter(Boolean);
   for (const clause of clauses) {
     const c = clause.toLowerCase();
     const target = targetOf(c, categories, result.products);

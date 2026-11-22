@@ -318,6 +318,18 @@ describe("draft", () => {
     }
   });
 
+  it("keeps each sentence's rule separate, even when a sentence ends in 'rs.'", () => {
+    const all = { kind: "all" };
+    const stickers = { kind: "category", name: "Stickers" };
+    const cases: [string, Record<string, unknown>[]][] = [
+      ["Polo floor 900 rs. Stickers no discount.", [{ target: all, floorLocal: "900" }, { target: stickers, maxDiscountPct: "0" }]],
+      ["nothing below 900 Rs. Stickers 10% off", [{ target: all, floorLocal: "900" }, { target: stickers, maxDiscountPct: "10" }]],
+      ["nothing below Rs. 900 on the polo. Stickers 10% off.", [{ target: all, floorLocal: "900" }, { target: stickers, maxDiscountPct: "10" }]],
+      ["Apparel up to 15% off. Nothing below ₹900 on the polo.", [{ target: { kind: "category", name: "Apparel" }, maxDiscountPct: "15" }, { target: all, floorLocal: "900" }]],
+    ];
+    for (const [text, rules] of cases) expect(parseStated(text, catalog).rules, text).toEqual(rules);
+  });
+
   it("reads a floor said as 'nothing below' or 'never below', but not a percent", () => {
     expect(parseStated("nothing below ₹900 on the polo", catalog).rules[0]).toMatchObject({ floorLocal: "900" });
     expect(parseStated("nothing below Rs 900 on the polo", catalog).rules[0]).toMatchObject({ floorLocal: "900" });
