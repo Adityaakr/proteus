@@ -108,7 +108,9 @@ export function composeRuleBased(input: ComposeInput): string {
   // Nothing here fits the stated budget (or nothing is offered): point to the seller's other products, smallest pack first.
   const fits = eligible.filter((o) => !requirements.budget || o.prepaidTotal <= requirements.budget);
   const lastBuyer = (input.turns.filter((t) => t.role === "buyer").at(-1)?.content ?? "").toLowerCase();
-  const asked = (input.catalog?.products ?? []).filter((p) => [p.unitLabel, pluralUnit(p.unitLabel), ...p.name.toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 3 && !GENERIC.has(w))].some((w) => w && new RegExp(`\\b${w.toLowerCase()}`).test(lastBuyer)));
+  // A word that also names this product ("tees" while negotiating a tee) is about this product, not a pointer elsewhere.
+  const own = new Set([unitLabel.toLowerCase(), pluralUnit(unitLabel).toLowerCase(), ...input.productName.toLowerCase().split(/[^a-z]+/)]);
+  const asked = (input.catalog?.products ?? []).filter((p) => [p.unitLabel, pluralUnit(p.unitLabel), ...p.name.toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 3 && !GENERIC.has(w))].some((w) => w && !own.has(w.toLowerCase()) && new RegExp(`\\b${w.toLowerCase()}`).test(lastBuyer)));
   if (asked.length) lines.unshift(`${asked.map((p) => `${p.name} ${p.smallestPack ? `(from ${p.smallestPack}) ` : ""}`).join("and ")}${asked.length > 1 ? "are" : "is"} a separate product from ${input.catalog!.sellerName}. Open it on the seller's page and its agent will make you an offer there.`);
   else if (!fits.length && input.catalog?.products.length) lines.push(`${input.catalog.sellerName} also offers ${input.catalog.products.map((p) => (p.smallestPack ? `${p.name} (from ${p.smallestPack})` : p.name)).join(", ")}. Open any of them on the seller's page to get an offer there.`);
   // Questions the website facts answer: colours and sizes, minimum order, delivery, returns, custom work.

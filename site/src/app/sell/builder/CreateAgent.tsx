@@ -247,7 +247,7 @@ function ProgressList({ view }: { view: BuilderImport }) {
       <ol className={b.steps}>
         {view.progress.map((p, i) => (
           <li key={i} className={b.step}>
-            {p.state === "working" ? <Loader2 size={14} className={b.spin} aria-hidden /> : p.state === "blocked" ? <XCircle size={14} className={b.bad} aria-hidden /> : <Check size={14} className={b.ok} aria-hidden />}
+            {p.state === "working" && running ? <Loader2 size={14} className={b.spin} aria-hidden /> : p.state === "blocked" ? <XCircle size={14} className={b.bad} aria-hidden /> : <Check size={14} className={b.ok} aria-hidden />}
             <span>{p.label}{p.detail ? <span className={b.dim}> · {p.detail}</span> : null}</span>
           </li>
         ))}
@@ -432,8 +432,17 @@ function FloorsQ({ view, busy, err, onSave, setView }: QProps & { view: BuilderI
   const cats = [...new Set(items.map((i) => i.category))];
   const [pct, setPct] = useState<Record<string, string>>(() => Object.fromEntries(cats.map((c) => [c, a.categories[c]?.maxDiscountPct ?? a.defaults.maxDiscountPct ?? "10"])));
   const [exact, setExact] = useState(false);
-  const [floors, setFloors] = useState<Record<string, string>>(() => Object.fromEntries(items.map((i) => [i.key, a.products[i.key]?.floorUsd ?? ""])));
-  const csv = useMutation({ mutationFn: (text: string) => v1.builder.floorsCsv(view.id, text), onSuccess: (r) => setView(r.view) });
+  const saved = (key: string) => a.products[key]?.floorUsd ?? "";
+  const [floors, setFloors] = useState<Record<string, string>>(() => Object.fromEntries(items.map((i) => [i.key, saved(i.key)])));
+  const csv = useMutation({
+    mutationFn: (text: string) => v1.builder.floorsCsv(view.id, text),
+    onSuccess: (r) => {
+      setView(r.view);
+      // Show what the spreadsheet set in the exact-floor table.
+      setFloors(Object.fromEntries(items.map((i) => [i.key, r.view.answers?.products[i.key]?.floorUsd ?? ""])));
+      if (r.applied) setExact(true);
+    },
+  });
   const pctOk = cats.every((c) => /^\d{1,2}(\.\d{1,2})?$/.test((pct[c] ?? "").trim()) && Number(pct[c]) <= 90);
   const floorOk = items.every((i) => !floors[i.key]?.trim() || /^\d+(\.\d{1,4})?$/.test(floors[i.key]!.trim()));
   const example = (c: string) => {
@@ -492,7 +501,7 @@ function FloorsQ({ view, busy, err, onSave, setView }: QProps & { view: BuilderI
       {csv.isError && <Notice tone="danger">{errorMessage(csv.error)}</Notice>}
       {err}
       <div>
-        <ActionButton size="sm" loading={busy} disabled={!pctOk || !floorOk} onClick={() => onSave({ floorsSet: true, categories: Object.fromEntries(cats.map((c) => [c, { maxDiscountPct: pct[c]!.trim() }])), products: Object.fromEntries(items.map((i) => [i.key, { floorUsd: (floors[i.key] ?? "").trim() }])) })}>Save floors</ActionButton>
+        <ActionButton size="sm" loading={busy} disabled={!pctOk || !floorOk} onClick={() => onSave({ floorsSet: true, categories: Object.fromEntries(cats.map((c) => [c, { maxDiscountPct: pct[c]!.trim() }])), products: Object.fromEntries(items.filter((i) => (floors[i.key] ?? "").trim() !== saved(i.key)).map((i) => [i.key, { floorUsd: (floors[i.key] ?? "").trim() }])) })}>Save floors</ActionButton>
       </div>
       <p className={b.fine}>You can change a product's floor at any time later on its <strong>Prices and rules</strong> page.</p>
     </div>

@@ -111,10 +111,15 @@ export async function runInBackground(importId: string, url: string, deps: Parti
         const stem = p.label.replace(/\s*\(.*\)$/, "");
         const prev = progress.findIndex((x) => x.state === "working" && x.label.replace(/\s*\(.*\)$/, "") === stem);
         if (prev >= 0) progress[prev] = p;
-        else progress.push(p);
+        else {
+          // A new step means the earlier ones it followed have finished.
+          for (const x of progress) if (x.state === "working") x.state = "done";
+          progress.push(p);
+        }
         void flush();
       },
     });
+    for (const x of progress) if (x.state === "working") x.state = "done";
     const currencies = result.products.map((p) => p.currency).filter((c): c is string => Boolean(c));
     const main = currencies.sort((a, b) => currencies.filter((x) => x === b).length - currencies.filter((x) => x === a).length)[0];
     const fx = main ? await suggestUsdRate(main) : null;
@@ -342,8 +347,9 @@ export async function floorsCsv(userId: string, importId: string, csv: string) {
   const result = resultOf(row);
   const parsed = parseFloorsCsv(csv, result);
   if (!parsed.applied && parsed.errors.length) throw new HttpError(400, parsed.errors[0]!, { errors: parsed.errors, unmatched: parsed.unmatched });
+  // The floors land in the table; the seller still confirms the question with Save floors.
   const next = applyStated(answersOf(row), { rules: parsed.rules }, result);
-  if (parsed.applied) next.floorsSet = true;
+  next.floorsSet = answersOf(row).floorsSet;
   const now = new Date().toISOString();
   const transcript = [...(row.transcript as TranscriptLine[]), { at: now, role: "agent" as const, text: `Read your spreadsheet: rules for ${parsed.applied} product${parsed.applied === 1 ? "" : "s"}${parsed.unmatched.length ? `; ${parsed.unmatched.length} rows did not match a product` : ""}${parsed.errors.length ? `; ${parsed.errors.length} values were not valid` : ""}.` }].slice(-60);
   await saveAnswers(row, next, transcript);

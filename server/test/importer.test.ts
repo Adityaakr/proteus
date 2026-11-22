@@ -211,3 +211,52 @@ describe("draft", () => {
     expect(buildDraft(catalog, answers).items.find((i) => i.key === "p_tee")!.issues).toContain("the bulk price is below the floor");
   });
 });
+
+describe("bulk and floor at the same percent", () => {
+  it("never puts the bulk tier a cent below the floor", () => {
+    for (const [price, rate] of [["1050", "92.68"], ["1599", "92.68"], ["999", "83.3"], ["7", "92.68"]] as const) {
+      const cat = { ...catalog, products: [{ ...catalog.products[0]!, price }] };
+      const a = applyStated({ ...emptyAnswers(), businessName: "Acme", businessType: "merch", include: { p_tee: true } }, parseStated(`rate ${rate}; apparel up to 10% off; 50+ at 10% off`, cat), cat);
+      const tee = buildDraft(cat, a).items[0]!;
+      expect(tee.issues, `${price} at ${rate}`).toEqual([]);
+      expect(tee.bulk!.priceUsd >= tee.floorUsd!).toBe(true);
+    }
+  });
+});
+
+describe("the agent answers from imported website facts", () => {
+  it("lists colours and order notes, and does not send a tee buyer to another tee product", async () => {
+    const { composeRuleBased } = await import("../src/agent/rule-based");
+    const reply = composeRuleBased({
+      productName: "Heavyweight T-Shirt",
+      unitLabel: "tee",
+      requirements: { integrations: [], notes: [], openQuestions: [] },
+      offers: [],
+      rejected: [],
+      injectionDetected: false,
+      turns: [{ role: "buyer", content: "Which colours do you have? We need 60 tees, minimum order?" }],
+      facts: { termDays: 30, refundPolicy: "r", billableUnit: "b", supportedIntegrations: [], capabilities: [], knowledge: { options: [{ name: "Colour", values: ["Black", "Sage Green"] }], variants: [], notes: ["Minimum order 10 tees."], policies: [] } },
+      catalog: { sellerName: "Acme", products: [{ name: "Bamboo V-Neck Tee", unitLabel: "tee", detail: "Bamboo V-Neck Tee", smallestPack: "10 tees for $129.50" }] },
+    });
+    expect(reply).toContain("Colour: Black, Sage Green.");
+    expect(reply).toContain("Minimum order 10 tees.");
+    expect(reply).not.toContain("separate product");
+  });
+});
+
+describe("a Shopify store", () => {
+  it("reads products.json with variants, options and the theme's currency", async () => {
+    const products = [{ title: "Logo Hoodie", handle: "logo-hoodie", body_html: "<p>Heavy fleece. <b>Minimum order 20 pieces.</b></p>", product_type: "Apparel", images: [{ src: "https://cdn.shopify.com/h.png" }], options: [{ name: "Size", values: ["S", "M", "L"] }], variants: [{ title: "S", price: "2499.00", sku: "H-S", available: true }, { title: "M", price: "2299.00", sku: "H-M", available: false }] }];
+    const site = fakeSite({
+      "/robots.txt": { body: "User-agent: *\nDisallow: /cart", type: "text/plain" },
+      "/": { body: `<html><head><meta property="og:site_name" content="Hood Co"><script>Shopify.theme = {}; Shopify.currency = {"active":"INR","rate":"1.0"};</script></head><body>cdn.shopify.com</body></html>` },
+      "/products.json?limit=250&page=1": { body: JSON.stringify({ products }), type: "application/json" },
+    });
+    const r = await runImport("hood.example", { fetch: site.fetch, delayMs: 0 });
+    expect(r.sources.find((s) => s.source === "shopify")?.status).toBe("used");
+    expect(r.products).toHaveLength(1);
+    expect(r.products[0]).toMatchObject({ name: "Logo Hoodie", price: "2299.00", currency: "INR", category: "Apparel", url: "https://hood.example/products/logo-hoodie", available: true });
+    expect(r.products[0]!.options).toEqual([{ name: "Size", values: ["S", "M", "L"] }]);
+    expect(r.products[0]!.hints).toEqual(["Minimum order 20 pieces."]);
+  });
+});

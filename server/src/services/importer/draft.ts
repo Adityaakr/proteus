@@ -101,6 +101,12 @@ export function roundPrice(m: Micro): Micro {
   return ((m + step / 2n) / step) * step;
 }
 
+/** Rounded up to the same step, for prices that must never fall below an exact limit (a bulk price against the floor). */
+export function roundPriceUp(m: Micro): Micro {
+  const step = m >= MICRO ? 10_000n : 100n;
+  return ((m + step - 1n) / step) * step;
+}
+
 /** The floor for a percent off list, rounded up so it is never below what the seller said. */
 export const floorFromPct = (list: Micro, bps: bigint): Micro => (list * (10_000n - bps) + 9_999n) / 10_000n;
 
@@ -192,7 +198,7 @@ export function buildDraft(result: ImportResult, a: BuilderAnswers, takenSlugs: 
       if (min <= moq) issues.push(`bulk needs more than the minimum order of ${moq}`);
       else if (bps === undefined || bps === 0n) issues.push("the bulk discount must be a percent from 1 to 90");
       else {
-        const priceUsd = roundPrice((listUsd * (10_000n - bps)) / 10_000n);
+        const priceUsd = roundPriceUp((listUsd * (10_000n - bps) + 9_999n) / 10_000n);
         if (floorUsd !== undefined && priceUsd < floorUsd) issues.push("the bulk price is below the floor");
         bulk = { minUnits: min, priceUsd };
       }
