@@ -7,7 +7,7 @@
  */
 import { fromMicro, pluralUnit, toMicro, type CostModel, type Micro, type Policy, type Product } from "@proteus/domain";
 import type { ProductCreateInput } from "../accounts";
-import { CHECK_SOURCES, type BusinessType, type ImportResult, type ImportedProduct } from "./types";
+import { CHECK_SOURCES, LIMITS, type BusinessType, type ImportResult, type ImportedProduct } from "./types";
 
 /** Per product, per category or store-wide rules. Every value is a decimal string as the seller typed it. */
 export interface PriceRule {
@@ -75,7 +75,8 @@ export interface Draft {
 
 export type Question = "business" | "rate" | "products" | "prices" | "floors" | "bulk" | "custom";
 
-export const MAX_PUBLISH = 40;
+/** A whole imported catalogue can go live in one publish. */
+export const MAX_PUBLISH: number = LIMITS.products;
 
 /* ---------------------------------------------------------------- money */
 
@@ -123,7 +124,8 @@ const UNIT_WORDS: [RegExp, string][] = [
   [/\bpolos?\b/i, "polo"],
   [/\bhoodies?\b/i, "hoodie"],
   [/\bsweatshirts?\b/i, "sweatshirt"],
-  [/\b(caps?|hats?)\b/i, "cap"],
+  [/\bcaps?\b/i, "cap"],
+  [/\bhats?\b/i, "hat"],
   [/\bmugs?\b/i, "mug"],
   [/\b(bottles?|flasks?|tumblers?)\b/i, "bottle"],
   [/\bstickers?\b/i, "sticker"],
@@ -145,9 +147,18 @@ const UNIT_WORDS: [RegExp, string][] = [
   [/\b(posters?|prints?)\b/i, "print"],
 ];
 
-/** The unit a buyer counts in, from the product's name ("Logo Hoodie" → hoodie), else its description (a soap → bar). */
+/**
+ * The unit a buyer counts in, from the product's name ("Logo Hoodie" → hoodie), else its description (a soap → bar).
+ * The word furthest along the name wins, since that names the product: "Loop Cap Bottle" is a bottle, not a cap.
+ */
 export function unitLabelFor(name: string, description?: string): string {
-  return UNIT_WORDS.find(([re]) => re.test(name))?.[1] ?? (description && /\bsoaps?\b/i.test(description) ? "bar" : undefined) ?? "piece";
+  let best: { at: number; unit: string } | undefined;
+  for (const [re, unit] of UNIT_WORDS) {
+    const all = [...name.matchAll(new RegExp(re.source, "gi"))];
+    const at = all.length ? all.at(-1)!.index! : -1;
+    if (at >= 0 && (!best || at > best.at)) best = { at, unit };
+  }
+  return best?.unit ?? (description && /\bsoaps?\b/i.test(description) ? "bar" : undefined) ?? "piece";
 }
 
 export function slugify(s: string): string {
@@ -428,6 +439,12 @@ function floorCurrency(...markers: (string | undefined)[]): "local" | "usd" {
 }
 
 /**
+ * A conversion rate the seller stated: "rate is 92.5", "1 usd = 83", "usd = ₹84". Not "rate" inside another word
+ * ("corporate 10"), not a bulk, discount or tier rate, and not a number that is a percent or a quantity ("100+").
+ */
+const RATE = new RegExp(String.raw`(?:(?<!\b(?:bulk|discount|tier)\s+)(?<![\w-])rate(?: is| of)?|1\s*(?:usd|\$|dollar)\s*=|usd\s*=)\s*(?:₹|rs\.?|inr)?\s*${NUM}(?!\d|\.\d|\s*(?:%|\+|percent\b))`, "i");
+
+/**
  * Rules from plain words, without a model: "apparel 15% off", "stickers no discount", "100+ at 10% off",
  * "minimum order 25", "rate 92.5", "floor for the NFC card is 9.50", "skip packaging", "we do custom logos".
  * Every number comes from the seller's own text.
@@ -435,7 +452,7 @@ function floorCurrency(...markers: (string | undefined)[]): "local" | "usd" {
 export function parseStated(text: string, result: ImportResult): StatedAnswers {
   const out: StatedAnswers = { rules: [] };
   const lower = text.toLowerCase();
-  const rate = new RegExp(String.raw`(?:rate(?: is| of)?|1\s*(?:usd|\$|dollar)\s*=|usd\s*=)\s*(?:₹|rs\.?|inr)?\s*${NUM}`, "i").exec(lower);
+  const rate = RATE.exec(lower);
   if (rate) out.usdRate = rate[1];
   if (/\b(custom|logo|branding|print(ing)?)\b/.test(lower)) {
     if (/\b(no|not|don'?t|do not|never)\b[^.]{0,30}\b(custom|logo|branding|print)/.test(lower)) out.customOrders = { accepted: false };

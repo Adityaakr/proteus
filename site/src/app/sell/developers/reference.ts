@@ -191,6 +191,7 @@ export const WEBHOOK_EVENTS_REFERENCE: { event: string; title: string; data: str
   { event: "approval_required", title: "An offer needs your approval", data: "product, tier, units, amountUsdc, link" },
   { event: "order_details", title: "A buyer sent order details", data: "deal, product, link" },
   { event: "whatsapp_human", title: "A WhatsApp buyer asked for a person", data: "channel, link" },
+  { event: "custom_request", title: "A buyer sent a custom request", data: "product, link" },
 ];
 
 export interface ApiParam {

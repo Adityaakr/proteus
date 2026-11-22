@@ -5,7 +5,7 @@
 import { Hono } from "hono";
 import { json } from "../lib/http";
 import { auth, requireAuth } from "./auth";
-import { floorsCsv, importView, latestImport, publishImport, sellerMessage, startImport, testNegotiation, updateAnswers } from "../services/importer/service";
+import { continueImport, floorsCsv, importView, latestImport, publishImport, sellerMessage, startImport, testNegotiation, updateAnswers } from "../services/importer/service";
 
 export const builderRoutes = new Hono();
 
@@ -16,6 +16,8 @@ const body = async (c: { req: { json: () => Promise<unknown> } }) => ((await c.r
 builderRoutes.post("/builder/imports", async (c) => json(c, await startImport(auth(c).userId, String((await body(c)).url ?? "")), 201));
 builderRoutes.get("/builder/imports/latest", async (c) => json(c, await latestImport(auth(c).userId)));
 builderRoutes.get("/builder/imports/:id", async (c) => json(c, await importView(auth(c).userId, c.req.param("id"))));
+/** Reads the product pages a budget left unread, from where the read stopped. */
+builderRoutes.post("/builder/imports/:id/continue", async (c) => json(c, await continueImport(auth(c).userId, c.req.param("id"))));
 builderRoutes.patch("/builder/imports/:id/answers", async (c) => json(c, await updateAnswers(auth(c).userId, c.req.param("id"), await body(c))));
 builderRoutes.post("/builder/imports/:id/messages", async (c) => json(c, await sellerMessage(auth(c).userId, c.req.param("id"), String((await body(c)).text ?? ""))));
 builderRoutes.post("/builder/imports/:id/floors", async (c) => json(c, await floorsCsv(auth(c).userId, c.req.param("id"), String((await body(c)).csv ?? ""))));

@@ -8,7 +8,7 @@ import { evaluateCounteroffer, getQuoteCandidates, toMicro, toPublicCandidate } 
 import { parseRobots } from "../src/services/importer/robots";
 import { cleanText, jsonLdObjects, normPrice, numbersIn, productsFromJsonLd } from "../src/services/importer/html";
 import { BlockedUrlError, checkPublicHttpsUrl, isPrivateAddress, safeFetch, type SafeResponse } from "../src/lib/net-guard";
-import { runImport, looksLikeInstructions } from "../src/services/importer/run";
+import { continueImport, runImport, looksLikeInstructions } from "../src/services/importer/run";
 import { verifyAgainstText } from "../src/services/importer/sources";
 import { applyStated, buildDraft, convert, emptyAnswers, engineFor, parseFloorsCsv, parseStated, toCreateInput, usdString } from "../src/services/importer/draft";
 import type { ImportResult } from "../src/services/importer/types";
@@ -116,6 +116,80 @@ describe("a whole import against a fake site", () => {
     const none = fakeSite({});
     await expect(runImport("https://192.168.0.10/", { fetch: none.fetch, delayMs: 0 })).rejects.toThrow(BlockedUrlError);
     expect(none.fetched).toEqual([]);
+  });
+});
+
+describe("a whole catalogue of about 200 product pages (shoonyastore.com had caps on page 150)", () => {
+  // 200 product pages; the caps are far past the first 60, where the read used to stop.
+  const names = Array.from({ length: 200 }, (_, i) => (i === 149 ? "Shoonya Cap" : i === 180 ? "Bucket Hat" : `Unbranded Sweatshirt ${i + 1}`));
+  const pages: Record<string, { body: string; type?: string }> = {
+    "/robots.txt": { body: "User-agent: *\nAllow: /\nSitemap: https://shoonya.example/sitemap.xml", type: "text/plain" },
+    "/": { body: `<html><head><title>Shoonya Store</title><meta property="og:site_name" content="Shoonya Store"></head><body><p>Apparel and merch for teams, printed in Bengaluru.</p></body></html>` },
+    "/sitemap.xml": { type: "application/xml", body: `<urlset>${names.map((_, i) => `<url><loc>https://shoonya.example/products/item-${i + 1}</loc></url>`).join("")}</urlset>` },
+  };
+  names.forEach((n, i) => (pages[`/products/item-${i + 1}`] = { body: productPage(n, String(300 + i)) }));
+  const site = () => fakeSite(pages);
+
+  it("reads every product page, with progress against the whole list, and finds the caps", async () => {
+    const s = site();
+    const progress: string[] = [];
+    const r = await runImport("shoonya.example", { fetch: s.fetch, delayMs: 0, onProgress: (p) => progress.push(p.label) });
+    expect(r.products).toHaveLength(200);
+    expect(r.products.some((p) => p.name === "Shoonya Cap")).toBe(true);
+    expect(r.unread).toBeUndefined();
+    expect(r.limited).toBeUndefined();
+    expect(progress).toContain("Reading product pages (140 of 200)");
+    expect(progress).toContain("Read all 200 product pages");
+    expect(r.sources.find((x) => x.source === "json-ld")!.detail).toMatch(/^read all 200 product pages: 200 carry product data/);
+  });
+
+  it("when a budget stops the read it says how many were not read, and continuing reads exactly the rest", async () => {
+    const s = site();
+    const progress: string[] = [];
+    const r = await runImport("shoonya.example", { fetch: s.fetch, delayMs: 0, pageBudget: { pages: 140 }, onProgress: (p) => progress.push(p.label) });
+    expect(r.products).toHaveLength(140);
+    expect(r.products.some((p) => p.name === "Shoonya Cap")).toBe(false);
+    expect(r.unread).toMatchObject({ total: 200, stoppedBy: "the limit of 140 pages in one read" });
+    expect(r.unread!.urls).toHaveLength(60);
+    expect(r.limited).toBe("stopped at the limit of 140 pages in one read after reading 140 of 200 product pages; 60 were not read");
+    expect(progress).toContain("Read 140 of 200 product pages; 60 not read yet (stopped at the limit of 140 pages in one read)");
+
+    const more: string[] = [];
+    const before = s.fetched.length;
+    const c = await continueImport(r, { fetch: s.fetch, delayMs: 0, onProgress: (p) => more.push(p.label) });
+    const fetchedNow = s.fetched.slice(before).filter((u) => u.includes("/products/item-"));
+    expect(fetchedNow).toHaveLength(60);
+    expect(fetchedNow[0]).toBe("https://shoonya.example/products/item-141");
+    expect(c.products).toHaveLength(200);
+    expect(c.products.filter((p) => p.name === "Shoonya Cap")).toHaveLength(1);
+    expect(c.unread).toBeUndefined();
+    expect(c.limited).toBeUndefined();
+    expect(more).toContain("Reading product pages (150 of 200)");
+    expect(more).toContain("Read all 200 product pages");
+    expect(c.sources.at(-1)!.detail).toBe("continued: read all 200 product pages: 60 carry product data, 60 more products");
+  });
+
+  it("a time budget stops the read too, and a second continue picks up where the first stopped", async () => {
+    const s = site();
+    // A slow site: each page takes a few milliseconds, and the read may take 40.
+    const slow: typeof s.fetch = async (url) => {
+      if (url.includes("/products/item-")) await new Promise((r) => setTimeout(r, 4));
+      return s.fetch(url);
+    };
+    const r = await runImport("shoonya.example", { fetch: slow, delayMs: 0, pageBudget: { ms: 40 } });
+    expect(r.unread).toMatchObject({ total: 200, stoppedBy: "the time limit" });
+    const read = 200 - r.unread!.urls.length;
+    expect(read).toBeGreaterThan(0);
+    expect(read).toBeLessThan(120);
+    expect(r.products).toHaveLength(read);
+    const c1 = await continueImport(r, { fetch: s.fetch, delayMs: 0, pageBudget: { pages: 120 - read } });
+    expect(c1.products).toHaveLength(120);
+    expect(c1.unread!.urls[0]).toBe("https://shoonya.example/products/item-121");
+    expect(c1.limited).toMatch(/after reading 120 of 200 product pages; 80 were not read/);
+    const c2 = await continueImport(c1, { fetch: s.fetch, delayMs: 0 });
+    expect(c2.products.map((p) => p.name)).toEqual(expect.arrayContaining(["Shoonya Cap", "Bucket Hat"]));
+    expect(c2.products).toHaveLength(200);
+    expect(c2.unread).toBeUndefined();
   });
 });
 
@@ -242,6 +316,26 @@ describe("draft", () => {
     expect(a.defaults).toMatchObject({ bulkMinUnits: "100", bulkDiscountPct: "10", moq: "25" });
     expect(a.include.p_box).toBe(false);
     expect(a.floorsSet && a.bulkAnswered).toBe(true);
+  });
+
+  it.each([
+    ["Rate 92.68.", "92.68"],
+    ["rate is 92.5", "92.5"],
+    ["conversion rate of 83", "83"],
+    ["1 usd = 83.2", "83.2"],
+    ["usd = ₹84", "84"],
+    ["rate of rs. 85", "85"],
+    ["rate is 83, bulk rate 100+ at 10% off", "83"],
+    ["bulk rate 100+ at 10% off", undefined],
+    ["discount rate of 15%", undefined],
+    ["tier rate 50 for stickers", undefined],
+    ["rate 15% off for 100+", undefined],
+    ["rate 100+ at 10% off", undefined],
+    ["corporate 10 percent off", undefined],
+    ["first-rate 200 pieces minimum", undefined],
+    ["rate 20 percent off", undefined],
+  ])("reads a stated conversion rate only when it is one: %s → %s", (text, rate) => {
+    expect(parseStated(text, catalog).usdRate).toBe(rate);
   });
 
   it("reads floors from a spreadsheet", () => {

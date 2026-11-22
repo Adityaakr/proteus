@@ -2,13 +2,14 @@
  * One import: read robots.txt, the homepage and the catalog through the source chain, then the brand, the store
  * policies and order hints. Scraped text that reads like instructions to an AI is dropped and counted, never passed on.
  */
+import { nameColours } from "../../lib/colours";
 import { BlockedUrlError, checkPublicHttpsUrl } from "../../lib/net-guard";
 import type { PageRenderer } from "./browser";
 import { browserSource, elsewhereOf, type BrowserReadResult } from "./browser-source";
 import { cleanText, faqHints, hintsFrom, jsonLdObjects, linksOf, metaTags, socialLinks, titleOf, typeIs, visibleText } from "./html";
 import { inlineLogo, logoCandidates } from "./logo";
 import { SiteFetcher, type RawFetch } from "./site-fetcher";
-import { pageTextSource, PRODUCT_PATH, shopifySource, structuredSource, wooSource, type PageExtractor, type RenderedPages } from "./sources";
+import { pageReadDetail, pageTextSource, PRODUCT_PATH, readProductPages, shopifySource, structuredSource, wooSource, type PageBudget, type PageExtractor, type RenderedPages } from "./sources";
 import { LIMITS, type BusinessType, type ImportProgress, type ImportResult, type ImportedBrand, type ImportedPolicy, type ImportedProduct, type SourceReport } from "./types";
 
 export interface ImportDeps {
@@ -19,6 +20,25 @@ export interface ImportDeps {
   renderer?: PageRenderer;
   onProgress?: (p: ImportProgress) => void;
   delayMs?: number;
+  /** Smaller product-page budgets, for tests. */
+  pageBudget?: Partial<PageBudget>;
+}
+
+/** Progress while product pages are read: one line, replaced as it advances ("Reading product pages (140 of 200)"). */
+function pageProgress(progress: (label: string, state?: ImportProgress["state"]) => void) {
+  return (n: number, of: number) => {
+    if (n === 1 || n % 10 === 0 || n === of) progress(`Reading product pages (${n} of ${of})`, "working");
+  };
+}
+
+/** "Read all 200 product pages", or how many were read and how many are left. */
+function pagesLine(total: number, unread: number, stoppedBy?: string): string {
+  return unread ? `Read ${total - unread} of ${total} product pages; ${unread} not read yet${stoppedBy ? ` (stopped at ${stoppedBy})` : ""}` : `Read all ${total} product pages`;
+}
+
+function unreadOf(urls: string[], total: number, stoppedBy?: string): Pick<ImportResult, "unread" | "limited"> {
+  if (!urls.length) return {};
+  return { unread: { urls, total, ...(stoppedBy ? { stoppedBy } : {}) }, limited: `stopped${stoppedBy ? ` at ${stoppedBy}` : ""} after reading ${total - urls.length} of ${total} product pages; ${urls.length} were not read` };
 }
 
 /** "shoonyastore.com", "http://shop.example.com/x" → an https URL. Throws BlockedUrlError for anything else. */
@@ -119,6 +139,7 @@ export async function runImport(input: string, deps: ImportDeps): Promise<Import
 
   let products: ImportedProduct[] = [];
   let siteUrls: string[] = [];
+  let unread: Pick<ImportResult, "unread" | "limited"> = {};
   const tryPlatform = async (run: () => Promise<{ products: ImportedProduct[]; report: SourceReport }>) => {
     const out = await run();
     sources.push(out.report);
@@ -132,11 +153,11 @@ export async function runImport(input: string, deps: ImportDeps): Promise<Import
 
   progress("Looking for a store catalog", "working");
   if (!(await tryPlatform(() => shopifySource(site, homepage))) && !(await tryPlatform(() => wooSource(site, homepage)))) {
-    const s = await structuredSource(site, homepage, homeUrl, (n, of) => {
-      if (n === 1 || n % 10 === 0 || n === of) progress(`Reading product pages (${n} of ${of})`, n === of ? "done" : "working");
-    });
+    const s = await structuredSource(site, homepage, homeUrl, pageProgress(progress), deps.pageBudget);
     sources.push(s.sitemap, s.report);
     siteUrls = s.siteUrls;
+    if (s.total) progress(pagesLine(s.total, s.unread.length, s.stoppedBy), "done");
+    if (s.products.length) unread = unreadOf(s.unread, s.total, s.stoppedBy);
     if (s.products.length) products = s.products;
     else {
       if (deps.renderer) {
@@ -195,21 +216,9 @@ export async function runImport(input: string, deps: ImportDeps): Promise<Import
   sources.push({ source: "policies", status: policies.length ? "used" : "not-found", detail: policies.length ? `read ${policies.map((p) => p.kind).join(", ")}` : "no policy pages linked from the homepage" });
 
   // Untrusted text: drop anything that reads like instructions to an AI.
-  let screened = 0;
-  for (const p of products) {
-    if (looksLikeInstructions(p.description)) {
-      p.description = undefined;
-      screened++;
-    }
-    const keep = p.hints.filter((h) => !looksLikeInstructions(h));
-    screened += p.hints.length - keep.length;
-    p.hints = keep;
-  }
-  products = products.filter((p) => {
-    if (!looksLikeInstructions(p.name)) return true;
-    screened++;
-    return false;
-  });
+  const screen = screenProducts(products);
+  products = screen.products;
+  let screened = screen.screened;
   if (brand.description && looksLikeInstructions(brand.description)) {
     brand.description = undefined;
     screened++;
@@ -235,6 +244,65 @@ export async function runImport(input: string, deps: ImportDeps): Promise<Import
     pagesFetched: site.requests + (viewed?.rendered ?? 0),
     ...(elsewhere.length ? { elsewhere: elsewhere.filter((e) => !looksLikeInstructions(e.label)).slice(0, 5) } : {}),
     ...(viewed?.rendered ? { browser: { engine: viewed.engine, pages: viewed.rendered } } : {}),
-    ...(site.budgetLeft <= 0 ? { limited: `stopped after ${site.requests} requests` } : products.length >= LIMITS.products ? { limited: `kept the first ${LIMITS.products} products` } : {}),
+    ...(unread.unread ? unread : site.budgetLeft <= 0 ? { limited: `stopped after ${site.requests} requests` } : products.length >= LIMITS.products ? { limited: `kept the first ${LIMITS.products} products` } : {}),
+  };
+}
+
+/**
+ * Drops scraped text that reads like instructions to an AI: a description or hint is cleared, a product so named is
+ * left out. Colour swatch codes in options and variants become colour names ("#273a6b" → navy).
+ */
+function screenProducts(products: ImportedProduct[]): { products: ImportedProduct[]; screened: number } {
+  let screened = 0;
+  for (const p of products) {
+    Object.assign(p, nameColours(p));
+    if (looksLikeInstructions(p.description)) {
+      p.description = undefined;
+      screened++;
+    }
+    const keep = p.hints.filter((h) => !looksLikeInstructions(h));
+    screened += p.hints.length - keep.length;
+    p.hints = keep;
+  }
+  const kept = products.filter((p) => {
+    if (!looksLikeInstructions(p.name)) return true;
+    screened++;
+    return false;
+  });
+  return { products: kept, screened };
+}
+
+/**
+ * Continues a read that a budget stopped: the product pages in `prior.unread`, from where it stopped, with fresh
+ * budgets, robots.txt read again. The new products join the earlier ones (deduplicated, capped) and the rest, if a
+ * budget stops this read too, stays in `unread` for another round.
+ */
+export async function continueImport(prior: ImportResult, deps: ImportDeps): Promise<ImportResult> {
+  const left = prior.unread;
+  if (!left?.urls.length) return prior;
+  const progress = (label: string, state: ImportProgress["state"] = "done", detail?: string) => deps.onProgress?.({ at: new Date().toISOString(), label, state, detail });
+  const site = new SiteFetcher(normalizeSiteUrl(prior.site.url), deps.fetch, { delayMs: deps.delayMs });
+  const robots = await site.loadRobots();
+  if (robots.status === "blocked") throw new Error(`${prior.site.host} cannot be read now: ${robots.detail}`);
+  const done = left.total - left.urls.length;
+  progress(`Reading the other ${left.urls.length} product pages`, "working");
+  const r = await readProductPages(site, left.urls, { onPage: pageProgress(progress), budget: deps.pageBudget, have: prior.products.length, total: left.total });
+  const screen = screenProducts(r.products);
+  const products = dedupe([...prior.products, ...screen.products]).slice(0, LIMITS.products);
+  const added = products.length - prior.products.length;
+  progress(pagesLine(left.total, r.unread.length, r.stoppedBy), "done", `${added} more product${added === 1 ? "" : "s"}`);
+  const { unread: _u, limited: _l, ...rest } = prior;
+  const priced = products.filter((p) => p.price).length;
+  progress(`Found ${products.length} products${priced < products.length ? `, ${priced} with a price` : ""}`, "done");
+  return {
+    ...rest,
+    products,
+    sources: [
+      ...prior.sources,
+      { source: "json-ld", status: added ? "used" : "not-found", detail: `continued: ${pageReadDetail(r, left.total, done)}${added ? `, ${added} more products` : ""}`, products: added },
+      ...(screen.screened ? [{ source: "policies" as const, status: "blocked" as const, detail: `${screen.screened} more piece${screen.screened > 1 ? "s" : ""} of text read like instructions to an AI and ${screen.screened > 1 ? "were" : "was"} left out` }] : []),
+    ],
+    pagesFetched: prior.pagesFetched + site.requests,
+    ...(r.unread.length ? unreadOf(r.unread, left.total, r.stoppedBy) : products.length >= LIMITS.products ? { limited: `kept the first ${LIMITS.products} products` } : {}),
   };
 }

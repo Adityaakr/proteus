@@ -146,39 +146,89 @@ async function productUrls(site: SiteFetcher, homepage: string): Promise<{ urls:
   return { urls, all: found, report: { source: "sitemap", status: urls.length ? "used" : "not-found", detail } };
 }
 
-export async function structuredSource(site: SiteFetcher, homepage: string, homeUrl: string, onPage?: (n: number, of: number) => void): Promise<SourceOutcome & { sitemap: SourceReport; siteUrls: string[] }> {
-  const fromHome = productsFromJsonLd(jsonLdObjects(homepage), homeUrl);
-  const { urls, all, report: sitemap } = await productUrls(site, homepage);
-  const products: ImportedProduct[] = [...fromHome];
-  const pages: { url: string; html: string }[] = [];
-  const take = urls.slice(0, LIMITS.productPages);
+/** How far one read of product pages may go. The defaults are LIMITS; tests pass smaller ones. */
+export interface PageBudget {
+  pages: number;
+  ms: number;
+  bytes: number;
+}
+const DEFAULT_BUDGET: PageBudget = { pages: LIMITS.productPages, ms: LIMITS.productPagesMs, bytes: LIMITS.productPageBytes };
+
+export interface PageRead {
+  products: ImportedProduct[];
+  /** Pages opened (read or not readable); `unread` holds the rest, in order. */
+  read: number;
+  withData: number;
+  skipped: number;
+  unread: string[];
+  /** Why the read stopped before the end of the list, in words for the seller ("the time limit"). */
+  stoppedBy?: string;
+}
+
+/**
+ * Reads product pages in order until the list ends or a budget runs out (pages, time, bytes, the site's request
+ * budget less what the policy pages need, or the product cap). What it did not reach is returned as `unread`, so the
+ * read can continue later from exactly there. `onPage(n, of)` reports progress against the whole list.
+ */
+export async function readProductPages(site: SiteFetcher, urls: string[], opts: { onPage?: (n: number, of: number) => void; budget?: Partial<PageBudget>; have?: number; total?: number } = {}): Promise<PageRead> {
+  const budget = { ...DEFAULT_BUDGET, ...opts.budget };
+  const offset = (opts.total ?? urls.length) - urls.length;
+  const of = opts.total ?? urls.length;
+  const started = Date.now();
+  const products: ImportedProduct[] = [];
+  let bytes = 0;
   let withData = 0;
   let skipped = 0;
-  for (let i = 0; i < take.length; i++) {
-    onPage?.(i + 1, take.length);
-    const { res } = await site.get(take[i]!);
+  let i = 0;
+  let stoppedBy: string | undefined;
+  for (; i < urls.length; i++) {
+    stoppedBy =
+      i >= budget.pages ? `the limit of ${budget.pages} pages in one read`
+      : Date.now() - started >= budget.ms ? "the time limit"
+      : bytes >= budget.bytes ? "the size limit"
+      : site.budgetLeft <= LIMITS.reservedRequests ? "the request limit"
+      : (opts.have ?? 0) + products.length >= LIMITS.products ? `the limit of ${LIMITS.products} products`
+      : undefined;
+    if (stoppedBy) break;
+    opts.onPage?.(offset + i + 1, of);
+    const { res } = await site.get(urls[i]!);
     if (!res || res.status !== 200 || !/html/i.test(res.contentType)) {
       skipped++;
       continue;
     }
-    pages.push({ url: res.url, html: res.body });
+    bytes += res.body.length;
     const found = productsFromJsonLd(jsonLdObjects(res.body), res.url);
     const one = found.length ? found : [productFromMeta(res.body, res.url)].filter((p): p is ImportedProduct => Boolean(p));
     if (one.length) withData++;
     for (const p of one) p.hints = p.description ? hintsFrom(p.description, 3) : [];
     products.push(...one);
-    if (products.length >= LIMITS.products) break;
   }
-  const more = urls.length > take.length ? ` (the first ${take.length} of ${urls.length})` : "";
+  return { products, read: i, withData, skipped, unread: urls.slice(i), ...(stoppedBy ? { stoppedBy } : {}) };
+}
+
+/** "read 140 of 200 product pages (stopped at the time limit): 138 carry product data". */
+export function pageReadDetail(r: PageRead, total: number, prior = 0): string {
+  const done = prior + r.read;
+  const head = done < total ? `read ${done} of ${total} product pages${r.stoppedBy ? ` (stopped at ${r.stoppedBy})` : ""}` : `read all ${total} product pages`;
+  return `${head}: ${r.withData} carry product data${r.skipped ? `, ${r.skipped} could not be read` : ""}`;
+}
+
+export async function structuredSource(site: SiteFetcher, homepage: string, homeUrl: string, onPage?: (n: number, of: number) => void, budget?: Partial<PageBudget>): Promise<SourceOutcome & { sitemap: SourceReport; siteUrls: string[]; unread: string[]; total: number; stoppedBy?: string }> {
+  const fromHome = productsFromJsonLd(jsonLdObjects(homepage), homeUrl);
+  const { urls, all, report: sitemap } = await productUrls(site, homepage);
+  const r = await readProductPages(site, urls, { onPage, budget, have: fromHome.length });
+  const products: ImportedProduct[] = [...fromHome, ...r.products];
   return {
     products,
-    pages,
     sitemap,
     siteUrls: all,
+    unread: r.unread,
+    total: urls.length,
+    ...(r.stoppedBy ? { stoppedBy: r.stoppedBy } : {}),
     report: {
       source: "json-ld",
-      status: products.length ? "used" : take.length ? "not-found" : "skipped",
-      detail: take.length ? `read ${take.length} product pages${more}: ${withData} carry product data${skipped ? `, ${skipped} could not be read` : ""}` : "no product pages to read",
+      status: products.length ? "used" : urls.length ? "not-found" : "skipped",
+      detail: urls.length ? pageReadDetail(r, urls.length) : "no product pages to read",
       products: products.length,
     },
   };

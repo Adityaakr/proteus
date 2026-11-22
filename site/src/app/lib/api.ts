@@ -323,6 +323,7 @@ export const api = {
     floorsCsv: (id: string, csv: string) => request<{ applied: number; unmatched: string[]; errors: string[]; view: B.BuilderImport }>("POST", `/builder/imports/${enc(id)}/floors`, { body: { csv } }),
     test: (id: string, body: { productKey?: string; message?: string; counterUsd?: string } = {}) => request<B.TestNegotiation>("POST", `/builder/imports/${enc(id)}/test`, { body }),
     publish: (id: string) => request<B.BuilderImport>("POST", `/builder/imports/${enc(id)}/publish`, { body: { confirm: true } }),
+    continue: (id: string) => request<B.BuilderImport>("POST", `/builder/imports/${enc(id)}/continue`, { body: {} }),
   },
   /** Removes a seller account that was never used and is not on Arc (published from the wrong wallet). */
   discardOrg: () => request<{ discarded: string }>("DELETE", "/app/org"),

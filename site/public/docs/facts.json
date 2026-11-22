@@ -1049,6 +1049,11 @@
           "event": "whatsapp_human",
           "title": "A WhatsApp buyer asked for a person",
           "data": "channel, link"
+        },
+        {
+          "event": "custom_request",
+          "title": "A buyer sent a custom request",
+          "data": "product, link"
         }
       ],
       "delivery": "https only, public addresses only, no redirects, 5 s timeout, any 2xx is success; up to 5 attempts; deduplicate on id; last 50 attempts in the delivery log"

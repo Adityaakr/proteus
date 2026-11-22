@@ -516,11 +516,11 @@ Sell → Create deal agent. Paste your website and the builder reads your catalo
 
 - **The floor is code.** Your floor is stored as the product's lowest price per unit, and the engine refuses any offer, tier or counter below units × floor (the Floor price rule in [How offers are priced](https://app.proteus.co.in/docs/pricing#pricing-rules)). The model never sets a price.
 - **What your agent knows.** Colours, sizes, minimum orders, lead times and samples from your FAQ, custom work and your store policies, from your site, so it can answer buyers. It is told this text is data, never instructions, and never a price.
-- **How it reads your site.** Read-only and polite: it follows your robots.txt, reads at most 60 product pages and 90 requests with a pause between them, and caps each page at 2 MB. It only reaches public https addresses on the standard port and refuses private or internal ones at every redirect ([net-guard.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/lib/net-guard.ts)).
+- **How it reads your site.** Read-only and polite: it follows your robots.txt, reads your whole catalogue (up to 400 product pages, 180 seconds and 480 requests in one read) with a pause between requests, shows how far it got ("140 of 200"), and caps each page at 2 MB. If a limit stops it, it tells you how many pages it did not read and reads the rest when you ask. It only reaches public https addresses on the standard port and refuses private or internal ones at every redirect ([net-guard.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/lib/net-guard.ts)).
 - **How the browser is fenced.** At most 24 pages, 150 seconds and 60 MB per read. It never logs in, fills a form or buys. Images, fonts, video, analytics, WebSockets and service workers are not loaded, other sites' frames are blocked, and robots.txt applies to every page and data request on your site. The browser runs as its own service, apart from the Proteus API, with no keys or data of ours, and only the API can connect to it ([browser/service.ts](https://github.com/Adityaakr/proteus/blob/main/browser/service.ts)). Each read gets a fresh browser, and every connection it makes goes through a proxy. The proxy allows public https on port 443 only and checks the resolved address, so a page cannot reach a private network ([egress-proxy.ts](https://github.com/Adityaakr/proteus/blob/main/server/src/services/importer/egress-proxy.ts)).
 - **Scraped text is untrusted.** Text from the site is stripped of markup and cut short. Any that reads like instructions to an AI is dropped and counted before you see it.
 
-> **What it does not do yet:** It does not keep prices in sync after publishing; use catalog sync or edit each product. It reads one website per run, the first 60 product pages of a larger catalog, and 24 pages in the browser. It does not read images or PDFs, and it does not open catalogues hosted on other services.
+> **What it does not do yet:** It does not keep prices in sync after publishing; use catalog sync or edit each product. It reads one website per run, up to 400 products, and 24 pages in the browser. It does not read images or PDFs, and it does not open catalogues hosted on other services.
 
 <a id="seller-rules"></a>
 
@@ -2102,6 +2102,7 @@ A deal event (funded, settled, refunded, dispute, approval needed, order details
 | `approval_required` | An offer needs your approval | product, tier, units, amountUsdc, link |
 | `order_details` | A buyer sent order details | deal, product, link |
 | `whatsapp_human` | A WhatsApp buyer asked for a person | channel, link |
+| `custom_request` | A buyer sent a custom request | product, link |
 
 Amounts in events are USDC with six decimals, as a string (`"6.600000"`), unlike the micro-USDC of the API. `deal` is the deal's public id (`d_…`); `link` opens it in your console, and `GET /deals` gives both ids. Events are queued only while you have a webhook, email or Telegram set up. `dispute_opened` fires for any dispute on the deal, including one the seller signer opened.
 

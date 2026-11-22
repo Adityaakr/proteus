@@ -4,17 +4,22 @@
  * price, and asks what is still unknown. No product is chosen, no offer is priced and the negotiation's requirements
  * are left alone: the buyer picks a product (or names one) to get offers from that product's rules.
  *
+ * A buyer asking only for something the seller does not list ("i want caps" at a store with no caps) is told so, shown
+ * the closest listed products and offered a custom request to the seller; the next message can be that request.
+ *
  * The exchange is kept in the negotiation the conversation is in (turn kind "consult", picks in its payload), so the
  * seller sees it and a reload shows it.
  */
 import { eq } from "drizzle-orm";
-import { consult, consultText, routeMessage } from "@proteus/domain";
-import { getAgentAdapter, redactPersonalData, type ConversationTurn } from "../agent";
+import { consult, consultText, routeMessage, type Consultation } from "@proteus/domain";
+import { getAgentAdapter, redactPersonalData, unlistedLines, type AgentStep, type ConversationTurn } from "../agent";
+import { answersCustomRequest, findUnlisted, itemsText, unlistedConsultation } from "../agent/unlisted";
 import { db, schema } from "../db";
 import { HttpError } from "../lib/http";
 import { id } from "../lib/ids";
 import { sealJson, sealText } from "../lib/vault";
-import { loadNegotiation, negotiationView } from "./negotiation";
+import { nameColourCodesInProse } from "../lib/colours";
+import { listedProducts, loadNegotiation, negotiationView, pendingCustomRequest, sendCustomRequest } from "./negotiation";
 import { storeCatalog } from "./storefront";
 
 export async function addConsultMessage(negId: string, content: string, current?: string) {
@@ -25,15 +30,42 @@ export async function addConsultMessage(negId: string, content: string, current?
   const seq = (turnRows.at(-1)?.seq ?? 0) + 1;
   await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", content: await sealText(lp.org.id, content) });
 
+  // The agent offered to send the seller a custom request for something unlisted, and this message is that request.
+  const listed = await listedProducts(lp);
+  const pending = pendingCustomRequest(turnRows);
+  if (pending && answersCustomRequest(content, pending, listed)) return sendCustomRequest(negId, lp, seq, pending, content, started);
+
   const convo: ConversationTurn[] = [...turnRows.map((t) => ({ role: t.role as ConversationTurn["role"], content: redactPersonalData(t.content) })), { role: "buyer", content: redactPersonalData(content) }];
   const buyerTexts = convo.filter((t) => t.role === "buyer" && !t.content.startsWith("Counteroffer:")).map((t) => t.content);
   // The server routes again rather than trusting the client for which products the message pointed at.
   const d = routeMessage(content, products, { current, sellerName: lp.org.name });
   const pointed = d.mode === "consult" ? d.slugs : [];
   const exclude = d.mode === "consult" ? d.exclude : [];
-  const fallback = consult(lp.org.name, products, buyerTexts, { pointed, exclude });
+  // Something the seller does not list ("i want caps" at a store with no caps): said plainly, with the closest listed
+  // products as the picks and the offer of a custom request, whether or not a model is set.
+  const missing = listed.length ? findUnlisted(content, listed[0]!, listed.slice(1)) : undefined;
   const adapter = getAgentAdapter();
-  const { result, steps } = await adapter.consult({ sellerName: lp.org.name, products, turns: convo, fallback, pointed, exclude });
+  let result: Consultation;
+  let steps: AgentStep[];
+  let text: string;
+  let customRequest: { items: string } | undefined;
+  if (missing?.alsoListed) {
+    const fallback = consult(lp.org.name, products, buyerTexts, { pointed, exclude });
+    ({ result, steps } = await adapter.consult({ sellerName: lp.org.name, products, turns: convo, fallback, pointed, exclude }));
+    const [notListed] = unlistedLines({ items: itemsText(missing.items), alsoListed: true, closest: [], listed: [], sellerName: lp.org.name });
+    result = { ...result, intro: `${notListed} ${result.intro}` };
+    text = consultText(result);
+  } else if (missing) {
+    const u = unlistedConsultation(lp.org.name, products, missing, buyerTexts, exclude);
+    ({ result, text } = u);
+    customRequest = { items: u.items };
+    steps = [{ at: new Date().toISOString(), label: `Not listed: ${u.items}`, state: "done", detail: u.result.picks.length && missing.closest.length ? `closest listed: ${u.result.picks.map((p) => p.name).join(", ")}` : "nothing listed is close" }];
+  } else {
+    const fallback = consult(lp.org.name, products, buyerTexts, { pointed, exclude });
+    ({ result, steps } = await adapter.consult({ sellerName: lp.org.name, products, turns: convo, fallback, pointed, exclude }));
+    text = consultText(result);
+  }
+  text = nameColourCodesInProse(text);
 
   await db.insert(schema.turns).values({
     id: id("turn"),
@@ -41,8 +73,8 @@ export async function addConsultMessage(negId: string, content: string, current?
     seq: seq + 1,
     role: "agent",
     kind: "consult",
-    content: await sealText(lp.org.id, consultText(result)),
-    payload: { consult: result },
+    content: await sealText(lp.org.id, text),
+    payload: { consult: result, ...(customRequest ? { customRequest } : {}) },
   });
   await db.insert(schema.agentRuns).values({ id: id("run"), orgId: lp.org.id, negotiationId: negId, adapter: adapter.name, steps: await sealJson(lp.org.id, steps), durationMs: Date.now() - started });
   await db

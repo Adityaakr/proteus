@@ -1,6 +1,7 @@
 import { formatUnitPrice, formatUsd, toMicro, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
 import type { AgentAdapter, AgentStep, ComposeInput, ExtractInput } from "./adapter";
-import { detectInjection } from "./adapter";
+import { choiceLine, detectInjection, unlistedLines } from "./adapter";
+import { requestedItems } from "./unlisted";
 
 const KNOWN_INTEGRATIONS: Record<string, string> = {
   zendesk: "zendesk",
@@ -78,6 +79,8 @@ export function composeRuleBased(input: ComposeInput): string {
   if (injectionDetected) {
     lines.push("I can only offer packages that clear the seller's commercial policy. That policy is set by the seller and I cannot change it from this conversation, and I do not share the seller's costs.");
   }
+  // Asked only for something the seller does not list: say so, never answer with this product's offers.
+  if (input.unlisted && !input.unlisted.alsoListed) return [...lines, ...unlistedLines(input.unlisted)].join("\n\n");
 
   const understood: string[] = [];
   if (requirements.useCase) understood.push(requirements.useCase);
@@ -114,7 +117,8 @@ export function composeRuleBased(input: ComposeInput): string {
   // A word that also names this product ("tees" while negotiating a tee) is about this product, not a pointer elsewhere.
   const own = new Set([unitLabel.toLowerCase(), pluralUnit(unitLabel).toLowerCase(), ...input.productName.toLowerCase().split(/[^a-z]+/)]);
   const asked = (input.catalog?.products ?? []).filter((p) => [p.unitLabel, pluralUnit(p.unitLabel), ...p.name.toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 3 && !GENERIC.has(w))].some((w) => w && !own.has(w.toLowerCase()) && new RegExp(`\\b${w.toLowerCase()}`).test(lastBuyer)));
-  if (asked.length) lines.unshift(`${asked.map((p) => `${p.name} ${p.smallestPack ? `(from ${p.smallestPack}) ` : ""}`).join("and ")}${asked.length > 1 ? "are" : "is"} a separate product from ${input.catalog!.sellerName}. Open it on the seller's page and its agent will make you an offer there.`);
+  if (input.choices?.products.length) lines.unshift(choiceLine(input.choices, input.productName));
+  else if (asked.length) lines.unshift(`${asked.map((p) => `${p.name} ${p.smallestPack ? `(from ${p.smallestPack}) ` : ""}`).join("and ")}${asked.length > 1 ? "are" : "is"} a separate product from ${input.catalog!.sellerName}. Open it on the seller's page and its agent will make you an offer there.`);
   else if (!fits.length && input.catalog?.products.length) lines.push(`${input.catalog.sellerName} also offers ${input.catalog.products.map((p) => (p.smallestPack ? `${p.name} (from ${p.smallestPack})` : p.name)).join(", ")}. Open any of them on the seller's page to get an offer there.`);
   // Questions the website facts answer: colours and sizes, minimum order, delivery, returns, custom work.
   const k = input.facts?.knowledge;
@@ -129,6 +133,7 @@ export function composeRuleBased(input: ComposeInput): string {
     const pol = /ship|deliver/.test(lastBuyer) ? k.policies.find((p) => p.kind === "shipping") : /return|refund|exchange/.test(lastBuyer) ? k.policies.find((p) => p.kind === "returns") : undefined;
     if (pol) lines.push(`From ${input.catalog?.sellerName ?? "the seller"}'s ${pol.kind} policy: ${pol.summary.slice(0, 220)}`);
   }
+  if (input.unlisted) lines.push(...unlistedLines(input.unlisted));
   if (requirements.openQuestions.length) lines.push(requirements.openQuestions[0]!);
   if (!lines.length) lines.push(`Tell me what you need: expected ${pluralUnit(unitLabel)} per month, your budget, and any integrations, and I will put together options.`);
   return lines.join("\n\n");
@@ -146,7 +151,8 @@ export const ruleBasedAdapter: AgentAdapter = {
     const steps: AgentStep[] = [{ at: now(), label: "Reading the request", state: "done" }];
     const requirements = extractRuleBased(input);
     steps.push({ at: now(), label: "Extracted requirements", state: "done", detail: summarize(requirements) });
-    return { requirements, steps };
+    const last = input.turns.filter((t) => t.role === "buyer").at(-1)?.content ?? "";
+    return { requirements, steps, askedFor: requestedItems(last).map((i) => i.phrase) };
   },
   async composeReply(input) {
     const steps: AgentStep[] = [];

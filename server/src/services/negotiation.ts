@@ -1,13 +1,16 @@
 import { and, asc, desc, eq, ne } from "drizzle-orm";
-import { evaluateCounteroffer, formatUsd, getQuoteCandidates, greetingText, sellerGreeting, toPublicCandidate, type Candidate, type CounterDecision, type GreetingProduct, type PublicCandidate, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
-import { detectInjection, getAgentAdapter, redactPersonalData, type AgentStep, type ConversationTurn } from "../agent";
+import { evaluateCounteroffer, formatUsd, getQuoteCandidates, greetingText, mulDivFloor, sellerGreeting, toPublicCandidate, type Candidate, type CounterDecision, type GreetingProduct, type Product, type PublicCandidate, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
+import { detectInjection, getAgentAdapter, redactPersonalData, type AgentStep, type ConversationTurn, type UnlistedAsk } from "../agent";
+import { answersCustomRequest, findUnlisted, itemsText, requestedItems, sameKindListed, type ListedProduct } from "../agent/unlisted";
 import { db, schema } from "../db";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, negotiationKey, publicId, sha256 } from "../lib/ids";
 import { openJsonOr, openTextOr, sealJson, sealText } from "../lib/vault";
 import { timingSafeEqual } from "node:crypto";
-import { evaluationContext, loadProductById, loadProductBySlugs, publicProduct, unitPriceUsd, type LoadedProduct } from "./catalog";
-import { features } from "../env";
+import { evaluationContext, loadProductById, loadProductBySlugs, publicProduct, reviveProduct, unitPriceUsd, type LoadedProduct } from "./catalog";
+import { env, features } from "../env";
+import { enqueue } from "./notify";
+import { nameColourCodesInProse, nameColours } from "../lib/colours";
 
 /* ------------------------------------------------------------------ */
 /* revive helpers                                                       */
@@ -183,6 +186,14 @@ export async function addBuyerMessage(negId: string, content: string) {
   const seq = (turnRows.at(-1)?.seq ?? 0) + 1;
   await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", content: await sealText(lp.org.id, content) });
 
+  const listed = await listedProducts(lp);
+  const current = { ...listedOf(lp.product), id: lp.row.id, slug: lp.row.slug };
+  const others = listed.filter((p) => p.id !== lp.row.id);
+
+  // The agent offered to send the seller a custom request for an unlisted item, and this message is that request.
+  const pending = pendingCustomRequest(turnRows);
+  if (pending && answersCustomRequest(content, pending, [current, ...others])) return sendCustomRequest(negId, lp, seq, pending, content, started);
+
   const adapter = getAgentAdapter();
   // The model provider gets the conversation without contact details (emails, phone and card numbers).
   const convo: ConversationTurn[] = [...turnRows.map((t) => ({ role: t.role as ConversationTurn["role"], content: redactPersonalData(t.content) })), { role: "buyer", content: redactPersonalData(content) }];
@@ -194,6 +205,21 @@ export async function addBuyerMessage(negId: string, content: string) {
   const ext = await adapter.extractRequirements({ productName: lp.product.name, unitLabel: lp.product.unitLabel, capabilities: lp.product.capabilities, supportedIntegrations: lp.product.supportedIntegrations, starters: (lp.row.starters as string[]) ?? [], prior, turns: convo });
   steps.push(...ext.steps);
   activity.push({ at: iso(), label: "Understood the request", state: "done" });
+  // Shown to the buyer: an earlier turn may still hold a colour code, and the model may repeat it.
+  ext.requirements.notes = ext.requirements.notes.map(nameColourCodesInProse);
+  ext.requirements.openQuestions = ext.requirements.openQuestions.map(nameColourCodesInProse);
+
+  // A kind of product no listed product is ("i want caps" at a store with no caps): checked here, on every listed product.
+  const missing = findUnlisted(content, current, others, ext.askedFor ?? []);
+  const unlisted: UnlistedAsk | undefined = missing
+    ? { items: itemsText(missing.items), alsoListed: missing.alsoListed, closest: missing.closest.map((p) => ({ name: p.name, smallestPack: p.smallestPack ?? "", current: p === current })), listed: [current, ...others].slice(0, 4).map((p) => p.name), sellerName: lp.org.name }
+    : undefined;
+  if (unlisted) steps.push({ at: iso(), label: `Not listed: ${unlisted.items}`, state: "done", detail: unlisted.closest.length ? `closest listed: ${unlisted.closest.map((c) => c.name).join(", ")}` : "nothing listed is close" });
+  // "i want caps" on a cap, where the seller lists several caps: the buyer gets the choice, not just this one.
+  // Only what this message itself asks for: a model reading "caps" back out of the conversation would repeat the list.
+  const kin = sameKindListed(content, [current]).length ? sameKindListed(content, others) : [];
+  const choices = kin.length ? { kind: requestedItems(content)[0]?.phrase ?? pluralUnit(lp.product.unitLabel), products: kin.slice(0, 6).map((p) => ({ name: p.name, smallestPack: p.smallestPack ?? "" })), total: kin.length, sellerName: lp.org.name } : undefined;
+  if (unlisted && !unlisted.alsoListed) return replyUnlisted(negId, lp, seq, unlisted, { convo, injection, steps, activity, started, requirements: ext.requirements });
 
   // Deterministic candidates. The model never touches this.
   const ctx = evaluationContext(lp);
@@ -216,11 +242,13 @@ export async function addBuyerMessage(negId: string, content: string) {
   });
 
   const catalog = await sellerCatalog(lp);
-  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: ext.requirements, offers: offers.map(toPublicCandidate), rejected: rejected.map(toPublicCandidate), injectionDetected: injection, turns: convo, facts: productFacts(lp), catalog });
+  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: ext.requirements, offers: offers.map(toPublicCandidate), rejected: rejected.map(toPublicCandidate), injectionDetected: injection, turns: convo, facts: productFacts(lp), catalog, unlisted, choices });
   steps.push(...composed.steps);
+  composed.reply = nameColourCodesInProse(composed.reply);
   activity.push({ at: iso(), label: offers.length ? "Prepared offers" : "Prepared a reply", state: "done" });
 
-  await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq: seq + 1, role: "agent", kind: offers.length ? "offers" : "message", content: await sealText(lp.org.id, composed.reply), payload: offers.length ? bigintsToStrings({ offers: offers.map(toOffer) }) : null });
+  const payload = offers.length ? { offers: offers.map(toOffer) } : {};
+  await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq: seq + 1, role: "agent", kind: offers.length ? "offers" : "message", content: await sealText(lp.org.id, composed.reply), payload: Object.keys(payload).length ? bigintsToStrings(payload) : null });
   await db.insert(schema.agentRuns).values({ id: id("run"), orgId: lp.org.id, negotiationId: negId, adapter: adapter.name, steps: await sealJson(lp.org.id, steps), durationMs: Date.now() - started });
   await db
     .update(schema.negotiations)
@@ -228,6 +256,76 @@ export async function addBuyerMessage(negId: string, content: string) {
     .where(eq(schema.negotiations.id, negId));
 
   // Approval-required candidates open an approval request when the buyer asks for a quote; nothing to do here.
+  return negotiationView(negId);
+}
+
+/* ------------------------------------------------------------------ */
+/* unlisted items and custom requests                                   */
+/* ------------------------------------------------------------------ */
+
+export type Listed = ListedProduct & { id: string; slug: string };
+
+/** "10 sweatshirts for $86.30": the smallest list pack, as the buyer would see it. */
+function listedOf(p: Product): ListedProduct {
+  const small = [...p.tiers].sort((a, b) => (a.includedUnits < b.includedUnits ? -1 : a.includedUnits > b.includedUnits ? 1 : 0))[0];
+  return { name: p.name, unitLabel: p.unitLabel, category: p.category, summary: p.summary, capabilities: p.capabilities, smallestPack: small ? `${small.includedUnits.toLocaleString()} ${unitFor(small.includedUnits, p.unitLabel)} for ${formatUsd(mulDivFloor(small.includedUnits, small.unitPrice.num, small.unitPrice.den))}` : "" };
+}
+
+/** Every product the seller lists, in one read: what "is this listed?" is checked against. */
+export async function listedProducts(lp: LoadedProduct): Promise<Listed[]> {
+  const rows = await db.select({ id: schema.products.id, slug: schema.products.slug, pub: schema.products.public }).from(schema.products).where(and(eq(schema.products.orgId, lp.org.id), eq(schema.products.active, true)));
+  return rows.map((r) => ({ ...listedOf(reviveProduct(r.pub as Record<string, unknown>)), id: r.id, slug: r.slug }));
+}
+
+/** No offers for an item the seller does not list: the reply says so plainly, names the closest listed products and offers a custom request. */
+async function replyUnlisted(negId: string, lp: LoadedProduct, seq: number, unlisted: UnlistedAsk, run: { convo: ConversationTurn[]; injection: boolean; steps: AgentStep[]; activity: { at: string; label: string; state: "done" | "working" }[]; started: number; requirements: Requirements }) {
+  const adapter = getAgentAdapter();
+  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: run.requirements, offers: [], rejected: [], injectionDetected: run.injection, turns: run.convo, facts: productFacts(lp), catalog: await sellerCatalog(lp), unlisted });
+  run.steps.push(...composed.steps);
+  composed.reply = nameColourCodesInProse(composed.reply);
+  run.activity.push({ at: iso(), label: "Checked what the seller lists", state: "done" }, { at: iso(), label: "Prepared a reply", state: "done" });
+  await db.insert(schema.decisions).values({
+    id: id("dec"),
+    orgId: lp.org.id,
+    negotiationId: negId,
+    kind: "unlisted_request",
+    ruleIds: [],
+    summary: `Buyer asked for ${unlisted.items.toLowerCase()}, which is not listed; no offers shown.`,
+    privateBasis: await sealJson(lp.org.id, { items: unlisted.items, closest: unlisted.closest.map((c) => c.name) }),
+    publicExplanation: `${unlisted.items} not listed; offered to send the seller a custom request.`,
+  });
+  await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq: seq + 1, role: "agent", kind: "message", content: await sealText(lp.org.id, composed.reply), payload: { customRequest: { items: unlisted.items } } });
+  await db.insert(schema.agentRuns).values({ id: id("run"), orgId: lp.org.id, negotiationId: negId, adapter: adapter.name, steps: await sealJson(lp.org.id, run.steps), durationMs: Date.now() - run.started });
+  // The numbers in this message were about the unlisted item: this product's requirements and offers stay as they were.
+  await db.update(schema.negotiations).set({ activity: run.activity, updatedAt: new Date() }).where(eq(schema.negotiations.id, negId));
+  return negotiationView(negId);
+}
+
+/** Sends the seller the buyer's custom request (kept with this conversation, notified on the seller's channels without the buyer's text). */
+/** The items of a custom request the agent's last turn offered to send, if it did. */
+export function pendingCustomRequest(turnRows: { role: string; payload: unknown }[]): string | undefined {
+  const last = turnRows.at(-1);
+  const items = last?.role === "agent" ? (last.payload as { customRequest?: { items?: unknown } } | null)?.customRequest?.items : undefined;
+  return typeof items === "string" ? items : undefined;
+}
+
+export async function sendCustomRequest(negId: string, lp: LoadedProduct, seq: number, items: string, content: string, started: number) {
+  const contact = /@|\+?\d[\d\s().-]{8,}\d/.test(content);
+  const reply = `I have sent ${lp.org.name} your custom request for ${items.toLowerCase()}, with your message. They decide whether they can make it and get back to you${contact ? "" : "; if you have not left an email or phone number, add one here so they can reach you"}. Anything ${lp.org.name} lists, I can quote right here.`;
+  await db.insert(schema.decisions).values({
+    id: id("dec"),
+    orgId: lp.org.id,
+    negotiationId: negId,
+    kind: "custom_request",
+    ruleIds: [],
+    summary: `Custom request for ${items.toLowerCase()}: the buyer's message is in the conversation.`,
+    privateBasis: await sealJson(lp.org.id, { items, message: content.slice(0, 2000) }),
+    publicExplanation: "Sent to the seller as a custom request.",
+  });
+  await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq: seq + 1, role: "agent", kind: "message", content: await sealText(lp.org.id, reply) });
+  await db.insert(schema.agentRuns).values({ id: id("run"), orgId: lp.org.id, negotiationId: negId, adapter: "rule-based", steps: await sealJson(lp.org.id, [{ at: iso(), label: `Custom request for ${items} sent to the seller`, state: "done" }]), durationMs: Date.now() - started });
+  await db.update(schema.negotiations).set({ activity: [{ at: iso(), label: "Sent your custom request to the seller", state: "done" }], updatedAt: new Date() }).where(eq(schema.negotiations.id, negId));
+  await enqueue(lp.org.id, "custom_request", `custom-request:${negId}:${seq}`, { product: items, link: `${env.WEB_ORIGIN}/app/sell/negotiations/${negId}` }).catch(() => {});
   return negotiationView(negId);
 }
 
@@ -258,7 +356,8 @@ export function productFacts(lp: { product: LoadedProduct["product"] }) {
     billableUnit: p.billableUnit,
     supportedIntegrations: p.supportedIntegrations,
     capabilities: p.capabilities,
-    ...(k ? { knowledge: { options: k.options ?? [], variants: k.variants ?? [], notes: k.notes ?? [], policies: (k.policies ?? []).map((x) => ({ kind: x.kind, summary: x.summary })), sourceUrl: k.sourceUrl } } : {}),
+    // Products imported before colour codes were named still carry them ("#273a6b"); the agent reads names.
+    ...(k ? { knowledge: { ...nameColours({ options: k.options ?? [], variants: k.variants ?? [] }), notes: k.notes ?? [], policies: (k.policies ?? []).map((x) => ({ kind: x.kind, summary: x.summary })), sourceUrl: k.sourceUrl } } : {}),
   };
 }
 

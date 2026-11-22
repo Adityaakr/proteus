@@ -58,10 +58,13 @@ Negotiation = {
   turns: [{ id, role: "buyer"|"agent"|"system", content, createdAt, kind?: "message"|"offers"|"decision"|"clarify",
             offers?: [Offer], decision?: { decision, reasons[], alternative?: Offer } }],
   offers: [Offer],                      // current eligible + approval_required candidates (public projection)
+  // An agent turn with customRequest: { items } answered a request for something the seller does not list (below).
   activity: [{ at, label, state: "done"|"working" }],   // sanitized progress for ReasoningText/AgentActivity on the buyer side
 }
 Offer = PublicCandidate from @proteus/domain plus { unitPriceUsd, prepaidTotalUsd, overagePriceUsd? }
 ```
+
+A buyer who asks for a kind of product the seller does not list ("i want caps" at a store with no caps) gets no offers for it. The server checks every kind the message asks for (read by rule, and by the model when one is configured) against every listed product ([`agent/unlisted.ts`](../server/src/agent/unlisted.ts)): a kind counts as listed when a listed product's name ends with that kind (ignoring trailing colour, size or variant words, so "Classic Tee - Black" is a tee) or its unit is that kind. A word only in a product's summary or the middle of its name ("Loop Cap Bottle") does not make the kind listed. When none is listed, the reply says so plainly, names the closest listed products (the same kind, then the same family, such as other apparel) or what the seller lists, and offers to send the seller a custom request. The product's requirements and offers stay as they were. When the buyer's next message answers that offer (a yes, a quantity, a date or contact details, naming no listed product; asking for the item again with nothing more, or asking about a listed product such as "how much for 20 t-shirts?", is not the request), the agent records a `custom_request` decision, keeps the message in the conversation for the seller, and notifies the seller (`custom_request` event, without the buyer's text). A message that also asks for something listed gets that product's offers and a plain note that the rest is not listed, with no custom request offer. On the store's own deal desk before any product is chosen, the same ask gets a recommendation (a `consult` turn) whose intro says the item is not listed, whose picks are the closest listed products, and whose question is the custom request offer; the turn's payload carries `customRequest: { items }` and the buyer's answer is sent to the seller the same way. When the seller lists several products of the kind asked for ("i want caps" at a store with fourteen caps), routing names those products by their names before any product sold per that unit (a "Bucket Hat" sold per cap) and recommends among them; once on one of them, the reply names the others with their smallest list pack so the buyer can choose.
 
 ## Quotes and acceptance
 
@@ -264,7 +267,7 @@ The 402 body's `accepts` lists `exact` (Circle facilitator, `extra.name = "USDC"
 ## Store, catalog sync and onboarding (2026-10-24)
 
 - `GET /api/public/sellers/:s`: the seller card and its **listed** products only.
-- `POST /api/public/sellers/:s/route { message, current? }`: returns `{ mode, productSlug, productName, matched, switched, reason, suggested, exclude? }`. `mode: "product"`: the message names exactly one product (not right after "besides", "instead of", "other than" or "except", which leaves it out of a recommendation instead), and the store deal desk starts or continues that product's negotiation. `mode: "consult"` (`matched: false`): an open question ("suggest me some good merch") or several products named (unless the current product is one of them, which stays on it), so the conversation stays on all products and the client calls `POST /api/negotiations/:id/consult`; `suggested` lists products the message pointed at and `exclude` the ones to leave out. A follow-up that names nothing while on a product stays on it unless it asks for something else ("what else do you have?", "other merch").
+- `POST /api/public/sellers/:s/route { message, current? }`: returns `{ mode, productSlug, productName, matched, switched, reason, suggested, exclude? }`. `mode: "product"`: the message names exactly one product (not right after "besides", "instead of", "other than" or "except", which leaves it out of a recommendation instead), and the store deal desk starts or continues that product's negotiation. `mode: "consult"` (`matched: false`): an open question ("suggest me some good merch") or several products named (unless the current product is one of them, which stays on it), so the conversation stays on all products and the client calls `POST /api/negotiations/:id/consult`; `suggested` lists products the message pointed at and `exclude` the ones to leave out. A follow-up that names nothing while on a product stays on it unless it asks for something else ("what else do you have?", "other merch"), even when its words appear in another product's summary ("is it available in any other colour?").
 - `GET /api/app/catalog-sync`: returns `{ url, authHeader, hasSecret, enabled, everyMinutes, lastRunAt, lastStatus, lastResult }`.
 - `PUT /api/app/catalog-sync { url, authHeader?, secret?, enabled? }`: `url: null` removes the sync. The owner session is required.
 - `POST /api/app/catalog-sync/run`: syncs now. Returns `{ at, status, updated: [{ slug, changes }], unchanged, notOnProteus, errors }`.
@@ -335,6 +338,7 @@ POST  /api/builder/imports/:id/messages   { text }             -> { understood: 
 POST  /api/builder/imports/:id/floors     { csv }              -> { applied, unmatched[], errors[], view }
 POST  /api/builder/imports/:id/test       { productKey?, message?, counterUsd? } -> TestNegotiation (dry run, nothing stored)
 POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport (status "published", published: { orgSlug, products[] })
+POST  /api/builder/imports/:id/continue                        -> BuilderImport (status "running"; reads the product pages in result.unread, from where the read stopped)
 ```
 
 - `BuilderImport`:
@@ -357,7 +361,7 @@ POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport 
 - Catalogues on another service (DocSend, Google Drive, Dropbox, Notion, Canva, or a linked PDF) are listed in `result.elsewhere` and never opened.
 - Limits:
   - robots.txt is honoured.
-  - At most 60 product pages and 90 requests per import, with a 400 ms pause between them.
+  - Product pages: the whole catalogue, up to 400 pages, 180 s and 160 MB in one read, and 480 requests per import, with a 400 ms pause between them. Progress counts against every product page the site lists ("Reading product pages (140 of 200)"). When a budget stops the read, `result.unread` is `{ urls[], total, stoppedBy }`, `result.limited` says how many pages were not read, and `POST .../continue` reads the rest with fresh budgets; the products read so far, and the seller's answers about them, stay.
   - Each response is capped at 2 MB, and each request times out after 12 s.
   - https on port 443 only. Private, loopback and link-local addresses are refused inside the socket's DNS lookup, at every redirect ([`lib/net-guard.ts`](../server/src/lib/net-guard.ts)).
   - The browser: at most 24 pages, 150 s, 4,000 requests and 60 MB per import, two browsers per server at once.
@@ -367,12 +371,12 @@ POST  /api/builder/imports/:id/publish    { confirm: true }    -> BuilderImport 
 - `AnswersPatch`:
   - `{ businessName?, businessType?, usdRate?, include?: { [productKey]: boolean }, products?/categories?: { [key]: PriceRule }, defaults?: PriceRule & { maxUnitsPerDeal?, approvalThresholdUsd?, termDays? }, floorsSet?, bulkAnswered?, customOrders? }`.
   - `PriceRule = { priceUsd?, floorUsd?, maxDiscountPct?, moq?, bulkMinUnits?, bulkDiscountPct? }`, all decimal strings.
-- Publish refuses until every question is answered and each included product has a list price and a floor; at most 40 products per publish.
+- Publish refuses until every question is answered and each included product has a list price and a floor; at most 400 products per publish (every product one import can keep).
 - Publish creates the org when needed (`createOrg`, the signed-in wallet as owner and payee) and each product through `createProduct`:
   - Seller-delivered (no endpoint).
   - Tiers at the list price, plus a bulk tier if one was set.
   - Cost model with `floorUnitPrice`.
   - Policy with no margin floor and a discount cap set just wide enough never to refuse a price at or above the floor.
-  - Public `knowledge` (variants, options, notes, store policies) that the deal agent answers from.
+  - Public `knowledge` (variants, options, notes, store policies) that the deal agent answers from. A colour the site gives only as a swatch code (`#273a6b`) is stored and shown as the nearest plain colour name (`navy`); products imported before this are named when read.
 
 `CostUpdateBody` (`PATCH /api/app/products/:id/cost`) also takes `floorUnitPrice` (micro-USDC string, or `null` to remove it). The engine's `FLOOR_PRICE` rule refuses any candidate whose prepaid total is below `units × floorUnitPrice` and gives buyers the shared price reason.

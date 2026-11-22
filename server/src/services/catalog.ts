@@ -2,6 +2,7 @@ import { howItWorksToday, isScheduling } from "./calendar";
 import { and, desc, eq } from "drizzle-orm";
 import { formatUnitPrice, formatUsd, mulDivFloor, type CostModel, type EvaluationContext, type Policy, type Product, type Tier } from "@proteus/domain";
 import { db, schema } from "../db";
+import { nameColours } from "../lib/colours";
 import { HttpError } from "../lib/http";
 
 export interface LoadedProduct {
@@ -132,7 +133,7 @@ export function publicProduct(lp: LoadedProduct) {
     summary: p.summary ?? null,
     category: p.category ?? null,
     request: p.request ?? null,
-    knowledge: p.knowledge ?? null,
+    knowledge: p.knowledge ? { ...p.knowledge, ...nameColours({ options: p.knowledge.options ?? [], variants: p.knowledge.variants ?? [] }) } : null,
     maxUnitsPerDeal: p.maxUnitsPerDeal.toString(),
     payPerCallUsd: lp.row.payPerCallPrice ? formatUsd(lp.row.payPerCallPrice, 4) : null,
     service: lp.row.adapter === "http" ? "seller-endpoint" : lp.row.adapter === "demo" ? "example" : "sample-store",
