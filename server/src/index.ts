@@ -128,7 +128,7 @@ function docsPreviewShell(shell: string, dist: string) {
       `<meta property="og:image" content="${image}" />`,
       `<meta property="og:image:width" content="2400" />`,
       `<meta property="og:image:height" content="1260" />`,
-      `<meta property="og:image:alt" content="Proteus AI docs: how a seller's agent negotiates, both sides sign, and USDC settles on Arc for what is delivered" />`,
+      `<meta property="og:image:alt" content="Proteus AI docs: the deal network for small businesses" />`,
       `<meta name="twitter:card" content="summary_large_image" />`,
       `<meta name="twitter:title" content="${esc(title)}" />`,
       `<meta name="twitter:description" content="${esc(desc)}" />`,
