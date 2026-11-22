@@ -18,7 +18,8 @@ export interface ApiRoute {
 export const SELLER_API_REFERENCE: ApiRoute[] = [
   { method: "GET", path: "/v1/seller/me", scope: null, summary: "The key's seller, name, environment and permissions" },
   { method: "GET", path: "/v1/seller/products", scope: null, summary: "Your products with public tiers, endpoint and docs links" },
-  { method: "PATCH", path: "/v1/seller/products/:id/tiers", scope: "products:write", summary: "Replace a product's public price tiers" },
+  { method: "PATCH", path: "/v1/seller/products/:id/tiers", scope: "products:write", summary: "Replace a product's public price tiers (in USD or INR)" },
+  { method: "PATCH", path: "/v1/seller/products/:id/floor", scope: "products:write", summary: "Set the lowest price per unit, in USD and/or INR" },
   { method: "PATCH", path: "/v1/seller/products/:id/listing", scope: "products:write", summary: "List or unlist a product in the market" },
   { method: "GET", path: "/v1/seller/deals", scope: "deals:read", summary: "Your deals, newest first, with balances" },
   { method: "GET", path: "/v1/seller/deals/:id", scope: "deals:read", summary: "One deal: terms, balances, usage and transactions" },
@@ -39,7 +40,7 @@ export const DEVELOPERS_SECTIONS = [
   { id: "quickstart", label: "Quickstart & reference" },
 ] as const;
 
-export const SETTINGS_SECTIONS = ["moved-to-developers", "payout", "alerts", "whatsapp", "brand", "org"] as const;
+export const SETTINGS_SECTIONS = ["moved-to-developers", "payout", "currency", "alerts", "whatsapp", "brand", "org"] as const;
 
 /** What moved from Seller settings to Developers, for the "Moved to Developers" pointer. */
 export const MOVED_TO_DEVELOPERS = [
@@ -99,6 +100,9 @@ export function fetchOf(method: string, path: string, result: string, body?: unk
 /** Example bodies for the write endpoints. Each one passes the API's own checks (a server test runs them). */
 export const EXAMPLE_BODIES = {
   tiers: { tiers: [{ name: "Starter", includedUnits: "1", unitPriceUsd: "6.60" }, { name: "Bulk", includedUnits: "100", unitPriceUsd: "6.50" }] },
+  /** The same tiers priced in rupees: converted at the seller's rate (Settings, Currency), the rupee price kept. */
+  tiersInr: { tiers: [{ name: "Single", includedUnits: "1", unitPriceInr: "1050" }, { name: "Bulk", includedUnits: "50", unitPriceInr: "900" }] },
+  floor: { floorUnitPriceInr: "850" },
   listing: { active: false },
   delivery: { requestId: "order-1042-shipped", units: 1, note: "Shipped by courier", proofUrl: "https://track.example/1042" },
   orderUpdate: { status: "shipped", note: "Two boxes by courier", trackingUrl: "https://track.example/1042" },
@@ -238,32 +242,45 @@ export function endpointExamples(base: string): EndpointExample[] {
   return [
     {
       method: "GET", path: "/v1/seller/me", title: "Retrieve the key", status: 200, example: null, params: [],
-      description: "The seller this key belongs to, with the key's name, environment and permissions. Works with any valid key: use it to check a key before anything else.",
+      description: "The seller this key belongs to, with the key's name, environment and permissions, and its currency: the display currency buyers see first and the dated rate rupee prices convert at (`null` when none). Works with any valid key: use it to check a key before anything else.",
       errors: [E401],
       ...get("/me", "me"),
-      response: `{\n  "orgId": "org_…",\n  "key": {\n    "id": "key_…",\n    "name": "Order sync",\n    "env": "test",\n    "scopes": ["deals:read", "deliveries:write"]\n  },\n  "network": "testnet"\n}`,
+      response: `{\n  "orgId": "org_…",\n  "key": {\n    "id": "key_…",\n    "name": "Order sync",\n    "env": "test",\n    "scopes": ["deals:read", "deliveries:write"]\n  },\n  "network": "testnet",\n  "currency": {\n    "display": "INR",\n    "mode": "fixed",\n    "rate": { "currency": "INR", "perUsd": "92.68", "asOf": "2026-11-20", "kind": "fixed", "source": "Seller's fixed rate" },\n    "reference": { "perUsd": "92.68", "asOf": "2026-11-20", "kind": "reference", … }\n  }\n}`,
     },
     {
       method: "GET", path: "/v1/seller/products", title: "List products", status: 200, example: null, params: [],
-      description: "Your products, newest first, with the public price tiers buyers see, the service endpoint and the product's docs page. Works with any valid key.",
+      description: "Your products, newest first, with the public price tiers buyers see, the service endpoint and the product's docs page. Each tier also has its prepaid total in micro-USDC and `inr`: the rupee price you set (`stated: true`), or the USDC converted at your rate for display (`stated: false`), or `null` without a rate. `floor` is your lowest price per unit in each currency. Works with any valid key.",
       errors: [E401],
       ...get("/products", "{ products }"),
-      response: `{\n  "products": [{\n    "id": "prd_…",\n    "slug": "custom-tees",\n    "name": "Custom oversized tees",\n    "active": true,\n    "unitLabel": "tee",\n    "tiers": [{\n      "id": "starter",\n      "name": "Starter",\n      "includedUnits": "1",\n      "unitPriceUsd": "$6.60",\n      "prepaidTotalUsd": "$6.60",\n      "includes": []\n    }],\n    "payPerCallUsd": null,\n    "endpoint": "https://…/api/services/custom-tees/execute",\n    "docsUrl": "https://…/docs/your-store/custom-tees"\n  }]\n}`,
+      response: `{\n  "products": [{\n    "id": "prd_…",\n    "slug": "custom-tees",\n    "name": "Custom oversized tees",\n    "active": true,\n    "unitLabel": "tee",\n    "tiers": [{\n      "id": "starter",\n      "name": "Starter",\n      "includedUnits": "1",\n      "unitPriceUsd": "$6.60",\n      "prepaidTotalUsd": "$6.60",\n      "prepaidTotal": "6600000",\n      "includes": [],\n      "inr": { "unitPrice": "612.00", "prepaidTotal": "612.00", "stated": true }\n    }],\n    "currency": { "display": "INR", "rate": { "perUsd": "92.68", "asOf": "2026-11-20", … } },\n    "floor": { "floorUnitPriceUsd": null, "floorUnitPriceInr": "550.00" },\n    "payPerCallUsd": null,\n    "endpoint": "https://…/api/services/custom-tees/execute",\n    "docsUrl": "https://…/docs/your-store/custom-tees"\n  }]\n}`,
     },
     {
       method: "PATCH", path: "/v1/seller/products/:id/tiers", title: "Replace price tiers", status: 200, example: { ...EXAMPLE_BODIES.tiers },
-      description: "Replaces every public price tier of a product and returns the product. New offers use the new prices; an offer already made in an open negotiation can still be quoted at its old price, and deals already signed keep theirs.",
+      description: "Replaces every public price tier of a product and returns the product. Price each tier in dollars (`unitPriceUsd`) or in rupees (`unitPriceInr`, once you have set a rate under Settings, Currency): a rupee price is kept as you set it and converted to USDC at your current rate, rounded up to the cent, whenever buyers see it, so the rupee price holds when the rate moves. New offers use the new prices; an offer already made in an open negotiation can still be quoted at its old price (unless the rate moved since, for a rupee price), and deals already signed keep theirs.",
       params: [
         ID_PRODUCT,
         { name: "tiers", in: "body", type: "array", required: true, description: "1 to 6 tiers. They are sorted by `includedUnits`." },
         { name: "tiers[].name", in: "body", type: "string", required: true, description: "Shown to buyers; up to 40 characters are kept." },
         { name: "tiers[].includedUnits", in: "body", type: "string", required: true, description: "A whole number from 1, at most the product's units per deal. Each tier needs its own quantity." },
-        { name: "tiers[].unitPriceUsd", in: "body", type: "string", required: true, description: "Dollars per unit, more than 0: up to 7 digits before the point and 6 after, e.g. `\"6.60\"`." },
+        { name: "tiers[].unitPriceUsd", in: "body", type: "string", required: false, description: "Dollars per unit, more than 0: up to 7 digits before the point and 6 after, e.g. `\"6.60\"`. Each tier needs this or `unitPriceInr`, not both." },
+        { name: "tiers[].unitPriceInr", in: "body", type: "string", required: false, description: "Rupees per unit, more than 0, up to two decimals, e.g. `\"1050\"`. Converted at your rate: ₹1,050 at ₹92.68/$ is 11.33 USDC." },
         { name: "tiers[].includes", in: "body", type: "string[]", required: false, description: "Up to 8 short lines (60 characters each) listing what the tier includes." },
       ],
-      errors: [{ status: "400", when: "A tier breaks a rule above; the message names the tier and the rule." }, E401, e403("products:write"), { status: "404", when: "No product with this id belongs to your seller." }],
+      errors: [{ status: "400", when: "A tier breaks a rule above; the message names the tier and the rule." }, E401, e403("products:write"), { status: "404", when: "No product with this id belongs to your seller." }, { status: "409", when: "A tier is priced in rupees and you have not set a rate (`details.code` is `rate_required`)." }],
       ...write("PATCH", "/products/PRODUCT_ID/tiers", "/products/${productId}/tiers", "product", EXAMPLE_BODIES.tiers),
       response: `{\n  "id": "prd_…",\n  "slug": "custom-tees",\n  "active": true,\n  "tiers": [\n    { "name": "Starter", "unitPriceUsd": "$6.60", … },\n    { "name": "Bulk", "unitPriceUsd": "$6.50", … }\n  ],\n  …\n}`,
+    },
+    {
+      method: "PATCH", path: "/v1/seller/products/:id/floor", title: "Set the floor", status: 200, example: { ...EXAMPLE_BODIES.floor },
+      description: "Sets the lowest price per unit your agent may offer, in dollars and/or rupees, and returns the product. A rupee floor is checked exactly against every offer's USDC at your current rate, so the agent never goes below it when the rate moves. Each call is a new cost-model version: offers made under the old floor can no longer be quoted.",
+      params: [
+        ID_PRODUCT,
+        { name: "floorUnitPriceUsd", in: "body", type: "string | null", required: false, description: "Dollars per unit, more than 0. `null` removes the dollar floor; omitted keeps it." },
+        { name: "floorUnitPriceInr", in: "body", type: "string | null", required: false, description: "Rupees per unit, more than 0, up to two decimals. Needs a rate. `null` removes the rupee floor; omitted keeps it." },
+      ],
+      errors: [{ status: "400", when: "Neither field was sent, or a value breaks a rule above." }, E401, e403("products:write"), { status: "404", when: "No product with this id belongs to your seller." }, { status: "409", when: "A rupee floor was sent and you have not set a rate (`details.code` is `rate_required`)." }],
+      ...write("PATCH", "/products/PRODUCT_ID/floor", "/products/${productId}/floor", "product", EXAMPLE_BODIES.floor),
+      response: `{\n  "id": "prd_…",\n  "slug": "custom-tees",\n  "floor": { "floorUnitPriceUsd": null, "floorUnitPriceInr": "850.00" },\n  …\n}`,
     },
     {
       method: "PATCH", path: "/v1/seller/products/:id/listing", title: "List or unlist a product", status: 200, example: { ...EXAMPLE_BODIES.listing },

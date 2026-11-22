@@ -22,6 +22,8 @@ import { ErrorState, fmtDate, fmtUnits } from "../buyer/common";
 import { AgentBadge } from "./OnArc";
 import { decimalsFor } from "./Market";
 import d from "./product.module.css";
+import { CurrencySwitch, DualPrice } from "../ui/CurrencySwitch";
+import { rateLabel, tierTotal, tierUnit, useBuyerCurrency } from "../lib/currency";
 import s from "./store.module.css";
 
 export default function StorePage() {
@@ -50,12 +52,15 @@ function StoreView({ seller }: { seller: PublicSeller }) {
   const navigate = useNavigate();
   const { wallet } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  // USD or INR, remembered for this seller; the deal desk quotes in it. Payment is USDC either way.
+  const { currency, setCurrency, available: rupees, rate } = useBuyerCurrency(seller.slug, seller.currency);
+  const inr = rupees && currency === "INR";
   // Opens the full negotiation page in store mode, on the product asked about; it follows the buyer to others.
   // `all`: the buyer has not chosen a product, so the chat starts on all products and recommends.
   const open = async (productSlug: string, starter: string | null, all = false) => {
     setError(null);
     try {
-      const n = await startStoreChat(seller.slug, productSlug, wallet?.address, [], all ? "all" : "product");
+      const n = await startStoreChat(seller.slug, productSlug, wallet?.address, [], all ? "all" : "product", currency);
       navigate(`/app/negotiations/${n.id}`, { state: starter ? { starter } : undefined });
     } catch (e) {
       setError(errorMessage(e));
@@ -116,6 +121,7 @@ function StoreView({ seller }: { seller: PublicSeller }) {
           <div className={d.h2Row}>
             <h2 id="h-items" className={d.h2}>What {seller.name} makes</h2>
             <span className={d.h2Note}>List prices. The deal desk fits an offer to your quantity within the seller's rules.</span>
+            {rupees && <CurrencySwitch value={currency} onChange={setCurrency} size="sm" />}
           </div>
           <div className={s.items}>
             {products.map((p) => {
@@ -124,7 +130,7 @@ function StoreView({ seller }: { seller: PublicSeller }) {
                 <div key={p.slug} className={s.item}>
                   <div className={s.itemTop}>
                     <h3 className={s.itemName}>{p.name}</h3>
-                    {from && <span className={s.itemFrom}><Money usd={from} digits={decimalsFor(from)} /> <span>/ {p.unitLabel}</span></span>}
+                    {from && <span className={s.itemFrom}>{inr ? tierUnit(p.tiers.find((t) => t.unitPriceUsd === from)!, "INR").primary : <Money usd={from} digits={decimalsFor(from)} />} <span>/ {p.unitLabel}</span></span>}
                   </div>
                   {p.summary && <p className={s.itemSummary}>{p.summary}</p>}
                   {p.capabilities.length > 0 && (
@@ -138,8 +144,8 @@ function StoreView({ seller }: { seller: PublicSeller }) {
                         <tr key={t.id}>
                           <td className={s.tierName}>{t.name}</td>
                           <td className={d.num}>{fmtUnits(t.includedUnits)} {unitFor(t.includedUnits, p.unitLabel)}</td>
-                          <td className={d.num}><Money usd={t.unitPriceUsd} digits={decimalsFor(t.unitPriceUsd)} /> each</td>
-                          <td className={d.num}>{t.prepaidTotalUsd}</td>
+                          <td className={d.num}>{inr ? tierUnit(t, "INR").primary : <Money usd={t.unitPriceUsd} digits={decimalsFor(t.unitPriceUsd)} />} each</td>
+                          <td className={d.num}>{inr ? <DualPrice {...tierTotal(t, "INR")} /> : t.prepaidTotalUsd}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -152,6 +158,7 @@ function StoreView({ seller }: { seller: PublicSeller }) {
               );
             })}
           </div>
+          {inr && rate && <p className={d.fine}>Rupee prices at {rateLabel(rate)}. You pay the USDC amount; each offer fixes its rate.</p>}
           <p className={d.fine}>Every deal is prepaid in USDC into the escrow contract on {ARC_NETWORK_NAMES[defaultNetwork()]}, not to the seller. The seller is paid for what is delivered, and anything not delivered within the term is refunded to you.</p>
         </section>
       </article>

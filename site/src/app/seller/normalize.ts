@@ -40,6 +40,7 @@ export function product(raw: W.ProductWithPrivate | Loose): ProductWithPrivate {
     unitPrice: unitPriceFrom(t, "unitPrice", "unitPriceUsd") ?? { num: "0", den: "1" },
     overagePrice: unitPriceFrom(t, "overagePrice", "overagePriceUsd"),
     includes: (t.includes as string[]) ?? [],
+    ...((t.inr as { stated?: boolean; unitPrice?: string } | null | undefined)?.stated ? { unitPriceInr: String((t.inr as { unitPrice: string }).unitPrice) } : {}),
   }));
   const fresh = r.cost?.freshUntil;
   return {
@@ -64,7 +65,9 @@ export function product(raw: W.ProductWithPrivate | Loose): ProductWithPrivate {
       txCostBps: String(r.cost?.txCostBps ?? "0"),
       freshUntil: typeof fresh === "number" ? fresh : fresh ? Date.parse(String(fresh)) : 0,
       ...(r.cost?.floorUnitPrice != null ? { floorUnitPrice: String(r.cost.floorUnitPrice) } : {}),
+      ...((r.cost as { floorUnitPriceInr?: unknown } | undefined)?.floorUnitPriceInr != null ? { floorUnitPriceInr: String((r.cost as { floorUnitPriceInr: unknown }).floorUnitPriceInr) } : {}),
     },
+    ...((r as Loose).currency ? { currency: (r as Loose).currency as ProductWithPrivate["currency"] } : {}),
     policy: {
       version: Number(r.policy?.version ?? 0),
       minMarginBps: String(r.policy?.minMarginBps ?? "0"),

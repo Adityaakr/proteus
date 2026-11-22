@@ -1,4 +1,4 @@
-import { formatUnitPrice, formatUsd, toMicro, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
+import { amountText, formatUnitPrice, formatUsd, isInrAmount, offerTotalText, offerUnitText, toMicro, toPaise, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
 import type { AgentAdapter, AgentStep, ComposeInput, ExtractInput } from "./adapter";
 import { choiceLine, detectInjection, unlistedLines } from "./adapter";
 import { requestedItems } from "./unlisted";
@@ -33,8 +33,19 @@ export function extractRuleBased(input: ExtractInput): Requirements {
   // Budget: "$1,500", "$1500/month", "budget is 1500 usd"
   const budgetRe = /\$\s?([\d,]+(?:\.\d+)?)/;
   const budgetRe2 = /budget (?:is|of)?\s*([\d,]+)\s*(?:usd|usdc|dollars)/i;
-  const budget = latest.match(budgetRe) ?? latest.match(budgetRe2) ?? (req.budget ? null : text.match(budgetRe) ?? text.match(budgetRe2));
-  if (budget?.[1]) req.budget = toMicro(budget[1].replace(/,/g, ""));
+  // Rupees: "₹40,000", "Rs 40000", "40,000 INR", "budget of 40000 rupees". Converted to USDC by the negotiation at the seller's rate.
+  const rupeeRe = /(?:₹|\brs\.?|\binr)\s?([\d,]+(?:\.\d{1,2})?)/i;
+  const rupeeRe2 = /\b([\d,]+(?:\.\d{1,2})?)\s*(?:inr|rupees?|rs\b)/i;
+  const rupees = latest.match(rupeeRe) ?? latest.match(rupeeRe2);
+  const budget = latest.match(budgetRe) ?? latest.match(budgetRe2) ?? (req.budget || rupees ? null : text.match(budgetRe) ?? text.match(budgetRe2));
+  if (budget?.[1]) {
+    req.budget = toMicro(budget[1].replace(/,/g, ""));
+    delete req.budgetInr;
+  } else if (rupees?.[1] && isInrAmount(rupees[1])) {
+    req.budgetInr = toPaise(rupees[1]);
+    // The USDC budget is set from it once the seller's rate is known; a dollar budget from earlier no longer applies.
+    req.budget = undefined;
+  }
 
   // Desired units: "2,000 resolutions", "around 2000 answers", "1500 units"
   const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -73,8 +84,10 @@ export function extractRuleBased(input: ExtractInput): Requirements {
 const GENERIC = new Set(["custom", "event", "pack", "bulk", "oversized", "branded", "service", "plan"]);
 
 export function composeRuleBased(input: ComposeInput): string {
-  const { offers, rejected, requirements, unitLabel, injectionDetected } = input;
+  const { offers, rejected, requirements, unitLabel, injectionDetected, view } = input;
   const lines: string[] = [];
+  const total = (o: (typeof offers)[number]) => offerTotalText(o, view);
+  const each = (o: (typeof offers)[number]) => offerUnitText(o, view) ?? unitPrice(o.unitPrice.num, o.unitPrice.den);
 
   if (injectionDetected) {
     lines.push("I can only offer packages that clear the seller's commercial policy. That policy is set by the seller and I cannot change it from this conversation, and I do not share the seller's costs.");
@@ -85,8 +98,7 @@ export function composeRuleBased(input: ComposeInput): string {
   const understood: string[] = [];
   if (requirements.useCase) understood.push(requirements.useCase);
   if (requirements.desiredUnits) understood.push(`about ${requirements.desiredUnits.toLocaleString()} ${unitFor(requirements.desiredUnits, unitLabel)}`);
-  if (requirements.budget) understood.push(`a budget around ${formatUsd(requirements.budget, 0)}`);
-  if (requirements.integrations.length) understood.push(`integration with ${requirements.integrations.join(", ")}`);
+  if (requirements.budget) understood.push(`a budget around ${amountText(requirements.budget, view, requirements.budgetInr, { whole: true })}`);  if (requirements.integrations.length) understood.push(`integration with ${requirements.integrations.join(", ")}`);
   if (understood.length) lines.push(`Here is what I understood: ${understood.join("; ")}.`);
 
   const unsupported = Array.from(new Set(offers.flatMap((o) => o.unsupportedIntegrations)));
@@ -97,19 +109,19 @@ export function composeRuleBased(input: ComposeInput): string {
   if (eligible.length) {
     lines.push(eligible.length > 1 ? "There are a couple of ways we could structure this:" : "Here is a package we could structure:");
     for (const o of eligible.slice(0, 2)) {
-      lines.push(`${o.tierName}: ${o.units.toLocaleString()} ${unitFor(o.units, unitLabel)} for ${formatUsd(o.prepaidTotal)} prepaid for the term (${unitPrice(o.unitPrice.num, o.unitPrice.den)} per ${unitLabel}). Includes ${o.includes.join(", ").toLowerCase()}.`);
+      lines.push(`${o.tierName}: ${o.units.toLocaleString()} ${unitFor(o.units, unitLabel)} for ${total(o)} prepaid for the term (${each(o)} per ${unitLabel}). Includes ${o.includes.join(", ").toLowerCase()}.`);
     }
   }
   if (needsApproval.length) {
     const o = needsApproval[0]!;
-    lines.push(`${o.units.toLocaleString()} ${unitFor(o.units, unitLabel)} for ${formatUsd(o.prepaidTotal)} is above what I can offer on my own authority. I have sent it to the seller for approval and will update this thread when they decide.`);
+    lines.push(`${o.units.toLocaleString()} ${unitFor(o.units, unitLabel)} for ${total(o)} is above what I can offer on my own authority. I have sent it to the seller for approval and will update this thread when they decide.`);
   }
   if (rejected.length && !eligible.length) {
     const r = rejected[0]!;
-    lines.push(`I cannot offer ${r.units.toLocaleString()} ${unitFor(r.units, unitLabel)} at ${formatUsd(r.prepaidTotal)}: ${r.publicReasons[0] ?? "it falls outside the seller's policy."}`);
+    lines.push(`I cannot offer ${r.units.toLocaleString()} ${unitFor(r.units, unitLabel)} at ${total(r)}: ${r.publicReasons[0] ?? "it falls outside the seller's policy."}`);
   } else if (rejected.length) {
     const r = rejected[0]!;
-    lines.push(`${r.units.toLocaleString()} ${unitFor(r.units, unitLabel)} for ${formatUsd(r.prepaidTotal)} does not work: ${(r.publicReasons[0] ?? "it falls outside the seller's policy.").toLowerCase()} The options above are what I can commit to.`);
+    lines.push(`${r.units.toLocaleString()} ${unitFor(r.units, unitLabel)} for ${total(r)} does not work: ${(r.publicReasons[0] ?? "it falls outside the seller's policy.").toLowerCase()} The options above are what I can commit to.`);
   }
   // Nothing here fits the stated budget (or nothing is offered): point to the seller's other products, smallest pack first.
   const fits = eligible.filter((o) => !requirements.budget || o.prepaidTotal <= requirements.budget);

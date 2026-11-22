@@ -9,13 +9,17 @@ import { openConsult, threadScope, withMarkers, type Scope } from "../lib/consul
 import { ConsultCard } from "../agentic/ConsultCard";
 import { SellerMark } from "../ui/SellerMark";
 import { ArcMark } from "../ui/Marks";
+import { CurrencySwitch, DualPrice } from "../ui/CurrencySwitch";
+import { offerTotal, rateLabel, tierTotal, tierUnit, useBuyerCurrency } from "../lib/currency";
+import type { CurrencyCode } from "@proteus/domain";
 import e from "./embed.module.css";
 
 const asGreeting = (p: PublicProduct): GreetingProduct => ({ name: p.name, notes: p.knowledge?.notes ?? [] });
-/** "$15.20", the lowest unit price across the product's tiers. */
-const fromPrice = (p: PublicProduct) => {
-  const prices = p.tiers.map((t) => Number(t.unitPriceUsd.replace(/[^0-9.]/g, ""))).filter(Number.isFinite);
-  return prices.length ? `$${Math.min(...prices).toFixed(2)}` : null;
+/** "$15.20" or "₹1,050", the lowest unit price across the product's tiers, in the buyer's currency. */
+const fromPrice = (p: PublicProduct, currency: CurrencyCode) => {
+  const priced = p.tiers.map((t) => ({ t, n: Number(t.unitPriceUsd.replace(/[^0-9.]/g, "")) })).filter((x) => Number.isFinite(x.n));
+  if (!priced.length) return null;
+  return tierUnit(priced.reduce((a, b) => (b.n < a.n ? b : a)).t, currency).primary;
 };
 /** What the visitor sees of a negotiation: everything from their first message on (the client shows its own greeting). */
 const visibleTurns = (n: Negotiation | null) => {
@@ -44,6 +48,8 @@ export default function EmbedAgent() {
   const sellerQ = useQuery({ queryKey: ["embed-seller", sellerSlug], queryFn: () => api.seller(sellerSlug), retry: false });
   const seller = sellerQ.data;
   const products = useMemo(() => seller?.products ?? [], [seller]);
+  // USD or INR, the buyer's choice (remembered for this seller), defaulting to the seller's display currency.
+  const { currency, setCurrency, available: rupees, rate } = useBuyerCurrency(sellerSlug, seller?.currency);
   /** The product the visitor chose (or the embed's data-product); empty: the agent follows what they ask about. */
   const [picked, setPicked] = useState<string>(params.get("product") ?? "");
   const pickedProduct = products.find((p) => p.slug === picked);
@@ -100,7 +106,7 @@ export default function EmbedAgent() {
       if (!slug) {
         // The conversation needs a negotiation to live in; the first one opens on the store and stays on all products.
         if (!n) {
-          n = await api.startNegotiation({ sellerSlug, productSlug: products[0]!.slug, store: "open" }, { embed: sellerSlug });
+          n = await api.startNegotiation({ sellerSlug, productSlug: products[0]!.slug, store: "open", currency }, { embed: sellerSlug });
           setNegStart("all");
           setNeg(n);
         }
@@ -115,7 +121,7 @@ export default function EmbedAgent() {
         const moved = await switchNegotiation(
           n,
           earlier,
-          () => api.startNegotiation({ sellerSlug, productSlug: slug, ...(store ? { store } : {}) }, { embed: sellerSlug }),
+          () => api.startNegotiation({ sellerSlug, productSlug: slug, currency, ...(store ? { store } : {}) }, { embed: sellerSlug }),
           (x) => ({ product: x.productName ?? x.productSlug, turns: rowsOf(x, negStart) }),
         );
         n = moved.next;
@@ -123,7 +129,7 @@ export default function EmbedAgent() {
         setNegStart(start);
         setNeg(n);
       }
-      setNeg(await api.sendMessage(n.id, clean));
+      setNeg(await api.sendMessage(n.id, clean, currency));
       setBackToAll(false);
     } catch (err) {
       setError(errorMessage(err));
@@ -203,6 +209,7 @@ export default function EmbedAgent() {
             <strong>{seller?.name ?? "…"}</strong>
             <span><i className={e.live} aria-hidden /> Deal agent · replies in seconds</span>
           </div>
+          {rupees && <CurrencySwitch value={currency} onChange={setCurrency} size="sm" />}
           {closable && (
             <button type="button" className={e.close} onClick={close} aria-label="Close">
               <X size={18} />
@@ -252,11 +259,11 @@ export default function EmbedAgent() {
                 {pickedProduct.tiers.map((t) => (
                   <li key={t.id}>
                     <span>{t.name}</span>
-                    <span className={e.mono}>{Number(t.includedUnits).toLocaleString()} {unitFor(t.includedUnits, pickedProduct.unitLabel)} · {t.prepaidTotalUsd}</span>
+                    <span className={e.mono}>{Number(t.includedUnits).toLocaleString()} {unitFor(t.includedUnits, pickedProduct.unitLabel)} · <DualPrice {...tierTotal(t, currency)} /></span>
                   </li>
                 ))}
               </ul>
-              <p className={e.muted}>Paid in USDC into escrow; you pay only for delivered {pluralUnit(pickedProduct.unitLabel)}.</p>
+              <p className={e.muted}>Paid in USDC into escrow; you pay only for delivered {pluralUnit(pickedProduct.unitLabel)}.{currency === "INR" && rate ? ` Rupees at ${rateLabel(rate)}.` : ""}</p>
             </section>
           )}
 
@@ -273,7 +280,7 @@ export default function EmbedAgent() {
               </p>
             ) : r.turn.consult ? (
               <div key={r.turn.id} className={e.msgAgent}>
-                <ConsultCard consult={r.turn.consult} onPick={r.turn.id === lastAgent && !pickedProduct ? pick : undefined} disabled={busy} />
+                <ConsultCard consult={r.turn.consult} onPick={r.turn.id === lastAgent && !pickedProduct ? pick : undefined} disabled={busy} priceOf={(slug) => { const p = products.find((x) => x.slug === slug); return p ? fromPrice(p, currency) : null; }} />
               </div>
             ) : (
               <div key={r.turn.id} className={r.turn.role === "buyer" ? e.msgMe : e.msgAgent}>{r.turn.content}</div>
@@ -288,7 +295,8 @@ export default function EmbedAgent() {
                 <div key={o.candidateId} className={e.offer}>
                   <div>
                     <p className={e.offerTitle}>{o.tierName}</p>
-                    <p className={e.mono}>{Number(o.units).toLocaleString()} {unitFor(o.units, current?.unitLabel ?? neg?.unitLabel ?? "unit")} · {o.prepaidTotalUsd}</p>
+                    <p className={e.mono}>{Number(o.units).toLocaleString()} {unitFor(o.units, current?.unitLabel ?? neg?.unitLabel ?? "unit")} · <DualPrice {...offerTotal(o, currency)} /></p>
+                    {currency === "INR" && o.local && <p className={e.muted}>Rate fixed for this offer: {rateLabel(o.local.rate)}</p>}
                     {o.status === "approval_required" && <p className={e.muted}>Needs the seller's approval</p>}
                   </div>
                   <button type="button" className={e.take} onClick={() => take(o)}>Get this offer <ArrowUpRight size={14} /></button>
@@ -320,7 +328,7 @@ export default function EmbedAgent() {
           </form>
         </div>
         <footer className={e.foot}>
-          <span>Prices from {seller?.name ?? "the seller"}'s own rules · paid into escrow</span>
+          <span>Prices from {seller?.name ?? "the seller"}'s own rules · paid in USDC into escrow</span>
           <span aria-hidden>·</span>
           <a href="/" target="_blank" rel="noopener"><ArcMark size={10} /> Proteus AI</a>
         </footer>
@@ -336,7 +344,7 @@ export default function EmbedAgent() {
               <ul className={e.grid}>
                 {(picked || focusProduct) && <li><button type="button" className={e.pick} onClick={() => choose("")}><strong>All products</strong><span>Suggestions, and the agent follows what you ask about</span></button></li>}
                 {matches.map((p) => {
-                  const from = fromPrice(p);
+                  const from = fromPrice(p, currency);
                   return (
                     <li key={p.slug}>
                       <button type="button" className={e.pick} aria-pressed={p.slug === picked} onClick={() => choose(p.slug)}>

@@ -96,6 +96,11 @@ serve({ fetch: app.fetch, port: env.PORT, hostname: "::" }, (info) => {
   const ratingSweep = () => import("./services/ratings").then((m) => m.sweepPendingRatings()).catch((e) => console.error("[ratings]", (e as Error).message));
   setTimeout(ratingSweep, 20_000);
   setInterval(ratingSweep, 30 * 60_000);
+  // The daily reference rate for rupee prices (ECB, via frankfurter.dev): fetched now and every 6 hours. A failed fetch
+  // keeps the last stored rate, whose date every offer shows.
+  const fxRefresh = () => import("./services/currency").then((m) => m.refreshReferenceRate()).catch((e) => console.error("[fx]", (e as Error).message));
+  setTimeout(fxRefresh, 5_000);
+  setInterval(fxRefresh, 6 * 3600_000);
   if (env.RETENTION_DAYS) {
     const sweep = () => import("./services/retention").then((m) => m.purgeExpired(env.RETENTION_DAYS!)).then((r) => (r.turns || r.orderDetails) && console.log(`[retention] removed ${r.turns} chat turn(s) and ${r.orderDetails} order detail(s) older than ${env.RETENTION_DAYS} days`)).catch((e) => console.error("[retention]", (e as Error).message));
     setTimeout(sweep, 60_000);

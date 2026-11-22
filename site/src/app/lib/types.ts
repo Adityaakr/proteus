@@ -36,7 +36,39 @@ export interface PublicTier {
   includedUnits: UnitsStr;
   unitPriceUsd: string;
   prepaidTotalUsd: string;
+  /** The prepaid total in micro-USDC (what escrow takes). */
+  prepaidTotal?: MicroStr;
   includes: string[];
+  /** In rupees ("1050.00"): the seller's own price (stated) or the USDC converted at the rate; null without a rate. */
+  inr?: { unitPrice: string; prepaidTotal: string; stated: boolean } | null;
+}
+
+/** A dated rate: rupees per 1 USD (USDC). */
+export interface FxRateWire {
+  currency: "INR";
+  perUsd: string;
+  asOf: string;
+  kind: "fixed" | "reference";
+  source: string;
+}
+
+export type CurrencyCode = "USD" | "INR";
+
+/** How a seller shows prices: which currency first, and the rate rupee amounts are stated at (null: none). */
+export interface SellerCurrency {
+  display: CurrencyCode;
+  rate: FxRateWire | null;
+  mode?: "fixed" | "reference" | null;
+  reference?: FxRateWire | null;
+}
+
+/** An offer in rupees, fixed at its dated rate. */
+export interface LocalPriceWire {
+  currency: "INR";
+  unitPrice: string;
+  total: string;
+  stated: boolean;
+  rate: FxRateWire;
 }
 
 /** Public seller identity. Logo is an https URL, a site asset path or a small data URL. */
@@ -106,6 +138,8 @@ export interface PublicProduct {
   capabilities: string[];
   supportedIntegrations: string[];
   tiers: PublicTier[];
+  /** The seller's currency and rate (also on every product, so a product page alone can show rupees). */
+  currency?: { display: CurrencyCode; rate: FxRateWire | null };
   termDays: number;
   refundPolicy: string;
   starters: string[];
@@ -121,6 +155,7 @@ export interface PublicSeller {
   brand?: SellerBrand;
   stats?: SellerStats;
   agent?: SellerAgent | null;
+  currency?: SellerCurrency;
   products: PublicProduct[];
   network?: NetworkLabel;
 }
@@ -152,11 +187,15 @@ export interface Offer {
   unitPriceUsd: string;
   prepaidTotalUsd: string;
   overagePriceUsd?: string;
+  /** The offer in rupees with the rate it is fixed at; null when the seller has no rate. */
+  local?: LocalPriceWire | null;
 }
 
 export interface WireRequirements {
   desiredUnits?: UnitsStr;
   budget?: MicroStr;
+  /** The budget as the buyer said it in rupees, in paise ("4500000" is ₹45,000); budget is it in micro-USDC. */
+  budgetInr?: string;
   integrations: string[];
   openQuestions: string[];
   assumptions: string[];
@@ -208,6 +247,8 @@ export interface Negotiation {
   turns: Turn[];
   offers: Offer[];
   activity: ActivityItem[];
+  /** buyer: the currency the agent quotes in; display: the seller's; rate: what rupee amounts are stated at. */
+  currency?: { buyer: CurrencyCode; display: CurrencyCode; rate: FxRateWire | null };
   network?: NetworkLabel;
 }
 
@@ -267,7 +308,10 @@ export interface Quote {
   usdcAddress: Address;
   terms: TermsWire;
   typedData: TypedDataWire<"Terms", TermsWire>;
-  publicTerms: PublicTerms;
+  publicTerms: PublicTerms & { localPrice?: LocalPriceWire };
+  /** "You pay 485.55 USDC (₹45,000 at ₹92.68/$, rate fixed for this offer)", from the signed public terms. */
+  payLine?: string;
+  seller?: { slug: string; display: CurrencyCode };
   approval?: { id: string; status: "pending" | "approved" | "declined"; reason: string; decidedAt?: IsoTime };
   network?: NetworkLabel;
 }
@@ -412,7 +456,7 @@ export type CandidateWithEconomics = Omit<Offer, "publicReasons"> & { rules: str
 export interface ProductWithPrivate extends PublicProduct {
   id: string;
   maxUnitsPerDeal: UnitsStr;
-  cost: { version: number; variableCostPerUnit: MicroStr; directCostPerDeal: MicroStr; txCostBps: number; freshUntil: number | IsoTime; floorUnitPrice?: MicroStr };
+  cost: { version: number; variableCostPerUnit: MicroStr; directCostPerDeal: MicroStr; txCostBps: number; freshUntil: number | IsoTime; floorUnitPrice?: MicroStr; /** Paise per unit, checked at the seller's rate. */ floorUnitPriceInr?: string };
   policy: {
     version: number;
     minMarginBps: number;
@@ -526,6 +570,10 @@ export interface CostUpdate {
   variableCostPerUnit: MicroStr;
   directCostPerDeal?: MicroStr;
   txCostBps?: number;
+  /** Micro-USDC per unit; null removes the dollar floor. */
+  floorUnitPrice?: MicroStr | null;
+  /** Rupees per unit ("850"), checked at the seller's current rate; null removes it. */
+  floorUnitPriceInr?: string | null;
 }
 
 export interface ApprovalDecision {

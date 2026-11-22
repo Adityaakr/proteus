@@ -1,4 +1,4 @@
-import { greetingFacts, pickReason, unitBudget, type Candidate, type ConsultProduct, type Consultation, type PublicCandidate, type Requirements } from "@proteus/domain";
+import { amountText, figuresOf, greetingFacts, isInrAmount, offerTotalText, offerUnitText, pickReason, toMicro, toPaise, unitBudget, type Candidate, type ConsultProduct, type Consultation, type PriceView, type PublicCandidate, type Requirements } from "@proteus/domain";
 
 export interface ConversationTurn {
   role: "buyer" | "agent" | "system";
@@ -47,7 +47,39 @@ export interface ComposeInput {
    * product's own offers. The reply offers the buyer the choice among them; they are not offers here.
    */
   choices?: { kind: string; products: { name: string; smallestPack: string }[]; total: number; sellerName: string };
+  /**
+   * The currency the buyer reads prices in and the seller's rate. In rupees every amount is written
+   * "₹45,000 (≈ 485.55 USDC)" from the offer's own rupee figures; in USD (or without it) exactly as before.
+   */
+  view?: PriceView;
 }
+
+/** What a model's extraction says about the budget, in dollars or in rupees (never a rupee figure read as dollars). */
+export const BUDGET_USD_HELP = "Budget in US dollars (or USDC) if the buyer stated it in dollars, else null. A budget in rupees (₹, Rs, INR) goes in budgetInr, never here.";
+export const BUDGET_INR_HELP = "Budget in Indian rupees if the buyer stated it in rupees (₹, Rs, INR), else null.";
+
+/**
+ * The budget fields of a model's extraction. A rupee budget wins, from the model or from the deterministic parse of the
+ * last message; then a dollar budget; else the deterministic baseline. The negotiation converts rupees at the seller's rate.
+ */
+export function budgetOf(o: { budgetUsd?: unknown; budgetInr?: unknown }, baseline: Requirements): Pick<Requirements, "budget" | "budgetInr"> {
+  if (typeof o.budgetInr === "number" && o.budgetInr > 0 && isInrAmount(o.budgetInr.toFixed(2))) return { budget: undefined, budgetInr: toPaise(o.budgetInr.toFixed(2)) };
+  if (baseline.budgetInr !== undefined && baseline.budget === undefined) return { budget: undefined, budgetInr: baseline.budgetInr };
+  if (typeof o.budgetUsd === "number" && o.budgetUsd > 0) return { budget: toMicro(o.budgetUsd.toFixed(2)) };
+  return { budget: baseline.budget, ...(baseline.budgetInr !== undefined ? { budgetInr: baseline.budgetInr } : {}) };
+}
+
+/** Every figure the reply may quote for these amounts in the buyer's currency (rupee and USDC forms). */
+export function viewFigures(input: Pick<ComposeInput, "offers" | "rejected" | "requirements" | "view">, checker?: RegExp): string[] {
+  if (input.view?.currency !== "INR" || !input.view.fx) return [];
+  const texts = [...input.offers, ...input.rejected].flatMap((o) => [offerTotalText(o, input.view), offerUnitText(o, input.view) ?? ""]);
+  if (input.requirements.budget) texts.push(amountText(input.requirements.budget, input.view, input.requirements.budgetInr));
+  // The adapter's own figure pattern may cut an Indian-grouped figure differently ("1,05,000" read as "05,000").
+  return texts.flatMap((t) => [...figuresOf(t), ...(checker ? (t.match(new RegExp(checker.source, "g")) ?? []) : [])]);
+}
+
+/** The instruction both models get when the buyer reads rupees. */
+export const RUPEE_RULE = "When OPTIONS state amounts in rupees with USDC in brackets, write every amount exactly that way (rupees first, the USDC in brackets); payment is always in USDC.";
 
 /** "Shoonya Store lists 14 caps: this Baseball Cap, Utility Cap (from 1 cap for $4.10), ... Tell me which one you want." */
 export function choiceLine(c: NonNullable<ComposeInput["choices"]>, productName: string): string {

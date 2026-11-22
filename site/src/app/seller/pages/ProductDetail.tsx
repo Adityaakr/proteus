@@ -1,4 +1,6 @@
-import { pluralUnit, unitFor } from "@proteus/domain";
+import { formatInr, formatUsdc, fromPaise, inrToUsdc, isInrAmount, pluralUnit, toPaise, unitFor, unitPriceToInr } from "@proteus/domain";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../../lib/api";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Calculator } from "lucide-react";
@@ -166,7 +168,7 @@ function PrivateSummary({ p }: { p: ProductWithPrivate }) {
         <Fig label="Quote validity" value={duration(p.policy.quoteTtlSeconds)} />
       </div>
       <div className={s.figs}>
-        <Fig label="Floor price per unit" value={p.cost.floorUnitPrice ? <Money micro={p.cost.floorUnitPrice} digits={4} /> : <span style={{ fontSize: 14 }}>None set</span>} />
+        <Fig label="Floor price per unit" value={p.cost.floorUnitPrice || p.cost.floorUnitPriceInr ? <>{p.cost.floorUnitPrice && <Money micro={p.cost.floorUnitPrice} digits={4} />}{p.cost.floorUnitPrice && p.cost.floorUnitPriceInr ? " and " : ""}{p.cost.floorUnitPriceInr && <span>{formatInr(BigInt(p.cost.floorUnitPriceInr))}</span>}</> : <span style={{ fontSize: 14 }}>None set</span>} />
         <Fig label="Variable cost per unit" value={<Money micro={p.cost.variableCostPerUnit} digits={4} />} />
         <Fig label="Direct cost per deal" value={<Money micro={p.cost.directCostPerDeal} />} />
         <Fig label="Transaction cost" value={pct(p.cost.txCostBps)} />
@@ -265,8 +267,20 @@ function PolicyForm({ p }: { p: ProductWithPrivate }) {
  */
 function TiersForm({ p }: { p: ProductWithPrivate }) {
   const m = useUpdateTiers(p.id);
-  const init = () => p.tiers.map((t) => ({ name: t.name, includedUnits: t.includedUnits, unitPriceUsd: microToInput((BigInt(t.unitPrice.num) / BigInt(t.unitPrice.den)).toString()), includes: t.includes.join(", ") }));
-  const [rows, setRows] = useState(init);
+  // Rupee prices need a rate the seller chose (Settings, Currency); they are kept as set and converted at that rate.
+  const rate = useOwnRate();
+  const [cur, setCur] = useState<"USD" | "INR">(() => (p.tiers.some((t) => t.unitPriceInr) ? "INR" : "USD"));
+  const inr = cur === "INR" && Boolean(rate);
+  const priceIn = (t: ProductWithPrivate["tiers"][number], c: "USD" | "INR") =>
+    c === "INR" ? (t.unitPriceInr ? t.unitPriceInr.replace(/\.00$/, "") : rate ? fromPaise(unitPriceToInr({ num: BigInt(t.unitPrice.num), den: BigInt(t.unitPrice.den) }, rate)).replace(/\.00$/, "") : "") : microToInput((BigInt(t.unitPrice.num) / BigInt(t.unitPrice.den)).toString());
+  const init = (c: "USD" | "INR" = cur) => p.tiers.map((t) => ({ name: t.name, includedUnits: t.includedUnits, unitPriceUsd: priceIn(t, c), includes: t.includes.join(", ") }));
+  const [rows, setRows] = useState(() => init());
+  const switchTo = (c: "USD" | "INR") => {
+    setCur(c);
+    setRows(init(c));
+    setSaved(false);
+    setError(null);
+  };
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const update = (i: number, k: "name" | "includedUnits" | "unitPriceUsd" | "includes") => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,13 +291,16 @@ function TiersForm({ p }: { p: ProductWithPrivate }) {
   const smallest = rows.reduce((min, r) => (/^\d+$/.test(r.includedUnits) && (min === null || Number(r.includedUnits) < min) ? Number(r.includedUnits) : min), null as number | null);
   const minimum = Number(p.policy.prepaidMinimum) / 1e6;
   const singleRow = rows.find((r) => r.includedUnits.trim() === String(smallest));
-  const smallestOrder = singleRow && smallest !== null ? smallest * Number(singleRow.unitPriceUsd) : null;
+  const usdOf = (v: string) => (inr && rate ? (isInrAmount(v.trim()) ? Number(inrToUsdc(toPaise(v.trim()), rate)) / 1e6 : NaN) : Number(v));
+  const smallestOrder = singleRow && smallest !== null ? smallest * usdOf(singleRow.unitPriceUsd) : null;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!rows.length) return setError("Keep at least one tier.");
+    // Rupee prices are never sent as dollars: wait for the rate (or set one in Settings, Currency).
+    if (cur === "INR" && !rate) return setError("These prices are in rupees and need your exchange rate. Set it in Settings, Currency, then save again.");
     m.mutate(
-      rows.map((r) => ({ name: r.name.trim(), includedUnits: r.includedUnits.trim(), unitPriceUsd: r.unitPriceUsd.trim(), includes: r.includes.split(",").map((x) => x.trim()).filter(Boolean) })),
+      rows.map((r) => ({ name: r.name.trim(), includedUnits: r.includedUnits.trim(), ...(inr ? { unitPriceInr: r.unitPriceUsd.trim().replace(/[₹,\s]/g, "") } : { unitPriceUsd: r.unitPriceUsd.trim() }), includes: r.includes.split(",").map((x) => x.trim()).filter(Boolean) })),
       { onSuccess: () => setSaved(true), onError: (err) => setError(errorMessage(err)) },
     );
   };
@@ -291,11 +308,19 @@ function TiersForm({ p }: { p: ProductWithPrivate }) {
   return (
     <SellerOnly title="Prices" description={`What buyers see. A tier's price applies from its quantity up; add a 1 ${p.unitLabel} tier to sell single items.`}>
       <form className={s.formBox} onSubmit={submit} noValidate>
+        {rate && (
+          <div className={s.formActions} role="radiogroup" aria-label="Set prices in">
+            <span className={`body3 ${s.small}`}>Set prices in</span>
+            <ActionButton size="sm" variant={cur === "INR" ? "secondary" : "ghost"} onClick={() => switchTo("INR")} aria-pressed={cur === "INR"}>₹ INR</ActionButton>
+            <ActionButton size="sm" variant={cur === "USD" ? "secondary" : "ghost"} onClick={() => switchTo("USD")} aria-pressed={cur === "USD"}>$ USD</ActionButton>
+            {inr && <span className={`body3 ${s.small}`}>Converted to USDC at ₹{rate.perUsd}/$ ({rate.kind === "fixed" ? "your fixed rate" : "ECB reference rate"}, {rate.asOf}), rounded up to the cent. The rupee price holds when the rate moves.</span>}
+          </div>
+        )}
         {rows.map((r, i) => (
           <div key={i} className={s.formGrid2} style={{ gridTemplateColumns: "1.2fr 0.8fr 0.8fr 1.6fr auto", alignItems: "end" }}>
             <Field label="Name" value={r.name} onChange={update(i, "name")} placeholder="Single" />
             <Field label={`From (${pluralUnit(p.unitLabel)})`} inputMode="numeric" value={r.includedUnits} onChange={update(i, "includedUnits")} placeholder="1" />
-            <Field label="Price each ($)" inputMode="decimal" value={r.unitPriceUsd} onChange={update(i, "unitPriceUsd")} placeholder="8.00" />
+            <Field label={inr ? "Price each (₹)" : "Price each ($)"} inputMode="decimal" value={r.unitPriceUsd} onChange={update(i, "unitPriceUsd")} placeholder={inr ? "1050" : "8.00"} hint={inr && rate && isInrAmount(r.unitPriceUsd.trim().replace(/[₹,]/g, "")) && toPaise(r.unitPriceUsd.trim().replace(/[₹,]/g, "")) > 0n ? `= ${formatUsdc(inrToUsdc(toPaise(r.unitPriceUsd.trim().replace(/[₹,]/g, "")), rate))}` : undefined} />
             <Field label="Includes (comma separated)" value={r.includes} onChange={update(i, "includes")} placeholder="Your design" />
             <ActionButton variant="ghost" onClick={() => { setRows((x) => x.filter((_, j) => j !== i)); setSaved(false); }} disabled={rows.length === 1}>Remove</ActionButton>
           </div>
@@ -308,7 +333,7 @@ function TiersForm({ p }: { p: ProductWithPrivate }) {
         <div className={s.formActions}>
           <ActionButton type="submit" variant="secondary" loading={m.isPending} loadingLabel="Saving prices">Save prices</ActionButton>
           <ActionButton variant="ghost" onClick={() => { setRows((x) => [...x, { name: "", includedUnits: "", unitPriceUsd: "", includes: "" }]); setSaved(false); }} disabled={rows.length >= 6}>Add tier</ActionButton>
-          <ActionButton variant="ghost" onClick={() => { setRows(init()); setError(null); setSaved(false); }}>Reset</ActionButton>
+          <ActionButton variant="ghost" onClick={() => { setRows(init(cur)); setError(null); setSaved(false); }}>Reset</ActionButton>
         </div>
       </form>
     </SellerOnly>
@@ -318,7 +343,8 @@ function TiersForm({ p }: { p: ProductWithPrivate }) {
 
 function CostForm({ p }: { p: ProductWithPrivate }) {
   const m = useUpdateCost(p.id);
-  const init = () => ({ floor: p.cost.floorUnitPrice ? microToInput(p.cost.floorUnitPrice) : "", variable: microToInput(p.cost.variableCostPerUnit), direct: microToInput(p.cost.directCostPerDeal), tx: p.cost.txCostBps });
+  const rate = useOwnRate();
+  const init = () => ({ floor: p.cost.floorUnitPrice ? microToInput(p.cost.floorUnitPrice) : "", floorInr: p.cost.floorUnitPriceInr ? fromPaise(BigInt(p.cost.floorUnitPriceInr)).replace(/\.00$/, "") : "", variable: microToInput(p.cost.variableCostPerUnit), direct: microToInput(p.cost.directCostPerDeal), tx: p.cost.txCostBps });
   const [f, setF] = useState(init);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState<number | null>(null);
@@ -334,12 +360,14 @@ function CostForm({ p }: { p: ProductWithPrivate }) {
     const tx = Number(f.tx);
     const floor = String(f.floor).trim() ? usdToMicro(String(f.floor)) : null;
     if (floor === undefined) err.floor = "Enter a dollar amount, or leave it empty for no floor";
+    const floorInr = String(f.floorInr).trim().replace(/[₹,\s]/g, "");
+    if (floorInr && (!isInrAmount(floorInr) || toPaise(floorInr) <= 0n)) err.floorInr = "Enter rupees, up to two decimals, or leave it empty for no rupee floor";
     if (variable === undefined) err.variable = "Enter a dollar amount, up to 6 decimals";
     if (direct === undefined) err.direct = "Enter a dollar amount";
     if (!Number.isInteger(tx) || tx < 0 || tx > 10000) err.tx = "Whole basis points, 0 to 10,000";
     setErrors(err);
     if (Object.keys(err).length) return;
-    const body: CostUpdateBody = { variableCostPerUnit: variable!, directCostPerDeal: direct, txCostBps: tx, floorUnitPrice: floor };
+    const body: CostUpdateBody = { variableCostPerUnit: variable!, directCostPerDeal: direct, txCostBps: tx, floorUnitPrice: floor, ...(rate || p.cost.floorUnitPriceInr ? { floorUnitPriceInr: floorInr || null } : {}) };
     m.mutate(body, { onSuccess: (np) => setSaved(np.cost.version) });
   };
   return (
@@ -347,6 +375,7 @@ function CostForm({ p }: { p: ProductWithPrivate }) {
       <form className={s.formBox} onSubmit={submit} noValidate>
         <div className={s.formGrid2}>
           <Field label="Floor price per unit ($)" inputMode="decimal" value={f.floor} onChange={set("floor")} error={errors.floor} hint="The agent never offers less per unit. Empty: no floor" />
+          {(rate || p.cost.floorUnitPriceInr) && <Field label="Floor price per unit (₹)" inputMode="decimal" value={f.floorInr} onChange={set("floorInr")} error={errors.floorInr} hint={rate ? `Checked on every offer at your current rate (₹${rate.perUsd}/$ now), so the agent never goes below it when the rate moves. Empty: none` : "Set a rate in Settings to keep a rupee floor. Empty: remove it"} />}
           <Field label="Variable cost per unit ($)" inputMode="decimal" value={f.variable} onChange={set("variable")} error={errors.variable} hint="Fulfillment cost of one billable unit" />
           <Field label="Direct cost per deal ($)" inputMode="decimal" value={f.direct} onChange={set("direct")} error={errors.direct} hint="Provisioning and setup" />
           <Field label="Transaction cost (bps)" inputMode="numeric" value={f.tx} onChange={set("tx")} error={errors.tx} hint="Of revenue. 50 bps = 0.5%" />
@@ -381,6 +410,12 @@ function explain(c: WireCandidate, p: ProductWithPrivate): string {
     }
   });
   return parts.join("; ");
+}
+
+/** The rate the seller chose (fixed or reference) from Settings, Currency; rupee prices and floors need it. */
+function useOwnRate() {
+  const q = useQuery({ queryKey: ["sell", "currency"], queryFn: () => api.app.currency(), staleTime: 60_000, retry: false });
+  return q.data?.mode ? q.data.rate : null;
 }
 
 const microToUsd = (m: string) => "$" + Number(microToInput(m)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });

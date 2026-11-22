@@ -84,7 +84,8 @@ export function useStartSandbox() {
   return useMutation({ mutationFn: sellerApi.startSandbox, onSuccess: () => qc.invalidateQueries({ queryKey: K.all }) });
 }
 
-export interface TierInput { name: string; includedUnits: string; unitPriceUsd: string; includes: string[] }
+/** A tier priced in dollars (unitPriceUsd) or in rupees (unitPriceInr, converted at the seller's own rate). */
+export interface TierInput { name: string; includedUnits: string; unitPriceUsd?: string; unitPriceInr?: string; includes: string[] }
 
 export function useUpdateTiers(id: string) {
   const qc = useQueryClient();

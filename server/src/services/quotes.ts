@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { verifyTypedData, type Address, type Hex } from "viem";
-import { ARC_NETWORK_NAMES, TERMS_TYPES, agentRegistryId, domain, hashTerms, policyRegistryFor, productIdHash, publicTermsHash, stableId, toPublicCandidate, type Terms } from "@proteus/domain";
+import { ARC_NETWORK_NAMES, TERMS_TYPES, agentRegistryId, applyFx, candidateIdFor, checkoutLine, domain, hashTerms, localPriceJson, policyRegistryFor, productIdHash, publicTermsHash, reviveLocalPrice, toPublicCandidate, type Terms } from "@proteus/domain";
 import { escrowAddress, usdcAddress } from "../chain/client";
 import { orgSignerAccount } from "../chain/signer";
 import { db, schema } from "../db";
@@ -8,7 +8,8 @@ import { env, features } from "../env";
 import { sealJson, sealText } from "../lib/vault";
 import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, publicId, randomDealId } from "../lib/ids";
-import { loadProductById } from "./catalog";
+import { evaluationContext, loadProductById } from "./catalog";
+import { displayOf } from "./currency";
 import { assertAgentBinding } from "./agent-registry";
 import { ensurePolicyCommit, publishPolicyCommit } from "./policy-commit";
 import { loadNegotiation, reviveCandidate, toOffer } from "./negotiation";
@@ -52,7 +53,24 @@ export function buildPublicTerms(lp: Awaited<ReturnType<typeof loadProductById>>
     sellerAgent: binding.sellerAgent,
     policy: { version: binding.version, commitment: binding.commitment, registry: binding.registry },
     labels: [features.network, lp.org.label],
+    // The offer in rupees and the dated rate it is fixed at, when the seller has a rate. Signed with the rest, so the
+    // rate cannot change after the buyer sees it. Escrow still takes prepaidTotal micro-USDC.
+    ...(c.local ? { localPrice: localPriceJson(c.local) } : {}),
   };
+}
+
+/** Why an offer can no longer be quoted: the seller's rules changed, or (for a rupee-priced offer) the rate moved. */
+export function staleReason(lp: Awaited<ReturnType<typeof loadProductById>>, c: ReturnType<typeof reviveCandidate>): string | null {
+  const tier = lp.product.tiers.find((t) => t.id === c.tierId);
+  const ctx = evaluationContext(lp);
+  if (tier && candidateIdFor(ctx, tier, c.units, c.unitPrice) === c.candidateId) return null;
+  // Same rules at the offer's own rate: only the rate moved. The list price is re-converted, so the tier is too.
+  if (tier && c.local && lp.fx) {
+    const then = { ...ctx, fx: c.local.rate, product: applyFx(lp.product, c.local.rate) };
+    const thenTier = then.product.tiers.find((t) => t.id === c.tierId)!;
+    if (candidateIdFor(then, thenTier, c.units, c.unitPrice) === c.candidateId) return "The exchange rate was updated after this offer was made. Ask for a fresh offer at today's rate.";
+  }
+  return "The seller updated its pricing rules after this offer was made. Ask for a fresh offer.";
 }
 
 export async function createQuote(negId: string, candidateId: string) {
@@ -67,8 +85,9 @@ export async function createQuote(negId: string, candidateId: string) {
 
   // The candidate id hashes the policy and cost versions it was priced under (pricing.ts stableId); if the seller edited
   // either since, the offer no longer reflects the current rules, so the buyer must ask for a fresh one.
-  const current = stableId([lp.product.id, c.tierId, c.units.toString(), c.unitPrice.num.toString(), c.unitPrice.den.toString(), lp.cost.version, lp.policy.version]);
-  if (current !== candidateId) throw new HttpError(409, "The seller updated its pricing rules after this offer was made. Ask for a fresh offer.");
+  // A rupee-priced offer's id also carries the rate it was made at, so an offer from before a rate change is refused too.
+  const stale = staleReason(lp, c);
+  if (stale) throw new HttpError(409, stale);
   await assertAgentBinding(lp.org);
   const commit = await ensurePolicyCommit(lp.policyRow, lp.product.slug);
   if (lp.org.agentId) {
@@ -160,6 +179,10 @@ export async function quoteView(quoteId: string, buyer?: Address) {
     dealId: deal?.id ?? null,
     status: expired ? "expired" : q.status,
     offer: toOffer(c),
+    /** "You pay 485.55 USDC (₹45,000 at ₹92.68/$, rate fixed for this offer)": from the signed public terms. */
+    payLine: checkoutLine(c.prepaidTotal, reviveLocalPrice((q.publicTerms as { localPrice?: unknown }).localPrice)),
+    /** Whose offer this is and which currency it shows first, so the checkout page reads in the buyer's choice. */
+    seller: { slug: lp.org.slug, display: displayOf(lp.org.currency) },
     expiresAt: q.expiresAt,
     chainId: env.CHAIN_ID,
     escrowAddress: escrow ?? null,

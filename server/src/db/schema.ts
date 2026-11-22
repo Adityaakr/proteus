@@ -134,7 +134,29 @@ export const orgs = pgTable("orgs", {
    * happens in a top-level Proteus window).
    */
   embedDomains: jsonb("embed_domains").$type<string[]>(),
+  /**
+   * How buyers see prices: { display: "USD" | "INR", rate?: { mode: "fixed", perUsd, asOf } | { mode: "reference" } }.
+   * Null: USD, with the daily reference rate for buyers who switch to rupees. Escrow and settlement are always USDC.
+   */
+  currency: jsonb("currency").$type<OrgCurrency>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** A seller's currency settings (see orgs.currency). */
+export interface OrgCurrency {
+  display: "USD" | "INR";
+  rate?: { mode: "fixed"; perUsd: string; asOf: string } | { mode: "reference" };
+}
+
+/** The latest published reference rate per currency (rupees per 1 USD), refreshed daily from the ECB feed. */
+export const fxRates = pgTable("fx_rates", {
+  currency: text("currency").primaryKey(),
+  /** Units of `currency` per 1 USD, decimal string. */
+  perUsd: text("per_usd").notNull(),
+  /** The date the published rate is for (YYYY-MM-DD). */
+  asOf: text("as_of").notNull(),
+  source: text("source").notNull(),
+  fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const products = pgTable(
@@ -173,6 +195,8 @@ export const costModels = pgTable(
     freshUntil: timestamp("fresh_until", { withTimezone: true }).notNull(),
     /** Lowest price per unit the agent may offer (micro-USDC), enforced as the FLOOR_PRICE rule. Null: no explicit floor. */
     floorUnitPrice: bigint("floor_unit_price", { mode: "bigint" }),
+    /** The floor stated in rupees (paise per unit), checked at the seller's current rate on every offer. Null: none. */
+    floorUnitPriceInr: bigint("floor_unit_price_inr", { mode: "bigint" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("cost_models_product_version").on(t.productId, t.version)],
@@ -214,6 +238,8 @@ export const negotiations = pgTable(
     buyerAddress: text("buyer_address"),
     /** sha256 of the buyer's negotiation key (returned once at start). Null for negotiations started before keys existed. */
     buyerKeyHash: text("buyer_key_hash"),
+    /** The currency the buyer chose to see prices in ("USD" or "INR"); the agent quotes in it. Null: the seller's display currency. */
+    currency: text("currency"),
     status: text("status").notNull().default("open"),
     /** domain Requirements, bigints as strings. */
     requirements: jsonb("requirements").notNull(),

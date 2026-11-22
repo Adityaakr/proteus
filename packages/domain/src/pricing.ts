@@ -1,4 +1,5 @@
 import { BPS, bpsOf, mulDivFloor, type Micro, type UnitPrice } from "./money";
+import { inrFloorHolds, inrToUsdc, unitPriceToInr, usdcToInr, type FxRate, type LocalPrice, type Paise } from "./fx";
 
 /* ------------------------------------------------------------------ */
 /* Seller-side configuration                                           */
@@ -74,6 +75,11 @@ export interface Tier {
   includedUnits: bigint;
   /** List unit price (micro-USDC per unit). Prepaid total = includedUnits * price. */
   unitPrice: UnitPrice;
+  /**
+   * The list price as the seller set it in rupees (paise per unit). When present it is the source of truth: unitPrice
+   * is this amount converted at the seller's current rate (applyFx), so the rupee price holds when the rate moves.
+   */
+  unitPriceInr?: Paise;
   /** Overage price per unit beyond includedUnits, if allowed. */
   overagePrice?: UnitPrice;
   /** Features included. */
@@ -96,6 +102,11 @@ export interface CostModel {
    * an offer is rejected when its prepaid total is below units x floor. Optional; without it only margin and discount apply.
    */
   floorUnitPrice?: Micro;
+  /**
+   * The same kind of floor stated in rupees (paise per unit). Checked exactly against each offer's USDC total at the
+   * current rate, so the agent never goes below it when the rate moves. Without a rate it refuses every offer.
+   */
+  floorUnitPriceInr?: Paise;
 }
 
 /** Seller-private commercial policy. NEVER serialized to buyer-facing responses. */
@@ -126,6 +137,8 @@ export interface Requirements {
   desiredUnits?: bigint;
   /** Budget per term in micro-USDC, if stated. */
   budget?: Micro;
+  /** The same budget as the buyer said it in rupees (paise), when they did; budget is it converted (rounded down). */
+  budgetInr?: Paise;
   /** Integrations the buyer needs. */
   integrations: string[];
   /** Free-text constraints the model extracted (never trusted for money). */
@@ -186,6 +199,8 @@ export interface Candidate {
   origin: "tier" | "budget_fit" | "requested_units" | "counter";
   /** All reasons this candidate was generated (a budget fit can coincide with a tier). */
   origins: Candidate["origin"][];
+  /** The offer in rupees, with the rate it is fixed at. Present when the seller has a rate. Buyer-safe. */
+  local?: LocalPrice;
   /** SELLER ONLY. Stripped before any buyer-facing response. */
   economics: Economics;
 }
@@ -195,6 +210,40 @@ export interface EvaluationContext {
   cost: CostModel;
   policy: Policy;
   now: number;
+  /** The seller's current rate. Rupee list prices and floors are converted and checked at it; offers carry it. */
+  fx?: FxRate;
+}
+
+/** Whether a candidate's price depends on the rate (a rupee list price or floor), so the rate is part of its id. */
+function priceUsesRate(ctx: EvaluationContext, tier: Tier): boolean {
+  return Boolean(ctx.fx) && (tier.unitPriceInr !== undefined || ctx.cost.floorUnitPriceInr !== undefined);
+}
+
+/**
+ * The deterministic id of a (tier, units, price) proposal under the context's cost and policy versions, and the rate
+ * when the price depends on it. A quote recomputes it: an offer made before the seller changed its rules or before the
+ * rate moved cannot be signed.
+ */
+export function candidateIdFor(ctx: EvaluationContext, tier: Tier, units: bigint, unitPrice: UnitPrice): string {
+  const parts: (string | number | bigint)[] = [ctx.product.id, tier.id, units.toString(), unitPrice.num.toString(), unitPrice.den.toString(), ctx.cost.version, ctx.policy.version];
+  if (priceUsesRate(ctx, tier)) parts.push(`fx:${ctx.fx!.perUsd}@${ctx.fx!.asOf}`);
+  return stableId(parts);
+}
+
+/** Rupee list prices converted at the rate (rounded up to the cent). Without a rate, the stored USDC prices stand. */
+export function applyFx(product: Product, fx: FxRate | undefined): Product {
+  if (!fx || !product.tiers.some((t) => t.unitPriceInr !== undefined)) return product;
+  return { ...product, tiers: product.tiers.map((t) => (t.unitPriceInr === undefined ? t : { ...t, unitPrice: { num: inrToUsdc(t.unitPriceInr, fx), den: 1n } })) };
+}
+
+/** The offer in rupees: the seller's rupee list price, the buyer's rupee counter, or (else) its USDC converted. */
+function localFor(ctx: EvaluationContext, tier: Tier, units: bigint, unitPrice: UnitPrice, prepaidTotal: Micro, localTotal?: Paise): LocalPrice | undefined {
+  const fx = ctx.fx;
+  if (!fx) return undefined;
+  const atList = tier.unitPriceInr !== undefined && unitPrice.num * tier.unitPrice.den === tier.unitPrice.num * unitPrice.den;
+  if (atList) return { currency: "INR", unitPrice: tier.unitPriceInr!, total: units * tier.unitPriceInr!, stated: true, rate: fx };
+  if (localTotal !== undefined && units > 0n) return { currency: "INR", unitPrice: (localTotal * 2n + units) / (2n * units), total: localTotal, stated: true, rate: fx };
+  return { currency: "INR", unitPrice: unitPriceToInr(unitPrice, fx), total: usdcToInr(prepaidTotal, fx), stated: false, rate: fx };
 }
 
 export function listPriceForUnits(tier: Tier): UnitPrice {
@@ -204,7 +253,7 @@ export function listPriceForUnits(tier: Tier): UnitPrice {
 /** Evaluate one concrete (tier, units, unitPrice) proposal against seller economics and policy. */
 export function evaluate(
   ctx: EvaluationContext,
-  input: { tier: Tier; units: bigint; unitPrice: UnitPrice; origin: Candidate["origin"]; requested: Requirements },
+  input: { tier: Tier; units: bigint; unitPrice: UnitPrice; origin: Candidate["origin"]; requested: Requirements; localTotal?: Paise },
 ): Candidate {
   const { product, cost, policy, now } = ctx;
   const { tier, units, unitPrice, origin, requested } = input;
@@ -223,6 +272,8 @@ export function evaluate(
 
   if (now > cost.freshUntil) rules.push("COST_MODEL_STALE");
   if (cost.floorUnitPrice !== undefined && prepaidTotal < units * cost.floorUnitPrice) rules.push("FLOOR_PRICE");
+  // A rupee floor needs a rate to be checked against; without one nothing is offered rather than guessing.
+  else if (cost.floorUnitPriceInr !== undefined && (!ctx.fx || !inrFloorHolds(prepaidTotal, units, cost.floorUnitPriceInr, ctx.fx))) rules.push("FLOOR_PRICE");
   if (expectedContribution <= 0n && !policy.allowNonPositiveContribution) rules.push("NON_POSITIVE_CONTRIBUTION");
   if (expectedContributionMarginBps < policy.minMarginBps) rules.push("MARGIN_FLOOR_BPS");
   if (discountBps > policy.maxDiscountBps) rules.push("MAX_DISCOUNT_BPS");
@@ -243,7 +294,8 @@ export function evaluate(
     status = "approval_required";
   }
 
-  const candidateId = stableId([product.id, tier.id, units.toString(), unitPrice.num.toString(), unitPrice.den.toString(), cost.version, policy.version]);
+  const candidateId = candidateIdFor(ctx, tier, units, unitPrice);
+  const local = localFor(ctx, tier, units, unitPrice, prepaidTotal, input.localTotal);
 
   return {
     candidateId,
@@ -260,6 +312,7 @@ export function evaluate(
     rules,
     origin,
     origins: [origin],
+    ...(local ? { local } : {}),
     economics: { expectedRevenue, expectedVariableCost, expectedTxCost, allocatedDirectCost, expectedContribution, expectedContributionMarginBps, discountBps },
   };
 }
@@ -327,6 +380,8 @@ export function getQuoteCandidates(ctx: EvaluationContext, req: Requirements): C
 export interface CounterRequest {
   /** Buyer wants this total for the same units (micro-USDC). */
   targetTotal?: Micro;
+  /** Or this total in rupees (paise), converted at the context's rate (rounded up to the cent). Needs ctx.fx. */
+  targetTotalInr?: Paise;
   /** Or this many units for the same total. */
   targetUnits?: bigint;
 }
@@ -346,13 +401,21 @@ export function evaluateCounteroffer(ctx: EvaluationContext, base: Candidate, as
 
   let units = base.units;
   let unitPrice: UnitPrice = base.unitPrice;
+  let localTotal: Paise | undefined;
+  if (ask.targetTotalInr !== undefined && ask.targetTotalInr > 0n) {
+    if (!ctx.fx) throw new Error("a rupee counter needs the seller's rate");
+    ask = { ...ask, targetTotal: inrToUsdc(ask.targetTotalInr, ctx.fx) };
+    localTotal = ask.targetTotalInr;
+  }
   if (ask.targetTotal !== undefined && ask.targetTotal > 0n) {
     unitPrice = { num: ask.targetTotal, den: units };
   } else if (ask.targetUnits !== undefined && ask.targetUnits > 0n) {
     units = ask.targetUnits;
     unitPrice = { num: base.prepaidTotal, den: units };
+    // Same total for more units: a rupee total the offer stated stays the total.
+    if (base.local?.stated) localTotal = base.local.total;
   }
-  const proposed = evaluate(ctx, { tier, units, unitPrice, origin: "counter", requested: req });
+  const proposed = evaluate(ctx, { tier, units, unitPrice, origin: "counter", requested: req, localTotal });
   if (proposed.status === "eligible") return { decision: "approved", candidate: proposed };
   if (proposed.status === "approval_required") return { decision: "approval_required", candidate: proposed };
 

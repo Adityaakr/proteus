@@ -1,6 +1,7 @@
 import { howItWorksToday, isScheduling } from "./calendar";
 import { and, desc, eq } from "drizzle-orm";
-import { formatUnitPrice, formatUsd, mulDivFloor, type CostModel, type EvaluationContext, type Policy, type Product, type Tier } from "@proteus/domain";
+import { applyFx, formatUnitPrice, formatUsd, fromPaise, isInrAmount, mulDivFloor, toPaise, unitPriceToInr, usdcToInr, type CostModel, type EvaluationContext, type FxRate, type Policy, type Product, type Tier } from "@proteus/domain";
+import { displayOf, orgFx } from "./currency";
 import { db, schema } from "../db";
 import { nameColours } from "../lib/colours";
 import { HttpError } from "../lib/http";
@@ -13,6 +14,8 @@ export interface LoadedProduct {
   policy: Policy;
   costRow: typeof schema.costModels.$inferSelect;
   policyRow: typeof schema.policies.$inferSelect;
+  /** The seller's current rate (fixed or reference), when it has one. Rupee list prices are already converted at it. */
+  fx?: FxRate;
 }
 
 /** Revive a stored public product (bigints as strings) into the domain type. */
@@ -24,6 +27,7 @@ export function reviveProduct(p: Record<string, unknown>): Product {
     unitPrice: { num: BigInt(String((t.unitPrice as Record<string, unknown>).num)), den: BigInt(String((t.unitPrice as Record<string, unknown>).den)) },
     overagePrice: t.overagePrice ? { num: BigInt(String((t.overagePrice as Record<string, unknown>).num)), den: BigInt(String((t.overagePrice as Record<string, unknown>).den)) } : undefined,
     includes: (t.includes as string[]) ?? [],
+    ...(isInrAmount(t.unitPriceInr) ? { unitPriceInr: toPaise(t.unitPriceInr) } : {}),
   }));
   return {
     id: String(p.id),
@@ -45,7 +49,7 @@ export function reviveProduct(p: Record<string, unknown>): Product {
 }
 
 export function costFromRow(r: typeof schema.costModels.$inferSelect): CostModel {
-  return { version: r.version, variableCostPerUnit: r.variableCostPerUnit, directCostPerDeal: r.directCostPerDeal, txCostBps: BigInt(r.txCostBps), freshUntil: r.freshUntil.getTime(), ...(r.floorUnitPrice !== null ? { floorUnitPrice: r.floorUnitPrice } : {}) };
+  return { version: r.version, variableCostPerUnit: r.variableCostPerUnit, directCostPerDeal: r.directCostPerDeal, txCostBps: BigInt(r.txCostBps), freshUntil: r.freshUntil.getTime(), ...(r.floorUnitPrice !== null ? { floorUnitPrice: r.floorUnitPrice } : {}), ...(r.floorUnitPriceInr != null ? { floorUnitPriceInr: r.floorUnitPriceInr } : {}) };
 }
 
 export function policyFromRow(r: typeof schema.policies.$inferSelect): Policy {
@@ -90,7 +94,9 @@ export async function loadProductById(productId: string): Promise<LoadedProduct>
   const [costRow] = await db.select().from(schema.costModels).where(eq(schema.costModels.productId, row.id)).orderBy(desc(schema.costModels.version)).limit(1);
   const [policyRow] = await db.select().from(schema.policies).where(eq(schema.policies.productId, row.id)).orderBy(desc(schema.policies.version)).limit(1);
   if (!costRow || !policyRow) throw new HttpError(500, "product has no cost model or policy");
-  return { org, row, product: withCurrentCopy(org.slug, reviveProduct(row.public as Record<string, unknown>)), cost: costFromRow(costRow), policy: policyFromRow(policyRow), costRow, policyRow };
+  const fx = await orgFx(org);
+  const product = applyFx(withCurrentCopy(org.slug, reviveProduct(row.public as Record<string, unknown>)), fx);
+  return { org, row, product, cost: costFromRow(costRow), policy: policyFromRow(policyRow), costRow, policyRow, ...(fx ? { fx } : {}) };
 }
 
 export async function loadProductBySlugs(sellerSlug: string, productSlug: string): Promise<LoadedProduct> {
@@ -105,7 +111,7 @@ export async function loadProductBySlugs(sellerSlug: string, productSlug: string
 }
 
 export function evaluationContext(lp: LoadedProduct, now = Date.now()): EvaluationContext {
-  return { product: lp.product, cost: lp.cost, policy: lp.policy, now };
+  return { product: lp.product, cost: lp.cost, policy: lp.policy, now, ...(lp.fx ? { fx: lp.fx } : {}) };
 }
 
 /** Buyer-safe product projection. */
@@ -126,8 +132,13 @@ export function publicProduct(lp: LoadedProduct) {
       includedUnits: t.includedUnits.toString(),
       unitPriceUsd: unitPriceUsd(t.unitPrice.num, t.unitPrice.den),
       prepaidTotalUsd: formatUsd(mulDivFloor(t.includedUnits, t.unitPrice.num, t.unitPrice.den)),
+      /** The prepaid total in micro-USDC (what escrow takes). */
+      prepaidTotal: mulDivFloor(t.includedUnits, t.unitPrice.num, t.unitPrice.den).toString(),
       includes: t.includes,
+      inr: tierInr(t, lp.fx),
     })),
+    /** How the seller shows prices, and the rate rupee amounts are stated at (null: no rate, USD only). */
+    currency: { display: displayOf(lp.org.currency), rate: lp.fx ?? null },
     termDays: p.termDays,
     refundPolicy: p.refundPolicy,
     summary: p.summary ?? null,
@@ -140,6 +151,16 @@ export function publicProduct(lp: LoadedProduct) {
     starters: (lp.row.starters as string[]) ?? [],
     labels: { seller: lp.org.label, network: "testnet", pricing: "illustrative" },
   };
+}
+
+/**
+ * A tier in rupees: the seller's own rupee price ("stated"), or its USDC converted at the rate for display. Null without
+ * a rate. Decimal strings ("1050.00").
+ */
+export function tierInr(t: Tier, fx: FxRate | undefined): { unitPrice: string; prepaidTotal: string; stated: boolean } | null {
+  if (t.unitPriceInr !== undefined) return { unitPrice: fromPaise(t.unitPriceInr), prepaidTotal: fromPaise(t.unitPriceInr * t.includedUnits), stated: true };
+  if (!fx) return null;
+  return { unitPrice: fromPaise(unitPriceToInr(t.unitPrice, fx)), prepaidTotal: fromPaise(usdcToInr(mulDivFloor(t.includedUnits, t.unitPrice.num, t.unitPrice.den), fx)), stated: false };
 }
 
 /** Per-unit price for buyers and docs: two decimals ("$6.50"), up to four for sub-cent prices ("$0.035"). */

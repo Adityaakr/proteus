@@ -17,11 +17,18 @@ export const StartNegotiationBody = z.object({
   mandateCap: MicroString.optional(),
   /** Started from a seller's store page: "open" greets for the whole store, "continue" picks up a store conversation. */
   store: z.enum(["open", "continue"]).optional(),
+  /** The currency the buyer reads prices in; the agent quotes in it. Default: the seller's display currency. */
+  currency: z.enum(["USD", "INR"]).optional(),
 });
 
 export const MessageBody = z.object({
   content: z.string().min(1).max(4000),
+  /** The buyer switched currency: this reply and later ones quote in it. */
+  currency: z.enum(["USD", "INR"]).optional(),
 });
+
+/** A rupee amount: digits with up to two decimals ("45000", "1299.50"). */
+export const InrString = z.string().regex(/^\d{1,12}(\.\d{1,2})?$/, "rupee amount, up to two decimals");
 
 export const ConsultBody = z.object({
   content: z.string().min(1).max(4000),
@@ -32,7 +39,10 @@ export const ConsultBody = z.object({
 export const CounterBody = z.object({
   candidateId: z.string().min(1),
   targetTotal: MicroString.optional(),
+  /** Or the total in rupees; converted at the seller's rate (rounded up to the cent) and kept as the offer's rupee total. */
+  targetTotalInr: InrString.optional(),
   targetUnits: z.string().regex(/^\d+$/).optional(),
+  currency: z.enum(["USD", "INR"]).optional(),
 });
 
 export const AcceptBody = z.object({
@@ -80,6 +90,8 @@ export const CostUpdateBody = z.object({
   txCostBps: z.number().int().min(0).max(10000).optional(),
   /** Lowest price per unit (micro-USDC). Omitted keeps the current floor; null removes it. */
   floorUnitPrice: MicroString.nullable().optional(),
+  /** Lowest price per unit in rupees ("850"), checked at the seller's current rate. Omitted keeps it; null removes it. */
+  floorUnitPriceInr: InrString.nullable().optional(),
 });
 
 export type StartNegotiationBody = z.infer<typeof StartNegotiationBody>;

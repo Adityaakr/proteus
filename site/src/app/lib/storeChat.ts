@@ -5,6 +5,7 @@
  * the page can show the whole conversation; nothing here is trusted by the server.
  */
 import { api } from "./api";
+import type { CurrencyCode } from "./types";
 
 export interface StoreChain {
   seller: string;
@@ -38,8 +39,8 @@ export function setStoreChain(negotiationId: string, chain: StoreChain) {
  * negotiation is on `productSlug` only so it has somewhere to live) until a message names one. Later messages may
  * move it to another product.
  */
-export async function startStoreChat(sellerSlug: string, productSlug: string, buyerAddress?: string, prior: string[] = [], scope: "all" | "product" = "product") {
-  const n = await api.startNegotiation({ sellerSlug, productSlug, buyerAddress, store: prior.length ? "continue" : "open" });
+export async function startStoreChat(sellerSlug: string, productSlug: string, buyerAddress?: string, prior: string[] = [], scope: "all" | "product" = "product", currency?: CurrencyCode) {
+  const n = await api.startNegotiation({ sellerSlug, productSlug, buyerAddress, store: prior.length ? "continue" : "open", ...(currency ? { currency } : {}) });
   setStoreChain(n.id, { seller: sellerSlug, prior, ...(prior.length ? {} : { scope }) });
   return n;
 }

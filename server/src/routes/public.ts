@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { Hono, type Context } from "hono";
-import { AcceptBody, ConsultBody, CounterBody, MessageBody, StartNegotiationBody } from "@proteus/domain";
+import { AcceptBody, ConsultBody, CounterBody, MessageBody, StartNegotiationBody, toPaise } from "@proteus/domain";
 import type { Address, Hex } from "viem";
 import { db, schema } from "../db";
 import { HttpError, json, toBig } from "../lib/http";
@@ -20,6 +20,7 @@ import { insertWalletLink, userOwnsAddress, userWallets } from "../services/acco
 import { sellerCard, sellerStats } from "../services/brand";
 import { publicRatings } from "../services/ratings";
 import { customerChat, customerPage } from "../services/customer-link";
+import { currencyView } from "../services/currency";
 
 export const publicRoutes = new Hono();
 
@@ -31,7 +32,7 @@ publicRoutes.get("/public/sellers/:sellerSlug", async (c) => {
   const products = [];
   for (const r of rows) products.push(publicProduct(await loadProductById(r.id)));
   const stats = await sellerStats([org.id]);
-  return json(c, { ...sellerCard(org, stats.get(org.id)), products });
+  return json(c, { ...sellerCard(org, stats.get(org.id)), currency: await currencyView(org), products });
 });
 
 /**
@@ -112,7 +113,7 @@ publicRoutes.post("/negotiations", async (c) => {
     buyer = (w.find((x) => x.primary) ?? w[0])?.address ?? buyer;
   }
   const store = body.store === "open" || body.store === "continue" ? body.store : undefined;
-  return json(c, await startNegotiation(body.sellerSlug, body.productSlug, buyer, store), 201);
+  return json(c, await startNegotiation(body.sellerSlug, body.productSlug, buyer, store, body.currency), 201);
 });
 
 /** Key holder or the signed-in owner of the buyer wallet; see assertNegotiationAccess. */
@@ -131,7 +132,7 @@ publicRoutes.post("/negotiations/:id/messages", async (c) => {
   limit(`neg-msg:${clientIp((n) => c.req.header(n))}`, 60);
   await negotiationAccess(c);
   const body = MessageBody.parse(await c.req.json());
-  return json(c, await addBuyerMessage(c.req.param("id"), body.content));
+  return json(c, await addBuyerMessage(c.req.param("id"), body.content, body.currency));
 });
 
 /**
@@ -153,8 +154,8 @@ publicRoutes.post("/negotiations/:id/counter", async (c) => {
   // After the access check, so someone without the key cannot use up the buyer's counters.
   limit(`neg-counter:${c.req.param("id")}`, 12);
   const body = CounterBody.parse(await c.req.json());
-  if (!body.targetTotal && !body.targetUnits) throw new HttpError(400, "targetTotal or targetUnits required");
-  return json(c, await counter(c.req.param("id"), body.candidateId, { targetTotal: body.targetTotal ? toBig(body.targetTotal) : undefined, targetUnits: body.targetUnits ? toBig(body.targetUnits) : undefined }));
+  if (!body.targetTotal && !body.targetTotalInr && !body.targetUnits) throw new HttpError(400, "targetTotal, targetTotalInr or targetUnits required");
+  return json(c, await counter(c.req.param("id"), body.candidateId, { targetTotal: body.targetTotal ? toBig(body.targetTotal) : undefined, targetTotalInr: body.targetTotalInr ? toPaise(body.targetTotalInr) : undefined, targetUnits: body.targetUnits ? toBig(body.targetUnits) : undefined }, body.currency));
 });
 
 publicRoutes.post("/negotiations/:id/quotes", async (c) => {
