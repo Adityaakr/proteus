@@ -159,6 +159,17 @@ describe("the seller's logo", () => {
     expect(s.asked).toEqual(["/shoonya-logo.png", "/_next/image?url=%2Fshoonya-logo.png&w=256&q=75", "/brand/org-logo.png"]);
   });
 
+  it("never takes a product photo named like a logo over the site's own logo", async () => {
+    const { logoCandidates } = await import("../src/services/importer/logo");
+    const page = `<html><head><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script type="application/ld+json">{"@type":"Organization","name":"Capco","logo":"https://capco.example/brand.png"}</script></head>
+<body><header><a href="/"><svg><title>Capco</title></svg></a></header>
+<main><img alt="Embroidered Logo Cap" src="/products/cap.webp"></main></body></html>`;
+    const c = logoCandidates(page, "https://capco.example/");
+    expect(c.slice(0, 2)).toEqual(["https://capco.example/brand.png", "https://capco.example/apple-touch-icon.png"]);
+    expect(c.at(-1)).toBe("https://capco.example/products/cap.webp");
+  });
+
   it("never inlines an SVG that carries a script", async () => {
     const clean = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><circle r="4"/></svg>');
     const s = site({

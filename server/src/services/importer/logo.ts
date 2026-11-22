@@ -2,7 +2,8 @@
  * The seller's logo, copied into the store as a data URL. Many sites serve their images with
  * Cross-Origin-Resource-Policy: same-site, so a hotlinked logo shows as broken on Proteus. Candidates, best first:
  * the header or menu image that says "logo" (a Next.js /_next/image URL also gives its original file), the JSON-LD
- * Organization logo, the apple-touch-icon, then a PNG or SVG icon. Each is fetched through the site's guarded fetch
+ * Organization logo, the apple-touch-icon, a PNG or SVG icon, and last any other image on the page that says "logo"
+ * (a product photo such as "Logo Cap" must not outrank the site's own logo). Each is fetched through the site's guarded fetch
  * and kept only when it is a PNG, JPEG, WebP or SVG whose bytes match its type and that fits the logo size limit.
  */
 import type { SafeResponse } from "../../lib/net-guard";
@@ -44,10 +45,10 @@ export function logoCandidates(html: string, pageUrl: string): string[] {
   const links = linksOf(html, pageUrl);
   const raw = [
     ...logoImages(top, pageUrl),
-    ...logoImages(html, pageUrl),
     typeof ldLogo === "string" ? ldLogo : undefined,
     links.find((l) => l.rel.includes("apple-touch-icon"))?.url,
     links.find((l) => l.rel.split(/\s+/).includes("icon") && /\.(png|svg)(\?|$)/i.test(l.url))?.url,
+    ...logoImages(html, pageUrl),
   ];
   const out: string[] = [];
   for (const r of raw) {
