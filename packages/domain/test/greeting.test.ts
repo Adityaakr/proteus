@@ -68,8 +68,10 @@ describe("seller greeting catalog and prices", () => {
     const priced: GreetingProduct = { name: "Bags", notes: ["Minimum order $500.", "Free shipping over 250 USD.", "Samples cost €20 each."] };
     expect(greetingFacts([priced])).toEqual([]);
     expect(greetingText(sellerGreeting("Kitbox", [priced], priced))).not.toMatch(/\$|€|USD/);
-    const rupees: GreetingProduct = { name: "Tees", notes: ["Minimum order Rs 5000.", "Free shipping above Rs. 999.", "Samples for 200 rupees."] };
+    const rupees: GreetingProduct = { name: "Tees", notes: ["Minimum order Rs 5000.", "Free shipping above Rs. 999.", "Samples for 200 rupees.", "Delivery above Rs999 is free."] };
     expect(greetingFacts([rupees])).toEqual([]);
+    expect(greetingFacts([{ name: "Tees", notes: ["Minimum order Rs5000."] }])).toEqual([]);
+    expect(greetingFacts([{ name: "Tees", notes: ["Minimum order 500USD."] }])).toEqual([]);
     expect(greetingFacts([{ name: "Tees", notes: ["Production takes 48 hrs."] }])).toEqual([{ kind: "production", label: "Production", text: "takes 48 hrs." }]);
   });
 });
