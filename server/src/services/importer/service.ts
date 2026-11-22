@@ -468,16 +468,16 @@ export interface PublishedView {
 }
 
 /**
- * Creates the items this import has not created yet, recording each one as soon as it exists, so a publish that
- * fails partway can be retried without duplicates.
+ * Creates the items this import has not created yet. `create` must save the list `recorded(id)` returns in the same
+ * transaction as the product, so a publish that fails partway can be retried without duplicates.
  */
-export async function createPending(items: DraftItem[], done: PublishedView["products"], create: (item: DraftItem) => Promise<string>, record: (products: PublishedView["products"]) => Promise<void>): Promise<PublishedView["products"]> {
-  const products = [...done];
+export async function createPending(items: DraftItem[], done: PublishedView["products"], create: (item: DraftItem, recorded: (id: string) => PublishedView["products"]) => Promise<string>): Promise<PublishedView["products"]> {
+  let products = [...done];
   for (const item of items) {
     if (products.some((p) => p.key === item.key)) continue;
-    const id = await create(item);
-    products.push({ id, slug: item.slug, name: item.name, key: item.key });
-    await record(products);
+    let next = products;
+    await create(item, (id) => (next = [...products, { id, slug: item.slug, name: item.name, key: item.key }]));
+    products = next;
   }
   return products;
 }
@@ -543,17 +543,16 @@ async function publishItems(userId: string, row: Row, result: StoredResult, answ
   }
   const o = org;
   const view = (products: PublishedView["products"]): PublishedView => ({ orgId: o.id, orgSlug: o.slug, orgName: o.name, products, at: new Date().toISOString() });
-  const prior = (row.published as PublishedView | null)?.orgId === o.id ? (row.published as PublishedView).products : [];
-  const created = await createPending(
-    items,
-    prior,
-    (item) => createProduct(o.id, toCreateInput(item, result.products.find((x) => x.key === item.key)!, { businessName: o.name, answers, result })),
-    async (products) => {
-      await db.update(schema.catalogImports).set({ orgId: o.id, published: bigintsToStrings(view(products)), updatedAt: new Date() }).where(eq(schema.catalogImports.id, row.id));
-    },
+  const [fresh] = await db.select().from(schema.catalogImports).where(eq(schema.catalogImports.id, row.id));
+  const stored = (fresh?.published ?? null) as PublishedView | null;
+  const prior = stored?.orgId === o.id ? stored.products : [];
+  const created = await createPending(items, prior, (item, recorded) =>
+    createProduct(o.id, toCreateInput(item, result.products.find((x) => x.key === item.key)!, { businessName: o.name, answers, result }), async (tx, productId) => {
+      await tx.update(schema.catalogImports).set({ orgId: o.id, published: bigintsToStrings(view(recorded(productId))), updatedAt: new Date() }).where(eq(schema.catalogImports.id, row.id));
+    }),
   );
   const published = view(created);
-  const transcript = [...(row.transcript as TranscriptLine[]), { at: published.at, role: "agent" as const, text: `Published ${created.length} product${created.length === 1 ? "" : "s"} for ${org.name}. Your deal agent now sells them inside your floors.` }].slice(-60);
+  const transcript = [...((fresh ?? row).transcript as TranscriptLine[]), { at: published.at, role: "agent" as const, text: `Published ${created.length} product${created.length === 1 ? "" : "s"} for ${org.name}. Your deal agent now sells them inside your floors.` }].slice(-60);
   await db.update(schema.catalogImports).set({ status: "published", orgId: org.id, published: bigintsToStrings(published), transcript, updatedAt: new Date() }).where(eq(schema.catalogImports.id, row.id));
 }
 

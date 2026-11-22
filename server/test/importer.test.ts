@@ -377,6 +377,12 @@ describe("draft", () => {
 });
 
 describe("publishing", () => {
+  type Live = { key: string; id: string; slug: string; name: string }[];
+  const together = (create: (i: { key: string }) => Promise<string>, record: (p: Live) => Promise<void>) => async (item: { key: string }, recorded: (id: string) => Live) => {
+    const id = await create(item);
+    await record(recorded(id));
+    return id;
+  };
   it("a publish that fails partway, then a retry, creates each product once", async () => {
     const { createPending } = await import("../src/services/importer/service");
     const items = ["a", "b", "c"].map((k) => ({ key: k, slug: `s-${k}`, name: k.toUpperCase() })) as never[];
@@ -389,13 +395,13 @@ describe("publishing", () => {
     };
     let saved: { key: string; id: string; slug: string; name: string }[] = [];
     const record = async (p: typeof saved) => void (saved = p);
-    await expect(createPending(items, [], create, record)).rejects.toThrow("database unavailable");
+    await expect(createPending(items, [], together(create, record))).rejects.toThrow("database unavailable");
     expect(saved.map((p) => p.key)).toEqual(["a"]);
     down = false;
-    const done = await createPending(items, saved, create, record);
+    const done = await createPending(items, saved, together(create, record));
     expect(createdInDb).toEqual(["a", "b", "c"]);
     expect(done.map((p) => [p.key, p.id])).toEqual([["a", "prod_a"], ["b", "prod_b"], ["c", "prod_c"]]);
-    expect(await createPending(items, done, create, record)).toEqual(done);
+    expect(await createPending(items, done, together(create, record))).toEqual(done);
     expect(createdInDb).toHaveLength(3);
   });
 
@@ -412,12 +418,12 @@ describe("publishing", () => {
       return `prod_${i.key}`;
     };
     const record = async (products: { key: string; id: string; slug: string; name: string }[]) => void (row.published = { products });
-    await expect(createPending(items, [], create, record)).rejects.toThrow();
+    await expect(createPending(items, [], together(create, record))).rejects.toThrow();
     expect(editBlock(row)).toBe(PARTLY_LIVE);
     expect(editBlock({ status: "publishing", published: null })).toBe(PARTLY_LIVE);
     expect(editBlock({ status: "published", published: row.published })).toMatch(/already published/);
     down = false;
-    await createPending(items, row.published!.products, create, record);
+    await createPending(items, row.published!.products, together(create, record));
     expect(made).toEqual(["a", "b"]);
   });
 
@@ -438,7 +444,7 @@ describe("publishing", () => {
       return `prod_${i.key}`;
     };
     const run = async () => {
-      await createPending(items, [], create, async () => undefined);
+      await createPending(items, [], together(create, async () => undefined));
       status = "published";
     };
     const [first, second] = await Promise.all([withClaim(claim, release, run), withClaim(claim, release, run)]);

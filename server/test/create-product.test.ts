@@ -5,7 +5,7 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const store = vi.hoisted(() => ({ committed: [] as { table: unknown; row: unknown }[], failCostModel: 0 }));
+const store = vi.hoisted(() => ({ committed: [] as { table: unknown; row: unknown }[], failCostModel: 0, failRecord: 0 }));
 
 vi.mock("../src/db", async () => {
   const schema = await vi.importActual<typeof import("../src/db/schema")>("../src/db/schema");
@@ -18,6 +18,17 @@ vi.mock("../src/db", async () => {
         }
         sink.push({ table, row });
       },
+    }),
+    update: (table: unknown) => ({
+      set: (row: unknown) => ({
+        where: async () => {
+          if (store.failRecord > 0) {
+            store.failRecord--;
+            throw new Error("record write failed");
+          }
+          sink.push({ table, row });
+        },
+      }),
     }),
   });
   const db = {
@@ -57,6 +68,7 @@ describe("createProduct", () => {
   beforeEach(() => {
     store.committed.length = 0;
     store.failCostModel = 0;
+    store.failRecord = 0;
   });
 
   it("leaves no product behind when the cost model cannot be written, and a retry creates it once", async () => {
@@ -70,5 +82,18 @@ describe("createProduct", () => {
     expect((rowsIn(schema.products)[0]!.row as { id: string }).id).toBe(id);
     expect(rowsIn(schema.costModels)).toHaveLength(1);
     expect(rowsIn(schema.policies)).toHaveLength(1);
+  });
+
+  it("commits the caller's record with the product, and rolls both back when the record cannot be written", async () => {
+    const record = async (tx: { update: (t: unknown) => { set: (r: unknown) => { where: (w: unknown) => Promise<void> } } }, productId: string) => {
+      await tx.update(schema.catalogImports).set({ published: { products: [{ key: "p_tee", id: productId }] } }).where(undefined);
+    };
+    store.failRecord = 1;
+    await expect(createProduct("org_1", input, record as never)).rejects.toThrow("record write failed");
+    expect(store.committed).toHaveLength(0);
+
+    const id = await createProduct("org_1", input, record as never);
+    expect(rowsIn(schema.products)).toHaveLength(1);
+    expect(rowsIn(schema.catalogImports).map((w) => w.row)).toEqual([{ published: { products: [{ key: "p_tee", id }] } }]);
   });
 });

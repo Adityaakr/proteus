@@ -237,7 +237,10 @@ export function validateUpstreamUrl(raw: string): string {
   return u.toString();
 }
 
-export async function createProduct(orgId: string, input: ProductCreateInput) {
+/** A write that must commit together with a new product's rows (the website importer records what it created). */
+export type ProductTxHook = (tx: Parameters<Parameters<typeof db.transaction>[0]>[0], productId: string) => Promise<void>;
+
+export async function createProduct(orgId: string, input: ProductCreateInput, inTx?: ProductTxHook) {
   if (!input.tiers.length) throw new HttpError(400, "at least one tier is required");
   const productId = id("prod");
   const slug = slugify(input.slug ?? input.name);
@@ -265,6 +268,7 @@ export async function createProduct(orgId: string, input: ProductCreateInput) {
     await tx.insert(schema.products).values({ id: productId, orgId, slug, public: { ...pub, ...(input.knowledge ? { knowledge: input.knowledge } : {}) }, starters, adapter, upstream, payPerCallPrice: input.payPerCall ? toMicro(input.payPerCall.priceUsd) : null });
     await tx.insert(schema.costModels).values({ id: id("cost"), orgId, productId, version: 1, variableCostPerUnit: toMicro(input.cost.variableCostPerUnitUsd), directCostPerDeal: toMicro(input.cost.directCostPerDealUsd), txCostBps: input.cost.txCostBps, floorUnitPrice: input.cost.floorUnitPriceUsd ? toMicro(input.cost.floorUnitPriceUsd) : null, freshUntil: new Date(Date.now() + 30 * 86400 * 1000) });
     await tx.insert(schema.policies).values({ id: id("pol"), orgId, productId, version: 1, minMarginBps: input.policy.minMarginBps, maxDiscountBps: input.policy.maxDiscountBps, approvalThreshold: toMicro(input.policy.approvalThresholdUsd), prepaidMinimum: toMicro(input.policy.prepaidMinimumUsd), availableCapacityUnits: BigInt(input.policy.availableCapacityUnits), quoteTtlSeconds: input.policy.quoteTtlSeconds });
+    if (inTx) await inTx(tx, productId);
   });
   return productId;
 }
