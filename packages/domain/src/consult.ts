@@ -2,7 +2,7 @@
  * Store conversations that are not about one product yet. A buyer who asks something open ("suggest me some good
  * merch", "gift ideas for 200 employees") is consulted: the agent stays on all products, recommends a few of the
  * seller's real products with a short reason and their "from" price, and asks one or two questions to narrow down.
- * A message moves to one product only when it names one (or picks one of the recommendations by position).
+ * A message moves to one product only when it names one (or the buyer taps one of the recommendations).
  *
  * Everything here is deterministic. It is the router for the store deal desk and the embedded agent, the fallback
  * recommendation when no model key is set, and the guard rails a model-written recommendation is checked against:
@@ -42,50 +42,51 @@ const words = (s: string) => s.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w
 const stem = (w: string) => w.replace(/(ies)$/, "y").replace(/(xes|ches|shes|ses)$/, (m) => m.slice(0, -2)).replace(/s$/, "");
 
 /**
- * The buyer is asking for help choosing rather than about the product at hand: suggestions, ideas, what else. Kept to
- * explicit asks, since "what are my options?" or "which one is cheaper?" on a product are about that product.
+ * The buyer is asking about the rest of the catalogue rather than the product at hand: what else the seller makes, other
+ * or more products, alternatives. Kept to explicit asks, since "which tier do you recommend?", "can you suggest a better
+ * price?" or "what are my options?" on a product are about that product.
  */
-const DISCOVERY = /\b(suggest\w*|recommend\w*|ideas?|help me (choose|pick|decide|find)|what (do|can) you (have|make|offer|sell)|what else|anything else|something else|alternatives?|other products|browse|(your|the) catalog(ue)?|not sure what)\b/i;
-/** "...besides hoodies", "other than tees": the named product is the one to leave out. */
-const EXCLUDE = /\b(besides|other than|apart from|instead of|except|not the|no more)\b/i;
-const ORDINALS: [RegExp, number][] = [
-  [/\b(first|1st)\b|\boption (1|one)\b|#1\b/i, 0],
-  [/\b(second|2nd)\b|\boption (2|two)\b|#2\b/i, 1],
-  [/\b(third|3rd)\b|\boption (3|three)\b|#3\b/i, 2],
-  [/\b(fourth|4th)\b|\boption (4|four)\b|#4\b/i, 3],
-];
+const DISCOVERY = /\b(what (else )?(do|can) you (have|make|offer|sell)|what else|anything else|something else|alternatives?|(other|different|more) (merch|products|items|options|ideas|suggestions|things|stuff)|(some|any) (good |other )?(merch|products|items)|browse|(your|the) catalog(ue)?)\b/i;
+/** "...besides hoodies", "hoodies instead of tees": a product named after these words is the one to leave out. */
+const EXCLUDE = /\b(besides|other than|apart from|instead of|except|not the)\b/i;
 
 /**
  * Which product a buyer message is about, or that it is an open question to consult on.
  *
- * - One product clearly named (its name or unit): that product.
- * - An open question (suggestions, ideas, what else), several products named equally, or nothing matched while no
- *   product is chosen: consult, with the products the message did point at first.
- * - Nothing matched while on a product ("make it 200"): stay on it.
- *
- * `picks`: the products the last recommendation offered, so "the second one" picks one of them.
+ * - One product clearly named (its name or unit): that product. A product named after "instead of", "besides" and the
+ *   like is left out, not chosen.
+ * - Several products named equally, nothing matched while no product is chosen, or (while on a product) an explicit
+ *   ask for something else: consult, with the products the message did point at first.
+ * - Nothing matched while on a product ("make it 200", "which tier do you recommend?"): stay on it.
  */
-export function routeMessage(message: string, products: readonly ConsultProduct[], opts: { current?: string; picks?: readonly string[]; sellerName?: string } = {}): RouteDecision {
+export function routeMessage(message: string, products: readonly ConsultProduct[], opts: { current?: string; sellerName?: string } = {}): RouteDecision {
   const own = new Set(words(opts.sellerName ?? "").map(stem));
-  const said = new Set(words(message).map(stem).filter((w) => !own.has(w)));
   const current = products.find((p) => p.slug === opts.current)?.slug;
   const discovery = DISCOVERY.test(message);
-  const excluding = EXCLUDE.test(message);
 
   // A word in most product summaries ("merch", the seller's name) says nothing about which product is meant.
   const weakOf = (p: ConsultProduct) => new Set([...(p.capabilities ?? []).flatMap(words), ...words(p.summary ?? "")].map(stem).filter((w) => !own.has(w)));
   const weakSets = products.map(weakOf);
-  const common = new Set([...said].filter((w) => weakSets.filter((s) => s.has(w)).length > Math.max(1, products.length / 2)));
-  const scored = products.map((p, i) => {
-    const strong = new Set([...words(p.name), p.unitLabel.toLowerCase(), pluralUnit(p.unitLabel).toLowerCase()].map(stem));
-    const hits = [...said].filter((w) => strong.has(w));
-    const weakHits = [...said].filter((w) => !strong.has(w) && !common.has(w) && weakSets[i]!.has(w));
-    return { slug: p.slug, strong: hits.length, weak: weakHits.length, hits: [...hits, ...weakHits] };
-  });
-  const named = scored.filter((s) => s.strong > 0).sort((a, b) => b.strong - a.strong || b.weak - a.weak);
-  const pointed = scored.filter((s) => s.strong > 0 || s.weak > 0).sort((a, b) => b.strong * 3 + b.weak - (a.strong * 3 + a.weak));
+  const score = (text: string) => {
+    const said = new Set(words(text).map(stem).filter((w) => !own.has(w)));
+    const common = new Set([...said].filter((w) => weakSets.filter((s) => s.has(w)).length > Math.max(1, products.length / 2)));
+    const scored = products.map((p, i) => {
+      const strong = new Set([...words(p.name), p.unitLabel.toLowerCase(), pluralUnit(p.unitLabel).toLowerCase()].map(stem));
+      const hits = [...said].filter((w) => strong.has(w));
+      const weakHits = [...said].filter((w) => !strong.has(w) && !common.has(w) && weakSets[i]!.has(w));
+      return { slug: p.slug, strong: hits.length, weak: weakHits.length, hits: [...hits, ...weakHits] };
+    });
+    return {
+      named: scored.filter((s) => s.strong > 0).sort((a, b) => b.strong - a.strong || b.weak - a.weak),
+      pointed: scored.filter((s) => s.strong > 0 || s.weak > 0).sort((a, b) => b.strong * 3 + b.weak - (a.strong * 3 + a.weak)),
+    };
+  };
 
-  if (excluding && named.length) return { mode: "consult", slugs: [], exclude: named.map((s) => s.slug), reason: "asked for something other than a named product" };
+  const ex = EXCLUDE.exec(message);
+  const exclude = ex ? score(message.slice(ex.index + ex[0].length)).named.map((s) => s.slug) : [];
+  const asked = score(exclude.length ? message.slice(0, ex!.index) : message);
+  const named = asked.named.filter((s) => !exclude.includes(s.slug));
+  const pointed = asked.pointed.filter((s) => !exclude.includes(s.slug));
 
   const top = named[0];
   const tied = top ? named.filter((s) => s.strong === top.strong && s.weak === top.weak) : [];
@@ -94,16 +95,9 @@ export function routeMessage(message: string, products: readonly ConsultProduct[
   }
   if (tied.length > 1) {
     if (current && tied.some((s) => s.slug === current) && !discovery) return { mode: "product", slug: current, switched: false, reason: "continuing the current product" };
-    return { mode: "consult", slugs: tied.slice(0, 4).map((s) => s.slug), exclude: [], reason: `several products match ${top!.hits.join(", ")}` };
+    return { mode: "consult", slugs: tied.slice(0, 4).map((s) => s.slug), exclude, reason: `several products match ${top!.hits.join(", ")}` };
   }
-
-  // Nothing named. "The second one" picks from the last recommendation.
-  if (opts.picks?.length && message.length <= 80) {
-    for (const [re, i] of ORDINALS) {
-      const slug = opts.picks[i];
-      if (re.test(message) && slug && products.some((p) => p.slug === slug)) return { mode: "product", slug, switched: Boolean(current && current !== slug), reason: "picked from the recommendations" };
-    }
-  }
+  if (exclude.length) return { mode: "consult", slugs: pointed.slice(0, 4).map((s) => s.slug), exclude: [...new Set([...exclude, ...(discovery && current ? [current] : [])])], reason: "asked for something other than a named product" };
   if (discovery) return { mode: "consult", slugs: pointed.slice(0, 4).map((s) => s.slug), exclude: current ? [current] : [], reason: "an open question" };
   if (current && (!pointed.length || pointed.some((s) => s.slug === current))) return { mode: "product", slug: current, switched: false, reason: "continuing the current product" };
   return { mode: "consult", slugs: pointed.slice(0, 4).map((s) => s.slug), exclude: [], reason: pointed.length ? "related products, none named" : "no product named yet" };

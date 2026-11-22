@@ -358,7 +358,7 @@
       {
         "method": "POST",
         "path": "/public/sellers/{seller}/route",
-        "does": "{ message, current?, picks? } → which product a message is about, or mode consult for an open question"
+        "does": "{ message, current? } → which product a message is about, or mode consult for an open question"
       },
       {
         "method": "POST",

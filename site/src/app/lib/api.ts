@@ -212,8 +212,8 @@ export const api = {
   seller: (sellerSlug: string) => request<T.PublicSeller>("GET", `/public/sellers/${enc(sellerSlug)}`),
   /** Store-wide deal desk: which of the seller's products this message is about. */
   /** `mode: "consult"`: an open question, so stay on all products and ask for a recommendation (api.consult). */
-  routeSeller: (sellerSlug: string, message: string, current?: string, picks?: string[]) =>
-    request<{ mode?: "product" | "consult"; productSlug: string; productName: string; matched: boolean; switched: boolean; reason: string; suggested?: string[] }>("POST", `/public/sellers/${enc(sellerSlug)}/route`, { body: { message, current, picks } }),
+  routeSeller: (sellerSlug: string, message: string, current?: string) =>
+    request<{ mode?: "product" | "consult"; productSlug: string; productName: string; matched: boolean; switched: boolean; reason: string; suggested?: string[] }>("POST", `/public/sellers/${enc(sellerSlug)}/route`, { body: { message, current } }),
   product: (sellerSlug: string, productSlug: string) => request<T.PublicProduct>("GET", `/public/sellers/${enc(sellerSlug)}/products/${enc(productSlug)}`),
 
   /* Negotiation (buyer) */

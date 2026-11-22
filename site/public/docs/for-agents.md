@@ -51,7 +51,7 @@ For developers building agents that buy on Proteus, and for AI assistants readin
 | `GET` | `/public/sellers/{seller}/agent.json` | the seller's ERC-8004 registration file |
 | `GET` | `/public/sellers/{seller}/policies` | policy commitments per product and version, each with its ProteusPolicyRegistry transaction |
 | `GET` | `/public/sellers/{seller}/ratings` | every rating (counted, linked to the seller, or being checked) with its tx, the score method, and the trusted reviewers to pass to ERC-8004 getSummary |
-| `POST` | `/public/sellers/{seller}/route` | { message, current?, picks? } → which product a message is about, or mode consult for an open question |
+| `POST` | `/public/sellers/{seller}/route` | { message, current? } → which product a message is about, or mode consult for an open question |
 | `POST` | `/negotiations` | { sellerSlug, productSlug, buyerAddress? } → negotiation with buyerKey (send it as X-Negotiation-Key on every /negotiations/{id} call) |
 | `GET` | `/negotiations/{id}` | the conversation and current offers (X-Negotiation-Key, or the signed-in buyer) |
 | `POST` | `/negotiations/{id}/messages` | { content } → agent reply and offers |

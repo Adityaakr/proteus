@@ -44,12 +44,11 @@ export async function storeCatalog(sellerSlug: string) {
 /**
  * Which product a message is about. `mode: "consult"`: an open question, so the conversation stays on all products
  * and the client asks for a recommendation instead of switching (`matched` is false and `productSlug` is the current
- * product, or the first one, only so older clients keep working). `picks`: the products the last recommendation
- * offered, so "the second one" picks one of them.
+ * product, or the first one, only so older clients keep working).
  */
-export async function routeToProduct(sellerSlug: string, message: string, current?: string, picks?: string[]) {
+export async function routeToProduct(sellerSlug: string, message: string, current?: string) {
   const { org, products } = await storeCatalog(sellerSlug);
-  const d = routeMessage(message, products, { current, picks, sellerName: org.name });
+  const d = routeMessage(message, products, { current, sellerName: org.name });
   if (d.mode === "product") {
     const p = products.find((x) => x.slug === d.slug)!;
     return { mode: d.mode, productSlug: p.slug, productName: p.name, matched: true, switched: d.switched, reason: d.reason, suggested: [] as string[] };

@@ -35,7 +35,7 @@ const store: ConsultProduct[] = [
   item("t-shirts", "T-Shirts", "tee", "$5.70"),
 ];
 const slugs = new Set(store.map((p) => p.slug));
-const route = (m: string, current?: string, picks?: string[]) => routeMessage(m, store, { current, picks, sellerName: "Merch Onchain" });
+const route = (m: string, current?: string) => routeMessage(m, store, { current, sellerName: "Merch Onchain" });
 
 describe("routing a store message", () => {
   it("keeps open questions on all products instead of locking onto one", () => {
@@ -72,9 +72,23 @@ describe("routing a store message", () => {
     expect(r.mode === "consult" && r.slugs.sort()).toEqual(["hoodies", "t-shirts"]);
   });
 
-  it("picks a recommendation by position", () => {
-    expect(route("the second one please", undefined, ["hoodies", "bottles", "tote-bags"])).toMatchObject({ mode: "product", slug: "bottles" });
-    expect(route("the second one please").mode).toBe("consult");
+  it("stays on the current product when the buyer asks for advice about it", () => {
+    for (const m of ["can you suggest a better price for 200?", "which tier do you recommend?", "any idea how long production takes?", "is there a first-order discount?"]) {
+      expect(route(m, "hoodies"), m).toMatchObject({ mode: "product", slug: "hoodies", switched: false });
+    }
+  });
+
+  it("consults while on a product only when the buyer asks for something else", () => {
+    for (const m of ["do you have something else?", "show me other merch", "what else do you have?", "what do you make?"]) {
+      expect(route(m, "hoodies"), m).toMatchObject({ mode: "consult", exclude: ["hoodies"] });
+    }
+  });
+
+  it("chooses the product named before an exclusion and leaves out the one after it", () => {
+    expect(route("we want hoodies instead of t-shirts")).toMatchObject({ mode: "product", slug: "hoodies" });
+    expect(route("hoodies, not the t-shirts", "t-shirts")).toMatchObject({ mode: "product", slug: "hoodies", switched: true });
+    expect(route("besides hoodies, what do you have?")).toMatchObject({ mode: "consult", exclude: ["hoodies"] });
+    expect(route("hoodies, not the black ones", "bottles")).toMatchObject({ mode: "product", slug: "hoodies" });
   });
 });
 

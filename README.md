@@ -487,7 +487,7 @@ All routes are under `/api`. Amounts are micro-USDC strings. Full detail in [`do
 
 | Area | Routes |
 |---|---|
-| Discover | `GET /market`, `GET /market/sellers`, `GET /public/sellers/:s` (listed products only), `POST /public/sellers/:s/route { message, current?, picks? }` (store deal desk), `GET /public/sellers/:s/products/:p`, plus `skill.md` and `openapi.json` beneath each product, `GET /public/agents/skill.md` |
+| Discover | `GET /market`, `GET /market/sellers`, `GET /public/sellers/:s` (listed products only), `POST /public/sellers/:s/route { message, current? }` (store deal desk), `GET /public/sellers/:s/products/:p`, plus `skill.md` and `openapi.json` beneath each product, `GET /public/agents/skill.md` |
 | Negotiate | `POST /negotiations` (returns `buyerKey` once), then with `X-Negotiation-Key: <buyerKey>`: `GET /negotiations/:id`, `POST /negotiations/:id/messages`, `POST /negotiations/:id/consult` (store conversations, open questions), `POST /negotiations/:id/counter` (12 per negotiation and 40 per IP per 10 minutes), `POST /negotiations/:id/quotes` |
 | WhatsApp | `GET/POST /channels/whatsapp/webhook` (Meta-signed), `GET /w/:token` (30-minute offer link); seller: `GET/PUT/DELETE /app/whatsapp`, `POST /app/negotiations/:id/whatsapp/reply` |
 | Sign | `GET /quotes/:id?buyer=0x…` (typed data), `POST /quotes/:id/accept { buyerAddress, buyerSignature }` |

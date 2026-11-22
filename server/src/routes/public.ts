@@ -56,10 +56,9 @@ publicRoutes.post("/public/talk/:token/messages", async (c) => {
 /** Store-wide deal desk: which of this seller's products a buyer message is about. */
 publicRoutes.post("/public/sellers/:sellerSlug/route", async (c) => {
   limit(`store-route:${clientIp((n) => c.req.header(n))}`, 120);
-  const b = (await c.req.json().catch(() => ({}))) as { message?: unknown; current?: unknown; picks?: unknown };
+  const b = (await c.req.json().catch(() => ({}))) as { message?: unknown; current?: unknown };
   if (typeof b.message !== "string" || !b.message.trim() || b.message.length > 4000) throw new HttpError(400, "message is required (up to 4000 characters)");
-  const picks = Array.isArray(b.picks) ? b.picks.filter((x): x is string => typeof x === "string").slice(0, 4) : undefined;
-  return json(c, await routeToProduct(c.req.param("sellerSlug"), b.message, typeof b.current === "string" ? b.current : undefined, picks));
+  return json(c, await routeToProduct(c.req.param("sellerSlug"), b.message, typeof b.current === "string" ? b.current : undefined));
 });
 
 publicRoutes.get("/public/sellers/:sellerSlug/products/:productSlug", async (c) => {

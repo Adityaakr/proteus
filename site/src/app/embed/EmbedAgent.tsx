@@ -93,7 +93,7 @@ export default function EmbedAgent() {
       let slug = to ?? pickedProduct?.slug ?? (products.length === 1 ? products[0]!.slug : "");
       if (!slug) {
         // No product chosen: a message that names one goes there; an open question stays on all products.
-        const r = await api.routeSeller(sellerSlug, clean, focusProduct?.slug, consultNow?.picks.map((p) => p.slug)).catch(() => null);
+        const r = await api.routeSeller(sellerSlug, clean, focusProduct?.slug).catch(() => null);
         if (r && r.mode !== "consult" && r.matched) slug = r.productSlug;
       }
       let n = neg;

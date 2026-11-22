@@ -83,7 +83,7 @@ export default function Negotiate() {
         // all products and gets recommendations instead.
         let slug = to;
         if (!slug) {
-          const r = await api.routeSeller(chain.seller, content, focusSlug, consultNow?.picks.map((p) => p.slug));
+          const r = await api.routeSeller(chain.seller, content, focusSlug);
           // The product the chat was last on (even after "All products"), so "what else?" leaves it out.
           if (r.mode === "consult" || !r.matched) return { n: await api.consult(id, content, threadScope(cur.turns, startScope) === "product" ? cur.productSlug : undefined) };
           slug = r.productSlug;
@@ -234,7 +234,7 @@ export default function Negotiate() {
   const sellerName = neg.sellerName ?? prettyName(neg.sellerSlug);
   const productName = neg.productName ?? prettyName(neg.productSlug);
   const agentName = `${possessive(sellerName)} agent`;
-  const offers = neg.offers;
+  const offers = scope === "all" ? [] : neg.offers;
   const topId = offers.find((o) => o.status === "eligible")?.candidateId;
   const unsupported = Array.from(new Set(offers.flatMap((o) => o.unsupportedIntegrations)));
   const req = neg.requirements;
