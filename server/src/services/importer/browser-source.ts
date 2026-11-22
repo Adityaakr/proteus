@@ -28,11 +28,11 @@ const SYMBOLS: [RegExp, string][] = [
   [/¥|\bJPY\b/i, "JPY"],
   [/\bAED\b/i, "AED"],
   [/\bCHF\b/i, "CHF"],
+  [/US\$|\bUSD\b/i, "USD"],
   [/\bSGD\b|S\$/i, "SGD"],
   [/\bAU\$|\bA\$|\bAUD\b/i, "AUD"],
   [/\bCA\$|\bC\$|\bCAD\b/i, "CAD"],
   [/R\$|\bBRL\b/i, "BRL"],
-  [/US\$|\bUSD\b/i, "USD"],
 ];
 
 /** A "$" price on a site whose address says which dollar it is. */
@@ -41,7 +41,7 @@ const DOLLAR_BY_TLD: Record<string, string> = { au: "AUD", ca: "CAD", sg: "SGD",
 /** "₹1,299.00" → { amount: "1299.00", currency: "INR" }; "From $12" on example.com → USD. Unreadable → undefined. */
 export function parseShownPrice(text: string | undefined, host: string): { amount: string; currency?: string } | undefined {
   if (!text) return undefined;
-  const num = /\d{1,3}(?:[,.\s]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?/.exec(text.replace(/ /g, " "))?.[0];
+  const num = /\d{1,2}(?:,\d{2})+,\d{3}(?:\.\d{1,2})?|\d{1,3}(?:[,.\s]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d{1,2})?/.exec(text.replace(/ /g, " "))?.[0];
   const amount = normPrice(num?.replace(/\s/g, ""));
   if (!amount) return undefined;
   let currency = SYMBOLS.find(([re]) => re.test(text))?.[1];

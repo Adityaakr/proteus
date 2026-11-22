@@ -213,6 +213,11 @@ describe("reading what a page shows", () => {
     expect(parseShownPrice("$12", "shop.com.au")).toEqual({ amount: "12", currency: "AUD" });
     expect(parseShownPrice("12,50 €", "shop.de")).toEqual({ amount: "12.50", currency: "EUR" });
     expect(parseShownPrice("Ask for a quote", "shop.com")).toBeUndefined();
+    expect(parseShownPrice("US$ 25.00", "shop.com")).toEqual({ amount: "25.00", currency: "USD" });
+    expect(parseShownPrice("S$ 12", "shop.com")).toEqual({ amount: "12", currency: "SGD" });
+    expect(parseShownPrice("₹1,29,999", "shop.in")).toEqual({ amount: "129999", currency: "INR" });
+    expect(parseShownPrice("₹12,34,567.50", "shop.in")).toEqual({ amount: "1234567.50", currency: "INR" });
+    expect(parseShownPrice("₹1,299", "shop.in")).toEqual({ amount: "1299", currency: "INR" });
   });
 
   it("ranks shop, category and next-page links first and never opens account, cart or blog pages", () => {
