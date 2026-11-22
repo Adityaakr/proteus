@@ -120,11 +120,14 @@ function spellings(ws: string[]): Set<string> {
  */
 const vocabulary = (p: ListedProduct) => spellings(words([p.name, p.unitLabel, p.category ?? ""].join(" ")));
 
-/** Whether a word can name a kind of product: not a colour, size or filler word ("black", "premium"), a stop word or a unit, money or chat word. */
-const namesKind = (w: string) => !FILLER.has(w) && !STOP.has(w) && !forms(w).some((f) => NON_ITEMS.has(f));
+/** A word that names no kind of product: a colour, size or filler word ("black", "premium"), or a unit, money or chat word. */
+const vague = (w: string) => FILLER.has(w) || forms(w).some((f) => NON_ITEMS.has(f));
+
+/** Whether a word can name a kind of product: not vague and not a stop word, though "can" is a product too ("Soda Can"). */
+const namesKind = (w: string) => !vague(w) && (w === "can" || !STOP.has(w));
 
 /** Every spelling of the kind of product a product is: the last word of its name that names a kind, and its unit ("Baseball Cap", unit cap; "Classic Tee - Black" is a tee; not "Loop Cap Bottle"). */
-const kindWords = (p: ListedProduct) => spellings([...words(p.name).filter(namesKind).slice(-1), ...words(p.unitLabel).filter(namesKind)]);
+const kindWords = (p: ListedProduct) => spellings([...words(p.name).filter(namesKind).slice(-1), ...words(p.unitLabel).filter((w) => !vague(w))]);
 
 /** Whether a product is the kind of product an item names. */
 const isKind = (p: ListedProduct, item: RequestedItem) => forms(item.head).some((f) => kindWords(p).has(f));
@@ -246,7 +249,7 @@ export function itemsText(items: RequestedItem[]): string {
 export function answersCustomRequest(message: string, _items: string, listed: ListedProduct[]): boolean {
   const m = message.trim();
   if (/^(no|nope|nah|not now|no thanks|never ?mind|cancel)\b/i.test(m)) return false;
-  if (words(m).some((w) => namesKind(w) && listed.some((p) => isKind(p, { phrase: w, head: w })))) return false;
+  if (words(m).some((w) => !vague(w) && !STOP.has(w) && listed.some((p) => isKind(p, { phrase: w, head: w })))) return false;
   // The item asked for again with nothing more ("i want caps") is the same question, not the request: it gets the same answer.
   return /^(yes|yeah|yep|sure|ok(ay)?|please|go ahead|do it|send)\b/i.test(m) || /\b(custom request|send (it|the request|a request))\b/i.test(m) || /\d|@/.test(m);
 }

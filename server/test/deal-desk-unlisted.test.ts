@@ -134,6 +134,11 @@ describe("is it listed", () => {
     expect(answersCustomRequest("100 black caps by friday, priya@example.com", "Caps", store)).toBe(true);
     expect(answersCustomRequest("can i get 20 of the classic tee", "Caps", store)).toBe(false);
   });
+  it("a can is a kind of product: a store listing a soda can lists cans", () => {
+    const can: ListedProduct = { name: "Soda Can", unitLabel: "can", category: "Drinkware" };
+    expect(findUnlisted("do you have cans?", sweatshirt, [can])).toBeUndefined();
+    expect(answersCustomRequest("can you do 100 by friday, priya@example.com", "Caps", [sweatshirt, can])).toBe(true);
+  });
   it("a word only in a summary or the middle of a name does not make a kind listed", () => {
     const steel: ListedProduct = { name: "Steel Water Bottle", unitLabel: "bottle", category: "Drinkware", summary: "steel bottle with screw cap" };
     const loop: ListedProduct = { name: "Loop Cap Bottle", unitLabel: "bottle", category: "Drinkware" };
