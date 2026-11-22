@@ -399,6 +399,56 @@ describe("publishing", () => {
     expect(createdInDb).toHaveLength(3);
   });
 
+  it("after a publish fails partway, edits are refused and the retry creates only the rest", async () => {
+    const { createPending, editBlock, PARTLY_LIVE } = await import("../src/services/importer/service");
+    const items = ["a", "b"].map((k) => ({ key: k, slug: k, name: k })) as never[];
+    const row: { status: string; published: { products: { key: string; id: string; slug: string; name: string }[] } | null } = { status: "ready", published: null };
+    expect(editBlock(row)).toBeUndefined();
+    const made: string[] = [];
+    let down = true;
+    const create = async (i: { key: string }) => {
+      if (i.key === "b" && down) throw new Error("database unavailable");
+      made.push(i.key);
+      return `prod_${i.key}`;
+    };
+    const record = async (products: { key: string; id: string; slug: string; name: string }[]) => void (row.published = { products });
+    await expect(createPending(items, [], create, record)).rejects.toThrow();
+    expect(editBlock(row)).toBe(PARTLY_LIVE);
+    expect(editBlock({ status: "publishing", published: null })).toBe(PARTLY_LIVE);
+    expect(editBlock({ status: "published", published: row.published })).toMatch(/already published/);
+    down = false;
+    await createPending(items, row.published!.products, create, record);
+    expect(made).toEqual(["a", "b"]);
+  });
+
+  it("two overlapping publishes create each product once", async () => {
+    const { createPending, withClaim } = await import("../src/services/importer/service");
+    const items = ["a", "b", "c"].map((k) => ({ key: k, slug: k, name: k })) as never[];
+    let status = "ready";
+    const claim = async () => {
+      if (status !== "ready") return false;
+      status = "publishing";
+      return true;
+    };
+    const release = async () => void (status = status === "publishing" ? "ready" : status);
+    const made: string[] = [];
+    const create = async (i: { key: string }) => {
+      await new Promise((r) => setTimeout(r, 5));
+      made.push(i.key);
+      return `prod_${i.key}`;
+    };
+    const run = async () => {
+      await createPending(items, [], create, async () => undefined);
+      status = "published";
+    };
+    const [first, second] = await Promise.all([withClaim(claim, release, run), withClaim(claim, release, run)]);
+    expect([first, second].sort()).toEqual([false, true]);
+    expect(made).toEqual(["a", "b", "c"]);
+    status = "ready";
+    await expect(withClaim(claim, release, async () => { throw new Error("boom"); })).rejects.toThrow("boom");
+    expect(status).toBe("ready");
+  });
+
   it("gives long names the slug the product form stores: no trailing dash, at most 40 characters", () => {
     const name = `${"a".repeat(39)} bcd`;
     const cat = { ...catalog, products: [{ ...catalog.products[0]!, key: "x1", name }, { ...catalog.products[0]!, key: "x2", name }] };

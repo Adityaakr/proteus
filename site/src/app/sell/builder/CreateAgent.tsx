@@ -174,10 +174,12 @@ function Flow({ view, setView, onRetry, retrying }: { view: BuilderImport; setVi
     endRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [current, count, test, view.status]);
 
+  const partlyLive = view.status !== "published" && Boolean(view.published?.products.length);
+  const frozen = view.status === "published" || partlyLive;
   const ask = (qq: Question, node: ReactNode, summary: ReactNode) => {
     if (!d) return null;
-    if (current === qq) return <Agent wide>{node}</Agent>;
-    if (answered(qq)) return <Seller onEdit={view.status === "published" ? undefined : () => setOpen(qq)}>{summary}</Seller>;
+    if (current === qq && !frozen) return <Agent wide>{node}</Agent>;
+    if (answered(qq) || frozen) return <Seller onEdit={frozen ? undefined : () => setOpen(qq)}>{summary}</Seller>;
     return null;
   };
   const allAnswered = d && next.filter((x) => x !== open).length === 0 && !open;
@@ -216,7 +218,8 @@ function Flow({ view, setView, onRetry, retrying }: { view: BuilderImport; setVi
               {ask("bulk", <BulkQ a={a} r={r} busy={busy} err={err} onSave={(p) => save.mutate(p)} />, <>{bulkSummary(a)}</>)}
               {ask("custom", <CustomQ busy={busy} err={err} onSave={(p) => save.mutate(p)} />, <>{a.customOrders?.accepted ? `Custom orders welcome${a.customOrders.note ? `: ${a.customOrders.note}` : ""}` : "No custom work"}</>)}
               {view.transcript.slice(1).filter((t) => !t.text.startsWith("Published ")).map((t, i) => (t.role === "seller" ? <Seller key={i}>{t.text}</Seller> : <Agent key={i}>{t.text}</Agent>))}
-              {allAnswered && view.status !== "published" && (
+              {partlyLive && <Agent wide><RetryPublishCard view={view} setView={setView} /></Agent>}
+              {allAnswered && !frozen && (
                 <>
                   <Agent wide><Review view={view} setView={setView} /></Agent>
                   <Agent wide><TestCard view={view} result={test} onResult={setTest} /></Agent>
@@ -224,7 +227,7 @@ function Flow({ view, setView, onRetry, retrying }: { view: BuilderImport; setVi
                 </>
               )}
               {view.status === "published" && view.published && <Agent wide><Done view={view} /></Agent>}
-              {view.status !== "published" && <Composer view={view} setView={setView} />}
+              {!frozen && <Composer view={view} setView={setView} />}
             </>
           )}
         </>
@@ -689,6 +692,21 @@ function TestCard({ view, result, onResult }: { view: BuilderImport; result: Tes
           <p className={b.fine}>{result.note}</p>
         </div>
       )}
+    </div>
+  );
+}
+
+function RetryPublishCard({ view, setView }: { view: BuilderImport; setView: (v: BuilderImport) => void }) {
+  const { refetchMe } = useAuth();
+  const pub = useMutation({ mutationFn: () => v1.builder.publish(view.id), onSuccess: (v) => { setView(v); refetchMe(); } });
+  const live = view.published!.products;
+  return (
+    <div className={b.q}>
+      <Notice tone="warn" title="Publishing stopped partway">
+        {live.length} product{live.length === 1 ? " is" : "s are"} already live ({live.map((p) => p.name).join(", ")}). Some products are already live; finish publishing, then change prices or floors on each product page.
+      </Notice>
+      {pub.isError && <Notice tone="danger" title="Could not publish">{errorMessage(pub.error)}</Notice>}
+      <div><ActionButton icon loading={pub.isPending} loadingLabel="Publishing" disabled={view.status === "publishing"} onClick={() => pub.mutate()}>Retry publish</ActionButton></div>
     </div>
   );
 }

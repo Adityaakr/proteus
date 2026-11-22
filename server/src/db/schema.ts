@@ -706,7 +706,7 @@ export const catalogImports = pgTable(
     /** The seller org the products were published to (null until published). */
     orgId: text("org_id"),
     url: text("url").notNull(),
-    status: text("status").notNull().default("running"), // running | ready | failed | published
+    status: text("status").notNull().default("running"), // running | ready | publishing | failed | published
     progress: jsonb("progress").notNull().default([]),
     result: jsonb("result"),
     /** BuilderAnswers as AES-GCM ciphertext (crypto.ts): floors and discounts are seller-private. */

@@ -105,7 +105,7 @@ export interface PublishedView {
 export interface BuilderImport {
   id: string;
   url: string;
-  status: "running" | "ready" | "failed" | "published";
+  status: "running" | "ready" | "publishing" | "failed" | "published";
   progress: ImportProgress[];
   error: string | null;
   transcript: { at: string; role: "seller" | "agent"; text: string }[];

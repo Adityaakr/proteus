@@ -47,7 +47,25 @@ async function load(userId: string, importId: string): Promise<Row> {
     await db.update(schema.catalogImports).set({ status: "failed", error: "the read stopped before it finished; start it again", updatedAt: new Date() }).where(eq(schema.catalogImports.id, row.id));
     return { ...row, status: "failed", error: "the read stopped before it finished; start it again" };
   }
+  if (row.status === "publishing" && Date.now() - row.updatedAt.getTime() > STALE_MS) {
+    await db.update(schema.catalogImports).set({ status: "ready", updatedAt: new Date() }).where(and(eq(schema.catalogImports.id, row.id), eq(schema.catalogImports.status, "publishing")));
+    return { ...row, status: "ready" };
+  }
   return row;
+}
+
+export const PARTLY_LIVE = "Some products are already live; finish publishing, then change prices or floors on each product page";
+
+/** Why this import's answers can no longer change, or undefined while they can. */
+export function editBlock(row: { status: string; published: unknown }): string | undefined {
+  if (row.status === "published") return "this import is already published; change prices and rules on each product";
+  if (row.status === "publishing" || (row.published as PublishedView | null)?.products?.length) return PARTLY_LIVE;
+  return undefined;
+}
+
+function assertEditable(row: { status: string; published: unknown }) {
+  const why = editBlock(row);
+  if (why) throw new HttpError(409, why);
 }
 
 function answersOf(row: Row): BuilderAnswers {
@@ -213,7 +231,7 @@ const AnswersPatch = z
 /** Merges a patch from the page's forms. Records replace per key; empty strings clear a field. */
 export async function updateAnswers(userId: string, importId: string, body: unknown) {
   const row = await load(userId, importId);
-  if (row.status === "published") throw new HttpError(409, "this import is already published; change prices and rules on each product");
+  assertEditable(row);
   resultOf(row);
   const patch = AnswersPatch.parse(body);
   const a = answersOf(row);
@@ -338,7 +356,7 @@ export async function sellerMessage(userId: string, importId: string, text: stri
   const t = text.trim();
   if (!t || t.length > 2000) throw new HttpError(400, "write a message up to 2000 characters");
   const row = await load(userId, importId);
-  if (row.status === "published") throw new HttpError(409, "this import is already published");
+  assertEditable(row);
   const result = resultOf(row);
   limit(`import-msg:${userId}`, 60);
   const a = answersOf(row);
@@ -354,7 +372,7 @@ export async function sellerMessage(userId: string, importId: string, text: stri
 
 export async function floorsCsv(userId: string, importId: string, csv: string) {
   const row = await load(userId, importId);
-  if (row.status === "published") throw new HttpError(409, "this import is already published");
+  assertEditable(row);
   const result = resultOf(row);
   const parsed = parseFloorsCsv(csv, result);
   if (!parsed.applied && parsed.errors.length) throw new HttpError(400, parsed.errors[0]!, { errors: parsed.errors, unmatched: parsed.unmatched });
@@ -468,6 +486,7 @@ export async function publishImport(userId: string, importId: string, body: { co
   if (body.confirm !== true) throw new HttpError(400, "confirm that you checked every price and rule before publishing");
   const row = await load(userId, importId);
   if (row.status === "published") return importView(userId, importId);
+  if (row.status === "publishing") throw new HttpError(409, "publishing is already in progress; wait for it to finish");
   if (row.status !== "ready") throw new HttpError(409, "the website has not been read yet");
   limit(`import-publish:${userId}`, 10);
   const result = resultOf(row);
@@ -481,6 +500,33 @@ export async function publishImport(userId: string, importId: string, body: { co
   const blocked = items.filter((i) => i.issues.length);
   if (blocked.length) throw new HttpError(409, `${blocked[0]!.name}: ${blocked[0]!.issues[0]}${blocked.length > 1 ? ` (and ${blocked.length - 1} more)` : ""}`);
 
+  const claimed = await withClaim(
+    async () => (await db.update(schema.catalogImports).set({ status: "publishing", updatedAt: new Date() }).where(and(eq(schema.catalogImports.id, row.id), eq(schema.catalogImports.status, "ready"))).returning({ id: schema.catalogImports.id })).length > 0,
+    async () => {
+      await db.update(schema.catalogImports).set({ status: "ready", updatedAt: new Date() }).where(and(eq(schema.catalogImports.id, row.id), eq(schema.catalogImports.status, "publishing")));
+    },
+    () => publishItems(userId, row, result, answers, items),
+  );
+  if (!claimed) throw new HttpError(409, "publishing is already in progress; wait for it to finish");
+  return importView(userId, importId);
+}
+
+/**
+ * Runs `run` only after `claim` succeeds (one caller at a time), and calls `release` if it throws, so a failed
+ * publish can be retried. Returns false when another publish holds the claim.
+ */
+export async function withClaim(claim: () => Promise<boolean>, release: () => Promise<void>, run: () => Promise<void>): Promise<boolean> {
+  if (!(await claim())) return false;
+  try {
+    await run();
+  } catch (e) {
+    await release().catch(() => undefined);
+    throw e;
+  }
+  return true;
+}
+
+async function publishItems(userId: string, row: Row, result: StoredResult, answers: BuilderAnswers, items: DraftItem[]) {
   const businessName = (answers.businessName ?? result.brand.name ?? "").trim();
   let org = await userOrg(userId);
   if (!org) {
@@ -509,7 +555,6 @@ export async function publishImport(userId: string, importId: string, body: { co
   const published = view(created);
   const transcript = [...(row.transcript as TranscriptLine[]), { at: published.at, role: "agent" as const, text: `Published ${created.length} product${created.length === 1 ? "" : "s"} for ${org.name}. Your deal agent now sells them inside your floors.` }].slice(-60);
   await db.update(schema.catalogImports).set({ status: "published", orgId: org.id, published: bigintsToStrings(published), transcript, updatedAt: new Date() }).where(eq(schema.catalogImports.id, row.id));
-  return importView(userId, importId);
 }
 
 /**
