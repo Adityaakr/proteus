@@ -326,6 +326,8 @@ describe("draft", () => {
       ["nothing below 900 Rs. Stickers 10% off", [{ target: all, floorLocal: "900" }, { target: stickers, maxDiscountPct: "10" }]],
       ["nothing below Rs. 900 on the polo. Stickers 10% off.", [{ target: all, floorLocal: "900" }, { target: stickers, maxDiscountPct: "10" }]],
       ["Apparel up to 15% off. Nothing below ₹900 on the polo.", [{ target: { kind: "category", name: "Apparel" }, maxDiscountPct: "15" }, { target: all, floorLocal: "900" }]],
+      ["Floor 900 rs. 100+ units get 10% off on stickers.", [{ target: all, floorLocal: "900" }, { target: stickers, bulkMinUnits: "100", bulkDiscountPct: "10" }]],
+      ["Polo floor 900 rs. 10% off stickers", [{ target: all, floorLocal: "900" }, { target: stickers, maxDiscountPct: "10" }]],
     ];
     for (const [text, rules] of cases) expect(parseStated(text, catalog).rules, text).toEqual(rules);
   });
