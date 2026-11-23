@@ -28,27 +28,32 @@ const rupeeRe2 = /\b([\d,]+(?:\.\d{1,2})?)\s*(?:inr|rupees?|rs\b)/i;
 
 const buyerTurnsOf = (turns: ExtractInput["turns"]) => turns.filter((t) => t.role === "buyer" && !t.content.startsWith("Counteroffer:"));
 
-const BUDGET_WORDS = /budget|have|max|spend/i;
+const BUDGET_WORDS = /budget|have|max|total|up to|spend|actually/i;
 
-/** The figure in `text` most likely to be a budget: the first one next to a budget word, else the first one. */
-function budgetFigure(text: string, res: RegExp[], valid: (v: string) => boolean = () => true): { value: string; near: boolean } | undefined {
+/** The figure in `text` most likely to be a budget: the first one next to a budget word, else (unless `nearOnly`) the first one. */
+function budgetFigure(text: string, res: RegExp[], nearOnly: boolean, valid: (v: string) => boolean = () => true): { value: string; near: boolean } | undefined {
   const all = res.flatMap((re) => [...text.matchAll(new RegExp(re.source, `${re.flags}g`))]).filter((m) => m[1] && valid(m[1])).sort((a, b) => a.index! - b.index!);
   const near = (m: RegExpMatchArray) => BUDGET_WORDS.test(text.slice(Math.max(0, m.index! - 20), m.index!)) || BUDGET_WORDS.test(text.slice(m.index! + m[0].length, m.index! + m[0].length + 12));
-  const best = all.find(near) ?? all[0];
+  const best = all.find(near) ?? (nearOnly ? undefined : all[0]);
   return best ? { value: best[1]!, near: near(best) } : undefined;
 }
 
-/**
- * The amounts the buyer's latest message mentions in dollars and in rupees, and which one the deterministic parse takes
- * as the budget: the only currency mentioned, else the one next to a budget word, else rupees. Undefined without either.
- */
-export function latestBudget(turns: ExtractInput["turns"]): LatestBudget | undefined {
-  const latest = buyerTurnsOf(turns).at(-1)?.content ?? "";
-  const usd = budgetFigure(latest, [budgetRe, budgetRe2]);
-  const inr = budgetFigure(latest, [rupeeRe, rupeeRe2], isInrAmount);
+/** A message's budget amounts in dollars and rupees (only those next to a budget word when `nearOnly`), and which one is the budget. */
+function budgetIn(text: string, nearOnly: boolean): LatestBudget | undefined {
+  const usd = budgetFigure(text, [budgetRe, budgetRe2], nearOnly);
+  const inr = budgetFigure(text, [rupeeRe, rupeeRe2], nearOnly, isInrAmount);
   if (!usd && !inr) return undefined;
   const currency = !inr || (usd?.near && !inr.near) ? "USD" : "INR";
   return { currency, ...(usd ? { usd: toMicro(usd.value.replace(/,/g, "")) } : {}), ...(inr ? { inr: toPaise(inr.value) } : {}) };
+}
+
+/**
+ * The budget the buyer's latest message states, in dollars and/or rupees: only amounts next to a budget word ("budget",
+ * "max", "total", "up to", "spend", "have", "actually"), so a price ("$8 per hoodie") is not one. Which one is the budget: the only
+ * currency stated, else the one next to a budget word, else rupees. Undefined when it states none.
+ */
+export function latestBudget(turns: ExtractInput["turns"]): LatestBudget | undefined {
+  return budgetIn(buyerTurnsOf(turns).at(-1)?.content ?? "", true);
 }
 
 /**
@@ -62,7 +67,9 @@ export function extractRuleBased(input: ExtractInput): Requirements {
   const text = buyerTurns.map((t) => t.content).join("\n");
   const req: Requirements = { ...input.prior, integrations: [...(input.prior.integrations ?? [])], notes: [...(input.prior.notes ?? [])], openQuestions: [] };
 
-  const stated = latestBudget(input.turns);
+  // Without a budget from earlier turns, any amount in the latest message is read as one; with one, only a stated budget replaces it.
+  const carried = req.budget !== undefined || req.budgetInr !== undefined;
+  const stated = latestBudget(input.turns) ?? (carried ? undefined : budgetIn(latest, false));
   const earlier = stated || req.budget ? null : text.match(budgetRe) ?? text.match(budgetRe2);
   if (stated?.currency === "USD" || earlier?.[1]) {
     req.budget = stated?.currency === "USD" ? stated.usd! : toMicro(earlier![1]!.replace(/,/g, ""));

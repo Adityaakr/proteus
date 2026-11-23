@@ -59,8 +59,8 @@ export const BUDGET_USD_HELP = "Budget in US dollars (or USDC) if the buyer stat
 export const BUDGET_INR_HELP = "Budget in Indian rupees if the buyer stated it in rupees (₹, Rs, INR), else null.";
 
 /**
- * What the buyer's latest message mentions, as the deterministic parse reads it: its dollar and rupee amounts (micro-USDC,
- * paise) and the currency the parse takes as the budget.
+ * The budget the buyer's latest message states, as the deterministic parse reads it (amounts next to a budget word only):
+ * its dollar and rupee amounts (micro-USDC, paise) and the currency the parse takes as the budget.
  */
 export interface LatestBudget {
   currency: "USD" | "INR";
@@ -69,7 +69,7 @@ export interface LatestBudget {
 }
 
 /**
- * The budget fields of a model's extraction. The currencies the buyer's latest message mentions (`latest`) decide which
+ * The budget fields of a model's extraction. The currencies the buyer's latest message states a budget in (`latest`) decide which
  * budget can apply, and the model reads the amount: only dollars, the model's dollar budget else the parsed one; only
  * rupees, the model's rupee budget else the parsed one; both, the model's rupee then dollar budget, else the parse's
  * pick. Without either, the model's rupee then dollar budget, else the budget carried from earlier turns. The

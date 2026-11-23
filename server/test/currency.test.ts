@@ -204,6 +204,25 @@ describe("the agent quotes in the buyer's currency", () => {
     expect(req.budgetInr).toBe(toPaise("40000"));
     expect(req.budget).toBeUndefined();
   });
+  it("keeps a carried rupee budget when the latest message only names a dollar price", () => {
+    const first = [{ role: "buyer" as const, content: "50 hoodies, budget ₹40,000" }];
+    const prior = withRupeeBudget(ext(noReq, first), { fx: R });
+    const turns = [...first, { role: "buyer" as const, content: "can you do $8 per hoodie?" }];
+    const baseline = ext(prior, turns);
+    expect(budgetOf({ budgetUsd: null, budgetInr: 40000 }, baseline, latestBudget(turns))).toEqual({ budget: undefined, budgetInr: toPaise("40000") });
+    // Without a model, the deterministic parse keeps it too.
+    expect(baseline.budgetInr).toBe(toPaise("40000"));
+    expect(baseline.budget).toBe(prior.budget);
+  });
+  it("keeps a carried dollar budget when the latest message only names a rupee price", () => {
+    const first = [{ role: "buyer" as const, content: "50 hoodies, budget $500" }];
+    const prior = ext(noReq, first);
+    const turns = [...first, { role: "buyer" as const, content: "is ₹900 per hoodie your best?" }];
+    const baseline = ext(prior, turns);
+    expect(budgetOf({ budgetUsd: 500, budgetInr: null }, baseline, latestBudget(turns))).toEqual({ budget: toMicro("500") });
+    expect(baseline.budget).toBe(toMicro("500"));
+    expect(baseline.budgetInr).toBeUndefined();
+  });
   it("keeps the exact-rupee offer for a rupee budget and points nowhere else", () => {
     const fx = { product: applyFx(product, R), cost, policy, now: Date.now(), fx: R };
     const requirements = { ...noReq, desiredUnits: 50n, budgetInr: toPaise("45000"), budget: toMicro("485.54") };
