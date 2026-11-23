@@ -192,6 +192,18 @@ describe("the agent quotes in the buyer's currency", () => {
     const turns = [{ role: "buyer" as const, content: "budget $600" }, { role: "buyer" as const, content: "50 hoodies, my budget is ₹45,000" }];
     expect(budgetOf({ budgetUsd: 600 }, ext(ext(noReq, turns.slice(0, 1)), turns), latestBudget(turns))).toEqual({ budget: undefined, budgetInr: toPaise("45000") });
   });
+  it("lets the model read which dollar figure is the budget", () => {
+    const turns = [{ role: "buyer" as const, content: "Your $12 per hoodie is too high; my budget is $500 for 50" }];
+    expect(budgetOf({ budgetUsd: 500 }, ext(noReq, turns), latestBudget(turns))).toEqual({ budget: toMicro("500") });
+  });
+  it("takes the rupee budget when the latest message also names a dollar price", () => {
+    const turns = [{ role: "buyer" as const, content: "the $1,050 tier is too pricey, I have ₹40,000" }];
+    expect(budgetOf({ budgetUsd: null, budgetInr: 40000 }, ext(noReq, turns), latestBudget(turns))).toEqual({ budget: undefined, budgetInr: toPaise("40000") });
+    // Without a model, the deterministic parse reads the same budget.
+    const req = ext(noReq, turns);
+    expect(req.budgetInr).toBe(toPaise("40000"));
+    expect(req.budget).toBeUndefined();
+  });
   it("keeps the exact-rupee offer for a rupee budget and points nowhere else", () => {
     const fx = { product: applyFx(product, R), cost, policy, now: Date.now(), fx: R };
     const requirements = { ...noReq, desiredUnits: 50n, budgetInr: toPaise("45000"), budget: toMicro("485.54") };

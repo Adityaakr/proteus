@@ -28,14 +28,27 @@ const rupeeRe2 = /\b([\d,]+(?:\.\d{1,2})?)\s*(?:inr|rupees?|rs\b)/i;
 
 const buyerTurnsOf = (turns: ExtractInput["turns"]) => turns.filter((t) => t.role === "buyer" && !t.content.startsWith("Counteroffer:"));
 
-/** The budget the buyer's latest message states, in dollars (read first) or in rupees; undefined when it states none. */
+const BUDGET_WORDS = /budget|have|max|spend/i;
+
+/** The figure in `text` most likely to be a budget: the first one next to a budget word, else the first one. */
+function budgetFigure(text: string, res: RegExp[], valid: (v: string) => boolean = () => true): { value: string; near: boolean } | undefined {
+  const all = res.flatMap((re) => [...text.matchAll(new RegExp(re.source, `${re.flags}g`))]).filter((m) => m[1] && valid(m[1])).sort((a, b) => a.index! - b.index!);
+  const near = (m: RegExpMatchArray) => BUDGET_WORDS.test(text.slice(Math.max(0, m.index! - 20), m.index!)) || BUDGET_WORDS.test(text.slice(m.index! + m[0].length, m.index! + m[0].length + 12));
+  const best = all.find(near) ?? all[0];
+  return best ? { value: best[1]!, near: near(best) } : undefined;
+}
+
+/**
+ * The amounts the buyer's latest message mentions in dollars and in rupees, and which one the deterministic parse takes
+ * as the budget: the only currency mentioned, else the one next to a budget word, else rupees. Undefined without either.
+ */
 export function latestBudget(turns: ExtractInput["turns"]): LatestBudget | undefined {
   const latest = buyerTurnsOf(turns).at(-1)?.content ?? "";
-  const dollars = latest.match(budgetRe) ?? latest.match(budgetRe2);
-  if (dollars?.[1]) return { currency: "USD", budget: toMicro(dollars[1].replace(/,/g, "")) };
-  const rupees = latest.match(rupeeRe) ?? latest.match(rupeeRe2);
-  if (rupees?.[1] && isInrAmount(rupees[1])) return { currency: "INR", budgetInr: toPaise(rupees[1]) };
-  return undefined;
+  const usd = budgetFigure(latest, [budgetRe, budgetRe2]);
+  const inr = budgetFigure(latest, [rupeeRe, rupeeRe2], isInrAmount);
+  if (!usd && !inr) return undefined;
+  const currency = !inr || (usd?.near && !inr.near) ? "USD" : "INR";
+  return { currency, ...(usd ? { usd: toMicro(usd.value.replace(/,/g, "")) } : {}), ...(inr ? { inr: toPaise(inr.value) } : {}) };
 }
 
 /**
@@ -52,10 +65,10 @@ export function extractRuleBased(input: ExtractInput): Requirements {
   const stated = latestBudget(input.turns);
   const earlier = stated || req.budget ? null : text.match(budgetRe) ?? text.match(budgetRe2);
   if (stated?.currency === "USD" || earlier?.[1]) {
-    req.budget = stated?.currency === "USD" ? stated.budget : toMicro(earlier![1]!.replace(/,/g, ""));
+    req.budget = stated?.currency === "USD" ? stated.usd! : toMicro(earlier![1]!.replace(/,/g, ""));
     delete req.budgetInr;
   } else if (stated?.currency === "INR") {
-    req.budgetInr = stated.budgetInr;
+    req.budgetInr = stated.inr!;
     // The USDC budget is set from it once the seller's rate is known; a dollar budget from earlier no longer applies.
     req.budget = undefined;
   }
