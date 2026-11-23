@@ -4,7 +4,7 @@
  * settlement stay USDC throughout; these tests run without a database.
  */
 import { describe, expect, it } from "vitest";
-import { applyFx, getQuoteCandidates, inrToUsdc, toMicro, toPaise, type CostModel, type FxRate, type Policy, type Product, type PublicCandidate } from "@proteus/domain";
+import { applyFx, getQuoteCandidates, inrToUsdc, toMicro, toPaise, type CostModel, type FxRate, type Policy, type Product, type PublicCandidate, type Requirements } from "@proteus/domain";
 import { HttpError } from "../src/lib/http";
 import { parseCurrencyBody, rateFor, displayOf, FIXED_SOURCE } from "../src/services/currency";
 import { parseFloor, parseTiers } from "../src/services/seller-api-rules";
@@ -159,14 +159,24 @@ describe("the agent quotes in the buyer's currency", () => {
   });
   it("never takes a rupee figure for dollars from a model", () => {
     const baseline = { ...noReq, budgetInr: toPaise("45000") };
-    expect(budgetOf({ budgetUsd: 45000 }, baseline)).toEqual({ budget: undefined, budgetInr: toPaise("45000") });
-    expect(budgetOf({ budgetInr: 40000 }, noReq)).toEqual({ budget: undefined, budgetInr: toPaise("40000") });
-    expect(budgetOf({ budgetUsd: 500 }, noReq)).toEqual({ budget: toMicro("500") });
+    expect(budgetOf({ budgetUsd: 45000 }, baseline, noReq)).toEqual({ budget: undefined, budgetInr: toPaise("45000") });
+    expect(budgetOf({ budgetInr: 40000 }, noReq, noReq)).toEqual({ budget: undefined, budgetInr: toPaise("40000") });
+    expect(budgetOf({ budgetUsd: 500 }, noReq, noReq)).toEqual({ budget: toMicro("500") });
   });
   it("keeps a fresh dollar budget over a rupee budget the model recalls from earlier turns", () => {
     const prior = withRupeeBudget(extractRuleBased({ productName: "Hoodie", unitLabel: "hoodie", capabilities: [], supportedIntegrations: [], starters: [], prior: noReq, turns: [{ role: "buyer", content: "budget ₹40,000" }] }), { fx: R });
     const baseline = extractRuleBased({ productName: "Hoodie", unitLabel: "hoodie", capabilities: [], supportedIntegrations: [], starters: [], prior, turns: [{ role: "buyer", content: "budget ₹40,000" }, { role: "buyer", content: "actually my budget is $600" }] });
-    expect(budgetOf({ budgetUsd: 600, budgetInr: 40000 }, baseline)).toEqual({ budget: toMicro("600") });
+    expect(budgetOf({ budgetUsd: 600, budgetInr: 40000 }, baseline, prior)).toEqual({ budget: toMicro("600") });
+  });
+  it("takes a rupee budget the model reads from the latest message over a dollar budget carried from earlier", () => {
+    const ext = (prior: Requirements, turns: { role: "buyer"; content: string }[]) => extractRuleBased({ productName: "Hoodie", unitLabel: "hoodie", capabilities: [], supportedIntegrations: [], starters: [], prior, turns });
+    const prior = ext(noReq, [{ role: "buyer", content: "budget $600" }]);
+    const turns = [{ role: "buyer" as const, content: "budget $600" }, { role: "buyer" as const, content: "actually make it 1.5 lakh rupees" }];
+    const baseline = ext(prior, turns);
+    expect(baseline.budget).toBe(toMicro("600"));
+    expect(budgetOf({ budgetUsd: null, budgetInr: 150000 }, baseline, prior)).toEqual({ budget: undefined, budgetInr: toPaise("150000") });
+    // Nothing new stated: the carried dollar budget stands.
+    expect(budgetOf({ budgetUsd: null, budgetInr: null }, baseline, prior)).toEqual({ budget: toMicro("600") });
   });
   it("keeps the exact-rupee offer for a rupee budget and points nowhere else", () => {
     const fx = { product: applyFx(product, R), cost, policy, now: Date.now(), fx: R };

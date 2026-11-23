@@ -65,7 +65,7 @@ export function createOpenRouterAdapter(): AgentAdapter {
         const o = JSON.parse(call.function.arguments) as Record<string, unknown>;
         const requirements: Requirements = {
           desiredUnits: typeof o.desiredUnits === "number" && o.desiredUnits > 0 ? BigInt(Math.floor(o.desiredUnits)) : baseline.desiredUnits,
-          ...budgetOf(o, baseline),
+          ...budgetOf(o, baseline, input.prior),
           integrations: Array.isArray(o.integrations) ? (o.integrations as string[]).map((s) => s.toLowerCase()) : baseline.integrations,
           notes: Array.isArray(o.notes) ? (o.notes as string[]).slice(0, 6) : baseline.notes,
           openQuestions: Array.isArray(o.openQuestions) ? (o.openQuestions as string[]).slice(0, 1) : baseline.openQuestions,
