@@ -119,10 +119,3 @@ export async function saveCurrency(orgId: string, body: unknown) {
   const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.id, orgId));
   return currencyView(org!);
 }
-
-/** The rate rupee prices are converted at, or the API's 409 when the seller has not chosen one. */
-export async function requireOwnRate(org: { currency: OrgCurrency | null }): Promise<FxRate> {
-  const fx = hasOwnRate(org.currency) ? await orgFx(org) : undefined;
-  if (!fx) throw new HttpError(409, "Set an exchange rate first (Settings, Currency: a fixed rate with its date, or the daily reference rate); rupee prices are converted to USDC at it.", { code: "rate_required" });
-  return fx;
-}

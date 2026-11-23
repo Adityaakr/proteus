@@ -313,7 +313,7 @@ function TiersForm({ p }: { p: ProductWithPrivate }) {
             <span className={`body3 ${s.small}`}>Set prices in</span>
             <ActionButton size="sm" variant={cur === "INR" ? "secondary" : "ghost"} onClick={() => switchTo("INR")} aria-pressed={cur === "INR"}>₹ INR</ActionButton>
             <ActionButton size="sm" variant={cur === "USD" ? "secondary" : "ghost"} onClick={() => switchTo("USD")} aria-pressed={cur === "USD"}>$ USD</ActionButton>
-            {inr && <span className={`body3 ${s.small}`}>Converted to USDC at ₹{rate.perUsd}/$ ({rate.kind === "fixed" ? "your fixed rate" : "ECB reference rate"}, {rate.asOf}), rounded up to the cent. The rupee price holds when the rate moves.</span>}
+            {inr && <span className={`body3 ${s.small}`}>Converted to USDC at ₹{rate.perUsd}/$ ({rate.kind === "fixed" ? "your fixed rate" : "ECB reference rate"}, {rate.asOf}), the tier's rupee total rounded up to the cent. The rupee price holds when the rate moves.</span>}
           </div>
         )}
         {rows.map((r, i) => (

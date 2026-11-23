@@ -165,7 +165,7 @@ export const SANDBOX_HANDLERS: Record<string, (req: SandboxRequest) => unknown> 
   "PATCH /v1/seller/products/:id/tiers": ({ params, body }) => {
     const p = product(params.id!);
     const tiers = parseTiers({ tiers: p.tiers.map((t) => ({ id: t.id })), maxUnitsPerDeal: p.maxUnitsPerDeal.toString() }, (body ?? {}) as { tiers?: unknown }, SANDBOX_RATE);
-    const next = tiers.map((t) => ({ id: t.id, name: t.name, includedUnits: BigInt(t.includedUnits), unitPrice: { num: BigInt(t.unitPrice.num), den: 1n }, ...(t.unitPriceInr ? { unitPriceInr: t.unitPriceInr } : {}), includes: t.includes }));
+    const next = tiers.map((t) => ({ id: t.id, name: t.name, includedUnits: BigInt(t.includedUnits), unitPrice: { num: BigInt(t.unitPrice.num), den: BigInt(t.unitPrice.den) }, ...(t.unitPriceInr ? { unitPriceInr: t.unitPriceInr } : {}), includes: t.includes }));
     return dryRun(200, productOut(p, next), [
       `Replace the ${p.tiers.length} public price tier${p.tiers.length === 1 ? "" : "s"} of ${p.name} with ${next.length}: ${next.map((t) => `${t.name} from ${t.includedUnits} at ${t.unitPriceInr ? `${formatInr(toPaise(t.unitPriceInr))} (${formatUnitPrice(t.unitPrice.num, t.unitPrice.den)} at ₹${SANDBOX_RATE.perUsd}/$)` : formatUnitPrice(t.unitPrice.num, t.unitPrice.den)} per ${p.unitLabel}`).join("; ")}.`,
       "New quotes use these prices; deals already signed keep theirs.",

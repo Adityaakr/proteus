@@ -77,7 +77,8 @@ export interface Tier {
   unitPrice: UnitPrice;
   /**
    * The list price as the seller set it in rupees (paise per unit). When present it is the source of truth: unitPrice
-   * is this amount converted at the seller's current rate (applyFx), so the rupee price holds when the rate moves.
+   * is the rupee total for includedUnits converted once at the seller's current rate (applyFx), so the rupee price holds
+   * when the rate moves.
    */
   unitPriceInr?: Paise;
   /** Overage price per unit beyond includedUnits, if allowed. */
@@ -230,24 +231,31 @@ export function candidateIdFor(ctx: EvaluationContext, tier: Tier, units: bigint
   return stableId(parts);
 }
 
-/** Rupee list prices converted at the rate (rounded up to the cent). Without a rate, the stored USDC prices stand. */
+/** A rupee list price for `units`: the rupee total converted once (rounded up to the cent), spread over the units. */
+export function inrListPrice(unitPriceInr: Paise, units: bigint, fx: FxRate): UnitPrice {
+  return units > 0n ? { num: inrToUsdc(units * unitPriceInr, fx), den: units } : { num: inrToUsdc(unitPriceInr, fx), den: 1n };
+}
+
+/** Rupee list prices converted at the rate, for the tier's own units. Without a rate, the stored USDC prices stand. */
 export function applyFx(product: Product, fx: FxRate | undefined): Product {
   if (!fx || !product.tiers.some((t) => t.unitPriceInr !== undefined)) return product;
-  return { ...product, tiers: product.tiers.map((t) => (t.unitPriceInr === undefined ? t : { ...t, unitPrice: { num: inrToUsdc(t.unitPriceInr, fx), den: 1n } })) };
+  return { ...product, tiers: product.tiers.map((t) => (t.unitPriceInr === undefined ? t : { ...t, unitPrice: inrListPrice(t.unitPriceInr, t.includedUnits, fx) })) };
 }
 
 /** The offer in rupees: the seller's rupee list price, the buyer's rupee counter, or (else) its USDC converted. */
 function localFor(ctx: EvaluationContext, tier: Tier, units: bigint, unitPrice: UnitPrice, prepaidTotal: Micro, localTotal?: Paise): LocalPrice | undefined {
   const fx = ctx.fx;
   if (!fx) return undefined;
-  const atList = tier.unitPriceInr !== undefined && unitPrice.num * tier.unitPrice.den === tier.unitPrice.num * unitPrice.den;
+  const list = listPriceForUnits(ctx, tier, units);
+  const atList = tier.unitPriceInr !== undefined && unitPrice.num * list.den === list.num * unitPrice.den;
   if (atList) return { currency: "INR", unitPrice: tier.unitPriceInr!, total: units * tier.unitPriceInr!, stated: true, rate: fx };
   if (localTotal !== undefined && units > 0n) return { currency: "INR", unitPrice: (localTotal * 2n + units) / (2n * units), total: localTotal, stated: true, rate: fx };
   return { currency: "INR", unitPrice: unitPriceToInr(unitPrice, fx), total: usdcToInr(prepaidTotal, fx), stated: false, rate: fx };
 }
 
-export function listPriceForUnits(tier: Tier): UnitPrice {
-  return tier.unitPrice;
+/** The tier's list price for `units`: a rupee list price converts the rupee total for those units once. */
+export function listPriceForUnits(ctx: Pick<EvaluationContext, "fx">, tier: Tier, units: bigint): UnitPrice {
+  return tier.unitPriceInr !== undefined && ctx.fx ? inrListPrice(tier.unitPriceInr, units, ctx.fx) : tier.unitPrice;
 }
 
 /** Evaluate one concrete (tier, units, unitPrice) proposal against seller economics and policy. */
@@ -260,7 +268,8 @@ export function evaluate(
   const rules: RuleId[] = [];
 
   const prepaidTotal = mulDivFloor(units, unitPrice.num, unitPrice.den);
-  const listTotal = mulDivFloor(units, tier.unitPrice.num, tier.unitPrice.den);
+  const list = listPriceForUnits(ctx, tier, units);
+  const listTotal = mulDivFloor(units, list.num, list.den);
   const discountBps = listTotal > 0n && listTotal > prepaidTotal ? bpsOf(listTotal - prepaidTotal, listTotal) : 0n;
 
   const expectedRevenue = prepaidTotal;
@@ -343,12 +352,12 @@ export function getQuoteCandidates(ctx: EvaluationContext, req: Requirements): C
   };
 
   for (const tier of product.tiers) {
-    push(evaluate(ctx, { tier, units: tier.includedUnits, unitPrice: tier.unitPrice, origin: "tier", requested: req }));
+    push(evaluate(ctx, { tier, units: tier.includedUnits, unitPrice: listPriceForUnits(ctx, tier, tier.includedUnits), origin: "tier", requested: req }));
   }
 
   if (req.desiredUnits && req.desiredUnits > 0n) {
     const tier = qualifyingTier(product, req.desiredUnits);
-    push(evaluate(ctx, { tier, units: req.desiredUnits, unitPrice: tier.unitPrice, origin: "requested_units", requested: req }));
+    push(evaluate(ctx, { tier, units: req.desiredUnits, unitPrice: listPriceForUnits(ctx, tier, req.desiredUnits), origin: "requested_units", requested: req }));
   }
 
   if (req.budget && req.budget > 0n) {
@@ -356,10 +365,19 @@ export function getQuoteCandidates(ctx: EvaluationContext, req: Requirements): C
     // Walk from the largest tier down and take the first one the budget qualifies for.
     const byVolumeDesc = [...product.tiers].sort((a, b) => (a.includedUnits < b.includedUnits ? 1 : -1));
     for (const tier of byVolumeDesc) {
-      const unitsAffordable = roundUnitsDown((req.budget * tier.unitPrice.den) / tier.unitPrice.num);
+      // A rupee budget against a rupee list price is compared in rupees; otherwise in USDC.
+      const inRupees = req.budgetInr !== undefined && tier.unitPriceInr !== undefined && Boolean(ctx.fx);
+      const within = (u: bigint) => {
+        if (inRupees) return u * tier.unitPriceInr! <= req.budgetInr!;
+        const p = listPriceForUnits(ctx, tier, u);
+        return mulDivFloor(u, p.num, p.den) <= req.budget!;
+      };
+      let most = inRupees ? req.budgetInr! / tier.unitPriceInr! : (req.budget * tier.unitPrice.den) / tier.unitPrice.num;
+      if (most > 0n && !within(most)) most -= 1n;
+      const unitsAffordable = roundUnitsDown(most);
       if (unitsAffordable < tier.includedUnits && tier !== byVolumeDesc[byVolumeDesc.length - 1]) continue;
       if (unitsAffordable <= 0n) continue;
-      const c = evaluate(ctx, { tier, units: unitsAffordable, unitPrice: tier.unitPrice, origin: "budget_fit", requested: req });
+      const c = evaluate(ctx, { tier, units: unitsAffordable, unitPrice: listPriceForUnits(ctx, tier, unitsAffordable), origin: "budget_fit", requested: req });
       push(c);
       if (c.status !== "rejected") break;
     }
@@ -421,7 +439,8 @@ export function evaluateCounteroffer(ctx: EvaluationContext, base: Candidate, as
 
   // Alternative: fit the buyer's implied budget with fewer units at list price.
   const impliedBudget = ask.targetTotal ?? base.prepaidTotal;
-  const alt = getQuoteCandidates(ctx, { ...req, budget: impliedBudget, desiredUnits: undefined }).find((c) => c.status === "eligible" && c.origins.includes("budget_fit"));
+  const { budgetInr: _stated, ...rest } = req;
+  const alt = getQuoteCandidates(ctx, { ...rest, budget: impliedBudget, ...(localTotal !== undefined ? { budgetInr: localTotal } : {}), desiredUnits: undefined }).find((c) => c.status === "eligible" && c.origins.includes("budget_fit"));
   return { decision: "rejected", candidate: proposed, alternative: alt };
 }
 

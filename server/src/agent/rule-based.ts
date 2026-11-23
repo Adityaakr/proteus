@@ -124,7 +124,7 @@ export function composeRuleBased(input: ComposeInput): string {
     lines.push(`${r.units.toLocaleString()} ${unitFor(r.units, unitLabel)} for ${total(r)} does not work: ${(r.publicReasons[0] ?? "it falls outside the seller's policy.").toLowerCase()} The options above are what I can commit to.`);
   }
   // Nothing here fits the stated budget (or nothing is offered): point to the seller's other products, smallest pack first.
-  const fits = eligible.filter((o) => !requirements.budget || o.prepaidTotal <= requirements.budget);
+  const fits = eligible.filter((o) => !requirements.budget || (requirements.budgetInr !== undefined && o.local?.stated ? o.local.total <= requirements.budgetInr : o.prepaidTotal <= requirements.budget));
   const lastBuyer = (input.turns.filter((t) => t.role === "buyer").at(-1)?.content ?? "").toLowerCase();
   // A word that also names this product ("tees" while negotiating a tee) is about this product, not a pointer elsewhere.
   const own = new Set([unitLabel.toLowerCase(), pluralUnit(unitLabel).toLowerCase(), ...input.productName.toLowerCase().split(/[^a-z]+/)]);

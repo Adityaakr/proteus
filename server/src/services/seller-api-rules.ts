@@ -4,7 +4,7 @@
  * public sandbox (sandbox.ts) runs the same ones for its dry runs, so a dry run accepts and refuses exactly what the
  * real API does. Messages and the order of the checks are the API's own.
  */
-import { cumulativeCharge, fromPaise, inrToUsdc, toMicro, toPaise, type FxRate } from "@proteus/domain";
+import { cumulativeCharge, fromPaise, inrListPrice, toMicro, toPaise, type FxRate } from "@proteus/domain";
 import { HttpError } from "../lib/http";
 
 /* ---------------------------------------------------------------- products */
@@ -27,7 +27,7 @@ export const RATE_REQUIRED = "Set an exchange rate first (Settings, Currency: a 
 /**
  * Validates PATCH /products/:id/tiers. `pub` is the product's public listing: its current tier ids and the largest
  * number of units one deal may cover. A tier is priced in dollars (unitPriceUsd) or in rupees (unitPriceInr, converted
- * at `fx`, the rate the seller chose, rounded up to the cent). Returns the new tiers sorted by quantity, or throws.
+ * at `fx`, the rate the seller chose: the tier's rupee total converted once, rounded up to the cent). Returns the new tiers sorted by quantity, or throws.
  */
 export function parseTiers(pub: { tiers: { id: string }[]; maxUnitsPerDeal: string }, body: { tiers?: unknown }, fx?: FxRate): ParsedTier[] {
   const input = (Array.isArray(body?.tiers) ? body.tiers : []) as { name?: unknown; includedUnits?: unknown; unitPriceUsd?: unknown; unitPriceInr?: unknown; includes?: unknown }[];
@@ -44,20 +44,20 @@ export function parseTiers(pub: { tiers: { id: string }[]; maxUnitsPerDeal: stri
     if (seen.has(units)) throw new HttpError(400, `two tiers start at ${units} units; each tier needs its own quantity`);
     seen.add(units);
     if (price && rupees) throw new HttpError(400, `tier ${i + 1}: give unitPriceUsd or unitPriceInr, not both`);
-    let unitPrice: bigint;
+    let unitPrice: { num: bigint; den: bigint };
     let unitPriceInr: string | undefined;
     if (rupees) {
       if (!/^\d{1,10}(\.\d{1,2})?$/.test(rupees) || toPaise(rupees) <= 0n) throw new HttpError(400, `tier ${i + 1}: enter a unit price in rupees, more than 0 (up to two decimals)`);
       if (!fx) throw new HttpError(409, RATE_REQUIRED, { code: "rate_required" });
-      unitPrice = inrToUsdc(toPaise(rupees), fx);
+      unitPrice = inrListPrice(toPaise(rupees), BigInt(units), fx);
       unitPriceInr = fromPaise(toPaise(rupees));
     } else {
       if (!/^\d{1,7}(\.\d{1,6})?$/.test(price) || toMicro(price) <= 0n) throw new HttpError(400, `tier ${i + 1}: enter a unit price in dollars (unitPriceUsd) or rupees (unitPriceInr), more than 0`);
-      unitPrice = toMicro(price);
+      unitPrice = { num: toMicro(price), den: 1n };
     }
     const includes = Array.isArray(t.includes) ? t.includes.filter((x): x is string => typeof x === "string" && x.trim() !== "").map((x) => x.trim().slice(0, 60)).slice(0, 8) : [];
     const tierId = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `tier-${i}`;
-    return { id: pub.tiers.some((x, j) => x.id === tierId && j !== i) ? `${tierId}-${i}` : tierId, name, includedUnits: units, unitPrice: { num: unitPrice.toString(), den: "1" }, ...(unitPriceInr ? { unitPriceInr } : {}), includes };
+    return { id: pub.tiers.some((x, j) => x.id === tierId && j !== i) ? `${tierId}-${i}` : tierId, name, includedUnits: units, unitPrice: { num: unitPrice.num.toString(), den: unitPrice.den.toString() }, ...(unitPriceInr ? { unitPriceInr } : {}), includes };
   });
   tiers.sort((a, b) => (BigInt(a.includedUnits) < BigInt(b.includedUnits) ? -1 : 1));
   return tiers;

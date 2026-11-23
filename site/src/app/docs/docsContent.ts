@@ -849,7 +849,7 @@ const PAGES: DocSection[] = [
       { kind: "h3", id: "seller-api-rupees", text: "Prices in rupees" },
       { kind: "p", text: "Buyers pay in USDC; you can still price in rupees. Set your display currency and exchange rate in [Settings](/app/sell/settings): a fixed rate with its date, or the European Central Bank's daily reference rate, which Proteus refreshes. `GET /me` returns them as `currency`." },
       { kind: "list", items: [
-        "Price a tier with `unitPriceInr` instead of `unitPriceUsd` in `PATCH /products/:id/tiers`. The rupee price is kept as you set it and converted to USDC at your current rate, rounded up to the cent, so ₹1,050 at ₹92.68/$ is 11.33 USDC.",
+        "Price a tier with `unitPriceInr` instead of `unitPriceUsd` in `PATCH /products/:id/tiers`. The rupee price is kept as you set it; an offer's rupee total is converted to USDC once at your current rate, rounded up to the cent, so ₹1,050 at ₹92.68/$ is 11.33 USDC and 50 × ₹900 (₹45,000) is 485.55 USDC.",
         "Set a rupee floor with `PATCH /products/:id/floor` and `{ \"floorUnitPriceInr\": \"850\" }`. Every offer is checked at the current rate, so your agent never goes below ₹850 a unit when the rate moves.",
         "Buyers choose USD or INR in your embed, store and deal desk. Each offer fixes its rate and shows it; the checkout reads \"You pay 485.55 USDC (₹45,000 at ₹92.68/$, rate fixed for this offer)\". An offer made before the rate moved cannot be signed: the buyer asks for a fresh one.",
         "Without a rate, rupee prices and floors answer 409 with `details.code` `rate_required`. Payment in rupees (UPI, cards) is not offered.",

@@ -8,10 +8,13 @@ import { MICRO, formatUsd, type Micro, type UnitPrice } from "./money";
  *  - INR to USDC (a list price, a floor-checked counter or a budget the seller or buyer gave in rupees): divide by the
  *    rate and round UP to the next cent (to 0.0001 USDC below 1 USDC), so the seller is never paid less than its rupee
  *    amount at the stated rate. ₹1,050 at ₹92.68/$ is 11.33 USDC; ₹45,000 is 485.55 USDC. A budget rounds DOWN, so
- *    an offer that fits the USDC budget also fits the rupee budget.
+ *    an offer that fits the USDC budget also fits the rupee budget; a rupee budget is compared with a rupee price in
+ *    rupees.
+ *  - A rupee list price is converted on the offer's total, once: units × the rupee price, then to USDC (rounded up).
+ *    50 × ₹900 is ₹45,000, so 485.55 USDC; the USDC unit price is that total over the units.
  *  - USDC to INR (only for display, when no rupee amount was set): multiply by the rate and round to the nearest
  *    paisa; shown to the whole rupee with "≈".
- *  - Totals are units × the unit price in each currency; a rupee total is never re-derived from a rounded USDC one.
+ *  - A rupee total is never re-derived from a rounded USDC one.
  *  - An INR floor is checked exactly, without rounding: an offer's USDC total at the current rate must be worth at
  *    least units × the rupee floor.
  */

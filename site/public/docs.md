@@ -1490,7 +1490,7 @@ _The new key has the same name, environment and permissions. Up to 20 working ke
 
 Buyers pay in USDC; you can still price in rupees. Set your display currency and exchange rate in [Settings](https://app.proteus.co.in/app/sell/settings): a fixed rate with its date, or the European Central Bank's daily reference rate, which Proteus refreshes. `GET /me` returns them as `currency`.
 
-- Price a tier with `unitPriceInr` instead of `unitPriceUsd` in `PATCH /products/:id/tiers`. The rupee price is kept as you set it and converted to USDC at your current rate, rounded up to the cent, so ₹1,050 at ₹92.68/$ is 11.33 USDC.
+- Price a tier with `unitPriceInr` instead of `unitPriceUsd` in `PATCH /products/:id/tiers`. The rupee price is kept as you set it; an offer's rupee total is converted to USDC once at your current rate, rounded up to the cent, so ₹1,050 at ₹92.68/$ is 11.33 USDC and 50 × ₹900 (₹45,000) is 485.55 USDC.
 - Set a rupee floor with `PATCH /products/:id/floor` and `{ "floorUnitPriceInr": "850" }`. Every offer is checked at the current rate, so your agent never goes below ₹850 a unit when the rate moves.
 - Buyers choose USD or INR in your embed, store and deal desk. Each offer fixes its rate and shows it; the checkout reads "You pay 485.55 USDC (₹45,000 at ₹92.68/$, rate fixed for this offer)". An offer made before the rate moved cannot be signed: the buyer asks for a fresh one.
 - Without a rate, rupee prices and floors answer 409 with `details.code` `rate_required`. Payment in rupees (UPI, cards) is not offered.
@@ -1654,7 +1654,7 @@ Response `200`:
 
 `PATCH /products/:id/tiers` · Permission: `products:write` · Returns `200`
 
-Replaces every public price tier of a product and returns the product. Price each tier in dollars (`unitPriceUsd`) or in rupees (`unitPriceInr`, once you have set a rate under Settings, Currency): a rupee price is kept as you set it and converted to USDC at your current rate, rounded up to the cent, whenever buyers see it, so the rupee price holds when the rate moves. New offers use the new prices; an offer already made in an open negotiation can still be quoted at its old price (unless the rate moved since, for a rupee price), and deals already signed keep theirs.
+Replaces every public price tier of a product and returns the product. Price each tier in dollars (`unitPriceUsd`) or in rupees (`unitPriceInr`, once you have set a rate under Settings, Currency): a rupee price is kept as you set it and, whenever buyers see it, an offer's rupee total is converted to USDC once at your current rate, rounded up to the cent, so the rupee price holds when the rate moves. New offers use the new prices; an offer already made in an open negotiation can still be quoted at its old price (unless the rate moved since, for a rupee price), and deals already signed keep theirs.
 
 | Parameter | In | Type | Required | Description |
 |---|---|---|---|---|

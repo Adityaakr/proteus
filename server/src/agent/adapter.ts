@@ -59,11 +59,13 @@ export const BUDGET_USD_HELP = "Budget in US dollars (or USDC) if the buyer stat
 export const BUDGET_INR_HELP = "Budget in Indian rupees if the buyer stated it in rupees (₹, Rs, INR), else null.";
 
 /**
- * The budget fields of a model's extraction. A rupee budget wins, from the model or from the deterministic parse of the
- * last message; then a dollar budget; else the deterministic baseline. The negotiation converts rupees at the seller's rate.
+ * The budget fields of a model's extraction. A dollar budget the deterministic parse holds (the last one stated) keeps the
+ * model's rupee budget out; otherwise a rupee budget wins, from the model or the parse; then a dollar budget; else the
+ * deterministic baseline. The negotiation converts rupees at the seller's rate.
  */
 export function budgetOf(o: { budgetUsd?: unknown; budgetInr?: unknown }, baseline: Requirements): Pick<Requirements, "budget" | "budgetInr"> {
-  if (typeof o.budgetInr === "number" && o.budgetInr > 0 && isInrAmount(o.budgetInr.toFixed(2))) return { budget: undefined, budgetInr: toPaise(o.budgetInr.toFixed(2)) };
+  const dollars = baseline.budget !== undefined && baseline.budgetInr === undefined;
+  if (!dollars && typeof o.budgetInr === "number" && o.budgetInr > 0 && isInrAmount(o.budgetInr.toFixed(2))) return { budget: undefined, budgetInr: toPaise(o.budgetInr.toFixed(2)) };
   if (baseline.budgetInr !== undefined && baseline.budget === undefined) return { budget: undefined, budgetInr: baseline.budgetInr };
   if (typeof o.budgetUsd === "number" && o.budgetUsd > 0) return { budget: toMicro(o.budgetUsd.toFixed(2)) };
   return { budget: baseline.budget, ...(baseline.budgetInr !== undefined ? { budgetInr: baseline.budgetInr } : {}) };

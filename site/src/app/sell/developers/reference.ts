@@ -256,7 +256,7 @@ export function endpointExamples(base: string): EndpointExample[] {
     },
     {
       method: "PATCH", path: "/v1/seller/products/:id/tiers", title: "Replace price tiers", status: 200, example: { ...EXAMPLE_BODIES.tiers },
-      description: "Replaces every public price tier of a product and returns the product. Price each tier in dollars (`unitPriceUsd`) or in rupees (`unitPriceInr`, once you have set a rate under Settings, Currency): a rupee price is kept as you set it and converted to USDC at your current rate, rounded up to the cent, whenever buyers see it, so the rupee price holds when the rate moves. New offers use the new prices; an offer already made in an open negotiation can still be quoted at its old price (unless the rate moved since, for a rupee price), and deals already signed keep theirs.",
+      description: "Replaces every public price tier of a product and returns the product. Price each tier in dollars (`unitPriceUsd`) or in rupees (`unitPriceInr`, once you have set a rate under Settings, Currency): a rupee price is kept as you set it and, whenever buyers see it, an offer's rupee total is converted to USDC once at your current rate, rounded up to the cent, so the rupee price holds when the rate moves. New offers use the new prices; an offer already made in an open negotiation can still be quoted at its old price (unless the rate moved since, for a rupee price), and deals already signed keep theirs.",
       params: [
         ID_PRODUCT,
         { name: "tiers", in: "body", type: "array", required: true, description: "1 to 6 tiers. They are sorted by `includedUnits`." },

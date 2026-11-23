@@ -388,11 +388,9 @@ export function counterReply(d: CounterDecision, askText: string, unitLabel: str
 /** "50 tees for $400.00", "60 tees for $480.00" or "50 tees for ₹40,000 (≈ 431.59 USDC)": the buyer's counter in the transcript. */
 export function counterAskText(base: Candidate, ask: { targetTotal?: bigint; targetTotalInr?: bigint; targetUnits?: bigint }, unitLabel: string, view?: PriceView): string {
   const units = `${base.units.toLocaleString()} ${unitFor(base.units, unitLabel)}`;
-  if (ask.targetTotalInr !== undefined && view?.fx) return `${units} for ${amountText(inrToUsdcSafe(ask.targetTotalInr, view), { ...view, currency: "INR" }, ask.targetTotalInr)}`;
+  if (ask.targetTotalInr !== undefined && view?.fx) return `${units} for ${amountText(inrToUsdc(ask.targetTotalInr, view.fx), { ...view, currency: "INR" }, ask.targetTotalInr)}`;
   return ask.targetTotal !== undefined ? `${units} for ${amountText(ask.targetTotal, view)}` : `${ask.targetUnits?.toLocaleString()} ${pluralUnit(unitLabel)} for ${offerTotalText(base, view)}`;
 }
-
-const inrToUsdcSafe = (paise: bigint, view: PriceView) => (view.fx ? inrToUsdc(paise, view.fx) : 0n);
 
 /** Public facts the agent may answer from: the product's terms and what was imported from the seller's website. */
 export function productFacts(lp: { product: LoadedProduct["product"] }) {

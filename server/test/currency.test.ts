@@ -101,10 +101,10 @@ describe("offers fix their rate", () => {
     const c = offerAt(R);
     const o = toOffer(c);
     expect(o.local).toEqual({ currency: "INR", unitPrice: "900.00", total: "45000.00", stated: true, rate: R });
-    expect(o.prepaidTotalUsd).toBe("$486.00");
+    expect(o.prepaidTotalUsd).toBe("$485.55");
     const terms = buildPublicTerms(loaded(R) as never, c, { version: 2, commitment: "0x00", registry: "eip155:5042002:0x0", sellerAgent: null });
     expect(terms.localPrice).toEqual(o.local);
-    expect(terms.prepaidTotal).toBe(toMicro("486").toString()); // escrow takes USDC
+    expect(terms.prepaidTotal).toBe(toMicro("485.55").toString()); // escrow takes USDC
   });
   it("an offer made before the rate moved cannot be quoted, and says why", () => {
     const c = offerAt(R);
@@ -163,15 +163,30 @@ describe("the agent quotes in the buyer's currency", () => {
     expect(budgetOf({ budgetInr: 40000 }, noReq)).toEqual({ budget: undefined, budgetInr: toPaise("40000") });
     expect(budgetOf({ budgetUsd: 500 }, noReq)).toEqual({ budget: toMicro("500") });
   });
+  it("keeps a fresh dollar budget over a rupee budget the model recalls from earlier turns", () => {
+    const prior = withRupeeBudget(extractRuleBased({ productName: "Hoodie", unitLabel: "hoodie", capabilities: [], supportedIntegrations: [], starters: [], prior: noReq, turns: [{ role: "buyer", content: "budget ₹40,000" }] }), { fx: R });
+    const baseline = extractRuleBased({ productName: "Hoodie", unitLabel: "hoodie", capabilities: [], supportedIntegrations: [], starters: [], prior, turns: [{ role: "buyer", content: "budget ₹40,000" }, { role: "buyer", content: "actually my budget is $600" }] });
+    expect(budgetOf({ budgetUsd: 600, budgetInr: 40000 }, baseline)).toEqual({ budget: toMicro("600") });
+  });
+  it("keeps the exact-rupee offer for a rupee budget and points nowhere else", () => {
+    const fx = { product: applyFx(product, R), cost, policy, now: Date.now(), fx: R };
+    const requirements = { ...noReq, desiredUnits: 50n, budgetInr: toPaise("45000"), budget: toMicro("485.54") };
+    const offers = getQuoteCandidates(fx, requirements).map(({ economics: _e, rules: _r, ...pub }): PublicCandidate => ({ ...pub, publicReasons: [] }));
+    expect(offers[0]).toMatchObject({ tierId: "bulk", units: 50n, prepaidTotal: toMicro("485.55") });
+    const catalog = { sellerName: "Shoonya Store", products: [{ name: "Tote", unitLabel: "tote", detail: "Tote bags", smallestPack: "10 totes" }] };
+    const reply = composeRuleBased({ productName: "Hoodie", unitLabel: "hoodie", requirements, offers, rejected: [], injectionDetected: false, turns: [{ role: "buyer", content: "50 hoodies, budget ₹45,000" }], view: inr, catalog } as ComposeInput);
+    expect(reply).toContain("Bulk: 50 hoodies for ₹45,000 (≈ 485.55 USDC)");
+    expect(reply).not.toContain("also offers");
+  });
   it("writes offers in rupees first in the deterministic reply, and lets a model quote the same figures", () => {
     const c = offerAt(R);
     const { economics: _e, rules: _r, ...pub } = c;
     const o: PublicCandidate = { ...pub, publicReasons: [] };
     const input: ComposeInput = { productName: "Hoodie", unitLabel: "hoodie", requirements: { ...noReq, desiredUnits: 50n }, offers: [o], rejected: [], injectionDetected: false, turns: [{ role: "buyer", content: "50 hoodies" }], view: inr };
     const reply = composeRuleBased(input);
-    expect(reply).toContain("Bulk: 50 hoodies for ₹45,000 (≈ 486.00 USDC) prepaid for the term (₹900 (≈ 9.72 USDC) per hoodie)");
-    expect(composeRuleBased({ ...input, view: { currency: "USD", fx: R } })).toContain("Bulk: 50 hoodies for $486.00 prepaid for the term ($9.72 per hoodie)");
-    expect(viewFigures(input)).toEqual(expect.arrayContaining(["₹45,000", "45,000", "486.00"]));
+    expect(reply).toContain("Bulk: 50 hoodies for ₹45,000 (≈ 485.55 USDC) prepaid for the term (₹900 (≈ 9.711 USDC) per hoodie)");
+    expect(composeRuleBased({ ...input, view: { currency: "USD", fx: R } })).toContain("Bulk: 50 hoodies for $485.55 prepaid for the term ($9.711 per hoodie)");
+    expect(viewFigures(input)).toEqual(expect.arrayContaining(["₹45,000", "45,000", "485.55"]));
     expect(viewFigures({ ...input, view: { currency: "USD", fx: R } })).toEqual([]);
   });
 });

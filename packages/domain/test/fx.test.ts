@@ -94,11 +94,30 @@ describe("rupee list prices", () => {
   it("offers carry the seller's exact rupee amounts and the rate they are fixed at", () => {
     const [single] = getQuoteCandidates(ctxAt(R), { ...noReq, desiredUnits: 40n });
     expect(single!.units).toBe(40n);
-    expect(single!.prepaidTotal).toBe(toMicro("453.20"));
+    expect(single!.prepaidTotal).toBe(toMicro("453.18")); // ₹42,000 / 92.68 = 453.1722, converted once
     expect(single!.local).toMatchObject({ unitPrice: toPaise("1050"), total: toPaise("42000"), stated: true });
     expect(single!.local!.rate.perUsd).toBe("92.68");
     // Buyer-safe: the projection keeps the rupee price.
     expect(toPublicCandidate(single!).local?.total).toBe(toPaise("42000"));
+  });
+  it("converts a tier's rupee total once, so 50 × ₹900 is 485.55 USDC and the checkout line adds up", () => {
+    const bulk = getQuoteCandidates(ctxAt(R), noReq).find((c) => c.tierId === "bulk")!;
+    expect(bulk.prepaidTotal).toBe(toMicro("485.55")); // ₹45,000 / 92.68 = 485.5416; not 50 × 9.72 = 486.00
+    expect(bulk.local).toMatchObject({ total: toPaise("45000"), unitPrice: toPaise("900"), stated: true });
+    expect(checkoutLine(bulk.prepaidTotal, bulk.local)).toBe("You pay 485.55 USDC (₹45,000 at ₹92.68/$, rate fixed for this offer)");
+  });
+  it("converts 1,000 × ₹100 once: 1,078.99 USDC, not 1,000 × 1.08", () => {
+    const big: Product = { ...product, tiers: [{ id: "k", name: "Thousand", includedUnits: 1000n, unitPrice: { num: toMicro("1.08"), den: 1n }, unitPriceInr: toPaise("100"), includes: [] }] };
+    const c: EvaluationContext = { product: applyFx(big, R), cost: { ...cost, floorUnitPriceInr: undefined }, policy, now: Date.now(), fx: R };
+    const [k] = getQuoteCandidates(c, noReq);
+    expect(k!.prepaidTotal).toBe(toMicro("1078.99")); // 100000 / 92.68 = 1078.981
+    expect(k!.local?.total).toBe(toPaise("100000"));
+  });
+  it("fits a rupee budget in rupees: ₹45,000 buys the 50 × ₹900 Bulk offer", () => {
+    const cands = getQuoteCandidates(ctxAt(R), { ...noReq, budgetInr: toPaise("45000"), budget: inrBudgetToUsdc(toPaise("45000"), R) });
+    const fit = cands.find((c) => c.origins.includes("budget_fit"))!;
+    expect(fit).toMatchObject({ tierId: "bulk", units: 50n, prepaidTotal: toMicro("485.55"), status: "eligible" });
+    expect(fit.local?.total).toBe(toPaise("45000"));
   });
   it("puts the rate into the candidate id, so an offer from before a rate change cannot be quoted", () => {
     const a = ctxAt(R), b = ctxAt(rate("92.68", "2026-11-21"));

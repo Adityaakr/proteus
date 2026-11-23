@@ -175,7 +175,7 @@ function CurrencyCard({ locked }: { locked: boolean }) {
             <span>No rate: USD only{ref ? " (buyers can still view rupees at the reference rate)" : ""}</span>
           </label>
         </fieldset>
-        <p className={s.hint}>Rounding: a rupee price converts to USDC rounded up to the cent, so ₹1,050 at ₹92.68/$ is 11.33 USDC. A rupee floor is checked exactly at the current rate.</p>
+        <p className={s.hint}>Rounding: an offer's rupee total converts to USDC once, rounded up to the cent, so ₹1,050 at ₹92.68/$ is 11.33 USDC and ₹45,000 is 485.55 USDC. A rupee floor is checked exactly at the current rate.</p>
         {locked && <Notice tone="info">The example seller's currency is fixed. Sign in as your own seller to change yours.</Notice>}
         {save.isError && <Notice tone="danger">{errorMessage(save.error)}</Notice>}
         {save.isSuccess && draft === null && <Notice tone="success">Saved. Buyers see prices this way now.</Notice>}
