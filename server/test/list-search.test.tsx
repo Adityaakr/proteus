@@ -47,7 +47,7 @@ vi.mock("../../site/src/app/sell/hooks", () => ({ useMe: () => ({ me: null, read
 vi.mock("../../site/src/app/sell/v1", () => ({ useAuth: () => ({ wallet: null }), v1: { app: {} } }));
 
 const { default: Products, filterProducts } = await import("../../site/src/app/seller/pages/Products");
-const { withParam } = await import("../../site/src/app/lib/useSearchParam");
+const { withParam, writeParam } = await import("../../site/src/app/lib/useSearchParam");
 const { countText } = await import("../../site/src/app/ui/SearchBar");
 const { negotiationSearchFields } = await import("../../site/src/app/seller/pages/Negotiations");
 const { dealSearchFields } = await import("../../site/src/app/seller/pages/Deals");
@@ -137,6 +137,29 @@ describe("URL sync", () => {
     expect(withParam(p, "listing", "hidden", "all").toString()).toBe("buyer=0xabc&q=old&listing=hidden");
     expect(withParam(p, "q", "café & tea").get("q")).toBe("café & tea");
     expect(p.toString()).toBe("buyer=0xabc&q=old"); // the input is not changed
+  });
+
+  const at = (search: string) => ({ pathname: "/app/sell/products", search, hash: "", state: null, key: Math.random().toString(36) });
+
+  it("lands every setter fired in one click, so clearing search and filters leaves none in the URL", () => {
+    const loc = at("?q=zzz&listing=hidden&category=Bags&buyer=0xabc");
+    writeParam(loc, "q", "");
+    writeParam(loc, "listing", "all", "all");
+    const { search } = writeParam(loc, "category", "");
+    expect(search).toBe("buyer=0xabc");
+  });
+
+  it("starts from the URL again once the router renders the new location", () => {
+    writeParam(at("?q=polo"), "q", "");
+    expect(writeParam(at("?q=polo"), "listing", "hidden", "all").search).toBe("q=polo&listing=hidden");
+  });
+
+  it("reports no change when the URL already holds the value, so no echo is awaited", () => {
+    const loc = at("?listing=hidden");
+    expect(writeParam(loc, "q", "").changed).toBe(false);
+    expect(writeParam(loc, "listing", "all", "all").changed).toBe(true);
+    expect(writeParam(loc, "listing", "all", "all").changed).toBe(false);
+    expect(writeParam(loc, "listing", "listed", "all").changed).toBe(true);
   });
 
   it("writes the count as shown, or shown of total", () => {

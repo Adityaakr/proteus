@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams, type Location } from "react-router-dom";
 
 /**
  * The params with `key` set to `value`, or removed when the value is empty or the default. Other params are kept, so a
@@ -12,6 +12,21 @@ export function withParam(params: URLSearchParams, key: string, value: string, f
   return next;
 }
 
+/** The search each rendered location has been moved to by writes that its next render has not shown yet. */
+const written = new WeakMap<Location, string>();
+
+/**
+ * The search after setting `key` on top of every write already made from this rendered location, so several setters
+ * fired before the router re-renders (a "Clear search and filters" click) all land. `changed` is false when the value
+ * is already what the URL will hold, so the caller does not wait for an echo that never comes.
+ */
+export function writeParam(location: Location, key: string, value: string, fallback = ""): { search: string; changed: boolean } {
+  const base = new URLSearchParams(written.get(location) ?? location.search);
+  const search = withParam(base, key, value, fallback).toString();
+  written.set(location, search);
+  return { search, changed: (base.get(key) ?? fallback) !== (value || fallback) };
+}
+
 /**
  * One URL search param as state, e.g. `const [q, setQ] = useSearchParam("q")`. The value updates at once (an input
  * bound to it never drops keystrokes while the router catches up) and is mirrored into the URL. Typing replaces the
@@ -19,6 +34,7 @@ export function withParam(params: URLSearchParams, key: string, value: string, f
  * to the URL from elsewhere (a link, Back) wins.
  */
 export function useSearchParam(key: string, fallback = ""): [string, (value: string) => void] {
+  const location = useLocation();
   const [params, setParams] = useSearchParams();
   const fromUrl = params.get(key) ?? fallback;
   const [value, setValue] = useState(fromUrl);
@@ -31,14 +47,15 @@ export function useSearchParam(key: string, fallback = ""): [string, (value: str
       pending.current = [];
       setValue(fromUrl);
     }
-  }, [fromUrl]);
+  }, [location, fromUrl]);
   const set = useCallback(
     (v: string) => {
       setValue(v);
-      pending.current.push(v || fallback);
-      setParams((p) => withParam(p, key, v, fallback), { replace: true });
+      const { search, changed } = writeParam(location, key, v, fallback);
+      if (changed) pending.current.push(v || fallback);
+      setParams(search, { replace: true });
     },
-    [setParams, key, fallback],
+    [location, setParams, key, fallback],
   );
   return [value, set];
 }
