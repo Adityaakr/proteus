@@ -1,6 +1,8 @@
 import { useId, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { toMicro, pluralUnit, unitFor } from "@proteus/domain";
+import { toMicro, pluralUnit, unitFor, type CurrencyCode } from "@proteus/domain";
+import { DualPrice } from "../ui/CurrencySwitch";
+import { offerTotal, offerUnit, rateLabel } from "../lib/currency";
 import { T_DEFAULT } from "../../lib/motion";
 import { ActionButton } from "../ui/ActionButton";
 import { Field } from "../ui/Field";
@@ -24,11 +26,16 @@ export interface OfferCardProps {
   top?: boolean;
   busy?: boolean;
   onAccept: (offer: Offer) => void;
-  onCounter?: (offer: Offer, ask: { targetTotal?: string; targetUnits?: string }) => void;
+  onCounter?: (offer: Offer, ask: { targetTotal?: string; targetTotalInr?: string; targetUnits?: string }) => void;
   counterBusy?: boolean;
+  /** The buyer's currency: amounts read in it first, and a counter total is given in it. Payment stays USDC. */
+  currency?: CurrencyCode;
 }
 
-export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAccept, onCounter, counterBusy }: OfferCardProps) {
+export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAccept, onCounter, counterBusy, currency = "USD" }: OfferCardProps) {
+  // Rupees need the offer's own rate; an offer without one reads in USD.
+  const inr = currency === "INR" && Boolean(offer.local);
+  const total = offerTotal(offer, inr ? "INR" : "USD");
   const [counterOpen, setCounterOpen] = useState(false);
   const [mode, setMode] = useState<"total" | "units">("total");
   const [value, setValue] = useState("");
@@ -41,7 +48,11 @@ export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAc
     e.preventDefault();
     setErr(null);
     const v = value.replace(/[$,\s]/g, "");
-    if (mode === "total") {
+    if (mode === "total" && inr) {
+      const r = v.replace(/^₹/, "");
+      if (!/^\d+(\.\d{1,2})?$/.test(r) || Number(r) <= 0) return setErr("Enter a total in rupees, for example 45000 or 45000.50.");
+      onCounter?.(offer, { targetTotalInr: r });
+    } else if (mode === "total") {
       if (!/^\d+(\.\d{1,6})?$/.test(v) || Number(v) <= 0) return setErr("Enter a total in USDC, for example 1500 or 1500.50.");
       onCounter?.(offer, { targetTotal: toMicro(v).toString() });
     } else {
@@ -59,13 +70,14 @@ export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAc
           {offer.tierName}
           {top && offer.status === "eligible" ? <span className={n.offerTag}>Recommended</span> : offer.status === "approval_required" ? <span className={n.offerTagMuted}>Needs seller approval</span> : offer.status === "rejected" ? <span className={n.offerTagMuted}>Not available</span> : null}
         </span>
-        <span className={n.offerTotal}><Money usd={offer.prepaidTotalUsd} /></span>
+        <span className={n.offerTotal}>{inr ? <DualPrice {...total} /> : <Money usd={offer.prepaidTotalUsd} />}</span>
       </div>
       <p className={n.offerFacts}>
-        <b>{fmtUnits(offer.units)}</b> {unitFor(offer.units, unitLabel)} at <b><Money usd={offer.unitPriceUsd} digits={digits} /></b> each, prepaid{termDays ? ` for ${termDays} days` : ""}.
+        <b>{fmtUnits(offer.units)}</b> {unitFor(offer.units, unitLabel)} at <b>{inr ? <DualPrice {...offerUnit(offer, "INR")} /> : <Money usd={offer.unitPriceUsd} digits={digits} />}</b> each, prepaid{termDays ? ` for ${termDays} days` : ""}.
         {offer.overagePriceUsd ? <> Overage <b><Money usd={offer.overagePriceUsd} /></b>.</> : " Unused balance refunds after the term."}
         {" "}<span className={n.offerTagMuted}>{origins.map((o) => ORIGIN_LABEL[o]).join(", ")}</span>
       </p>
+      {inr && offer.local && <p className={n.offerIncl}>You pay {offer.prepaidTotalUsd.replace("$", "")} USDC into escrow. Rate fixed for this offer: {rateLabel(offer.local.rate)}.</p>}
       {offer.includes.length > 0 && <p className={n.offerIncl}>Includes {offer.includes.join(", ")}.</p>}
       {reasons.map((r) => <p key={r} className={n.offerReason}>{r}</p>)}
       <div className={n.offerActions}>
@@ -88,9 +100,9 @@ export function OfferCard({ offer, unitLabel = "unit", termDays, top, busy, onAc
                 <label><input type="radio" name={`${formId}-mode`} checked={mode === "units"} onChange={() => setMode("units")} /> Target units</label>
               </fieldset>
               <Field
-                label={mode === "total" ? `Total for ${fmtUnits(offer.units)} ${unitFor(offer.units, unitLabel)} (USDC)` : `${pluralUnit(unitLabel)[0]!.toUpperCase()}${pluralUnit(unitLabel).slice(1)} for ${offer.prepaidTotalUsd} USDC`}
+                label={mode === "total" ? `Total for ${fmtUnits(offer.units)} ${unitFor(offer.units, unitLabel)} (${inr ? "₹, converted to USDC at the offer's rate" : "USDC"})` : `${pluralUnit(unitLabel)[0]!.toUpperCase()}${pluralUnit(unitLabel).slice(1)} for ${inr ? total.text : `${offer.prepaidTotalUsd} USDC`}`}
                 inputMode={mode === "total" ? "decimal" : "numeric"}
-                placeholder={mode === "total" ? "1500" : "1800"}
+                placeholder={mode === "total" ? (inr ? "45000" : "1500") : "1800"}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 error={err}

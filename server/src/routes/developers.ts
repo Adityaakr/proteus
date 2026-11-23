@@ -4,6 +4,7 @@
  */
 import { desc, eq } from "drizzle-orm";
 import { Hono, type Context, type Next } from "hono";
+import { fromMicro, fromPaise } from "@proteus/domain";
 import { db, schema } from "../db";
 import { env, features } from "../env";
 import { HttpError, json } from "../lib/http";
@@ -13,7 +14,8 @@ import { dealView, listDeals } from "../services/deals";
 import { confirmDelivery } from "../services/delivery";
 import { postOrderUpdate } from "../services/orders";
 import { deliveryInputOf } from "../services/seller-api-rules";
-import { replaceTiers, setListing } from "../services/product-rules";
+import { replaceTiers, setFloor, setListing } from "../services/product-rules";
+import { currencyView } from "../services/currency";
 import { financeView, usageView, withEffectiveStatus } from "../services/seller-reports";
 import { rotateWebhookSecret, sendWebhookTest, setWebhookUrl, webhookView } from "../services/notify";
 import { requireSession, session } from "./session";
@@ -95,7 +97,8 @@ export function developerRoutes(store: KeyStore = dbKeyStore, network: () => Net
 export const SELLER_API: { method: "GET" | "POST" | "PATCH"; path: string; scope: Scope | null; summary: string }[] = [
   { method: "GET", path: "/v1/seller/me", scope: null, summary: "The key's seller, name, environment and permissions" },
   { method: "GET", path: "/v1/seller/products", scope: null, summary: "Your products with public tiers, endpoint and docs links" },
-  { method: "PATCH", path: "/v1/seller/products/:id/tiers", scope: "products:write", summary: "Replace a product's public price tiers" },
+  { method: "PATCH", path: "/v1/seller/products/:id/tiers", scope: "products:write", summary: "Replace a product's public price tiers (in USD or INR)" },
+  { method: "PATCH", path: "/v1/seller/products/:id/floor", scope: "products:write", summary: "Set the lowest price per unit, in USD and/or INR" },
   { method: "PATCH", path: "/v1/seller/products/:id/listing", scope: "products:write", summary: "List or unlist a product in the market" },
   { method: "GET", path: "/v1/seller/deals", scope: "deals:read", summary: "Your deals, newest first, with balances" },
   { method: "GET", path: "/v1/seller/deals/:id", scope: "deals:read", summary: "One deal: terms, balances, usage and transactions" },
@@ -119,7 +122,8 @@ async function ownDeal(orgId: string, dealId: string) {
 
 function productOut(lp: Awaited<ReturnType<typeof loadProductById>>) {
   const pub = publicProduct(lp);
-  return { id: lp.row.id, slug: pub.slug, name: pub.name, active: lp.row.active, unitLabel: pub.unitLabel, tiers: pub.tiers, payPerCallUsd: pub.payPerCallUsd ?? null, endpoint: `${origin()}/api/services/${pub.slug}/execute`, docsUrl: `${origin()}/docs/${lp.org.slug}/${pub.slug}` };
+  const floor = { floorUnitPriceUsd: lp.cost.floorUnitPrice !== undefined ? fromMicro(lp.cost.floorUnitPrice, { trim: true }) : null, floorUnitPriceInr: lp.cost.floorUnitPriceInr !== undefined ? fromPaise(lp.cost.floorUnitPriceInr) : null };
+  return { id: lp.row.id, slug: pub.slug, name: pub.name, active: lp.row.active, unitLabel: pub.unitLabel, tiers: pub.tiers, currency: pub.currency, floor, payPerCallUsd: pub.payPerCallUsd ?? null, endpoint: `${origin()}/api/services/${pub.slug}/execute`, docsUrl: `${origin()}/docs/${lp.org.slug}/${pub.slug}` };
 }
 
 export function sellerApiRoutes(store: KeyStore = dbKeyStore, network: () => Network = () => features.network) {
@@ -128,7 +132,9 @@ export function sellerApiRoutes(store: KeyStore = dbKeyStore, network: () => Net
   const handlers: Record<string, (c: Context) => Promise<Response>> = {
     "GET /v1/seller/me": async (c) => {
       const k = apiKeyOf(c);
-      return json(c, { orgId: k.orgId, key: { id: k.keyId, name: k.name, env: k.env, scopes: k.scopes }, network: network() });
+      // The seller's display currency and rate (null if it cannot be read): what rupee prices sent to this API convert at.
+      const currency = await db.select().from(schema.orgs).where(eq(schema.orgs.id, k.orgId)).then(([org]) => (org ? currencyView(org) : null)).catch(() => null);
+      return json(c, { orgId: k.orgId, key: { id: k.keyId, name: k.name, env: k.env, scopes: k.scopes }, network: network(), currency });
     },
     "GET /v1/seller/products": async (c) => {
       const rows = await db.select().from(schema.products).where(eq(schema.products.orgId, apiKeyOf(c).orgId)).orderBy(desc(schema.products.createdAt));
@@ -139,6 +145,11 @@ export function sellerApiRoutes(store: KeyStore = dbKeyStore, network: () => Net
     "PATCH /v1/seller/products/:id/tiers": async (c) => {
       const lp = await ownProduct(apiKeyOf(c).orgId, c.req.param("id")!);
       await replaceTiers(lp, (await c.req.json().catch(() => ({}))) as { tiers?: unknown });
+      return json(c, productOut(await loadProductById(lp.row.id)));
+    },
+    "PATCH /v1/seller/products/:id/floor": async (c) => {
+      const lp = await ownProduct(apiKeyOf(c).orgId, c.req.param("id")!);
+      await setFloor(lp, (await c.req.json().catch(() => ({}))) as { floorUnitPriceUsd?: unknown; floorUnitPriceInr?: unknown });
       return json(c, productOut(await loadProductById(lp.row.id)));
     },
     "PATCH /v1/seller/products/:id/listing": async (c) => {

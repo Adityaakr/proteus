@@ -11,9 +11,9 @@
  *   the sandbox refuses real keys without reading them further.
  * - The routes are mounted only on the Arc testnet deployment (see index.ts), and the data is labelled testnet.
  */
-import { formatUnitPrice, formatUsd, mulDivFloor } from "@proteus/domain";
+import { formatInr, formatUnitPrice, formatUsd, fromPaise, mulDivFloor, toPaise, type FxRate } from "@proteus/domain";
 import { HttpError } from "../lib/http";
-import { checkDealOpen, checkDeliveryInput, deliveryInputOf, parseListing, parseOrderStatus, parseOrderUpdateBody, parseTiers, planDelivery, ORDER_LABEL } from "./seller-api-rules";
+import { checkDealOpen, checkDeliveryInput, deliveryInputOf, parseFloor, parseListing, parseOrderStatus, parseOrderUpdateBody, parseTiers, planDelivery, ORDER_LABEL } from "./seller-api-rules";
 
 /** The published sandbox key. Not a secret: it opens only this module's fixtures. */
 export const SANDBOX_KEY = "psk_sandbox_demo_seller_testnet_read_only";
@@ -30,7 +30,7 @@ const SELLER = "0x2222222222222222222222222222222222222222";
 const PAYEE = "0x3333333333333333333333333333333333333333";
 const TX = (n: number) => `0x${String(n).padStart(2, "0").repeat(32)}`;
 
-interface FixtureTier { id: string; name: string; includedUnits: bigint; unitPrice: { num: bigint; den: bigint }; includes: string[] }
+interface FixtureTier { id: string; name: string; includedUnits: bigint; unitPrice: { num: bigint; den: bigint }; unitPriceInr?: string; includes: string[] }
 interface FixtureProduct { id: string; slug: string; name: string; active: boolean; unitLabel: string; maxUnitsPerDeal: bigint; tiers: FixtureTier[] }
 interface FixtureDelivery { requestId: string; units: number; cumulativeUnits: bigint; note: string; at: string }
 interface FixtureDeal {
@@ -79,9 +79,12 @@ export function sandboxAuth(authorization: string | undefined) {
 
 /* ---------------------------------------------------------------- views (the real API's shapes) */
 
+/** The demo seller's fixed rate, so rupee prices and floors can be dry-run here like on a real seller with a rate. */
+export const SANDBOX_RATE: FxRate = Object.freeze({ currency: "INR", perUsd: "92.68", asOf: "2026-11-20", kind: "fixed", source: "Sandbox demo rate" });
+
 const productOut = (p: FixtureProduct, tiers: FixtureTier[] = p.tiers, active = p.active) => ({
   id: p.id, slug: p.slug, name: p.name, active, unitLabel: p.unitLabel,
-  tiers: tiers.map((t) => ({ id: t.id, name: t.name, includedUnits: t.includedUnits.toString(), unitPriceUsd: formatUnitPrice(t.unitPrice.num, t.unitPrice.den), prepaidTotalUsd: formatUsd(mulDivFloor(t.includedUnits, t.unitPrice.num, t.unitPrice.den)), includes: t.includes })),
+  tiers: tiers.map((t) => ({ id: t.id, name: t.name, includedUnits: t.includedUnits.toString(), unitPriceUsd: formatUnitPrice(t.unitPrice.num, t.unitPrice.den), prepaidTotalUsd: formatUsd(mulDivFloor(t.includedUnits, t.unitPrice.num, t.unitPrice.den)), prepaidTotal: mulDivFloor(t.includedUnits, t.unitPrice.num, t.unitPrice.den).toString(), includes: t.includes, inr: t.unitPriceInr ? { unitPrice: t.unitPriceInr, prepaidTotal: fromPaise(toPaise(t.unitPriceInr) * t.includedUnits), stated: true } : null })),
   payPerCallUsd: null,
   endpoint: `${ORIGIN}/api/services/${p.slug}/execute`,
   docsUrl: `${ORIGIN}/docs/${ORG.slug}/${p.slug}`,
@@ -161,12 +164,21 @@ export const SANDBOX_HANDLERS: Record<string, (req: SandboxRequest) => unknown> 
   "GET /v1/seller/products": () => ({ products: PRODUCTS.map((p) => productOut(p)) }),
   "PATCH /v1/seller/products/:id/tiers": ({ params, body }) => {
     const p = product(params.id!);
-    const tiers = parseTiers({ tiers: p.tiers.map((t) => ({ id: t.id })), maxUnitsPerDeal: p.maxUnitsPerDeal.toString() }, (body ?? {}) as { tiers?: unknown });
-    const next = tiers.map((t) => ({ id: t.id, name: t.name, includedUnits: BigInt(t.includedUnits), unitPrice: { num: BigInt(t.unitPrice.num), den: 1n }, includes: t.includes }));
+    const tiers = parseTiers({ tiers: p.tiers.map((t) => ({ id: t.id })), maxUnitsPerDeal: p.maxUnitsPerDeal.toString() }, (body ?? {}) as { tiers?: unknown }, SANDBOX_RATE);
+    const next = tiers.map((t) => ({ id: t.id, name: t.name, includedUnits: BigInt(t.includedUnits), unitPrice: { num: BigInt(t.unitPrice.num), den: BigInt(t.unitPrice.den) }, ...(t.unitPriceInr ? { unitPriceInr: t.unitPriceInr } : {}), includes: t.includes }));
     return dryRun(200, productOut(p, next), [
-      `Replace the ${p.tiers.length} public price tier${p.tiers.length === 1 ? "" : "s"} of ${p.name} with ${next.length}: ${next.map((t) => `${t.name} from ${t.includedUnits} at ${formatUnitPrice(t.unitPrice.num, t.unitPrice.den)} per ${p.unitLabel}`).join("; ")}.`,
+      `Replace the ${p.tiers.length} public price tier${p.tiers.length === 1 ? "" : "s"} of ${p.name} with ${next.length}: ${next.map((t) => `${t.name} from ${t.includedUnits} at ${t.unitPriceInr ? `${formatInr(toPaise(t.unitPriceInr))} (${formatUnitPrice(t.unitPrice.num, t.unitPrice.den)} at ₹${SANDBOX_RATE.perUsd}/$)` : formatUnitPrice(t.unitPrice.num, t.unitPrice.den)} per ${p.unitLabel}`).join("; ")}.`,
       "New quotes use these prices; deals already signed keep theirs.",
     ]);
+  },
+  "PATCH /v1/seller/products/:id/floor": ({ params, body }) => {
+    const p = product(params.id!);
+    const f = parseFloor((body ?? {}) as { floorUnitPriceUsd?: unknown; floorUnitPriceInr?: unknown }, SANDBOX_RATE);
+    const said = [
+      f.usd === null ? "Remove the dollar floor." : f.usd !== undefined ? `Never offer below ${formatUnitPrice(f.usd, 1n)} per ${p.unitLabel}.` : "",
+      f.inr === null ? "Remove the rupee floor." : f.inr !== undefined ? `Never offer below ${formatInr(f.inr)} per ${p.unitLabel}, checked at the seller's current rate on every offer (₹${SANDBOX_RATE.perUsd}/$ here).` : "",
+    ].filter(Boolean);
+    return dryRun(200, productOut(p), [...said, `A new cost-model version for ${p.name}: offers made under the old floor can no longer be quoted.`]);
   },
   "PATCH /v1/seller/products/:id/listing": ({ params, body }) => {
     const p = product(params.id!);

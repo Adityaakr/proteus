@@ -625,7 +625,7 @@
         "method": "PATCH",
         "path": "/api/v1/seller/products/:id/tiers",
         "scope": "products:write",
-        "does": "Replace a product's public price tiers",
+        "does": "Replace a product's public price tiers (in USD or INR)",
         "status": 200,
         "params": [
           {
@@ -660,8 +660,15 @@
             "name": "tiers[].unitPriceUsd",
             "in": "body",
             "type": "string",
-            "required": true,
-            "description": "Dollars per unit, more than 0: up to 7 digits before the point and 6 after, e.g. `\"6.60\"`."
+            "required": false,
+            "description": "Dollars per unit, more than 0: up to 7 digits before the point and 6 after, e.g. `\"6.60\"`. Each tier needs this or `unitPriceInr`, not both."
+          },
+          {
+            "name": "tiers[].unitPriceInr",
+            "in": "body",
+            "type": "string",
+            "required": false,
+            "description": "Rupees per unit, more than 0, up to two decimals, e.g. `\"1050\"`. Converted at your rate: ₹1,050 at ₹92.68/$ is 11.33 USDC."
           },
           {
             "name": "tiers[].includes",
@@ -701,6 +708,65 @@
           {
             "status": "404",
             "when": "No product with this id belongs to your seller."
+          },
+          {
+            "status": "409",
+            "when": "A tier is priced in rupees and you have not set a rate (`details.code` is `rate_required`)."
+          }
+        ]
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/v1/seller/products/:id/floor",
+        "scope": "products:write",
+        "does": "Set the lowest price per unit, in USD and/or INR",
+        "status": 200,
+        "params": [
+          {
+            "name": "id",
+            "in": "path",
+            "type": "string",
+            "required": true,
+            "description": "The product's `id` (`prd_…`) from `GET /products`, not its slug."
+          },
+          {
+            "name": "floorUnitPriceUsd",
+            "in": "body",
+            "type": "string | null",
+            "required": false,
+            "description": "Dollars per unit, more than 0. `null` removes the dollar floor; omitted keeps it."
+          },
+          {
+            "name": "floorUnitPriceInr",
+            "in": "body",
+            "type": "string | null",
+            "required": false,
+            "description": "Rupees per unit, more than 0, up to two decimals. Needs a rate. `null` removes the rupee floor; omitted keeps it."
+          }
+        ],
+        "example": {
+          "floorUnitPriceInr": "850"
+        },
+        "errors": [
+          {
+            "status": "400",
+            "when": "Neither field was sent, or a value breaks a rule above."
+          },
+          {
+            "status": "401",
+            "when": "The key is missing, unknown, revoked, expired or from the other environment."
+          },
+          {
+            "status": "403",
+            "when": "The key lacks `products:write`."
+          },
+          {
+            "status": "404",
+            "when": "No product with this id belongs to your seller."
+          },
+          {
+            "status": "409",
+            "when": "A rupee floor was sent and you have not set a rate (`details.code` is `rate_required`)."
           }
         ]
       },

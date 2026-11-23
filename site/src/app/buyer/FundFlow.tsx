@@ -230,7 +230,7 @@ export function FundFlow({ quote, deal: initialDeal, onFunded, onCancel }: FundF
       <h2 className={f.railTitle}>{done ? "Escrow funded" : "Fund deal from balance"}</h2>
       <p className={f.railText}>{done ? "Your prepaid balance is now held by the escrow contract." : "One confirmation runs every step: sign the terms, approve exactly this amount, and move it into escrow. Unused funds are refundable after the term."}</p>
       <dl className={f.summary}>
-        <div className={f.big}><dt>Prepaid amount</dt><dd><Money micro={amountMicro} unit /></dd></div>
+        <div className={f.big}><dt>Prepaid amount</dt><dd><Money micro={amountMicro} unit />{quote?.payLine && quote.publicTerms.localPrice && <small className={f.muted}>{quote.payLine.replace(/^You pay [^(]+\(/, "(")}</small>}</dd></div>
         <div><dt>Units</dt><dd>{fmtUnits(units)}</dd></div>
         <div><dt>From</dt><dd>{wallet ? <MonoValue value={wallet.address} short /> : "Setting up your wallet"}</dd></div>
         <div><dt>Escrow</dt><dd>{escrow ? <MonoValue value={escrow} short /> : `${ARC_NETWORK_NAMES[defaultNetwork()]} escrow`}</dd></div>

@@ -12,6 +12,8 @@ import { useAuth } from "../auth/useAuth";
 import { api, hasNegotiationKey, qk, type Quote } from "../lib/api";
 import { ErrorState, FLOW_STAGES, fmtDateTime, fmtUnits, prettyIntegration } from "./common";
 import { FundFlow, rememberedDealFor } from "./FundFlow";
+import { CurrencySwitch, DualPrice } from "../ui/CurrencySwitch";
+import { offerTotal, offerUnit, useBuyerCurrency } from "../lib/currency";
 import f from "./fund.module.css";
 
 /** Offer and checkout in one screen: the terms as a document, then one "Fund deal from balance" approval in the rail. */
@@ -54,6 +56,10 @@ function OfferView({ quote }: { quote: Quote }) {
   const backToChat = canReturn ? `/app/negotiations/${quote.negotiationId}` : "/app/market";
   const backLabel = canReturn ? "Back to the negotiation" : "Browse the market";
   const unitDigits = (o.unitPriceUsd.split(".")[1]?.replace(/0+$/, "").length ?? 0) > 2 ? 4 : 2;
+  // The offer's rupee price and rate are part of the signed public terms; the buyer reads it in their currency.
+  const local = pt.localPrice ?? o.local ?? null;
+  const cur = useBuyerCurrency(quote.seller?.slug ?? "", local ? { display: quote.seller?.display ?? "USD", rate: local.rate } : null);
+  const inr = cur.currency === "INR" && Boolean(local);
   const badge = quote.status === "accepted" || quote.status === "approved" ? f.badgeOk : quote.status === "approval_required" ? f.badgeWarn : "";
 
   return (
@@ -66,6 +72,7 @@ function OfferView({ quote }: { quote: Quote }) {
           </div>
           <div className={f.titleRow}>
             <h1 className={f.title}>Review the terms and fund</h1>
+            {cur.available && <CurrencySwitch value={cur.currency} onChange={cur.setCurrency} size="sm" />}
             <span className={`hide-phone ${f.steps}`} aria-label="Deal progress">
               {FLOW_STAGES.map((st, i) => (
                 <span key={st} className={f.steps}>
@@ -84,10 +91,11 @@ function OfferView({ quote }: { quote: Quote }) {
               <h2 id="h-terms" className={f.h2}>{o.tierName}, {fmtUnits(o.units)} units</h2>
               <span className={f.h2Sub}>{pt.termDays}-day term, prepaid</span>
             </div>
-            <span className={f.total}><Money usd={o.prepaidTotalUsd} /></span>
+            <span className={f.total}>{inr ? <DualPrice {...offerTotal({ ...o, local }, "INR")} /> : <Money usd={o.prepaidTotalUsd} />}</span>
           </div>
+          {quote.payLine && local && <p className={f.payLine} role="note">{quote.payLine}. Escrow and settlement are in USDC.</p>}
           <dl className={f.kv}>
-            <div><dt>Price per unit</dt><dd><Money usd={o.unitPriceUsd} digits={unitDigits} /></dd></div>
+            <div><dt>Price per unit</dt><dd>{inr ? <DualPrice {...offerUnit({ ...o, local }, "INR")} /> : <Money usd={o.unitPriceUsd} digits={unitDigits} />}</dd></div>
             <div><dt>Billable unit</dt><dd>{pt.billableUnit}</dd></div>
             <div><dt>Included</dt><dd>{pt.includes.join(", ")}</dd></div>
             <div><dt>Integrations</dt><dd>{pt.integrations.map(prettyIntegration).join(", ") || <span className={f.muted}>None</span>}</dd></div>

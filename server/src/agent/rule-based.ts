@@ -1,5 +1,5 @@
-import { formatUnitPrice, formatUsd, toMicro, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
-import type { AgentAdapter, AgentStep, ComposeInput, ExtractInput } from "./adapter";
+import { amountText, formatUnitPrice, formatUsd, isInrAmount, offerTotalText, offerUnitText, toMicro, toPaise, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
+import type { AgentAdapter, AgentStep, ComposeInput, ExtractInput, LatestBudget } from "./adapter";
 import { choiceLine, detectInjection, unlistedLines } from "./adapter";
 import { requestedItems } from "./unlisted";
 
@@ -19,22 +19,66 @@ function now() {
   return new Date().toISOString();
 }
 
+// Budget: "$1,500", "$1500/month", "budget is 1500 usd"
+const budgetRe = /\$\s?([\d,]+(?:\.\d+)?)/;
+const budgetRe2 = /budget (?:is|of)?\s*([\d,]+)\s*(?:usd|usdc|dollars)/i;
+// Rupees: "₹40,000", "Rs 40000", "40,000 INR", "budget of 40000 rupees". Converted to USDC by the negotiation at the seller's rate.
+const rupeeRe = /(?:₹|\brs\.?|\binr)\s?([\d,]+(?:\.\d{1,2})?)/i;
+const rupeeRe2 = /\b([\d,]+(?:\.\d{1,2})?)\s*(?:inr|rupees?|rs\b)/i;
+
+const buyerTurnsOf = (turns: ExtractInput["turns"]) => turns.filter((t) => t.role === "buyer" && !t.content.startsWith("Counteroffer:"));
+
+const BUDGET_WORDS = /budget|have|max|total|up to|spend|actually/i;
+
+/** The figure in `text` most likely to be a budget: the first one next to a budget word, else (unless `nearOnly`) the first one. */
+function budgetFigure(text: string, res: RegExp[], nearOnly: boolean, valid: (v: string) => boolean = () => true): { value: string; near: boolean } | undefined {
+  const all = res.flatMap((re) => [...text.matchAll(new RegExp(re.source, `${re.flags}g`))]).filter((m) => m[1] && valid(m[1])).sort((a, b) => a.index! - b.index!);
+  const near = (m: RegExpMatchArray) => BUDGET_WORDS.test(text.slice(Math.max(0, m.index! - 20), m.index!)) || BUDGET_WORDS.test(text.slice(m.index! + m[0].length, m.index! + m[0].length + 12));
+  const best = all.find(near) ?? (nearOnly ? undefined : all[0]);
+  return best ? { value: best[1]!, near: near(best) } : undefined;
+}
+
+/** A message's budget amounts in dollars and rupees (only those next to a budget word when `nearOnly`), and which one is the budget. */
+function budgetIn(text: string, nearOnly: boolean): LatestBudget | undefined {
+  const usd = budgetFigure(text, [budgetRe, budgetRe2], nearOnly);
+  const inr = budgetFigure(text, [rupeeRe, rupeeRe2], nearOnly, isInrAmount);
+  if (!usd && !inr) return undefined;
+  const currency = !inr || (usd?.near && !inr.near) ? "USD" : "INR";
+  return { currency, ...(usd ? { usd: toMicro(usd.value.replace(/,/g, "")) } : {}), ...(inr ? { inr: toPaise(inr.value) } : {}) };
+}
+
+/**
+ * The budget the buyer's latest message states, in dollars and/or rupees: only amounts next to a budget word ("budget",
+ * "max", "total", "up to", "spend", "have", "actually"), so a price ("$8 per hoodie") is not one. Which one is the budget: the only
+ * currency stated, else the one next to a budget word, else rupees. Undefined when it states none.
+ */
+export function latestBudget(turns: ExtractInput["turns"]): LatestBudget | undefined {
+  return budgetIn(buyerTurnsOf(turns).at(-1)?.content ?? "", true);
+}
+
 /**
  * Deterministic requirement extraction. Good enough for the demo flows and the fallback when no
  * model key is configured. Numbers are parsed, never invented.
  */
 export function extractRuleBased(input: ExtractInput): Requirements {
-  const buyerTurns = input.turns.filter((t) => t.role === "buyer" && !t.content.startsWith("Counteroffer:"));
+  const buyerTurns = buyerTurnsOf(input.turns);
   // The latest buyer message wins for numbers; earlier turns only fill gaps.
   const latest = buyerTurns.at(-1)?.content ?? "";
   const text = buyerTurns.map((t) => t.content).join("\n");
   const req: Requirements = { ...input.prior, integrations: [...(input.prior.integrations ?? [])], notes: [...(input.prior.notes ?? [])], openQuestions: [] };
 
-  // Budget: "$1,500", "$1500/month", "budget is 1500 usd"
-  const budgetRe = /\$\s?([\d,]+(?:\.\d+)?)/;
-  const budgetRe2 = /budget (?:is|of)?\s*([\d,]+)\s*(?:usd|usdc|dollars)/i;
-  const budget = latest.match(budgetRe) ?? latest.match(budgetRe2) ?? (req.budget ? null : text.match(budgetRe) ?? text.match(budgetRe2));
-  if (budget?.[1]) req.budget = toMicro(budget[1].replace(/,/g, ""));
+  // Without a budget from earlier turns, any amount in the latest message is read as one; with one, only a stated budget replaces it.
+  const carried = req.budget !== undefined || req.budgetInr !== undefined;
+  const stated = latestBudget(input.turns) ?? (carried ? undefined : budgetIn(latest, false));
+  const earlier = stated || req.budget ? null : text.match(budgetRe) ?? text.match(budgetRe2);
+  if (stated?.currency === "USD" || earlier?.[1]) {
+    req.budget = stated?.currency === "USD" ? stated.usd! : toMicro(earlier![1]!.replace(/,/g, ""));
+    delete req.budgetInr;
+  } else if (stated?.currency === "INR") {
+    req.budgetInr = stated.inr!;
+    // The USDC budget is set from it once the seller's rate is known; a dollar budget from earlier no longer applies.
+    req.budget = undefined;
+  }
 
   // Desired units: "2,000 resolutions", "around 2000 answers", "1500 units"
   const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -73,8 +117,10 @@ export function extractRuleBased(input: ExtractInput): Requirements {
 const GENERIC = new Set(["custom", "event", "pack", "bulk", "oversized", "branded", "service", "plan"]);
 
 export function composeRuleBased(input: ComposeInput): string {
-  const { offers, rejected, requirements, unitLabel, injectionDetected } = input;
+  const { offers, rejected, requirements, unitLabel, injectionDetected, view } = input;
   const lines: string[] = [];
+  const total = (o: (typeof offers)[number]) => offerTotalText(o, view);
+  const each = (o: (typeof offers)[number]) => offerUnitText(o, view) ?? unitPrice(o.unitPrice.num, o.unitPrice.den);
 
   if (injectionDetected) {
     lines.push("I can only offer packages that clear the seller's commercial policy. That policy is set by the seller and I cannot change it from this conversation, and I do not share the seller's costs.");
@@ -85,8 +131,7 @@ export function composeRuleBased(input: ComposeInput): string {
   const understood: string[] = [];
   if (requirements.useCase) understood.push(requirements.useCase);
   if (requirements.desiredUnits) understood.push(`about ${requirements.desiredUnits.toLocaleString()} ${unitFor(requirements.desiredUnits, unitLabel)}`);
-  if (requirements.budget) understood.push(`a budget around ${formatUsd(requirements.budget, 0)}`);
-  if (requirements.integrations.length) understood.push(`integration with ${requirements.integrations.join(", ")}`);
+  if (requirements.budget) understood.push(`a budget around ${amountText(requirements.budget, view, requirements.budgetInr, { whole: true })}`);  if (requirements.integrations.length) understood.push(`integration with ${requirements.integrations.join(", ")}`);
   if (understood.length) lines.push(`Here is what I understood: ${understood.join("; ")}.`);
 
   const unsupported = Array.from(new Set(offers.flatMap((o) => o.unsupportedIntegrations)));
@@ -97,22 +142,22 @@ export function composeRuleBased(input: ComposeInput): string {
   if (eligible.length) {
     lines.push(eligible.length > 1 ? "There are a couple of ways we could structure this:" : "Here is a package we could structure:");
     for (const o of eligible.slice(0, 2)) {
-      lines.push(`${o.tierName}: ${o.units.toLocaleString()} ${unitFor(o.units, unitLabel)} for ${formatUsd(o.prepaidTotal)} prepaid for the term (${unitPrice(o.unitPrice.num, o.unitPrice.den)} per ${unitLabel}). Includes ${o.includes.join(", ").toLowerCase()}.`);
+      lines.push(`${o.tierName}: ${o.units.toLocaleString()} ${unitFor(o.units, unitLabel)} for ${total(o)} prepaid for the term (${each(o)} per ${unitLabel}). Includes ${o.includes.join(", ").toLowerCase()}.`);
     }
   }
   if (needsApproval.length) {
     const o = needsApproval[0]!;
-    lines.push(`${o.units.toLocaleString()} ${unitFor(o.units, unitLabel)} for ${formatUsd(o.prepaidTotal)} is above what I can offer on my own authority. I have sent it to the seller for approval and will update this thread when they decide.`);
+    lines.push(`${o.units.toLocaleString()} ${unitFor(o.units, unitLabel)} for ${total(o)} is above what I can offer on my own authority. I have sent it to the seller for approval and will update this thread when they decide.`);
   }
   if (rejected.length && !eligible.length) {
     const r = rejected[0]!;
-    lines.push(`I cannot offer ${r.units.toLocaleString()} ${unitFor(r.units, unitLabel)} at ${formatUsd(r.prepaidTotal)}: ${r.publicReasons[0] ?? "it falls outside the seller's policy."}`);
+    lines.push(`I cannot offer ${r.units.toLocaleString()} ${unitFor(r.units, unitLabel)} at ${total(r)}: ${r.publicReasons[0] ?? "it falls outside the seller's policy."}`);
   } else if (rejected.length) {
     const r = rejected[0]!;
-    lines.push(`${r.units.toLocaleString()} ${unitFor(r.units, unitLabel)} for ${formatUsd(r.prepaidTotal)} does not work: ${(r.publicReasons[0] ?? "it falls outside the seller's policy.").toLowerCase()} The options above are what I can commit to.`);
+    lines.push(`${r.units.toLocaleString()} ${unitFor(r.units, unitLabel)} for ${total(r)} does not work: ${(r.publicReasons[0] ?? "it falls outside the seller's policy.").toLowerCase()} The options above are what I can commit to.`);
   }
   // Nothing here fits the stated budget (or nothing is offered): point to the seller's other products, smallest pack first.
-  const fits = eligible.filter((o) => !requirements.budget || o.prepaidTotal <= requirements.budget);
+  const fits = eligible.filter((o) => !requirements.budget || (requirements.budgetInr !== undefined && o.local?.stated ? o.local.total <= requirements.budgetInr : o.prepaidTotal <= requirements.budget));
   const lastBuyer = (input.turns.filter((t) => t.role === "buyer").at(-1)?.content ?? "").toLowerCase();
   // A word that also names this product ("tees" while negotiating a tee) is about this product, not a pointer elsewhere.
   const own = new Set([unitLabel.toLowerCase(), pluralUnit(unitLabel).toLowerCase(), ...input.productName.toLowerCase().split(/[^a-z]+/)]);

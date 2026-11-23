@@ -18,6 +18,7 @@ import { replaceTiers, updateCost, updatePolicy } from "../services/product-rule
 import { catalogSyncView, runCatalogSync, saveCatalogSync } from "../services/catalog-sync";
 import { createSandboxSession, requireSession, session } from "./session";
 import { features } from "../env";
+import { currencyView, saveCurrency } from "../services/currency";
 import { dealTotals, financeView, withEffectiveStatus } from "../services/seller-reports";
 
 export const appRoutes = new Hono();
@@ -141,6 +142,19 @@ appRoutes.patch("/app/products/:id/cost", async (c) => {
   // Existing accepted deals are untouched by design: their terms are frozen and hashed.
   await updateCost(lp, CostUpdateBody.parse(await c.req.json()));
   return json(c, await productWithPrivate(orgId, lp.row.id));
+});
+
+/* Currency: how buyers see prices (USD or INR first) and the rate rupee amounts are stated at. Escrow stays USDC. */
+appRoutes.get("/app/currency", async (c) => {
+  const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.id, session(c).orgId));
+  if (!org) throw new HttpError(404, "seller not found");
+  return json(c, await currencyView(org));
+});
+appRoutes.put("/app/currency", async (c) => {
+  const s = session(c);
+  // The example seller is shared by every visitor: its currency stays as seeded.
+  if (s.kind === "sandbox") throw new HttpError(403, "The example seller's currency is fixed. Sign in as your own seller to change yours.");
+  return json(c, await saveCurrency(s.orgId, await c.req.json().catch(() => ({}))));
 });
 
 /* Catalog sync: the seller's own endpoint keeps stock, cost and order rules current. */

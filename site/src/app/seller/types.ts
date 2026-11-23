@@ -42,6 +42,8 @@ export interface WireTier {
   unitPrice: WireUnitPrice;
   overagePrice?: WireUnitPrice;
   includes: string[];
+  /** The seller's own rupee price ("1050.00") when the tier is priced in rupees; unitPrice is it at the current rate. */
+  unitPriceInr?: string;
 }
 
 export interface WireCostModel {
@@ -52,6 +54,8 @@ export interface WireCostModel {
   freshUntil: number;
   /** Lowest price per unit the agent may offer (FLOOR_PRICE), when the seller set one. */
   floorUnitPrice?: MicroStr;
+  /** The same floor in rupees (paise string), checked at the seller's current rate. */
+  floorUnitPriceInr?: IntStr;
 }
 
 export interface WirePolicy {
@@ -88,6 +92,8 @@ export interface ProductWithPrivate {
   maxUnitsPerDeal: IntStr;
   termDays: number;
   refundPolicy: string;
+  /** How buyers see this seller's prices and the rate rupee amounts are stated at. */
+  currency?: { display: "USD" | "INR"; rate: { perUsd: string; asOf: string; kind: "fixed" | "reference"; source: string } | null };
   cost: WireCostModel;
   policy: WirePolicy;
   previewCases?: PreviewCase[];

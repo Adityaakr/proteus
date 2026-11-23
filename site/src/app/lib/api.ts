@@ -218,16 +218,17 @@ export const api = {
 
   /* Negotiation (buyer) */
   /** `opts.embed`: the seller slug when started from that seller's embedded deal agent on its own website. */
-  startNegotiation: async (body: { sellerSlug: string; productSlug: string; buyerAddress?: string; mandateCap?: T.MicroStr; store?: "open" | "continue" }, opts?: { embed?: string }) => {
+  startNegotiation: async (body: { sellerSlug: string; productSlug: string; buyerAddress?: string; mandateCap?: T.MicroStr; store?: "open" | "continue"; currency?: T.CurrencyCode }, opts?: { embed?: string }) => {
     const n = await request<T.Negotiation & { buyerKey?: string }>("POST", "/negotiations", { body, headers: opts?.embed ? { "X-Proteus-Embed": opts.embed } : undefined });
     if (n.buyerKey) negotiationKeys.set(n.id, n.buyerKey);
     return n;
   },
   negotiation: (id: string) => request<T.Negotiation>("GET", `/negotiations/${enc(id)}`, { headers: negotiationKeys.header(id) }),
-  sendMessage: (id: string, content: string) => request<T.Negotiation>("POST", `/negotiations/${enc(id)}/messages`, { body: { content }, headers: negotiationKeys.header(id) }),
+  /** `currency`: the buyer's choice, so the agent's reply quotes in it. */
+  sendMessage: (id: string, content: string, currency?: T.CurrencyCode) => request<T.Negotiation>("POST", `/negotiations/${enc(id)}/messages`, { body: { content, ...(currency ? { currency } : {}) }, headers: negotiationKeys.header(id) }),
   /** An open question on a store conversation: the agent recommends products and asks follow-ups (a "consult" turn). */
   consult: (id: string, content: string, current?: string) => request<T.Negotiation>("POST", `/negotiations/${enc(id)}/consult`, { body: { content, current }, headers: negotiationKeys.header(id) }),
-  counter: (id: string, body: { candidateId: string; targetTotal?: T.MicroStr; targetUnits?: T.UnitsStr }) =>
+  counter: (id: string, body: { candidateId: string; targetTotal?: T.MicroStr; targetTotalInr?: string; targetUnits?: T.UnitsStr; currency?: T.CurrencyCode }) =>
     request<T.Negotiation>("POST", `/negotiations/${enc(id)}/counter`, { body, headers: negotiationKeys.header(id) }),
   createQuote: (id: string, candidateId: string) => request<T.Quote>("POST", `/negotiations/${enc(id)}/quotes`, { body: { candidateId }, headers: negotiationKeys.header(id) }),
 
@@ -341,7 +342,8 @@ export const api = {
     overview: () => request<T.SellerOverview>("GET", "/app/overview"),
     products: () => request<T.ProductWithPrivate[]>("GET", "/app/products"),
     product: (id: string) => request<T.ProductWithPrivate>("GET", `/app/products/${enc(id)}`),
-    updateTiers: (id: string, tiers: { name: string; includedUnits: string; unitPriceUsd: string; includes: string[] }[]) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/tiers`, { body: { tiers } }),
+    /** Each tier priced in dollars (unitPriceUsd) or rupees (unitPriceInr, converted at the seller's rate). */
+    updateTiers: (id: string, tiers: { name: string; includedUnits: string; unitPriceUsd?: string; unitPriceInr?: string; includes: string[] }[]) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/tiers`, { body: { tiers } }),
     updatePolicy: (id: string, body: T.PolicyUpdate) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/policy`, { body }),
     updateCost: (id: string, body: T.CostUpdate) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/cost`, { body }),
     preview: (id: string, body: { desiredUnits?: T.UnitsStr; budget?: T.MicroStr }) =>
@@ -389,6 +391,9 @@ export const api = {
     customers: () => request<import("../seller/console").Customer[]>("GET", "/app/customers"),
     usage: () => request<import("../seller/console").Usage>("GET", "/app/usage"),
     insights: () => request<import("../seller/console").Insights>("GET", "/app/insights"),
+    /** Display currency (USD or INR first) and the rate rupee amounts are stated at. */
+    currency: () => request<T.SellerCurrency>("GET", "/app/currency"),
+    setCurrency: (body: { display: T.CurrencyCode; rate: { mode: "fixed"; perUsd: string; asOf: string } | { mode: "reference" } | null }) => request<T.SellerCurrency>("PUT", "/app/currency", { body }),
     updateOrg: (body: { name?: string; brand?: Partial<T.SellerBrand> }) => request<{ slug: string; name: string; label: T.SellerLabel; brand: T.SellerBrand }>("PATCH", "/app/org", { body }),
     /** Developers: seller API keys (the full key comes back once, from create or regenerate) and the webhook. */
     developers: () => request<D.DevelopersOverview>("GET", "/app/developers"),

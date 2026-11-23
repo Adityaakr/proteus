@@ -17,26 +17,46 @@ GET  /api/health
   -> { ok, network, chainId, escrowAddress, usdcAddress, agentAdapter: "rule-based"|"anthropic", relayer: "circle"|"viem"|"none" }
 
 GET  /api/public/sellers/:sellerSlug
-  -> { slug, name, label: "sandbox"|"live", products: [PublicProduct] }
+  -> { slug, name, label: "sandbox"|"live", currency: SellerCurrency, products: [PublicProduct] }
 
 GET  /api/public/sellers/:sellerSlug/products/:productSlug
   -> PublicProduct
 ```
 
-`PublicProduct = { slug, name, billableUnit, unitLabel, capabilities[], supportedIntegrations[], tiers: [{ id, name, includedUnits, unitPriceUsd, prepaidTotalUsd, includes[] }], termDays, refundPolicy, starters: string[] }`
+`PublicProduct = { slug, name, billableUnit, unitLabel, capabilities[], supportedIntegrations[], tiers: [{ id, name, includedUnits, unitPriceUsd, prepaidTotalUsd, prepaidTotal (micro), includes[], inr: { unitPrice, prepaidTotal, stated } | null }], currency: { display, rate: FxRate | null }, termDays, refundPolicy, starters: string[] }`
+
+### Currency: USD or INR (2026-11-23)
+
+Escrow, signed terms and settlement are always USDC (1 USDC = 1 USD). Rupees are a way to state and read prices; nothing is paid in rupees.
+
+- `FxRate = { currency: "INR", perUsd: "92.68", asOf: "YYYY-MM-DD", kind: "fixed"|"reference", source }`: rupees per 1 USD, dated. `fixed` is the seller's own rate; `reference` is the European Central Bank's daily reference rate (via frankfurter.dev, the feed the importer already suggests rates from), refreshed by the server every 6 hours and stored in `fx_rates`, so a restart or an unreachable feed keeps the last published rate with its date.
+- `SellerCurrency = { display: "USD"|"INR", mode: "fixed"|"reference"|null, rate: FxRate | null, reference: FxRate | null }`. `display` is what buyers see first; `rate` is what rupee amounts are stated at (the seller's fixed rate, else the reference rate; `null` when neither exists, and then there are no rupees anywhere). `mode` is null when the seller chose no rate.
+- A tier's `inr` is the seller's own rupee price when it set one (`stated: true`), else its USDC converted at the rate for display (`stated: false`), else `null`. Decimal strings (`"1050.00"`).
+- Rounding: rupees to USDC (a rupee list price, a rupee counter) divide by the rate and round **up** to the cent (to 0.0001 below 1 USDC), so ₹1,050 at ₹92.68/$ is 11.33 USDC and ₹45,000 is 485.55 USDC. A rupee list price converts the offer's rupee total once (50 × ₹900 = ₹45,000, so 485.55 USDC), never a rounded USDC unit price times the units. A rupee budget rounds **down**, and is compared in rupees against a rupee list price. USDC to rupees (display only) rounds to the nearest paisa and is shown to the rupee with "≈".
+- Buyers choose: the embed (every mode), the store, product pages, the deal desk and the checkout have a USD/INR switch, default the seller's display currency, remembered per seller in the browser. Amounts read as `₹1,050 (≈ 11.33 USDC)` or `$11.33 (≈ ₹1,050)`.
+
+```
+GET  /api/app/currency        -> SellerCurrency
+PUT  /api/app/currency        { display: "USD"|"INR", rate: { mode: "fixed", perUsd, asOf } | { mode: "reference" } | null }
+  -> SellerCurrency           (400: INR first without a rate, a rate that is not more than 0 or has more than 4 decimals,
+                               a missing or future date; 409: the reference rate is unavailable, or the rate is removed
+                               while a product has rupee prices or floors; 403 for the shared example seller)
+```
 
 ## Negotiation (buyer)
 
 ```
-POST /api/negotiations           { sellerSlug, productSlug, buyerAddress? }
+POST /api/negotiations           { sellerSlug, productSlug, buyerAddress?, currency?: "USD"|"INR" }
   -> Negotiation & { buyerKey }   (returned once; send it as X-Negotiation-Key on every /api/negotiations/:id call,
                                    or be signed in as the owner of buyerAddress; otherwise 403 negotiation_key_required)
 
 GET  /api/negotiations/:id
   -> Negotiation
 
-POST /api/negotiations/:id/messages   { content }
-  -> Negotiation            (includes the agent's reply turn(s) and any new offers)
+POST /api/negotiations/:id/messages   { content, currency?: "USD"|"INR" }
+  -> Negotiation            (includes the agent's reply turn(s) and any new offers. `currency` is the buyer's choice:
+                             the reply quotes in it, "₹45,000 (≈ 485.55 USDC)", and later replies keep it. A budget in
+                             rupees ("₹45,000", "Rs 45000", "45,000 INR") is converted at the seller's rate, rounded down.)
 
 POST /api/negotiations/:id/consult    { content, current? }
   -> Negotiation            (store conversations: an open question that names no product. Adds a "consult" turn whose
@@ -44,8 +64,10 @@ POST /api/negotiations/:id/consult    { content, current? }
                              questions, needs }; picks come from the seller's listed products and prices from their
                              tiers. No offers are priced and requirements are unchanged.)
 
-POST /api/negotiations/:id/counter    { candidateId, targetTotal?: micro, targetUnits?: units }
-  -> Negotiation            (adds a decision turn: approved | approval_required | rejected with alternative)
+POST /api/negotiations/:id/counter    { candidateId, targetTotal?: micro, targetTotalInr?: "45000", targetUnits?: units, currency? }
+  -> Negotiation            (adds a decision turn: approved | approval_required | rejected with alternative.
+                             targetTotalInr is converted at the seller's rate, rounded up to the cent, and kept as the
+                             offer's rupee total; 409 when the seller has no rate)
 
 POST /api/negotiations/:id/quotes     { candidateId }
   -> Quote
@@ -60,8 +82,15 @@ Negotiation = {
   offers: [Offer],                      // current eligible + approval_required candidates (public projection)
   // An agent turn with customRequest: { items } answered a request for something the seller does not list (below).
   activity: [{ at, label, state: "done"|"working" }],   // sanitized progress for ReasoningText/AgentActivity on the buyer side
+  currency: { buyer: "USD"|"INR", display, rate: FxRate | null },   // buyer: what the agent quotes in
 }
-Offer = PublicCandidate from @proteus/domain plus { unitPriceUsd, prepaidTotalUsd, overagePriceUsd? }
+Offer = PublicCandidate from @proteus/domain plus { unitPriceUsd, prepaidTotalUsd, overagePriceUsd?,
+  local: { currency: "INR", unitPrice: "1050.00", total: "45000.00", stated, rate: FxRate } | null }
+```
+
+Each offer fixes its rate: `local.rate` is the dated rate it was priced at, and, for a seller that chose a rate (fixed or reference), a quote copies `local` into the signed public terms as `localPrice`. A seller that never chose one signs no rupee amount; its buyers can still read rupees at the reference rate, marked "≈". For an offer whose price depends on the rate (a rupee list price or a rupee floor), the rate is part of the candidate id: once the rate moves, `POST /quotes` answers 409 "The exchange rate was updated after this offer was made. Ask for a fresh offer at today's rate." A USD-priced offer keeps its rupee figure as a display at the rate it was made with.
+
+```
 ```
 
 A buyer who asks for a kind of product the seller does not list ("i want caps" at a store with no caps) gets no offers for it. The server checks every kind the message asks for (read by rule, and by the model when one is configured) against every listed product ([`agent/unlisted.ts`](../server/src/agent/unlisted.ts)): a kind counts as listed when a listed product's name ends with that kind (ignoring trailing colour, size or variant words, so "Classic Tee - Black" is a tee) or its unit is that kind. A word only in a product's summary or the middle of its name ("Loop Cap Bottle") does not make the kind listed. When none is listed, the reply says so plainly, names the closest listed products (the same kind, then the same family, such as other apparel) or what the seller lists, and offers to send the seller a custom request. The product's requirements and offers stay as they were. When the buyer's next message answers that offer (a yes, a quantity, a date or contact details, naming no listed product; asking for the item again with nothing more, or asking about a listed product such as "how much for 20 t-shirts?", is not the request), the agent records a `custom_request` decision, keeps the message in the conversation for the seller, and notifies the seller (`custom_request` event, without the buyer's text). A message that also asks for something listed gets that product's offers and a plain note that the rest is not listed, with no custom request offer. On the store's own deal desk before any product is chosen, the same ask gets a recommendation (a `consult` turn) whose intro says the item is not listed, whose picks are the closest listed products, and whose question is the custom request offer; the turn's payload carries `customRequest: { items }` and the buyer's answer is sent to the seller the same way. When the seller lists several products of the kind asked for ("i want caps" at a store with fourteen caps), routing names those products by their names before any product sold per that unit (a "Bucket Hat" sold per cap) and recommends among them; once on one of them, the reply names the others with their smallest list pack so the buyer can choose.
@@ -83,7 +112,9 @@ Quote = {
   chainId, escrowAddress, usdcAddress,
   terms: Terms (all bigints as strings),            // the exact EIP-712 message
   typedData: { domain, types, primaryType: "Terms", message },   // ready for wallet signTypedData
-  publicTerms: { includes[], billableUnit, integrations[], refundPolicy, termDays, overage? },
+  publicTerms: { includes[], billableUnit, integrations[], refundPolicy, termDays, overage?, localPrice? },
+  payLine: "You pay 485.55 USDC (₹45,000 at ₹92.68/$, rate fixed for this offer)",   // "You pay 485.55 USDC" without a rupee price
+  seller: { slug, display },
   approval?: { id, status, reason, decidedAt? }
 }
 ```
@@ -298,6 +329,7 @@ Keys are environment-bound: a deployment on Arc testnet issues and accepts only 
 | GET | `/v1/seller/me` | any key |
 | GET | `/v1/seller/products` | any key |
 | PATCH | `/v1/seller/products/{id}/tiers` | `products:write` |
+| PATCH | `/v1/seller/products/{id}/floor` | `products:write` |
 | PATCH | `/v1/seller/products/{id}/listing` | `products:write` |
 | GET | `/v1/seller/deals` | `deals:read` |
 | GET | `/v1/seller/deals/{id}` | `deals:read` |
@@ -307,6 +339,13 @@ Keys are environment-bound: a deployment on Arc testnet issues and accepts only 
 | GET | `/v1/seller/payments` | `payments:read` |
 
 401: missing, unknown, revoked, expired or wrong-environment key. 403: the key lacks the permission (`details.required` names it). Every call records the key's `lastUsedAt`.
+
+Rupees on the seller API (the seller sets its rate on the dashboard, Settings, Currency; `GET /v1/seller/me` returns it as `currency`):
+
+- `PATCH /v1/seller/products/{id}/tiers`: each tier takes `unitPriceUsd` or `unitPriceInr` (rupees per unit, up to two decimals), not both. A rupee price is kept as given and, whenever it is read, the tier's rupee total is converted once at the seller's current rate (rounded up to the cent), so the rupee price holds when the rate moves. 409 `rate_required` without a rate.
+- `PATCH /v1/seller/products/{id}/floor` `{ floorUnitPriceUsd?: string|null, floorUnitPriceInr?: string|null }`: the lowest price per unit; omitted keeps a floor, `null` removes it. A rupee floor is checked exactly against every offer's USDC at the current rate (`FLOOR_PRICE`), so the agent never goes below ₹X when the rate moves; without a rate every offer is refused rather than guessed. Each call is a new cost-model version. 409 `rate_required` for a rupee floor without a rate.
+- `GET /v1/seller/products` returns each tier's `inr` and `prepaidTotal`, the product's `currency` and `floor: { floorUnitPriceUsd, floorUnitPriceInr }`.
+- The sandbox dry-runs the same with a fixed demo rate of ₹92.68/$ (2026-11-20).
 
 ### Seller API sandbox (`/api/v1/sandbox/seller/*`, Arc testnet deployment only)
 
@@ -379,4 +418,4 @@ POST  /api/builder/imports/:id/continue                        -> BuilderImport 
   - Policy with no margin floor and a discount cap set just wide enough never to refuse a price at or above the floor.
   - Public `knowledge` (variants, options, notes, store policies) that the deal agent answers from. A colour the site gives only as a swatch code (`#273a6b`) is stored and shown as the nearest plain colour name (`navy`); products imported before this are named when read.
 
-`CostUpdateBody` (`PATCH /api/app/products/:id/cost`) also takes `floorUnitPrice` (micro-USDC string, or `null` to remove it). The engine's `FLOOR_PRICE` rule refuses any candidate whose prepaid total is below `units × floorUnitPrice` and gives buyers the shared price reason.
+`CostUpdateBody` (`PATCH /api/app/products/:id/cost`) also takes `floorUnitPrice` (micro-USDC string, or `null` to remove it) and `floorUnitPriceInr` (rupees per unit, e.g. `"850"`, checked at the seller's current rate; `null` removes it; needs a rate the seller chose). The engine's `FLOOR_PRICE` rule refuses any candidate whose prepaid total is below `units × floorUnitPrice` and gives buyers the shared price reason.

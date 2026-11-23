@@ -96,14 +96,14 @@ tool(
       id = started.id;
       if (started.buyerKey) negotiationKeys.set(id, started.buyerKey);
     }
-    const n = await post<{ turns: { role: string; content: string }[]; offers: { candidateId: string; tierName: string; units: string; prepaidTotal: string; prepaidTotalUsd: string; status: string }[] }>(`/api/negotiations/${id}/messages`, { content: message }, negKey(id));
+    const n = await post<{ turns: { role: string; content: string }[]; offers: { candidateId: string; tierName: string; units: string; prepaidTotal: string; prepaidTotalUsd: string; status: string; local?: { total: string; rate: { perUsd: string; asOf: string } } | null }[] }>(`/api/negotiations/${id}/messages`, { content: message }, negKey(id));
     const reply = [...n.turns].reverse().find((t) => t.role === "agent")?.content ?? "";
     return text({
       negotiationId: id,
       // Private to this buyer: keep it with the negotiationId to continue later. Never share it.
       negotiationKey: negotiationKeys.get(id) ?? null,
       reply,
-      offers: n.offers.map((o) => ({ candidateId: o.candidateId, tier: o.tierName, units: o.units, prepaid: o.prepaidTotalUsd, status: o.status, withinMandate: BigInt(o.prepaidTotal) <= MAX_PREPAID })),
+      offers: n.offers.map((o) => ({ candidateId: o.candidateId, tier: o.tierName, units: o.units, prepaid: o.prepaidTotalUsd, ...(o.local ? { inr: `₹${o.local.total} at ₹${o.local.rate.perUsd}/$ (${o.local.rate.asOf}); payment is the USDC amount` } : {}), status: o.status, withinMandate: BigInt(o.prepaidTotal) <= MAX_PREPAID })),
       mandate: usd(MAX_PREPAID),
     });
   },

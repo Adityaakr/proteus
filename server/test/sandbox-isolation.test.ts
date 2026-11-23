@@ -39,6 +39,7 @@ const run = (key: string, params: Record<string, string>, body: unknown) => {
 
 const VALID: Record<string, unknown> = {
   "PATCH /v1/seller/products/:id/tiers": { tiers: [{ name: "Starter", includedUnits: "1", unitPriceUsd: "6.60" }] },
+  "PATCH /v1/seller/products/:id/floor": { floorUnitPriceInr: "850" },
   "PATCH /v1/seller/products/:id/listing": { active: false },
   "POST /v1/seller/deals/:id/deliveries": { requestId: "order-2001-batch-2", units: 1, note: "One tee shipped" },
   "POST /v1/seller/deals/:id/order-updates": { status: "shipped", note: "On its way" },

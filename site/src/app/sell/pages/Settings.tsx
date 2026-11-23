@@ -4,7 +4,10 @@ import { BrandFields, EMPTY_BRAND, brandFromState, validateBrandState, type Bran
 import { Field } from "../../ui/Field";
 import { v1 } from "../v1";
 import type { MeOrg } from "../types";
-import { Bell, FlaskConical, MessageCircle, Wallet } from "lucide-react";
+import { Bell, Coins, FlaskConical, MessageCircle, Wallet } from "lucide-react";
+import { CurrencySwitch } from "../../ui/CurrencySwitch";
+import { api } from "../../lib/api";
+import type { CurrencyCode } from "../../lib/types";
 import { ActionButton, Card, KeyValue, MonoValue, Notice, StatusTag } from "../../seller/kit";
 import { PageHeader } from "../../seller/parts/PageHeader";
 import { errorMessage } from "../../seller/transport";
@@ -42,6 +45,7 @@ export default function Settings() {
         )}
       </Card>
     ),
+    currency: org ? <CurrencyCard locked={sandbox} /> : null,
     alerts: org && !sandbox ? <AlertsCard /> : null,
     whatsapp: org && !sandbox ? <WhatsAppCard /> : null,
     brand: org ? <BrandCard org={org} /> : null,
@@ -108,6 +112,75 @@ function BrandCard({ org }: { org: MeOrg }) {
           <ActionButton onClick={() => save.mutate()} loading={save.isPending} loadingLabel="Saving" disabled={Object.keys(errors).length > 0 || name.trim().length < 2}>
             Save brand
           </ActionButton>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+/**
+ * How buyers see prices: USD or INR first, and the rate rupee amounts are stated at. A fixed rate is the seller's own
+ * (with the date it is for); the reference rate is the European Central Bank's daily rate, refreshed by Proteus.
+ * Escrow, signatures and payouts stay in USDC; each offer fixes the rate it was made at.
+ */
+function CurrencyCard({ locked }: { locked: boolean }) {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["sell", "currency"], queryFn: () => api.app.currency(), retry: false });
+  const [draft, setDraft] = useState<{ display: CurrencyCode; mode: "fixed" | "reference" | "none"; perUsd: string; asOf: string } | null>(null);
+  const save = useMutation({
+    mutationFn: (d: NonNullable<typeof draft>) => api.app.setCurrency({ display: d.display, rate: d.mode === "fixed" ? { mode: "fixed", perUsd: d.perUsd.trim(), asOf: d.asOf.trim() } : d.mode === "reference" ? { mode: "reference" } : null }),
+    onSuccess: (v) => {
+      qc.setQueryData(["sell", "currency"], v);
+      void qc.invalidateQueries({ queryKey: ["seller"] });
+      void qc.invalidateQueries({ queryKey: ["sell"] });
+      setDraft(null);
+    },
+  });
+  if (!q.data) return null;
+  const v = q.data;
+  const today = new Date().toISOString().slice(0, 10);
+  const cur = draft ?? { display: v.display, mode: v.mode ?? "none", perUsd: v.mode === "fixed" && v.rate ? v.rate.perUsd : v.reference?.perUsd ?? "", asOf: v.mode === "fixed" && v.rate ? v.rate.asOf : today };
+  const set = (patch: Partial<typeof cur>) => setDraft({ ...cur, ...patch });
+  const ref = v.reference;
+  return (
+    <Card
+      title="Currency"
+      subtitle="Which currency buyers see first, in your embed, deal desk and store. Buyers can switch between USD and INR. Payment, escrow and payouts stay in USDC; every offer shows and fixes the rate it was made at."
+      actions={<StatusTag tone={v.display === "INR" ? "success" : "neutral"} label={v.display === "INR" ? "₹ INR first" : "$ USD first"} icon={<Coins size={12} />} />}
+    >
+      <div className={s.fields}>
+        <div className={s.row}>
+          <span className={s.hint}>Show prices first in</span>
+          <CurrencySwitch value={cur.display} onChange={(d) => set({ display: d, ...(d === "INR" && cur.mode === "none" ? { mode: ref ? "reference" : "fixed" } : {}) })} />
+        </div>
+        <fieldset className={s.fields} style={{ border: 0, padding: 0, margin: 0, gap: 10 }} disabled={locked}>
+          <legend className={s.hint} style={{ marginBottom: 8 }}>Exchange rate for rupee prices</legend>
+          <label className={s.row}>
+            <input type="radio" name="fx-mode" checked={cur.mode === "fixed"} onChange={() => set({ mode: "fixed" })} />
+            <span>A fixed rate I set, with its date</span>
+          </label>
+          {cur.mode === "fixed" && (
+            <div className={s.row} style={{ alignItems: "flex-start" }}>
+              <Field label="Rupees per 1 USD" value={cur.perUsd} onChange={(e) => set({ perUsd: e.target.value })} inputMode="decimal" placeholder="92.68" />
+              <Field label="Rate date" type="date" value={cur.asOf} max={today} onChange={(e) => set({ asOf: e.target.value })} />
+            </div>
+          )}
+          <label className={s.row}>
+            <input type="radio" name="fx-mode" checked={cur.mode === "reference"} onChange={() => set({ mode: "reference" })} disabled={!ref} />
+            <span>The daily reference rate{ref ? `: ₹${ref.perUsd}/$ on ${ref.asOf}` : " (not available right now)"}</span>
+          </label>
+          <p className={s.hint}>European Central Bank reference rate, refreshed every day by Proteus. Your rupee prices convert at the new rate; offers already made keep theirs.</p>
+          <label className={s.row}>
+            <input type="radio" name="fx-mode" checked={cur.mode === "none"} onChange={() => set({ mode: "none", display: "USD" })} />
+            <span>No rate: USD only{ref ? " (buyers can still view rupees at the reference rate)" : ""}</span>
+          </label>
+        </fieldset>
+        <p className={s.hint}>Rounding: an offer's rupee total converts to USDC once, rounded up to the cent, so ₹1,050 at ₹92.68/$ is 11.33 USDC and ₹45,000 is 485.55 USDC. A rupee floor is checked exactly at the current rate.</p>
+        {locked && <Notice tone="info">The example seller's currency is fixed. Sign in as your own seller to change yours.</Notice>}
+        {save.isError && <Notice tone="danger">{errorMessage(save.error)}</Notice>}
+        {save.isSuccess && draft === null && <Notice tone="success">Saved. Buyers see prices this way now.</Notice>}
+        <div className={s.row}>
+          <ActionButton onClick={() => save.mutate(cur)} loading={save.isPending} loadingLabel="Saving" disabled={draft === null || locked}>Save currency</ActionButton>
         </div>
       </div>
     </Card>

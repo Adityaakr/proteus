@@ -16,6 +16,8 @@ import { ErrorState, fmtDate, fmtUnits, prettyIntegration } from "../buyer/commo
 import { PayPerCallCard } from "./PayPerCallCard";
 import { decimalsFor } from "./Market";
 import d from "./product.module.css";
+import { CurrencySwitch, DualPrice } from "../ui/CurrencySwitch";
+import { rateLabel, tierTotal, tierUnit, useBuyerCurrency } from "../lib/currency";
 import { ARC_NETWORK_NAMES, defaultNetwork, pluralUnit, unitFor } from "@proteus/domain";
 
 export default function ProductPage() {
@@ -53,8 +55,11 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
   const navigate = useNavigate();
   const { wallet } = useAuth();
   const [pendingStarter, setPendingStarter] = useState<string | null>(null);
+  // USD or INR, remembered for this seller; the negotiation quotes in it. Payment is USDC either way.
+  const { currency, setCurrency, available: rupees, rate } = useBuyerCurrency(seller.slug, seller.currency ?? product.currency);
+  const inr = rupees && currency === "INR";
   const start = useMutation({
-    mutationFn: () => api.startNegotiation({ sellerSlug: seller.slug, productSlug: product.slug, buyerAddress: wallet?.address }),
+    mutationFn: () => api.startNegotiation({ sellerSlug: seller.slug, productSlug: product.slug, buyerAddress: wallet?.address, currency }),
     onSuccess: (neg) => navigate(`/app/negotiations/${neg.id}`, { state: pendingStarter ? { starter: pendingStarter } : undefined }),
   });
   const begin = (starter: string | null) => {
@@ -87,7 +92,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
           {product.summary && <p className={d.summary}>{product.summary}</p>}
           <ul className={d.meta} aria-label="Key terms">
             <li><CalendarDays size={13} aria-hidden />{product.termDays}-day term</li>
-            {bestUnit && <li><CircleDollarSign size={13} aria-hidden />From <Money usd={bestUnit} digits={decimalsFor(bestUnit)} /> per {product.unitLabel}</li>}
+            {bestUnit && <li><CircleDollarSign size={13} aria-hidden />From {inr ? <DualPrice {...tierUnit(product.tiers.find((t) => t.unitPriceUsd === bestUnit)!, "INR")} /> : <Money usd={bestUnit} digits={decimalsFor(bestUnit)} />} per {product.unitLabel}</li>}
             {product.payPerCallUsd && <li><Zap size={13} aria-hidden /><Money usd={product.payPerCallUsd} digits={decimalsFor(product.payPerCallUsd)} /> per call</li>}
             <li><ShieldCheck size={13} aria-hidden />Escrow on {ARC_NETWORK_NAMES[defaultNetwork()]}</li>
             <li><Server size={13} aria-hidden />{product.service === "seller-endpoint" ? "Seller-run endpoint" : product.service === "example" ? "Run by Proteus AI's service agent" : "Sample order store"}</li>
@@ -130,6 +135,7 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
           <div className={d.h2Row}>
             <h2 id="h-pricing" className={d.h2}>Pricing</h2>
             <span className={d.h2Note}>List prices. The agent fits an offer to your volume within the seller's rules.</span>
+            {rupees && <CurrencySwitch value={currency} onChange={setCurrency} size="sm" />}
           </div>
           <table className={d.table}>
             <thead>
@@ -151,14 +157,15 @@ function ProductView({ seller, product }: { seller: PublicSeller; product: Publi
                       {best && <span className={d.tierTag}>Best unit price</span>}
                     </td>
                     <td className={d.num}>{fmtUnits(t.includedUnits)} <span className={d.dim}>{unitFor(t.includedUnits, product.unitLabel)}</span></td>
-                    <td className={d.num}><Money usd={t.unitPriceUsd} digits={decimalsFor(t.unitPriceUsd)} /></td>
-                    <td className={`${d.num} ${d.strong}`}><Money usd={t.prepaidTotalUsd} digits={0} /></td>
+                    <td className={d.num}>{inr ? <DualPrice {...tierUnit(t, "INR")} /> : <Money usd={t.unitPriceUsd} digits={decimalsFor(t.unitPriceUsd)} />}</td>
+                    <td className={`${d.num} ${d.strong}`}>{inr ? <DualPrice {...tierTotal(t, "INR")} /> : <Money usd={t.prepaidTotalUsd} digits={0} />}</td>
                     <td className={d.includes}>{t.includes.join(", ") || "—"}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+          {inr && rate && <p className={d.fine}>Rupee prices at {rateLabel(rate)}. You pay in USDC into escrow; each offer fixes its rate.</p>}
           <p className={d.fine}>{product.refundPolicy}{product.maxUnitsPerDeal ? ` Up to ${fmtUnits(product.maxUnitsPerDeal)} ${pluralUnit(product.unitLabel)} per deal.` : ""}</p>
         </section>
 

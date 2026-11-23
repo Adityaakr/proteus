@@ -8,7 +8,7 @@ import c from "./consult.module.css";
  * follow-up questions. Each product is a button: tapping it moves the conversation to that product for a quote.
  * Only the latest recommendation is tappable.
  */
-export function ConsultCard({ consult, onPick, disabled }: { consult: ConsultPayload; onPick?: (slug: string) => void; disabled?: boolean }) {
+export function ConsultCard({ consult, onPick, disabled, priceOf }: { consult: ConsultPayload; onPick?: (slug: string) => void; disabled?: boolean; /** The "from" price in the buyer's currency, when the page has the product. */ priceOf?: (slug: string) => string | null }) {
   return (
     <div className={c.card}>
       <p className={c.intro}>{consult.intro}</p>
@@ -18,7 +18,7 @@ export function ConsultCard({ consult, onPick, disabled }: { consult: ConsultPay
             <button type="button" className={c.pick} onClick={() => onPick?.(p.slug)} disabled={disabled || !onPick} aria-label={`Get a quote for ${p.name}`}>
               <span className={c.pickTop}>
                 <strong>{p.name}</strong>
-                {p.fromPrice && <span className={c.price}>from {p.fromPrice} a {p.unitLabel}</span>}
+                {(priceOf?.(p.slug) ?? p.fromPrice) && <span className={c.price}>from {priceOf?.(p.slug) ?? p.fromPrice} a {p.unitLabel}</span>}
               </span>
               {p.reason && <span className={c.reason}>{p.reason}</span>}
               {onPick && !disabled && <ArrowRight size={14} className={c.go} aria-hidden />}

@@ -12,7 +12,8 @@ Paths are relative to the [base URL](https://app.proteus.co.in/docs/seller-api#s
 |---|---|---|---|
 | `GET` | [`/me`](https://app.proteus.co.in/docs/seller-api-reference#seller-api-get-me) | Any key | The key's seller, name, environment and permissions |
 | `GET` | [`/products`](https://app.proteus.co.in/docs/seller-api-reference#seller-api-get-products) | Any key | Your products with public tiers, endpoint and docs links |
-| `PATCH` | [`/products/:id/tiers`](https://app.proteus.co.in/docs/seller-api-reference#seller-api-patch-products-id-tiers) | `products:write` | Replace a product's public price tiers |
+| `PATCH` | [`/products/:id/tiers`](https://app.proteus.co.in/docs/seller-api-reference#seller-api-patch-products-id-tiers) | `products:write` | Replace a product's public price tiers (in USD or INR) |
+| `PATCH` | [`/products/:id/floor`](https://app.proteus.co.in/docs/seller-api-reference#seller-api-patch-products-id-floor) | `products:write` | Set the lowest price per unit, in USD and/or INR |
 | `PATCH` | [`/products/:id/listing`](https://app.proteus.co.in/docs/seller-api-reference#seller-api-patch-products-id-listing) | `products:write` | List or unlist a product in the market |
 | `GET` | [`/deals`](https://app.proteus.co.in/docs/seller-api-reference#seller-api-get-deals) | `deals:read` | Your deals, newest first, with balances |
 | `GET` | [`/deals/:id`](https://app.proteus.co.in/docs/seller-api-reference#seller-api-get-deals-id) | `deals:read` | One deal: terms, balances, usage and transactions |
@@ -27,7 +28,7 @@ Paths are relative to the [base URL](https://app.proteus.co.in/docs/seller-api#s
 
 `GET /me` · Permission: any valid key · Returns `200`
 
-The seller this key belongs to, with the key's name, environment and permissions. Works with any valid key: use it to check a key before anything else.
+The seller this key belongs to, with the key's name, environment and permissions, and its currency: the display currency buyers see first and the dated rate rupee prices convert at (`null` when none). Works with any valid key: use it to check a key before anything else.
 
 ```bash
 curl https://ai.proteus.co.in/api/v1/seller/me \
@@ -50,7 +51,13 @@ Response `200`:
     "env": "test",
     "scopes": ["deals:read", "deliveries:write"]
   },
-  "network": "testnet"
+  "network": "testnet",
+  "currency": {
+    "display": "INR",
+    "mode": "fixed",
+    "rate": { "currency": "INR", "perUsd": "92.68", "asOf": "2026-11-20", "kind": "fixed", "source": "Seller's fixed rate" },
+    "reference": { "perUsd": "92.68", "asOf": "2026-11-20", "kind": "reference", … }
+  }
 }
 ```
 
@@ -64,7 +71,7 @@ Response `200`:
 
 `GET /products` · Permission: any valid key · Returns `200`
 
-Your products, newest first, with the public price tiers buyers see, the service endpoint and the product's docs page. Works with any valid key.
+Your products, newest first, with the public price tiers buyers see, the service endpoint and the product's docs page. Each tier also has its prepaid total in micro-USDC and `inr`: the rupee price you set (`stated: true`), or the USDC converted at your rate for display (`stated: false`), or `null` without a rate. `floor` is your lowest price per unit in each currency. Works with any valid key.
 
 ```bash
 curl https://ai.proteus.co.in/api/v1/seller/products \
@@ -92,8 +99,12 @@ Response `200`:
       "includedUnits": "1",
       "unitPriceUsd": "$6.60",
       "prepaidTotalUsd": "$6.60",
-      "includes": []
+      "prepaidTotal": "6600000",
+      "includes": [],
+      "inr": { "unitPrice": "612.00", "prepaidTotal": "612.00", "stated": true }
     }],
+    "currency": { "display": "INR", "rate": { "perUsd": "92.68", "asOf": "2026-11-20", … } },
+    "floor": { "floorUnitPriceUsd": null, "floorUnitPriceInr": "550.00" },
     "payPerCallUsd": null,
     "endpoint": "https://…/api/services/custom-tees/execute",
     "docsUrl": "https://…/docs/your-store/custom-tees"
@@ -111,7 +122,7 @@ Response `200`:
 
 `PATCH /products/:id/tiers` · Permission: `products:write` · Returns `200`
 
-Replaces every public price tier of a product and returns the product. New offers use the new prices; an offer already made in an open negotiation can still be quoted at its old price, and deals already signed keep theirs.
+Replaces every public price tier of a product and returns the product. Price each tier in dollars (`unitPriceUsd`) or in rupees (`unitPriceInr`, once you have set a rate under Settings, Currency): a rupee price is kept as you set it and, whenever buyers see it, an offer's rupee total is converted to USDC once at your current rate, rounded up to the cent, so the rupee price holds when the rate moves. New offers use the new prices; an offer already made in an open negotiation can still be quoted at its old price (unless the rate moved since, for a rupee price), and deals already signed keep theirs.
 
 | Parameter | In | Type | Required | Description |
 |---|---|---|---|---|
@@ -119,7 +130,8 @@ Replaces every public price tier of a product and returns the product. New offer
 | `tiers` | body | array | Yes | 1 to 6 tiers. They are sorted by `includedUnits`. |
 | `tiers[].name` | body | string | Yes | Shown to buyers; up to 40 characters are kept. |
 | `tiers[].includedUnits` | body | string | Yes | A whole number from 1, at most the product's units per deal. Each tier needs its own quantity. |
-| `tiers[].unitPriceUsd` | body | string | Yes | Dollars per unit, more than 0: up to 7 digits before the point and 6 after, e.g. `"6.60"`. |
+| `tiers[].unitPriceUsd` | body | string | No | Dollars per unit, more than 0: up to 7 digits before the point and 6 after, e.g. `"6.60"`. Each tier needs this or `unitPriceInr`, not both. |
+| `tiers[].unitPriceInr` | body | string | No | Rupees per unit, more than 0, up to two decimals, e.g. `"1050"`. Converted at your rate: ₹1,050 at ₹92.68/$ is 11.33 USDC. |
 | `tiers[].includes` | body | string[] | No | Up to 8 short lines (60 characters each) listing what the tier includes. |
 
 ```bash
@@ -184,6 +196,59 @@ Response `200`:
 | `401` | The key is missing, unknown, revoked, expired or from the other environment. |
 | `403` | The key lacks `products:write`. |
 | `404` | No product with this id belongs to your seller. |
+| `409` | A tier is priced in rupees and you have not set a rate (`details.code` is `rate_required`). |
+
+<a id="seller-api-patch-products-id-floor"></a>
+
+### Set the floor
+
+`PATCH /products/:id/floor` · Permission: `products:write` · Returns `200`
+
+Sets the lowest price per unit your agent may offer, in dollars and/or rupees, and returns the product. A rupee floor is checked exactly against every offer's USDC at your current rate, so the agent never goes below it when the rate moves. Each call is a new cost-model version: offers made under the old floor can no longer be quoted.
+
+| Parameter | In | Type | Required | Description |
+|---|---|---|---|---|
+| `id` | path | string | Yes | The product's `id` (`prd_…`) from `GET /products`, not its slug. |
+| `floorUnitPriceUsd` | body | string | null | No | Dollars per unit, more than 0. `null` removes the dollar floor; omitted keeps it. |
+| `floorUnitPriceInr` | body | string | null | No | Rupees per unit, more than 0, up to two decimals. Needs a rate. `null` removes the rupee floor; omitted keeps it. |
+
+```bash
+curl -X PATCH https://ai.proteus.co.in/api/v1/seller/products/PRODUCT_ID/floor \
+  -H "Authorization: Bearer $PROTEUS_SELLER_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "floorUnitPriceInr": "850"
+  }'
+```
+
+```ts
+const product = await fetch(`${base}/products/${productId}/floor`, {
+  method: "PATCH",
+  headers: { ...headers, "Content-Type": "application/json" },
+  body: JSON.stringify({
+    floorUnitPriceInr: "850"
+  }),
+}).then((r) => r.json());
+```
+
+Response `200`:
+
+```json
+{
+  "id": "prd_…",
+  "slug": "custom-tees",
+  "floor": { "floorUnitPriceUsd": null, "floorUnitPriceInr": "850.00" },
+  …
+}
+```
+
+| Status | When |
+|---|---|
+| `400` | Neither field was sent, or a value breaks a rule above. |
+| `401` | The key is missing, unknown, revoked, expired or from the other environment. |
+| `403` | The key lacks `products:write`. |
+| `404` | No product with this id belongs to your seller. |
+| `409` | A rupee floor was sent and you have not set a rate (`details.code` is `rate_required`). |
 
 <a id="seller-api-patch-products-id-listing"></a>
 

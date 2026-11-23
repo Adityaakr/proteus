@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, ne } from "drizzle-orm";
-import { evaluateCounteroffer, formatUsd, getQuoteCandidates, greetingText, mulDivFloor, sellerGreeting, toPublicCandidate, type Candidate, type CounterDecision, type GreetingProduct, type Product, type PublicCandidate, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
+import { amountText, applyFx, evaluateCounteroffer, formatUsd, getQuoteCandidates, greetingText, inrBudgetToUsdc, inrToUsdc, localPriceJson, mulDivFloor, offerTotalText, reviveLocalPrice, sellerGreeting, toPaise, toPublicCandidate, type Candidate, type CounterDecision, type CurrencyCode, type GreetingProduct, type PriceView, type Product, type PublicCandidate, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
+import { displayOf } from "./currency";
 import { detectInjection, getAgentAdapter, redactPersonalData, type AgentStep, type ConversationTurn, type UnlistedAsk } from "../agent";
 import { answersCustomRequest, findUnlisted, itemsText, requestedItems, sameKindListed, type ListedProduct } from "../agent/unlisted";
 import { db, schema } from "../db";
@@ -20,6 +21,7 @@ export function reviveRequirements(r: Record<string, unknown>): Requirements {
   return {
     desiredUnits: r.desiredUnits != null ? BigInt(String(r.desiredUnits)) : undefined,
     budget: r.budget != null ? BigInt(String(r.budget)) : undefined,
+    ...(r.budgetInr != null ? { budgetInr: BigInt(String(r.budgetInr)) } : {}),
     integrations: (r.integrations as string[]) ?? [],
     notes: (r.notes as string[]) ?? [],
     openQuestions: (r.openQuestions as string[]) ?? [],
@@ -47,6 +49,7 @@ export function reviveCandidate(c: Record<string, unknown>): Candidate {
     rules: (c.rules as Candidate["rules"]) ?? [],
     origin: c.origin as Candidate["origin"],
     origins: (c.origins as Candidate["origins"]) ?? [c.origin as Candidate["origin"]],
+    ...(reviveLocalPrice(c.local) ? { local: reviveLocalPrice(c.local)! } : {}),
     economics: {
       expectedRevenue: BigInt(String(e.expectedRevenue)),
       expectedVariableCost: BigInt(String(e.expectedVariableCost)),
@@ -59,15 +62,39 @@ export function reviveCandidate(c: Record<string, unknown>): Candidate {
   };
 }
 
-/** Offer = public candidate + display strings. */
+/**
+ * Offer = public candidate + display strings. `local` is the offer in rupees ("1050.00" per unit, "42000.00" in all)
+ * with the dated rate it is fixed at; null when the seller has no rate. Escrow takes prepaidTotal micro-USDC either way.
+ */
 export function toOffer(c: Candidate) {
-  const p = toPublicCandidate(c);
+  const { local, ...p } = toPublicCandidate(c);
   return {
     ...p,
     unitPriceUsd: unitPriceUsd(c.unitPrice.num, c.unitPrice.den),
     prepaidTotalUsd: formatUsd(c.prepaidTotal),
     overagePriceUsd: c.overagePrice ? unitPriceUsd(c.overagePrice.num, c.overagePrice.den) : undefined,
+    local: local ? localPriceJson(local) : null,
   };
+}
+
+/** The currency this buyer reads prices in: their choice, else the seller's; rupees only when the seller has a rate. */
+export function buyerCurrency(neg: { currency: string | null }, lp: Pick<LoadedProduct, "org" | "fx">): CurrencyCode {
+  const c = neg.currency === "INR" || neg.currency === "USD" ? neg.currency : displayOf(lp.org.currency);
+  return c === "INR" && lp.fx ? "INR" : "USD";
+}
+
+export function priceView(neg: { currency: string | null }, lp: Pick<LoadedProduct, "org" | "fx">): PriceView {
+  return { currency: buyerCurrency(neg, lp), ...(lp.fx ? { fx: lp.fx } : {}) };
+}
+
+/** A rupee budget the buyer stated, converted at the seller's rate (rounded down); without a rate it is dropped. */
+export function withRupeeBudget(r: Requirements, lp: Pick<LoadedProduct, "fx">): Requirements {
+  if (r.budgetInr === undefined) return r;
+  if (!lp.fx) {
+    const { budgetInr: _drop, ...rest } = r;
+    return rest;
+  }
+  return { ...r, budget: inrBudgetToUsdc(r.budgetInr, lp.fx) };
 }
 
 /* ------------------------------------------------------------------ */
@@ -104,6 +131,8 @@ export async function negotiationView(negId: string) {
     turns: turnRows.map((t) => ({ id: t.id, role: t.role, kind: t.kind, content: t.content, createdAt: t.createdAt, ...(t.payload as Record<string, unknown> | null) })),
     offers,
     activity: neg.activity,
+    /** buyer: the currency the agent quotes in; display: the seller's; rate: what rupee amounts are stated at (null: none). */
+    currency: { buyer: buyerCurrency(neg, lp), display: displayOf(lp.org.currency), rate: lp.fx ?? null },
     labels: { seller: lp.org.label, network: features.network, pricing: "illustrative" },
   };
 }
@@ -139,13 +168,13 @@ function greeting(lp: LoadedProduct, store: StoreOpening | undefined, products: 
   return greetingText(sellerGreeting(lp.org.name, [self], self));
 }
 
-export async function startNegotiation(sellerSlug: string, productSlug: string, buyerAddress?: string, store?: StoreOpening) {
+export async function startNegotiation(sellerSlug: string, productSlug: string, buyerAddress?: string, store?: StoreOpening, currency?: CurrencyCode) {
   const lp = await loadProductBySlugs(sellerSlug, productSlug);
   const storeItems = store === "open" ? await storeProducts(lp) : [];
   const negId = id("neg");
   const access = negotiationKey();
   const requirements: Requirements = { integrations: [], notes: [], openQuestions: [] };
-  await db.insert(schema.negotiations).values({ id: negId, publicId: publicId("n"), orgId: lp.org.id, productId: lp.row.id, buyerAddress, buyerKeyHash: access.hash, requirements: bigintsToStrings(requirements), candidates: [], activity: [] });
+  await db.insert(schema.negotiations).values({ id: negId, publicId: publicId("n"), orgId: lp.org.id, productId: lp.row.id, buyerAddress, buyerKeyHash: access.hash, ...(currency ? { currency } : {}), requirements: bigintsToStrings(requirements), candidates: [], activity: [] });
   await db.insert(schema.turns).values({
     id: id("turn"),
     negotiationId: negId,
@@ -179,15 +208,22 @@ export async function assertNegotiationAccess(negId: string, key: string | undef
 /* message                                                              */
 /* ------------------------------------------------------------------ */
 
-export async function addBuyerMessage(negId: string, content: string) {
+/** The buyer switched currency: later replies quote in it. */
+export async function setNegotiationCurrency(negId: string, currency: CurrencyCode | undefined) {
+  if (currency) await db.update(schema.negotiations).set({ currency }).where(eq(schema.negotiations.id, negId));
+}
+
+export async function addBuyerMessage(negId: string, content: string, currency?: CurrencyCode) {
+  await setNegotiationCurrency(negId, currency);
   const { neg, turnRows, lp } = await loadNegotiation(negId);
   if (neg.status === "accepted" || neg.status === "closed") throw new HttpError(409, "negotiation is closed");
   const started = Date.now();
   const seq = (turnRows.at(-1)?.seq ?? 0) + 1;
   await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", content: await sealText(lp.org.id, content) });
+  const view = priceView(neg, lp);
 
-  const listed = await listedProducts(lp);
-  const current = { ...listedOf(lp.product), id: lp.row.id, slug: lp.row.slug };
+  const listed = await listedProducts(lp, view);
+  const current = { ...listedOf(lp.product, view), id: lp.row.id, slug: lp.row.slug };
   const others = listed.filter((p) => p.id !== lp.row.id);
 
   // The agent offered to send the seller a custom request for an unlisted item, and this message is that request.
@@ -204,6 +240,8 @@ export async function addBuyerMessage(negId: string, content: string) {
   const prior = reviveRequirements(neg.requirements as Record<string, unknown>);
   const ext = await adapter.extractRequirements({ productName: lp.product.name, unitLabel: lp.product.unitLabel, capabilities: lp.product.capabilities, supportedIntegrations: lp.product.supportedIntegrations, starters: (lp.row.starters as string[]) ?? [], prior, turns: convo });
   steps.push(...ext.steps);
+  // "₹40,000": the engine works in USDC, so a rupee budget is converted at the seller's rate (rounded down).
+  ext.requirements = withRupeeBudget(ext.requirements, lp);
   activity.push({ at: iso(), label: "Understood the request", state: "done" });
   // Shown to the buyer: an earlier turn may still hold a colour code, and the model may repeat it.
   ext.requirements.notes = ext.requirements.notes.map(nameColourCodesInProse);
@@ -219,7 +257,7 @@ export async function addBuyerMessage(negId: string, content: string) {
   // Only what this message itself asks for: a model reading "caps" back out of the conversation would repeat the list.
   const kin = sameKindListed(content, [current]).length ? sameKindListed(content, others) : [];
   const choices = kin.length ? { kind: requestedItems(content)[0]?.phrase ?? pluralUnit(lp.product.unitLabel), products: kin.slice(0, 6).map((p) => ({ name: p.name, smallestPack: p.smallestPack ?? "" })), total: kin.length, sellerName: lp.org.name } : undefined;
-  if (unlisted && !unlisted.alsoListed) return replyUnlisted(negId, lp, seq, unlisted, { convo, injection, steps, activity, started, requirements: ext.requirements });
+  if (unlisted && !unlisted.alsoListed) return replyUnlisted(negId, lp, seq, unlisted, { convo, injection, steps, activity, started, requirements: ext.requirements, view });
 
   // Deterministic candidates. The model never touches this.
   const ctx = evaluationContext(lp);
@@ -241,8 +279,8 @@ export async function addBuyerMessage(negId: string, content: string) {
     publicExplanation: offers.length ? "Options priced within the seller's policy." : rejected[0]?.rules.length ? (toPublicCandidate(rejected[0]).publicReasons[0] ?? "No option cleared policy.") : "Waiting for more detail.",
   });
 
-  const catalog = await sellerCatalog(lp);
-  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: ext.requirements, offers: offers.map(toPublicCandidate), rejected: rejected.map(toPublicCandidate), injectionDetected: injection, turns: convo, facts: productFacts(lp), catalog, unlisted, choices });
+  const catalog = await sellerCatalog(lp, view);
+  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: ext.requirements, offers: offers.map(toPublicCandidate), rejected: rejected.map(toPublicCandidate), injectionDetected: injection, turns: convo, facts: productFacts(lp), catalog, unlisted, choices, view });
   steps.push(...composed.steps);
   composed.reply = nameColourCodesInProse(composed.reply);
   activity.push({ at: iso(), label: offers.length ? "Prepared offers" : "Prepared a reply", state: "done" });
@@ -266,21 +304,27 @@ export async function addBuyerMessage(negId: string, content: string) {
 export type Listed = ListedProduct & { id: string; slug: string };
 
 /** "10 sweatshirts for $86.30": the smallest list pack, as the buyer would see it. */
-function listedOf(p: Product): ListedProduct {
+function listedOf(p: Product, view?: PriceView): ListedProduct {
   const small = [...p.tiers].sort((a, b) => (a.includedUnits < b.includedUnits ? -1 : a.includedUnits > b.includedUnits ? 1 : 0))[0];
-  return { name: p.name, unitLabel: p.unitLabel, category: p.category, summary: p.summary, capabilities: p.capabilities, smallestPack: small ? `${small.includedUnits.toLocaleString()} ${unitFor(small.includedUnits, p.unitLabel)} for ${formatUsd(mulDivFloor(small.includedUnits, small.unitPrice.num, small.unitPrice.den))}` : "" };
+  return { name: p.name, unitLabel: p.unitLabel, category: p.category, summary: p.summary, capabilities: p.capabilities, smallestPack: small ? `${small.includedUnits.toLocaleString()} ${unitFor(small.includedUnits, p.unitLabel)} for ${tierTotalText(small, view)}` : "" };
+}
+
+/** A list tier's total in the buyer's currency: the seller's rupee price when it set one. */
+function tierTotalText(t: Product["tiers"][number], view?: PriceView): string {
+  const usdc = mulDivFloor(t.includedUnits, t.unitPrice.num, t.unitPrice.den);
+  return amountText(usdc, view, t.unitPriceInr !== undefined ? t.unitPriceInr * t.includedUnits : undefined);
 }
 
 /** Every product the seller lists, in one read: what "is this listed?" is checked against. */
-export async function listedProducts(lp: LoadedProduct): Promise<Listed[]> {
+export async function listedProducts(lp: LoadedProduct, view?: PriceView): Promise<Listed[]> {
   const rows = await db.select({ id: schema.products.id, slug: schema.products.slug, pub: schema.products.public }).from(schema.products).where(and(eq(schema.products.orgId, lp.org.id), eq(schema.products.active, true)));
-  return rows.map((r) => ({ ...listedOf(reviveProduct(r.pub as Record<string, unknown>)), id: r.id, slug: r.slug }));
+  return rows.map((r) => ({ ...listedOf(applyFx(reviveProduct(r.pub as Record<string, unknown>), lp.fx), view), id: r.id, slug: r.slug }));
 }
 
 /** No offers for an item the seller does not list: the reply says so plainly, names the closest listed products and offers a custom request. */
-async function replyUnlisted(negId: string, lp: LoadedProduct, seq: number, unlisted: UnlistedAsk, run: { convo: ConversationTurn[]; injection: boolean; steps: AgentStep[]; activity: { at: string; label: string; state: "done" | "working" }[]; started: number; requirements: Requirements }) {
+async function replyUnlisted(negId: string, lp: LoadedProduct, seq: number, unlisted: UnlistedAsk, run: { convo: ConversationTurn[]; injection: boolean; steps: AgentStep[]; activity: { at: string; label: string; state: "done" | "working" }[]; started: number; requirements: Requirements; view?: PriceView }) {
   const adapter = getAgentAdapter();
-  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: run.requirements, offers: [], rejected: [], injectionDetected: run.injection, turns: run.convo, facts: productFacts(lp), catalog: await sellerCatalog(lp), unlisted });
+  const composed = await adapter.composeReply({ productName: lp.product.name, unitLabel: lp.product.unitLabel, requirements: run.requirements, offers: [], rejected: [], injectionDetected: run.injection, turns: run.convo, facts: productFacts(lp), catalog: await sellerCatalog(lp, run.view), unlisted, view: run.view });
   run.steps.push(...composed.steps);
   composed.reply = nameColourCodesInProse(composed.reply);
   run.activity.push({ at: iso(), label: "Checked what the seller lists", state: "done" }, { at: iso(), label: "Prepared a reply", state: "done" });
@@ -334,16 +378,18 @@ export async function sendCustomRequest(negId: string, lp: LoadedProduct, seq: n
 /* ------------------------------------------------------------------ */
 
 /** The agent's answer to a counter: deterministic, from the engine's decision only. */
-export function counterReply(d: CounterDecision, askText: string, unitLabel: string): string {
-  if (d.decision === "approved") return `Yes, I can do ${d.candidate.units.toLocaleString()} ${unitFor(d.candidate.units, unitLabel)} for ${formatUsd(d.candidate.prepaidTotal)}. That is within what the seller allows, so you can accept it now.`;
+export function counterReply(d: CounterDecision, askText: string, unitLabel: string, view?: PriceView): string {
+  if (d.decision === "approved") return `Yes, I can do ${d.candidate.units.toLocaleString()} ${unitFor(d.candidate.units, unitLabel)} for ${offerTotalText(d.candidate, view)}. That is within what the seller allows, so you can accept it now.`;
   if (d.decision === "approval_required") return `${askText} is above what I can agree on my own. I have sent it to the seller for approval. You can still accept one of the standing options meanwhile.`;
   const reason = toPublicCandidate(d.candidate).publicReasons[0] ?? "it falls outside the seller's policy.";
-  return `I cannot do ${askText}: ${reason.toLowerCase()}${d.alternative ? ` What I can offer at that budget is ${d.alternative.units.toLocaleString()} ${pluralUnit(unitLabel)} for ${formatUsd(d.alternative.prepaidTotal)}.` : ""}`;
+  return `I cannot do ${askText}: ${reason.toLowerCase()}${d.alternative ? ` What I can offer at that budget is ${d.alternative.units.toLocaleString()} ${pluralUnit(unitLabel)} for ${offerTotalText(d.alternative, view)}.` : ""}`;
 }
 
-/** "50 tees for $400.00" or "60 tees for $480.00": how the buyer's counter reads in the transcript. */
-export function counterAskText(base: Candidate, ask: { targetTotal?: bigint; targetUnits?: bigint }, unitLabel: string): string {
-  return ask.targetTotal !== undefined ? `${base.units.toLocaleString()} ${unitFor(base.units, unitLabel)} for ${formatUsd(ask.targetTotal)}` : `${ask.targetUnits?.toLocaleString()} ${pluralUnit(unitLabel)} for ${formatUsd(base.prepaidTotal)}`;
+/** "50 tees for $400.00", "60 tees for $480.00" or "50 tees for ₹40,000 (≈ 431.59 USDC)": the buyer's counter in the transcript. */
+export function counterAskText(base: Candidate, ask: { targetTotal?: bigint; targetTotalInr?: bigint; targetUnits?: bigint }, unitLabel: string, view?: PriceView): string {
+  const units = `${base.units.toLocaleString()} ${unitFor(base.units, unitLabel)}`;
+  if (ask.targetTotalInr !== undefined && view?.fx) return `${units} for ${amountText(inrToUsdc(ask.targetTotalInr, view.fx), { ...view, currency: "INR" }, ask.targetTotalInr)}`;
+  return ask.targetTotal !== undefined ? `${units} for ${amountText(ask.targetTotal, view)}` : `${ask.targetUnits?.toLocaleString()} ${pluralUnit(unitLabel)} for ${offerTotalText(base, view)}`;
 }
 
 /** Public facts the agent may answer from: the product's terms and what was imported from the seller's website. */
@@ -361,17 +407,20 @@ export function productFacts(lp: { product: LoadedProduct["product"] }) {
   };
 }
 
-export async function counter(negId: string, candidateId: string, ask: { targetTotal?: bigint; targetUnits?: bigint }) {
+export async function counter(negId: string, candidateId: string, ask: { targetTotal?: bigint; targetTotalInr?: bigint; targetUnits?: bigint }, currency?: CurrencyCode) {
+  await setNegotiationCurrency(negId, currency);
   const { neg, turnRows, lp } = await loadNegotiation(negId);
   const candidates = (neg.candidates as Record<string, unknown>[]).map(reviveCandidate);
   const base = candidates.find((c) => c.candidateId === candidateId);
   if (!base) throw new HttpError(404, "candidate not found");
+  if (ask.targetTotalInr !== undefined && !lp.fx) throw new HttpError(409, "This seller has no rupee rate; counter with a USDC total instead.");
   const req = reviveRequirements(neg.requirements as Record<string, unknown>);
   const ctx = evaluationContext(lp);
   const d = evaluateCounteroffer(ctx, base, ask, req);
   const seq = (turnRows.at(-1)?.seq ?? 0) + 1;
+  const view = priceView(neg, lp);
 
-  const askText = counterAskText(base, ask, lp.product.unitLabel);
+  const askText = counterAskText(base, ask, lp.product.unitLabel, view);
   await db.insert(schema.turns).values({ id: id("turn"), negotiationId: negId, seq, role: "buyer", kind: "message", content: await sealText(lp.org.id, `Counteroffer: ${askText}.`) });
 
   let reply: string;
@@ -385,7 +434,7 @@ export async function counter(negId: string, candidateId: string, ask: { targetT
   if (d.decision === "rejected") {
     if (d.alternative) upsert(d.alternative);
   } else upsert(d.candidate);
-  reply = counterReply(d, askText, lp.product.unitLabel);
+  reply = counterReply(d, askText, lp.product.unitLabel, view);
 
   await db.insert(schema.decisions).values({
     id: id("dec"),
@@ -444,15 +493,19 @@ function iso() {
 }
 
 /** The seller's other listed products as public lines, so the agent can point a buyer to the right one. */
-async function sellerCatalog(lp: LoadedProduct): Promise<{ sellerName: string; products: { name: string; unitLabel: string; detail: string; smallestPack: string }[] } | undefined> {
+async function sellerCatalog(lp: LoadedProduct, view?: PriceView): Promise<{ sellerName: string; products: { name: string; unitLabel: string; detail: string; smallestPack: string }[] } | undefined> {
   const rows = await db.select({ id: schema.products.id }).from(schema.products).where(and(eq(schema.products.orgId, lp.org.id), eq(schema.products.active, true), ne(schema.products.id, lp.row.id)));
   if (!rows.length) return undefined;
   const products: { name: string; unitLabel: string; detail: string; smallestPack: string }[] = [];
+  // In rupees a tier reads "₹1,050 (≈ 11.33 USDC) each, ₹1,050 (≈ 11.33 USDC)"; in USD exactly as before.
+  const rupees = view?.currency === "INR" && view.fx ? view : undefined;
+  const each = (t: ReturnType<typeof publicProduct>["tiers"][number]) => (rupees && t.inr ? amountText(BigInt(t.prepaidTotal) / BigInt(t.includedUnits), rupees, t.inr.stated ? toPaise(t.inr.unitPrice) : undefined) : t.unitPriceUsd);
+  const total = (t: ReturnType<typeof publicProduct>["tiers"][number]) => (rupees && t.inr ? amountText(BigInt(t.prepaidTotal), rupees, t.inr.stated ? toPaise(t.inr.prepaidTotal) : undefined) : t.prepaidTotalUsd);
   for (const r of rows.slice(0, 8)) {
     const p = publicProduct(await loadProductById(r.id));
-    const tiers = p.tiers.map((t) => `${t.name}: ${Number(t.includedUnits).toLocaleString()} ${unitFor(t.includedUnits, p.unitLabel)} at ${t.unitPriceUsd} each, ${t.prepaidTotalUsd}`).join("; ");
+    const tiers = p.tiers.map((t) => `${t.name}: ${Number(t.includedUnits).toLocaleString()} ${unitFor(t.includedUnits, p.unitLabel)} at ${each(t)} each, ${total(t)}`).join("; ");
     const small = [...p.tiers].sort((a, b) => Number(a.includedUnits) - Number(b.includedUnits))[0];
-    products.push({ name: p.name, unitLabel: p.unitLabel, detail: `${p.name} (${p.summary ?? p.unitLabel}). List tiers: ${tiers}.`, smallestPack: small ? `${Number(small.includedUnits).toLocaleString()} ${unitFor(small.includedUnits, p.unitLabel)} for ${small.prepaidTotalUsd}` : "" });
+    products.push({ name: p.name, unitLabel: p.unitLabel, detail: `${p.name} (${p.summary ?? p.unitLabel}). List tiers: ${tiers}.`, smallestPack: small ? `${Number(small.includedUnits).toLocaleString()} ${unitFor(small.includedUnits, p.unitLabel)} for ${total(small)}` : "" });
   }
   return { sellerName: lp.org.name, products };
 }

@@ -4,7 +4,7 @@
  * public sandbox (sandbox.ts) runs the same ones for its dry runs, so a dry run accepts and refuses exactly what the
  * real API does. Messages and the order of the checks are the API's own.
  */
-import { cumulativeCharge, toMicro } from "@proteus/domain";
+import { cumulativeCharge, fromPaise, inrListPrice, toMicro, toPaise, type FxRate } from "@proteus/domain";
 import { HttpError } from "../lib/http";
 
 /* ---------------------------------------------------------------- products */
@@ -16,33 +16,76 @@ export interface ParsedTier {
   name: string;
   includedUnits: string;
   unitPrice: { num: string; den: string };
+  /** The seller's rupee price ("1050.00"), when the tier was priced in rupees; unitPrice is it at the seller's rate. */
+  unitPriceInr?: string;
   includes: string[];
 }
 
+/** The API's 409 when rupee amounts arrive and the seller has not chosen a rate. */
+export const RATE_REQUIRED = "Set an exchange rate first (Settings, Currency: a fixed rate with its date, or the daily reference rate); rupee prices are converted to USDC at it.";
+
 /**
  * Validates PATCH /products/:id/tiers. `pub` is the product's public listing: its current tier ids and the largest
- * number of units one deal may cover. Returns the new tiers sorted by quantity, or throws the API's 400.
+ * number of units one deal may cover. A tier is priced in dollars (unitPriceUsd) or in rupees (unitPriceInr, converted
+ * at `fx`, the rate the seller chose: the tier's rupee total converted once, rounded up to the cent). Returns the new tiers sorted by quantity, or throws.
  */
-export function parseTiers(pub: { tiers: { id: string }[]; maxUnitsPerDeal: string }, body: { tiers?: unknown }): ParsedTier[] {
-  const input = (Array.isArray(body?.tiers) ? body.tiers : []) as { name?: unknown; includedUnits?: unknown; unitPriceUsd?: unknown; includes?: unknown }[];
+export function parseTiers(pub: { tiers: { id: string }[]; maxUnitsPerDeal: string }, body: { tiers?: unknown }, fx?: FxRate): ParsedTier[] {
+  const input = (Array.isArray(body?.tiers) ? body.tiers : []) as { name?: unknown; includedUnits?: unknown; unitPriceUsd?: unknown; unitPriceInr?: unknown; includes?: unknown }[];
   if (input.length < 1 || input.length > MAX_TIERS) throw new HttpError(400, `between 1 and ${MAX_TIERS} tiers`);
   const seen = new Set<string>();
   const tiers = input.map((t, i) => {
     const name = typeof t.name === "string" ? t.name.trim().slice(0, 40) : "";
     const units = typeof t.includedUnits === "string" || typeof t.includedUnits === "number" ? String(t.includedUnits).trim() : "";
     const price = typeof t.unitPriceUsd === "string" || typeof t.unitPriceUsd === "number" ? String(t.unitPriceUsd).trim() : "";
+    const rupees = typeof t.unitPriceInr === "string" || typeof t.unitPriceInr === "number" ? String(t.unitPriceInr).trim() : "";
     if (!name) throw new HttpError(400, `tier ${i + 1}: a name is required`);
     if (!/^[1-9]\d{0,9}$/.test(units)) throw new HttpError(400, `tier ${i + 1}: units must be a whole number of at least 1`);
     if (BigInt(units) > BigInt(pub.maxUnitsPerDeal)) throw new HttpError(400, `tier ${i + 1}: more units than this product allows in one deal (${pub.maxUnitsPerDeal})`);
     if (seen.has(units)) throw new HttpError(400, `two tiers start at ${units} units; each tier needs its own quantity`);
     seen.add(units);
-    if (!/^\d{1,7}(\.\d{1,6})?$/.test(price) || toMicro(price) <= 0n) throw new HttpError(400, `tier ${i + 1}: enter a unit price in dollars, more than 0`);
+    if (price && rupees) throw new HttpError(400, `tier ${i + 1}: give unitPriceUsd or unitPriceInr, not both`);
+    let unitPrice: { num: bigint; den: bigint };
+    let unitPriceInr: string | undefined;
+    if (rupees) {
+      if (!/^\d{1,10}(\.\d{1,2})?$/.test(rupees) || toPaise(rupees) <= 0n) throw new HttpError(400, `tier ${i + 1}: enter a unit price in rupees, more than 0 (up to two decimals)`);
+      if (!fx) throw new HttpError(409, RATE_REQUIRED, { code: "rate_required" });
+      unitPrice = inrListPrice(toPaise(rupees), BigInt(units), fx);
+      unitPriceInr = fromPaise(toPaise(rupees));
+    } else {
+      if (!/^\d{1,7}(\.\d{1,6})?$/.test(price) || toMicro(price) <= 0n) throw new HttpError(400, `tier ${i + 1}: enter a unit price in dollars (unitPriceUsd) or rupees (unitPriceInr), more than 0`);
+      unitPrice = { num: toMicro(price), den: 1n };
+    }
     const includes = Array.isArray(t.includes) ? t.includes.filter((x): x is string => typeof x === "string" && x.trim() !== "").map((x) => x.trim().slice(0, 60)).slice(0, 8) : [];
     const tierId = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `tier-${i}`;
-    return { id: pub.tiers.some((x, j) => x.id === tierId && j !== i) ? `${tierId}-${i}` : tierId, name, includedUnits: units, unitPrice: { num: toMicro(price).toString(), den: "1" }, includes };
+    return { id: pub.tiers.some((x, j) => x.id === tierId && j !== i) ? `${tierId}-${i}` : tierId, name, includedUnits: units, unitPrice: { num: unitPrice.num.toString(), den: unitPrice.den.toString() }, ...(unitPriceInr ? { unitPriceInr } : {}), includes };
   });
   tiers.sort((a, b) => (BigInt(a.includedUnits) < BigInt(b.includedUnits) ? -1 : 1));
   return tiers;
+}
+
+/**
+ * Validates PATCH /products/:id/floor: the lowest price per unit in dollars (floorUnitPriceUsd) and/or rupees
+ * (floorUnitPriceInr, checked at the seller's current rate on every offer). Omitted keeps a floor; null removes it.
+ * Returns micro-USDC and paise.
+ */
+export function parseFloor(body: { floorUnitPriceUsd?: unknown; floorUnitPriceInr?: unknown }, fx?: FxRate): { usd?: bigint | null; inr?: bigint | null } {
+  const b = body ?? {};
+  if (b.floorUnitPriceUsd === undefined && b.floorUnitPriceInr === undefined) throw new HttpError(400, "send floorUnitPriceUsd and/or floorUnitPriceInr (null removes one)");
+  const out: { usd?: bigint | null; inr?: bigint | null } = {};
+  if (b.floorUnitPriceUsd === null) out.usd = null;
+  else if (b.floorUnitPriceUsd !== undefined) {
+    const v = String(b.floorUnitPriceUsd).trim();
+    if (!/^\d{1,7}(\.\d{1,6})?$/.test(v) || toMicro(v) <= 0n) throw new HttpError(400, "floorUnitPriceUsd: dollars per unit, more than 0");
+    out.usd = toMicro(v);
+  }
+  if (b.floorUnitPriceInr === null) out.inr = null;
+  else if (b.floorUnitPriceInr !== undefined) {
+    const v = String(b.floorUnitPriceInr).trim();
+    if (!/^\d{1,10}(\.\d{1,2})?$/.test(v) || toPaise(v) <= 0n) throw new HttpError(400, "floorUnitPriceInr: rupees per unit, more than 0 (up to two decimals)");
+    if (!fx) throw new HttpError(409, RATE_REQUIRED, { code: "rate_required" });
+    out.inr = toPaise(v);
+  }
+  return out;
 }
 
 /** Validates PATCH /products/:id/listing. */

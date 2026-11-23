@@ -81,7 +81,7 @@ describe("seller API sandbox", () => {
     expect(await err("POST", `/deals/${SANDBOX_IDS.deal}/deliveries`, { requestId: "big-1", units: 9, note: "too many" })).toEqual([409, "This would deliver 11 units; the agreement covers 10."]);
     expect(await err("POST", `/deals/${SANDBOX_IDS.closedDeal}/deliveries`, { requestId: "late-1", units: 1, note: "late" })).toEqual([409, "deal is closed; deliveries can be recorded only on a funded deal"]);
     expect(await err("POST", `/deals/${SANDBOX_IDS.deal}/order-updates`, { status: "delayed" })).toEqual([400, "tell the buyer why and the new expected date"]);
-    expect(await err("PATCH", `/products/${SANDBOX_IDS.product}/tiers`, { tiers: [{ name: "A", includedUnits: "1", unitPriceUsd: "0" }] })).toEqual([400, "tier 1: enter a unit price in dollars, more than 0"]);
+    expect(await err("PATCH", `/products/${SANDBOX_IDS.product}/tiers`, { tiers: [{ name: "A", includedUnits: "1", unitPriceUsd: "0" }] })).toEqual([400, "tier 1: enter a unit price in dollars (unitPriceUsd) or rupees (unitPriceInr), more than 0"]);
     expect(await err("PATCH", `/products/${SANDBOX_IDS.product}/listing`, { active: "no" })).toEqual([400, "active must be true or false"]);
 
     const tiers = await body(await call("PATCH", `/products/${SANDBOX_IDS.product}/tiers`, { tiers: [{ name: "Bulk", includedUnits: "100", unitPriceUsd: "6.40" }, { name: "Starter", includedUnits: "1", unitPriceUsd: "6.60" }] }));

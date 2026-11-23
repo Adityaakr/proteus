@@ -17,6 +17,9 @@ import { StatusTag } from "../ui/StatusTag";
 import { Notice } from "../ui/misc";
 import { api, errorMessage, qk, type Negotiation, type Offer, type Turn } from "../lib/api";
 import { OfferCard } from "./OfferCard";
+import { CurrencySwitch, DualPrice } from "../ui/CurrencySwitch";
+import { offerTotal, priceText, useBuyerCurrency } from "../lib/currency";
+import { fromPaise, type CurrencyCode } from "@proteus/domain";
 import { ErrorState, FLOW_STAGES, fmtUnits, prettyIntegration } from "./common";
 import n from "./negotiate.module.css";
 import { Message, MessageAvatar, MessageBubble, MessageBubbleCollapsible, MessageBubbleContent, MessageContent, MessageFooter, MessageGroup, MessageHeader } from "../agentic/MessageBubble";
@@ -35,6 +38,8 @@ export default function Negotiate() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const negQ = useQuery({ queryKey: qk.negotiation(id), queryFn: () => api.negotiation(id) });
+  // USD or INR: the buyer's choice for this seller, defaulting to the seller's display currency. Payment stays USDC.
+  const buyerCur = useBuyerCurrency(negQ.data?.sellerSlug ?? "", negQ.data?.currency ? { display: negQ.data.currency.display, rate: negQ.data.currency.rate } : null);
   const { wallet } = useAuth();
   // Started from a store page: the conversation covers every product the seller lists.
   const chain = storeChain(id);
@@ -89,11 +94,11 @@ export default function Negotiate() {
           slug = r.productSlug;
         }
         if (slug !== cur.productSlug) {
-          const next = await startStoreChat(chain.seller, slug, wallet?.address, [...chain.prior, id]);
-          return { n: await api.sendMessage(next.id, content), movedTo: next.id };
+          const next = await startStoreChat(chain.seller, slug, wallet?.address, [...chain.prior, id], "product", buyerCur.currency);
+          return { n: await api.sendMessage(next.id, content, buyerCur.currency), movedTo: next.id };
         }
       }
-      return { n: await api.sendMessage(id, content) };
+      return { n: await api.sendMessage(id, content, buyerCur.currency) };
     },
     onMutate: ({ content }) => {
       // The message leaves the composer the moment it is sent; it comes back only if the send fails.
@@ -118,7 +123,7 @@ export default function Negotiate() {
   });
 
   const counter = useMutation({
-    mutationFn: (v: { offer: Offer; ask: { targetTotal?: string; targetUnits?: string } }) => api.counter(id, { candidateId: v.offer.candidateId, ...v.ask }),
+    mutationFn: (v: { offer: Offer; ask: { targetTotal?: string; targetTotalInr?: string; targetUnits?: string } }) => api.counter(id, { candidateId: v.offer.candidateId, ...v.ask, currency: buyerCur.currency }),
     onMutate: (v) => {
       setCounteringId(v.offer.candidateId);
       runSteps(COUNTER_STEPS);
@@ -271,6 +276,7 @@ export default function Negotiate() {
         </div>
         <div className={n.titleRow}>
           <h1 className={n.title}>{chain ? `${possessive(sellerName)} deal desk` : productName}</h1>
+          {buyerCur.available && <CurrencySwitch value={buyerCur.currency} onChange={buyerCur.setCurrency} />}
           <span className={`hide-phone ${n.steps}`} aria-label="Deal progress">
             {FLOW_STAGES.map((st, i) => (
               <span key={st} className={n.steps}>
@@ -303,7 +309,7 @@ export default function Negotiate() {
                         x.kind === "marker" ? (
                           <p key={x.key} className={n.topic}>Now on: {x.scope === "all" ? "All products" : name}</p>
                         ) : (
-                          <TurnView key={x.turn.id} turn={x.turn} grouped={i > 0 && all[i - 1]!.kind === "turn" && (all[i - 1] as { turn: Turn }).turn.role === x.turn.role && x.turn.role !== "system"} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} />
+                          <TurnView key={x.turn.id} turn={x.turn} grouped={i > 0 && all[i - 1]!.kind === "turn" && (all[i - 1] as { turn: Turn }).turn.role === x.turn.role && x.turn.role !== "system"} agentName={agentName} sellerName={sellerName} brand={neg.sellerBrand} currency={buyerCur.currency} />
                         ),
                       )}
                     </div>
@@ -331,6 +337,7 @@ export default function Negotiate() {
                       brand={neg.sellerBrand}
                       onPick={x.turn.id === lastAgentId && !closed ? pick : undefined}
                       pickBusy={working}
+                      currency={buyerCur.currency}
                     />
                   ),
                 )}
@@ -429,6 +436,7 @@ export default function Negotiate() {
                     <OfferCard
                       key={o.candidateId}
                       offer={o}
+                      currency={buyerCur.currency}
                       unitLabel={neg.unitLabel}
                       termDays={neg.termDays}
                       top={o.candidateId === topId}
@@ -449,7 +457,7 @@ export default function Negotiate() {
               <dt>Volume</dt>
               <dd>{req.desiredUnits ? `${fmtUnits(req.desiredUnits)} per term` : <span className={n.muted}>Not stated yet</span>}</dd>
               <dt>Budget</dt>
-              <dd>{req.budget ? <Money micro={req.budget} digits={0} /> : <span className={n.muted}>Not stated yet</span>}</dd>
+              <dd>{req.budget ? (buyerCur.currency === "INR" ? <DualPrice {...priceText(req.budget, req.budgetInr ? { amount: fromPaise(BigInt(req.budgetInr)), stated: true } : null, "INR", buyerCur.rate)} /> : <Money micro={req.budget} digits={0} />) : <span className={n.muted}>Not stated yet</span>}</dd>
               <dt>Integrations</dt>
               <dd>{req.integrations.length ? req.integrations.map(prettyIntegration).join(", ") : <span className={n.muted}>None mentioned</span>}</dd>
             </dl>
@@ -490,7 +498,7 @@ function prettyName(slug: string) {
   return v ? v[0]!.toUpperCase() + v.slice(1) : slug;
 }
 
-function TurnView({ turn, grouped = false, isNew = false, agentName, sellerName, brand, onPick, pickBusy }: { turn: Turn; grouped?: boolean; isNew?: boolean; agentName: string; sellerName: string; brand?: SellerBrand; onPick?: (slug: string) => void; pickBusy?: boolean }) {
+function TurnView({ turn, grouped = false, isNew = false, agentName, sellerName, brand, onPick, pickBusy, currency = "USD" }: { turn: Turn; grouped?: boolean; isNew?: boolean; agentName: string; sellerName: string; brand?: SellerBrand; onPick?: (slug: string) => void; pickBusy?: boolean; currency?: CurrencyCode }) {
   const buyer = turn.role === "buyer";
   const system = turn.role === "system";
   // Only clamp genuinely long prose; replies that carry offers stay fully visible.
@@ -518,7 +526,7 @@ function TurnView({ turn, grouped = false, isNew = false, agentName, sellerName,
                 label={turn.decision.decision === "approved" ? "Counter accepted" : turn.decision.decision === "approval_required" ? "Needs seller approval" : "Counter declined"}
               />
               {turn.decision.alternative && (
-                <span>Alternative: {fmtUnits(turn.decision.alternative.units)} for <Money usd={turn.decision.alternative.prepaidTotalUsd} /></span>
+                <span>Alternative: {fmtUnits(turn.decision.alternative.units)} for <DualPrice {...offerTotal(turn.decision.alternative, currency)} /></span>
               )}
             </MessageFooter>
           )}
