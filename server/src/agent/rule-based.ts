@@ -1,5 +1,5 @@
 import { amountText, formatUnitPrice, formatUsd, isInrAmount, offerTotalText, offerUnitText, toMicro, toPaise, type Requirements, pluralUnit, unitFor } from "@proteus/domain";
-import type { AgentAdapter, AgentStep, ComposeInput, ExtractInput } from "./adapter";
+import type { AgentAdapter, AgentStep, ComposeInput, ExtractInput, LatestBudget } from "./adapter";
 import { choiceLine, detectInjection, unlistedLines } from "./adapter";
 import { requestedItems } from "./unlisted";
 
@@ -19,30 +19,43 @@ function now() {
   return new Date().toISOString();
 }
 
+// Budget: "$1,500", "$1500/month", "budget is 1500 usd"
+const budgetRe = /\$\s?([\d,]+(?:\.\d+)?)/;
+const budgetRe2 = /budget (?:is|of)?\s*([\d,]+)\s*(?:usd|usdc|dollars)/i;
+// Rupees: "₹40,000", "Rs 40000", "40,000 INR", "budget of 40000 rupees". Converted to USDC by the negotiation at the seller's rate.
+const rupeeRe = /(?:₹|\brs\.?|\binr)\s?([\d,]+(?:\.\d{1,2})?)/i;
+const rupeeRe2 = /\b([\d,]+(?:\.\d{1,2})?)\s*(?:inr|rupees?|rs\b)/i;
+
+const buyerTurnsOf = (turns: ExtractInput["turns"]) => turns.filter((t) => t.role === "buyer" && !t.content.startsWith("Counteroffer:"));
+
+/** The budget the buyer's latest message states, in dollars (read first) or in rupees; undefined when it states none. */
+export function latestBudget(turns: ExtractInput["turns"]): LatestBudget | undefined {
+  const latest = buyerTurnsOf(turns).at(-1)?.content ?? "";
+  const dollars = latest.match(budgetRe) ?? latest.match(budgetRe2);
+  if (dollars?.[1]) return { currency: "USD", budget: toMicro(dollars[1].replace(/,/g, "")) };
+  const rupees = latest.match(rupeeRe) ?? latest.match(rupeeRe2);
+  if (rupees?.[1] && isInrAmount(rupees[1])) return { currency: "INR", budgetInr: toPaise(rupees[1]) };
+  return undefined;
+}
+
 /**
  * Deterministic requirement extraction. Good enough for the demo flows and the fallback when no
  * model key is configured. Numbers are parsed, never invented.
  */
 export function extractRuleBased(input: ExtractInput): Requirements {
-  const buyerTurns = input.turns.filter((t) => t.role === "buyer" && !t.content.startsWith("Counteroffer:"));
+  const buyerTurns = buyerTurnsOf(input.turns);
   // The latest buyer message wins for numbers; earlier turns only fill gaps.
   const latest = buyerTurns.at(-1)?.content ?? "";
   const text = buyerTurns.map((t) => t.content).join("\n");
   const req: Requirements = { ...input.prior, integrations: [...(input.prior.integrations ?? [])], notes: [...(input.prior.notes ?? [])], openQuestions: [] };
 
-  // Budget: "$1,500", "$1500/month", "budget is 1500 usd"
-  const budgetRe = /\$\s?([\d,]+(?:\.\d+)?)/;
-  const budgetRe2 = /budget (?:is|of)?\s*([\d,]+)\s*(?:usd|usdc|dollars)/i;
-  // Rupees: "₹40,000", "Rs 40000", "40,000 INR", "budget of 40000 rupees". Converted to USDC by the negotiation at the seller's rate.
-  const rupeeRe = /(?:₹|\brs\.?|\binr)\s?([\d,]+(?:\.\d{1,2})?)/i;
-  const rupeeRe2 = /\b([\d,]+(?:\.\d{1,2})?)\s*(?:inr|rupees?|rs\b)/i;
-  const rupees = latest.match(rupeeRe) ?? latest.match(rupeeRe2);
-  const budget = latest.match(budgetRe) ?? latest.match(budgetRe2) ?? (req.budget || rupees ? null : text.match(budgetRe) ?? text.match(budgetRe2));
-  if (budget?.[1]) {
-    req.budget = toMicro(budget[1].replace(/,/g, ""));
+  const stated = latestBudget(input.turns);
+  const earlier = stated || req.budget ? null : text.match(budgetRe) ?? text.match(budgetRe2);
+  if (stated?.currency === "USD" || earlier?.[1]) {
+    req.budget = stated?.currency === "USD" ? stated.budget : toMicro(earlier![1]!.replace(/,/g, ""));
     delete req.budgetInr;
-  } else if (rupees?.[1] && isInrAmount(rupees[1])) {
-    req.budgetInr = toPaise(rupees[1]);
+  } else if (stated?.currency === "INR") {
+    req.budgetInr = stated.budgetInr;
     // The USDC budget is set from it once the seller's rate is known; a dollar budget from earlier no longer applies.
     req.budget = undefined;
   }

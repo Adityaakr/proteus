@@ -1,7 +1,7 @@
 import { formatUsd, offerTotalText, type Requirements, pluralUnit } from "@proteus/domain";
 import { askClaude, CLAUDE_FOR } from "../lib/claude";
 import { acceptConsult, budgetOf, BUDGET_INR_HELP, BUDGET_USD_HELP, RUPEE_RULE, viewFigures, CONSULT_SCHEMA, CONSULT_SYSTEM, consultContent, knowledgeFigures, knowledgeLines, unlistedLines, type AgentAdapter, type AgentStep, type ComposeInput, type ConsultInput, type ExtractInput } from "./adapter";
-import { composeRuleBased, extractRuleBased } from "./rule-based";
+import { composeRuleBased, extractRuleBased, latestBudget } from "./rule-based";
 import { requestedItems } from "./unlisted";
 
 /**
@@ -47,7 +47,7 @@ export function createAnthropicAdapter(): AgentAdapter {
         const o = res.json as Record<string, unknown>;
         const requirements: Requirements = {
           desiredUnits: typeof o.desiredUnits === "number" && o.desiredUnits > 0 ? BigInt(Math.floor(o.desiredUnits)) : baseline.desiredUnits,
-          ...budgetOf(o, baseline, input.prior),
+          ...budgetOf(o, baseline, latestBudget(input.turns)),
           integrations: Array.isArray(o.integrations) ? (o.integrations as string[]).map((s) => s.toLowerCase()) : baseline.integrations,
           notes: Array.isArray(o.notes) ? (o.notes as string[]).slice(0, 6) : baseline.notes,
           openQuestions: Array.isArray(o.openQuestions) ? (o.openQuestions as string[]).slice(0, 1) : baseline.openQuestions,

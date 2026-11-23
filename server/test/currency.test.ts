@@ -11,7 +11,7 @@ import { parseFloor, parseTiers } from "../src/services/seller-api-rules";
 import { buyerCurrency, counterAskText, counterReply, toOffer, withRupeeBudget } from "../src/services/negotiation";
 import { buildPublicTerms, staleReason } from "../src/services/quotes";
 import { tierInr, type LoadedProduct } from "../src/services/catalog";
-import { composeRuleBased, extractRuleBased } from "../src/agent/rule-based";
+import { composeRuleBased, extractRuleBased, latestBudget } from "../src/agent/rule-based";
 import { budgetOf, viewFigures, type ComposeInput } from "../src/agent/adapter";
 
 const rate = (perUsd: string, asOf = "2026-11-20", kind: FxRate["kind"] = "fixed"): FxRate => ({ currency: "INR", perUsd, asOf, kind, source: kind === "fixed" ? FIXED_SOURCE : "European Central Bank reference rate" });
@@ -137,6 +137,7 @@ describe("the buyer's choice", () => {
 
 describe("the agent quotes in the buyer's currency", () => {
   const inr = { currency: "INR" as const, fx: R };
+  const ext = (prior: Requirements, turns: { role: "buyer"; content: string }[]) => extractRuleBased({ productName: "Hoodie", unitLabel: "hoodie", capabilities: [], supportedIntegrations: [], starters: [], prior, turns });
   it("writes counters in rupees with the USDC beside them", () => {
     const base = offerAt(R);
     const ask = { targetTotalInr: toPaise("43000") };
@@ -158,25 +159,38 @@ describe("the agent quotes in the buyer's currency", () => {
     expect(usd.budgetInr).toBeUndefined();
   });
   it("never takes a rupee figure for dollars from a model", () => {
-    const baseline = { ...noReq, budgetInr: toPaise("45000") };
-    expect(budgetOf({ budgetUsd: 45000 }, baseline, noReq)).toEqual({ budget: undefined, budgetInr: toPaise("45000") });
-    expect(budgetOf({ budgetInr: 40000 }, noReq, noReq)).toEqual({ budget: undefined, budgetInr: toPaise("40000") });
-    expect(budgetOf({ budgetUsd: 500 }, noReq, noReq)).toEqual({ budget: toMicro("500") });
+    const turns = [{ role: "buyer" as const, content: "50 hoodies, budget ₹45,000" }];
+    expect(budgetOf({ budgetUsd: 45000 }, ext(noReq, turns), latestBudget(turns))).toEqual({ budget: undefined, budgetInr: toPaise("45000") });
+    expect(budgetOf({ budgetInr: 40000 }, noReq, undefined)).toEqual({ budget: undefined, budgetInr: toPaise("40000") });
+    expect(budgetOf({ budgetUsd: 500 }, noReq, undefined)).toEqual({ budget: toMicro("500") });
   });
   it("keeps a fresh dollar budget over a rupee budget the model recalls from earlier turns", () => {
-    const prior = withRupeeBudget(extractRuleBased({ productName: "Hoodie", unitLabel: "hoodie", capabilities: [], supportedIntegrations: [], starters: [], prior: noReq, turns: [{ role: "buyer", content: "budget ₹40,000" }] }), { fx: R });
-    const baseline = extractRuleBased({ productName: "Hoodie", unitLabel: "hoodie", capabilities: [], supportedIntegrations: [], starters: [], prior, turns: [{ role: "buyer", content: "budget ₹40,000" }, { role: "buyer", content: "actually my budget is $600" }] });
-    expect(budgetOf({ budgetUsd: 600, budgetInr: 40000 }, baseline, prior)).toEqual({ budget: toMicro("600") });
+    const first = [{ role: "buyer" as const, content: "budget ₹40,000" }];
+    const prior = withRupeeBudget(ext(noReq, first), { fx: R });
+    const turns = [...first, { role: "buyer" as const, content: "actually my budget is $600" }];
+    expect(budgetOf({ budgetUsd: 600, budgetInr: 40000 }, ext(prior, turns), latestBudget(turns))).toEqual({ budget: toMicro("600") });
+  });
+  it("keeps a restated dollar budget over a rupee budget the model recalls", () => {
+    const first = [{ role: "buyer" as const, content: "budget ₹40,000" }];
+    const second = [...first, { role: "buyer" as const, content: "actually my budget is $600" }];
+    const prior = ext(withRupeeBudget(ext(noReq, first), { fx: R }), second);
+    const turns = [...second, { role: "buyer" as const, content: "yes, $600 is my max, 50 hoodies" }];
+    expect(budgetOf({ budgetUsd: null, budgetInr: 40000 }, ext(prior, turns), latestBudget(turns))).toEqual({ budget: toMicro("600") });
   });
   it("takes a rupee budget the model reads from the latest message over a dollar budget carried from earlier", () => {
-    const ext = (prior: Requirements, turns: { role: "buyer"; content: string }[]) => extractRuleBased({ productName: "Hoodie", unitLabel: "hoodie", capabilities: [], supportedIntegrations: [], starters: [], prior, turns });
-    const prior = ext(noReq, [{ role: "buyer", content: "budget $600" }]);
-    const turns = [{ role: "buyer" as const, content: "budget $600" }, { role: "buyer" as const, content: "actually make it 1.5 lakh rupees" }];
+    const first = [{ role: "buyer" as const, content: "budget $600" }];
+    const prior = ext(noReq, first);
+    const turns = [...first, { role: "buyer" as const, content: "actually make it 40k rupees" }];
     const baseline = ext(prior, turns);
     expect(baseline.budget).toBe(toMicro("600"));
-    expect(budgetOf({ budgetUsd: null, budgetInr: 150000 }, baseline, prior)).toEqual({ budget: undefined, budgetInr: toPaise("150000") });
+    expect(latestBudget(turns)).toBeUndefined();
+    expect(budgetOf({ budgetUsd: null, budgetInr: 40000 }, baseline, latestBudget(turns))).toEqual({ budget: undefined, budgetInr: toPaise("40000") });
     // Nothing new stated: the carried dollar budget stands.
-    expect(budgetOf({ budgetUsd: null, budgetInr: null }, baseline, prior)).toEqual({ budget: toMicro("600") });
+    expect(budgetOf({ budgetUsd: null, budgetInr: null }, baseline, latestBudget(turns))).toEqual({ budget: toMicro("600") });
+  });
+  it("takes a rupee budget the latest message states over the model's dollar budget", () => {
+    const turns = [{ role: "buyer" as const, content: "budget $600" }, { role: "buyer" as const, content: "50 hoodies, my budget is ₹45,000" }];
+    expect(budgetOf({ budgetUsd: 600 }, ext(ext(noReq, turns.slice(0, 1)), turns), latestBudget(turns))).toEqual({ budget: undefined, budgetInr: toPaise("45000") });
   });
   it("keeps the exact-rupee offer for a rupee budget and points nowhere else", () => {
     const fx = { product: applyFx(product, R), cost, policy, now: Date.now(), fx: R };

@@ -58,16 +58,17 @@ export interface ComposeInput {
 export const BUDGET_USD_HELP = "Budget in US dollars (or USDC) if the buyer stated it in dollars, else null. A budget in rupees (₹, Rs, INR) goes in budgetInr, never here.";
 export const BUDGET_INR_HELP = "Budget in Indian rupees if the buyer stated it in rupees (₹, Rs, INR), else null.";
 
+/** A budget the buyer's latest message itself states, as the deterministic parse reads it. */
+export type LatestBudget = { currency: "USD"; budget: bigint } | { currency: "INR"; budgetInr: bigint };
+
 /**
- * The budget fields of a model's extraction. A budget the buyer's latest message stated, as the deterministic parse read
- * it (a dollar budget, then a rupee one), wins; then the model's rupee budget; then its dollar budget; else the budget
- * carried from earlier turns. `prior` is what the parse started from, so a carried budget is not taken for a fresh one.
- * The negotiation converts rupees at the seller's rate.
+ * The budget fields of a model's extraction. A budget the buyer's latest message stated (`latest`, the deterministic
+ * parse) wins; then the model's rupee budget; then its dollar budget; else the budget carried from earlier turns. The
+ * negotiation converts rupees at the seller's rate.
  */
-export function budgetOf(o: { budgetUsd?: unknown; budgetInr?: unknown }, baseline: Requirements, prior: Requirements): Pick<Requirements, "budget" | "budgetInr"> {
-  const freshDollars = baseline.budget !== undefined && baseline.budgetInr === undefined && (baseline.budget !== prior.budget || prior.budgetInr !== undefined);
-  if (freshDollars) return { budget: baseline.budget };
-  if (baseline.budgetInr !== undefined && baseline.budget === undefined) return { budget: undefined, budgetInr: baseline.budgetInr };
+export function budgetOf(o: { budgetUsd?: unknown; budgetInr?: unknown }, baseline: Requirements, latest: LatestBudget | undefined): Pick<Requirements, "budget" | "budgetInr"> {
+  if (latest?.currency === "USD") return { budget: latest.budget };
+  if (latest?.currency === "INR") return { budget: undefined, budgetInr: latest.budgetInr };
   if (typeof o.budgetInr === "number" && o.budgetInr > 0 && isInrAmount(o.budgetInr.toFixed(2))) return { budget: undefined, budgetInr: toPaise(o.budgetInr.toFixed(2)) };
   if (typeof o.budgetUsd === "number" && o.budgetUsd > 0) return { budget: toMicro(o.budgetUsd.toFixed(2)) };
   return { budget: baseline.budget, ...(baseline.budgetInr !== undefined ? { budgetInr: baseline.budgetInr } : {}) };
