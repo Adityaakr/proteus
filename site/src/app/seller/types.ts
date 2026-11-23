@@ -79,6 +79,10 @@ export interface ProductWithPrivate {
   id: string;
   slug: string;
   name: string;
+  /** One-line public summary, when the seller wrote or imported one. */
+  summary?: string;
+  /** Market or website category, e.g. "support" or "Apparel". */
+  category?: string;
   /** Listed in the market. Hidden products keep serving existing deals. */
   active?: boolean;
   /** Service adapter key from the API ("http" or "order-support"). */
@@ -138,6 +142,7 @@ export interface NegotiationSummary {
   publicId: string;
   productName: string;
   buyerLabel: string;
+  buyerAddress?: string;
   status: "open" | "quoted" | "accepted" | "closed";
   updatedAt: string;
   turns: number;

@@ -1,3 +1,4 @@
+import { listQuery } from "../services/list-search";
 import { Hono } from "hono";
 import type { Address, Hex } from "viem";
 import { z } from "zod";
@@ -45,8 +46,8 @@ meRoutes.patch("/me/wallets/primary", async (c) => {
   return json(c, await setPrimaryWallet(auth(c).userId, b.address as Address));
 });
 
-meRoutes.get("/me/negotiations", async (c) => json(c, await myNegotiations(auth(c).userId)));
-meRoutes.get("/me/deals", async (c) => json(c, await myDeals(auth(c).userId)));
+meRoutes.get("/me/negotiations", async (c) => json(c, await myNegotiations(auth(c).userId, listQuery(c.req.query("q")))));
+meRoutes.get("/me/deals", async (c) => json(c, await myDeals(auth(c).userId, listQuery(c.req.query("q")))));
 meRoutes.get("/me/activity", async (c) => json(c, await myActivity(auth(c).userId)));
 
 const BrandBody = z.object({ logoUrl: z.string().max(100_000).optional(), markUrl: z.string().max(100_000).optional(), tagline: z.string().max(140).optional(), category: z.string().max(32).optional(), website: z.string().max(200).optional(), accent: z.string().max(7).optional(), socials: z.object({ x: z.string().max(200).optional(), instagram: z.string().max(200).optional(), farcaster: z.string().max(200).optional() }).optional() });

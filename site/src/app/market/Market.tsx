@@ -1,10 +1,13 @@
 import { SocialLinks } from "../ui/SocialLinks";
 import { defaultNetwork } from "@proteus/domain";
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useMemo } from "react";
 import { AgentBadge, RatingValue } from "./OnArc";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, Search, Store } from "lucide-react";
+import { ArrowRight, BadgeCheck, Store } from "lucide-react";
+import { matchesSearch, searchTerms } from "@proteus/domain";
+import { FilterChips, NoMatches, SearchBar } from "../ui/SearchBar";
+import { useSearchParam } from "../lib/useSearchParam";
 import { motion } from "framer-motion";
 import { T_DEFAULT } from "../../lib/motion";
 import { AppShell } from "../layouts/AppShell";
@@ -21,11 +24,13 @@ const CATEGORY_ORDER = ["support", "voice", "infra", "devtools", "treasury", "pa
 export default function Market() {
   const { sellerSlug } = useParams();
   const q = useQuery({ queryKey: qk.marketSellers, queryFn: api.marketSellers });
-  const [query, setQuery] = useState("");
-  const [cat, setCat] = useState<string | null>(null);
-  const deferred = useDeferredValue(query.trim().toLowerCase());
+  const [query, setQuery] = useSearchParam("q");
+  const [catParam, setCat] = useSearchParam("category");
+  const cat = catParam || null;
+  const deferred = useDeferredValue(query);
 
   const sellers = useMemo(() => {
+    const terms = searchTerms(deferred);
     const all = (q.data ?? []).filter((s) => !sellerSlug || s.slug === sellerSlug);
     return all
       .map((s) => ({
@@ -33,9 +38,7 @@ export default function Market() {
         products: s.products.filter((p) => {
           const c = p.category ?? s.brand.category ?? "other";
           if (cat && c !== cat) return false;
-          if (!deferred) return true;
-          const hay = [s.name, s.brand.tagline, p.name, p.summary, ...p.capabilities].filter(Boolean).join(" ").toLowerCase();
-          return hay.includes(deferred);
+          return matchesSearch([s.name, s.slug, s.brand.tagline, categoryLabel(c), p.name, p.slug, p.summary, p.capabilities], terms);
         }),
       }))
       .filter((s) => s.products.length > 0);
@@ -48,7 +51,10 @@ export default function Market() {
     return CATEGORY_ORDER.filter((c) => present.has(c));
   }, [q.data]);
 
-  const productCount = (q.data ?? []).reduce((n, s) => n + s.products.length, 0);
+  const pool = (q.data ?? []).filter((s) => !sellerSlug || s.slug === sellerSlug);
+  const productCount = pool.reduce((n, s) => n + s.products.length, 0);
+  const shownCount = sellers.reduce((n, s) => n + s.products.length, 0);
+  const clear = () => { setQuery(""); setCat(""); };
 
   return (
     <AppShell title="Market">
@@ -57,20 +63,16 @@ export default function Market() {
         lede="AI services from businesses that publish their terms. Negotiate an escrowed deal with the seller's agent, or pay per call. Every seller runs its own service and is paid only for delivered, countersigned usage."
       />
 
-      <div className={m.toolbar} role="search">
-        <label className={m.search}>
-          <Search size={16} strokeWidth={2} aria-hidden />
-          <input type="search" placeholder={productCount ? `Search ${productCount} services` : "Search services"} value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search the market" />
-        </label>
-        <div className={m.cats} role="group" aria-label="Category">
-          <button type="button" className={`${m.cat} ${cat === null ? m.catOn : ""}`} onClick={() => setCat(null)} aria-pressed={cat === null}>All</button>
-          {categories.map((c) => (
-            <button key={c} type="button" className={`${m.cat} ${cat === c ? m.catOn : ""}`} onClick={() => setCat(cat === c ? null : c)} aria-pressed={cat === c}>
-              {categoryLabel(c)}
-            </button>
-          ))}
-        </div>
-      </div>
+      <SearchBar
+        value={query}
+        onChange={setQuery}
+        label="Search the market"
+        placeholder={productCount ? `Search ${productCount} services by name, seller or capability` : "Search services"}
+        shown={q.data ? shownCount : undefined}
+        total={productCount}
+        noun="services"
+        filters={categories.length > 1 && <FilterChips label="Category" value={cat ?? ""} onChange={setCat} options={[{ value: "", label: "All" }, ...categories.map((c) => ({ value: c, label: categoryLabel(c) }))]} />}
+      />
 
       {sellers.some((s) => s.label !== "live") && <MarketNote sellers={q.data ?? []} />}
       {q.isLoading ? (
@@ -80,8 +82,10 @@ export default function Market() {
         </div>
       ) : q.error ? (
         <ErrorState error={q.error} onRetry={() => q.refetch()} title="We could not load the market" />
+      ) : sellers.length === 0 && (query || cat) ? (
+        <NoMatches query={query} noun="services" filtered={Boolean(cat)} onClear={clear} />
       ) : sellers.length === 0 ? (
-        <EmptyState icon={<Store size={20} strokeWidth={1.75} />} title={deferred || cat ? "Nothing matches" : "No sellers listed yet"} description={deferred || cat ? "Try another word or clear the category." : "Sellers appear here once they publish a product."} />
+        <EmptyState icon={<Store size={20} strokeWidth={1.75} />} title="No sellers listed yet" description="Sellers appear here once they publish a product." />
       ) : (
         <div className={m.sellerList}>
           {sellers.map((s, i) => <SellerCard key={s.slug} s={s} i={i} half={halves[i]} />)}

@@ -250,7 +250,7 @@ export const negotiations = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("negotiations_org").on(t.orgId)],
+  (t) => [index("negotiations_org_updated").on(t.orgId, t.updatedAt)],
 );
 
 export const turns = pgTable(
@@ -373,7 +373,7 @@ export const deals = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("deals_org").on(t.orgId), index("deals_buyer").on(t.buyerAddress)],
+  (t) => [index("deals_org_created").on(t.orgId, t.createdAt), index("deals_buyer").on(t.buyerAddress)],
 );
 
 /** Every metered service request. Unique per (deal, requestId): retries never double charge. */

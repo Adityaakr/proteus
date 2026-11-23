@@ -1,5 +1,10 @@
+import { useDeferredValue } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { filterBySearch } from "@proteus/domain";
+import { NoMatches, SearchBar } from "../ui/SearchBar";
+import { statusLabel } from "../ui/StatusTag";
+import { useDebounced, useSearchParam } from "../lib/useSearchParam";
 import { MessagesSquare } from "lucide-react";
 import { AppShell } from "../layouts/AppShell";
 import { ActionButton } from "../ui/ActionButton";
@@ -16,7 +21,12 @@ import { ErrorState, PageHeader, fmtDateTime, prettySlug } from "./common";
 
 export default function Negotiations() {
   const navigate = useNavigate();
-  const q = useQuery({ queryKey: qk.meNegotiations, queryFn: api.meNegotiations, retry: false });
+  const [query, setQuery] = useSearchParam("q");
+  const server = useDebounced(query).trim();
+  const typed = useDeferredValue(query);
+  const q = useQuery({ queryKey: [...qk.meNegotiations, server], queryFn: () => api.meNegotiations(server), retry: false, placeholderData: keepPreviousData });
+  // A superset of what the API's `?q=` reads, so no server match is hidden while the list filters as you type.
+  const rows = filterBySearch(q.data ?? [], typed, (n) => [n.sellerName, n.sellerSlug, n.productName, n.productSlug, n.publicId, n.status, statusLabel(n.status)]);
   const empty = <EmptyState icon={<MessagesSquare size={20} strokeWidth={1.75} />} title="No negotiations yet" description="Open a product in the market and tell the seller's agent what you need." action={<ActionButton variant="secondary" size="sm" to="/app/market">Browse the market</ActionButton>} />;
   return (
     <AppShell title="Negotiations">
@@ -31,33 +41,36 @@ export default function Negotiations() {
       ) : q.error ? (
         <ErrorState error={q.error} onRetry={() => q.refetch()} />
       ) : (
-        <Card padding="flush">
-          <DataTable<NegotiationSummary>
-            caption="Your negotiations, newest first"
-            rows={q.data ?? []}
-            rowKey={(n) => n.id}
-            onRowClick={(n) => navigate(`/app/negotiations/${n.id}`)}
-            empty={empty}
-            columns={[
-              {
-                key: "seller",
-                header: "Seller",
-                render: (n) => (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-                    <SellerMark name={n.sellerName ?? prettySlug(n.sellerSlug ?? "")} brand={n.sellerBrand} size="md" />
-                    <span style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                      <span style={{ fontWeight: 500, color: "var(--c-dark)" }}>{n.sellerName ?? prettySlug(n.sellerSlug ?? "")}</span>
-                      <span className="body3">{n.productName ?? prettySlug(n.productSlug)}</span>
+        <>
+          {((q.data?.length ?? 0) > 0 || query) && <SearchBar value={query} onChange={setQuery} label="Search negotiations" placeholder="Search by seller, product, status or ID" shown={rows.length} noun={query ? "matches" : "negotiations"} />}
+          <Card padding="flush">
+            <DataTable<NegotiationSummary>
+              caption="Your negotiations, newest first"
+              rows={rows}
+              rowKey={(n) => n.id}
+              onRowClick={(n) => navigate(`/app/negotiations/${n.id}`)}
+              empty={query ? <NoMatches query={query} noun="negotiations" onClear={() => setQuery("")} /> : empty}
+              columns={[
+                {
+                  key: "seller",
+                  header: "Seller",
+                  render: (n) => (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                      <SellerMark name={n.sellerName ?? prettySlug(n.sellerSlug ?? "")} brand={n.sellerBrand} size="md" />
+                      <span style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                        <span style={{ fontWeight: 500, color: "var(--c-dark)" }}>{n.sellerName ?? prettySlug(n.sellerSlug ?? "")}</span>
+                        <span className="body3">{n.productName ?? prettySlug(n.productSlug)}</span>
+                      </span>
                     </span>
-                  </span>
-                ),
-              },
-              { key: "status", header: "Status", render: (n) => <StatusTag state={n.status} /> },
-              { key: "offer", header: "Best offer", numeric: true, render: (n) => (n.bestOfferUsd ? <Money usd={n.bestOfferUsd} /> : "None yet") },
-              { key: "updated", header: "Updated", render: (n) => fmtDateTime(n.updatedAt ?? n.createdAt) },
-            ]}
-          />
-        </Card>
+                  ),
+                },
+                { key: "status", header: "Status", render: (n) => <StatusTag state={n.status} /> },
+                { key: "offer", header: "Best offer", numeric: true, render: (n) => (n.bestOfferUsd ? <Money usd={n.bestOfferUsd} /> : "None yet") },
+                { key: "updated", header: "Updated", render: (n) => fmtDateTime(n.updatedAt ?? n.createdAt) },
+              ]}
+            />
+          </Card>
+        </>
       )}
     </AppShell>
   );

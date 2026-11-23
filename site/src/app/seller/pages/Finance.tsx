@@ -1,5 +1,9 @@
 import { Banknote, CircleCheck, Download, Receipt, RotateCcw, TriangleAlert, Wallet } from "lucide-react";
-import { useState } from "react";
+import { useDeferredValue, useState } from "react";
+import { filterBySearch } from "@proteus/domain";
+import { NoMatches, SearchBar } from "../../ui/SearchBar";
+import { useSearchParam } from "../../lib/useSearchParam";
+import type { JournalEntry } from "../types";
 import { downloadFile } from "../../lib/api";
 import { ActionButton } from "../kit";
 import { Card, EmptyState, Money, Notice, StatCard, StatusTag } from "../kit";
@@ -50,7 +54,7 @@ export default function Finance() {
               </Card>
               <Card title="Journal" subtitle="All deals, newest first. Each funding, settlement and refund posts balanced debit and credit lines.">
                 {f.journal.length ? (
-                  <JournalTable rows={f.journal} showDeal={f.journal.some((j) => j.dealPublicId)} />
+                  <JournalSearch rows={f.journal} />
                 ) : (
                   <EmptyState title="No journal entries yet" description="Entries post when a buyer funds a deal. Approve a quote or share your product page to get the first one." />
                 )}
@@ -88,5 +92,18 @@ function ExportCard() {
       {error && <Notice tone="danger">{error}</Notice>}
       <p className="body3" style={{ opacity: 0.7, marginTop: 10 }}>The journal file uses the Date, Journal No, Account, Debit, Credit, Description, Reference columns that QuickBooks Online and Xero journal imports map; map the account names to your chart of accounts on import.</p>
     </Card>
+  );
+}
+
+/** The journal with a search over memo, account, record and transaction; the newest 200 lines are loaded. */
+function JournalSearch({ rows }: { rows: JournalEntry[] }) {
+  const [query, setQuery] = useSearchParam("q");
+  const typed = useDeferredValue(query);
+  const shown = filterBySearch(rows, typed, (j) => [j.memo, j.account, j.dealPublicId, j.txHash]);
+  return (
+    <div className={s.stack} style={{ gap: 12 }}>
+      {rows.length > 5 && <SearchBar value={query} onChange={setQuery} label="Search the journal" placeholder="Search by memo, account, record or transaction" shown={shown.length} total={rows.length} noun={rows.length >= 200 ? "latest lines" : "lines"} />}
+      {shown.length === 0 ? <NoMatches query={query} noun="journal lines" onClear={() => setQuery("")} /> : <JournalTable rows={shown} showDeal={rows.some((j) => j.dealPublicId)} />}
+    </div>
   );
 }

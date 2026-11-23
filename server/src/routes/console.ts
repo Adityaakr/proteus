@@ -5,6 +5,7 @@ import { json } from "../lib/http";
 import { loadProductById } from "../services/catalog";
 import { reviveCandidate } from "../services/negotiation";
 import { session } from "./session";
+import { productNamesById } from "../services/product-names";
 import { features } from "../env";
 import { dealTotals, effectiveDealStatus, usageView } from "../services/seller-reports";
 
@@ -14,18 +15,6 @@ import { dealTotals, effectiveDealStatus, usageView } from "../services/seller-r
  */
 export const consoleRoutes = new Hono();
 
-async function productNames(ids: string[]) {
-  const out = new Map<string, string>();
-  for (const id of Array.from(new Set(ids))) {
-    try {
-      out.set(id, (await loadProductById(id)).product.name);
-    } catch {
-      out.set(id, "Product");
-    }
-  }
-  return out;
-}
-
 consoleRoutes.get("/app/dashboard", async (c) => {
   const { orgId } = session(c);
   const [org] = await db.select().from(schema.orgs).where(eq(schema.orgs.id, orgId));
@@ -33,7 +22,7 @@ consoleRoutes.get("/app/dashboard", async (c) => {
   const negs = await db.select().from(schema.negotiations).where(eq(schema.negotiations.orgId, orgId));
   const quotes = await db.select().from(schema.quotes).where(eq(schema.quotes.orgId, orgId));
   const pending = await db.select().from(schema.approvals).where(and(eq(schema.approvals.orgId, orgId), eq(schema.approvals.status, "pending"))).orderBy(desc(schema.approvals.createdAt)).limit(5);
-  const names = await productNames([...deals.map((d) => d.productId), ...quotes.map((q) => q.productId)]);
+  const names = await productNamesById([...deals.map((d) => d.productId), ...quotes.map((q) => q.productId)]);
 
   const totals = dealTotals(deals);
 
@@ -79,7 +68,7 @@ consoleRoutes.get("/app/customers", async (c) => {
   const { orgId } = session(c);
   const deals = await db.select().from(schema.deals).where(eq(schema.deals.orgId, orgId));
   const negs = await db.select().from(schema.negotiations).where(eq(schema.negotiations.orgId, orgId));
-  const names = await productNames(deals.map((d) => d.productId));
+  const names = await productNamesById(deals.map((d) => d.productId));
   const byBuyer = new Map<string, { address: string; negotiations: number; deals: number; funded: bigint; settled: bigint; inEscrow: bigint; products: Set<string>; lastActivity: Date; firstSeen: Date }>();
   const touch = (addr: string | null, at: Date) => {
     if (!addr) return;
@@ -111,7 +100,7 @@ consoleRoutes.get("/app/customers", async (c) => {
 
 consoleRoutes.get("/app/usage", async (c) => {
   const { orgId } = session(c);
-  return json(c, await usageView(orgId, async (id) => (await productNames([id])).get(id) ?? "Product"));
+  return json(c, await usageView(orgId, async (id) => (await productNamesById([id])).get(id) ?? "Product"));
 });
 
 consoleRoutes.get("/app/insights", async (c) => {

@@ -174,11 +174,11 @@ GET  /api/app/products/:id               -> ProductWithPrivate   // includes cos
 PATCH /api/app/products/:id/policy       PolicyUpdateBody -> ProductWithPrivate (new policy version)
 PATCH /api/app/products/:id/cost         CostUpdateBody   -> ProductWithPrivate (new cost version; existing deals untouched)
 POST /api/app/products/:id/preview       { desiredUnits?, budget? } -> { candidates: [Candidate with economics] }
-GET  /api/app/negotiations               -> [NegotiationSummary]
+GET  /api/app/negotiations?q=             -> [NegotiationSummary]   // newest 100; with q, the newest 100 matching it (see "List search")
 GET  /api/app/negotiations/:id           -> Negotiation + { candidates: [Candidate with economics], decisions: [DecisionLog], agentRuns: [AgentRun] }
 GET  /api/app/approvals                  -> [Approval]
 POST /api/app/approvals/:id/decision     ApprovalDecisionBody -> Approval
-GET  /api/app/deals                      -> [DealSummary]
+GET  /api/app/deals?q=                    -> [DealSummary]          // newest 200; with q, the newest 200 matching it
 GET  /api/app/deals/:id                  -> Deal + { economics, journal: [JournalEntry], chainTxs[] }
 POST /api/app/deals/:id/close-term       -> { txHash }
 GET  /api/app/finance                    -> { funded, earned, settled, liability, refunded, journal: [JournalEntry], reconciliation: { lastRunAt, discrepancies[] } }
@@ -186,6 +186,8 @@ GET  /api/app/finance                    -> { funded, earned, settled, liability
 
 `DecisionLog = { id, at, kind: "candidates"|"counter"|"quote"|"approval"|"injection_blocked", ruleIds[], candidateId?, summary, privateBasis: {...economics}, publicExplanation }`
 `AgentRun = { id, at, adapter, steps: [{ at, label, state: "done"|"working"|"blocked", detail? }], durationMs }`
+
+List search: `q` on `/api/app/negotiations`, `/api/app/deals`, `/api/me/negotiations` and `/api/me/deals` searches every row the caller owns (up to the newest 5,000), not only the page the list returns without it. Case and accents are ignored and every word must appear in one of the row's fields, in any order. Seller negotiations and deals match the public id, buyer address, status and product name; the buyer's lists match the public id, status, seller name and slug and product name (negotiations also the product slug). A blank `q` is the same as none; a longer one is cut at 100 characters. Seller `NegotiationSummary` and `DealSummary` also carry `productName`. The dashboard filters with the same rule (`filterBySearch` in `@proteus/domain`) as you type.
 
 ## Review (public, redacted)
 
@@ -206,8 +208,8 @@ GET  /api/me
 GET  /api/me/wallet
   -> { address, usdc: micro, native: wei-string, faucetUrl, chainId, explorerUrl }
 
-GET  /api/me/negotiations      -> [NegotiationSummary]   (negotiations started by this user)
-GET  /api/me/deals             -> [DealSummary]          (deals where buyerAddress is one of the user's wallets)
+GET  /api/me/negotiations?q=   -> [NegotiationSummary]   (negotiations started by this user; newest 100, or the newest 100 matching q)
+GET  /api/me/deals?q=          -> [DealSummary]          (deals where buyerAddress is one of the user's wallets; newest 100, or the newest 100 matching q)
 GET  /api/me/activity          -> { negotiations, deals, payPerCall: { calls, spent } }
 
 POST /api/orgs                 { name, slug? }             -> org (creates the user's seller org; one per user; issues the org's seller signer)

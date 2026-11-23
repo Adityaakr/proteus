@@ -13,6 +13,7 @@ import { id, publicId } from "../lib/ids";
 import { loadProductById, publicProduct } from "./catalog";
 import { sellerCard, sellerStats, validateBrand, type Brand } from "./brand";
 import { listDeals } from "./deals";
+import { scanLimit, searchRows } from "./list-search";
 import { listNegotiations } from "./negotiation";
 
 const LINK_NONCES = new Map<string, { nonce: string; expires: number }>();
@@ -112,27 +113,41 @@ function addressIn(col: AnyPgColumn, wallets: string[]): SQL {
   return sql`lower(${col}) in (${sql.join(wallets.map((w) => sql`${w.toLowerCase()}`), sql`, `)})`;
 }
 
-export async function myNegotiations(userId: string) {
+/** The buyer's negotiations, newest first: the newest 100, or with `q` the newest 100 matching it (see list-search). */
+export async function myNegotiations(userId: string, q?: string) {
   const wallets = (await userWallets(userId)).map((w) => w.address);
-  const rows = await db.select().from(schema.negotiations).where(addressIn(schema.negotiations.buyerAddress, wallets)).orderBy(desc(schema.negotiations.updatedAt)).limit(100);
+  const rows = await db.select().from(schema.negotiations).where(addressIn(schema.negotiations.buyerAddress, wallets)).orderBy(desc(schema.negotiations.updatedAt)).limit(scanLimit(q, 100));
+  const load = productLoader();
   const out = [];
   for (const n of rows) {
-    const lp = await loadProductById(n.productId);
+    const lp = await load(n.productId);
     const cands = (n.candidates as Record<string, unknown>[]) ?? [];
     out.push({ id: n.id, publicId: n.publicId, status: n.status, sellerSlug: lp.org.slug, sellerName: lp.org.name, sellerLabel: lp.org.label, sellerBrand: (lp.org.brand as Brand | null) ?? {}, productSlug: lp.product.slug, productName: lp.product.name, offers: cands.filter((c) => c.status !== "rejected").length, updatedAt: n.updatedAt, createdAt: n.createdAt });
   }
-  return out;
+  return searchRows(out, q, 100, (n) => [n.publicId, n.status, n.sellerName, n.sellerSlug, n.productName, n.productSlug]);
 }
 
-export async function myDeals(userId: string) {
+/** The buyer's deals, newest first: the newest 100, or with `q` the newest 100 matching it (see list-search). */
+export async function myDeals(userId: string, q?: string) {
   const wallets = (await userWallets(userId)).map((w) => w.address);
-  const rows = await db.select().from(schema.deals).where(addressIn(schema.deals.buyerAddress, wallets)).orderBy(desc(schema.deals.createdAt)).limit(100);
+  const rows = await db.select().from(schema.deals).where(addressIn(schema.deals.buyerAddress, wallets)).orderBy(desc(schema.deals.createdAt)).limit(scanLimit(q, 100));
+  const load = productLoader();
   const out = [];
   for (const d of rows) {
-    const lp = await loadProductById(d.productId);
+    const lp = await load(d.productId);
     out.push({ id: d.id, publicId: d.publicId, status: d.status, sellerName: lp.org.name, sellerSlug: lp.org.slug, sellerBrand: (lp.org.brand as Brand | null) ?? {}, productName: lp.product.name, deposit: d.deposit, settled: d.settled, refunded: d.refunded, remaining: d.deposit - d.settled - d.refunded, balancesSource: d.balancesSource, createdAt: d.createdAt });
   }
-  return out;
+  return searchRows(out, q, 100, (d) => [d.publicId, d.status, d.sellerName, d.sellerSlug, d.productName]);
+}
+
+/** loadProductById, once per product for one list. */
+function productLoader() {
+  const seen = new Map<string, ReturnType<typeof loadProductById>>();
+  return (id: string) => {
+    let p = seen.get(id);
+    if (!p) seen.set(id, (p = loadProductById(id)));
+    return p;
+  };
 }
 
 export async function myActivity(userId: string) {

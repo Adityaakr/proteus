@@ -1,4 +1,8 @@
+import { useDeferredValue } from "react";
 import { useNavigate } from "react-router-dom";
+import { filterBySearch } from "@proteus/domain";
+import { NoMatches, SearchBar } from "../../ui/SearchBar";
+import { useSearchParam } from "../../lib/useSearchParam";
 import { Users } from "lucide-react";
 import { DataTable, EmptyState, Money, MonoValue, type DataColumn } from "../kit";
 import { useCustomers } from "../api";
@@ -12,6 +16,8 @@ import d from "../dashboard.module.css";
 /** Every wallet that negotiated with or bought from this seller, with real totals. */
 export default function Customers() {
   const q = useCustomers();
+  const [query, setQuery] = useSearchParam("q");
+  const typed = useDeferredValue(query);
   const nav = useNavigate();
   const cols: DataColumn<Customer>[] = [
     { key: "who", header: "Customer", render: (c) => <span><span className={s.strong}><MonoValue value={c.address} short copy label="buyer address" /></span><span className={s.sub}>{c.products.length ? c.products.join(", ") : "No deal yet"}</span></span> },
@@ -27,6 +33,7 @@ export default function Customers() {
       <PageHeader description="Buyers who talked to your agent or funded a deal. Totals are sums over their deals." />
       <QueryView q={q} label="customers">
         {(rows) => {
+          const shown = filterBySearch(rows, typed, (c) => [c.address, c.products]);
           const funded = rows.reduce((n, c) => n + BigInt(c.funded), 0n);
           const settled = rows.reduce((n, c) => n + BigInt(c.settled), 0n);
           return rows.length === 0 ? (
@@ -39,7 +46,8 @@ export default function Customers() {
                 <div className={d.stat}><span className={d.statLabel}>Funded by customers</span><span className={d.statValue}><Money micro={funded} /></span></div>
                 <div className={d.stat}><span className={d.statLabel}>Settled to you</span><span className={d.statValue}><Money micro={settled} /></span></div>
               </div>
-              <DataTable<Customer> caption="Customers, most recent activity first" rows={rows} rowKey={(c) => c.address} columns={cols} onRowClick={(c) => nav(`/app/sell/deals?buyer=${encodeURIComponent(c.address)}`)} />
+              <SearchBar value={query} onChange={setQuery} label="Search customers" placeholder="Search by wallet address or product" shown={shown.length} total={rows.length} noun="customers" />
+              {shown.length === 0 ? <NoMatches query={query} noun="customers" onClear={() => setQuery("")} /> : <DataTable<Customer> caption="Customers, most recent activity first" rows={shown} rowKey={(c) => c.address} columns={cols} onRowClick={(c) => nav(`/app/sell/deals?buyer=${encodeURIComponent(c.address)}`)} />}
             </>
           );
         }}

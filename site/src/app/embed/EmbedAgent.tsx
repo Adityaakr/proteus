@@ -1,4 +1,4 @@
-import { pickMessage, pluralUnit, sellerGreeting, switchNegotiation, unitFor, type GreetingProduct } from "@proteus/domain";
+import { filterBySearch, pickMessage, pluralUnit, sellerGreeting, switchNegotiation, unitFor, type GreetingProduct } from "@proteus/domain";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import type { Negotiation, Offer, PublicProduct, Turn } from "../lib/types";
 import { openConsult, threadScope, withMarkers, type Scope } from "../lib/consult";
 import { ConsultCard } from "../agentic/ConsultCard";
 import { SellerMark } from "../ui/SellerMark";
+import { SearchBar } from "../ui/SearchBar";
 import { ArcMark } from "../ui/Marks";
 import { CurrencySwitch, DualPrice } from "../ui/CurrencySwitch";
 import { offerTotal, rateLabel, tierTotal, tierUnit, useBuyerCurrency } from "../lib/currency";
@@ -189,7 +190,7 @@ export default function EmbedAgent() {
   if (backToAll && routed === "product" && !pickedProduct) rows.push({ kind: "marker", label: "All products", key: "back-to-all" });
   const lastMarker = rows.findLastIndex((r) => r.kind === "marker");
   const lastAgent = [...shown].reverse().find((t) => t.role === "agent")?.id;
-  const matches = products.filter((p) => p.name.toLowerCase().includes(filter.trim().toLowerCase()));
+  const matches = filterBySearch(products, filter, (p) => [p.name, p.slug, p.summary, p.category, p.capabilities]);
   const agentName = seller ? `${seller.name}'s agent` : "Deal agent";
   const mark = seller ? <SellerMark name={seller.name} brand={seller.brand} size="sm" /> : null;
 
@@ -340,7 +341,7 @@ export default function EmbedAgent() {
                 <strong>{products.length} products</strong>
                 <button type="button" className={e.close} onClick={() => setBrowsing(false)} aria-label="Close products"><X size={16} /></button>
               </div>
-              {products.length > 6 && <input className={e.search} value={filter} onChange={(ev) => setFilter(ev.target.value)} placeholder="Search products" aria-label="Search products" autoFocus={window.innerWidth >= 560} />}
+              {products.length > 6 && <SearchBar className={e.search} value={filter} onChange={setFilter} label="Search products" shown={matches.length} total={products.length} noun="products" hotkey={false} compact autoFocus={window.innerWidth >= 560} />}
               <ul className={e.grid}>
                 {(picked || focusProduct) && <li><button type="button" className={e.pick} onClick={() => choose("")}><strong>All products</strong><span>Suggestions, and the agent follows what you ask about</span></button></li>}
                 {matches.map((p) => {
@@ -354,7 +355,7 @@ export default function EmbedAgent() {
                     </li>
                   );
                 })}
-                {matches.length === 0 && <li className={e.noMatch}>No product matches “{filter}”.</li>}
+                {matches.length === 0 && <li className={e.noMatch}>No product matches “{filter.trim()}”. <button type="button" className={e.change} onClick={() => setFilter("")}>Clear search</button></li>}
               </ul>
             </div>
           </div>
