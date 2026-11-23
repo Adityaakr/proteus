@@ -8,6 +8,8 @@ import { HttpError, bigintsToStrings } from "../lib/http";
 import { id, negotiationKey, publicId, sha256 } from "../lib/ids";
 import { openJsonOr, openTextOr, sealJson, sealText } from "../lib/vault";
 import { timingSafeEqual } from "node:crypto";
+import { productNamesById } from "./product-names";
+import { scanLimit, searchRows } from "./list-search";
 import { evaluationContext, loadProductById, loadProductBySlugs, publicProduct, reviveProduct, unitPriceUsd, type LoadedProduct } from "./catalog";
 import { env, features } from "../env";
 import { enqueue } from "./notify";
@@ -477,13 +479,16 @@ export async function sellerNegotiationView(orgId: string, negId: string) {
   return { ...view, candidates, decisions, agentRuns, quotes: quoteRows.map((q) => ({ id: q.id, status: q.status, candidateId: q.candidateId, expiresAt: q.expiresAt, createdAt: q.createdAt })) };
 }
 
-export async function listNegotiations(orgId: string) {
-  const rows = await db.select().from(schema.negotiations).where(eq(schema.negotiations.orgId, orgId)).orderBy(desc(schema.negotiations.updatedAt)).limit(100);
-  return rows.map((n) => {
+/** The seller's negotiations, newest first: the newest 100, or with `q` the newest 100 matching it (see list-search). */
+export async function listNegotiations(orgId: string, q?: string) {
+  const rows = await db.select().from(schema.negotiations).where(eq(schema.negotiations.orgId, orgId)).orderBy(desc(schema.negotiations.updatedAt)).limit(scanLimit(q, 100));
+  const names = await productNamesById(rows.map((n) => n.productId));
+  const out = rows.map((n) => {
     const req = reviveRequirements(n.requirements as Record<string, unknown>);
     const cands = (n.candidates as Record<string, unknown>[]).map(reviveCandidate);
-    return { id: n.id, publicId: n.publicId, status: n.status, buyerAddress: n.buyerAddress, desiredUnits: req.desiredUnits, budget: req.budget, offers: cands.filter((c) => c.status !== "rejected").length, rejected: cands.filter((c) => c.status === "rejected").length, updatedAt: n.updatedAt, createdAt: n.createdAt };
+    return { id: n.id, publicId: n.publicId, status: n.status, buyerAddress: n.buyerAddress, productName: names.get(n.productId) ?? "Product", desiredUnits: req.desiredUnits, budget: req.budget, offers: cands.filter((c) => c.status !== "rejected").length, rejected: cands.filter((c) => c.status === "rejected").length, updatedAt: n.updatedAt, createdAt: n.createdAt };
   });
+  return searchRows(out, q, 100, (n) => [n.publicId, n.buyerAddress, n.status, n.productName]);
 }
 
 export type { LoadedProduct, PublicCandidate };

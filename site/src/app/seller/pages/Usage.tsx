@@ -1,4 +1,8 @@
+import { useDeferredValue } from "react";
 import { useNavigate } from "react-router-dom";
+import { filterBySearch } from "@proteus/domain";
+import { FilterChips, NoMatches, SearchBar } from "../../ui/SearchBar";
+import { useSearchParam, useSearchParamOf } from "../../lib/useSearchParam";
 import { Activity } from "lucide-react";
 import { DataTable, EmptyState, Money, MonoValue, StatusTag, type DataColumn } from "../kit";
 import { useUsage } from "../api";
@@ -10,8 +14,13 @@ import s from "../seller.module.css";
 import d from "../dashboard.module.css";
 
 /** Every metered request your endpoint answered, with what was billed and whether the receipt is signed. */
+const OUTCOMES = ["all", "delivered", "handoff", "failed"] as const;
+
 export default function Usage() {
   const q = useUsage();
+  const [query, setQuery] = useSearchParam("q");
+  const [outcome, setOutcome] = useSearchParamOf("outcome", OUTCOMES, "all");
+  const typed = useDeferredValue(query);
   const nav = useNavigate();
   const cols: DataColumn<UsageRow>[] = [
     { key: "req", header: "Request", render: (r) => <span><span className={s.strong}><MonoValue value={r.requestId} short /></span><span className={s.sub}>{r.productName}{r.dealPublicId ? `, deal ${r.dealPublicId}` : ""}</span></span> },
@@ -40,7 +49,25 @@ export default function Usage() {
             {u.requests.length === 0 ? (
               <EmptyState icon={<Activity size={20} />} title="No requests yet" description="Rows appear here as buyers call your service through a funded deal." />
             ) : (
-              <DataTable<UsageRow> caption="Requests, newest first" rows={u.requests} rowKey={(r) => r.id} columns={cols} onRowClick={(r) => nav(`/app/sell/deals/${encodeURIComponent(r.dealId)}`)} />
+              (() => {
+                const shown = filterBySearch(u.requests, typed, (r) => [r.requestId, r.productName, r.dealPublicId, r.buyerAddress, r.status]).filter((r) => outcome === "all" || r.status === outcome);
+                const n = (st: UsageRow["status"]) => u.requests.filter((r) => r.status === st).length;
+                return (
+                  <>
+                    <SearchBar
+                      value={query}
+                      onChange={setQuery}
+                      label="Search requests"
+                      placeholder="Search by request ID, product, deal or buyer"
+                      shown={shown.length}
+                      total={u.requests.length}
+                      noun={u.requests.length >= 300 ? "latest requests" : "requests"}
+                      filters={<FilterChips label="Outcome" value={outcome} onChange={setOutcome} options={[{ value: "all", label: "All" }, { value: "delivered", label: "Delivered", count: n("delivered") }, { value: "handoff", label: "Handed off", count: n("handoff") }, { value: "failed", label: "Failed", count: n("failed") }]} />}
+                    />
+                    {shown.length === 0 ? <NoMatches query={query} noun="requests" filtered={outcome !== "all"} onClear={() => { setQuery(""); setOutcome("all"); }} /> : <DataTable<UsageRow> caption="Requests, newest first" rows={shown} rowKey={(r) => r.id} columns={cols} onRowClick={(r) => nav(`/app/sell/deals/${encodeURIComponent(r.dealId)}`)} />}
+                  </>
+                );
+              })()
             )}
           </>
         )}

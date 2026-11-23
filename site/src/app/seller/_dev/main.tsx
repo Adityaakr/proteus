@@ -4,6 +4,7 @@
  *   &mockOrg=none  start without a seller org (Start selling onboarding)
  *   &seed=1   create a sandbox session plus sample negotiations, an approval and a funded deal
  *             through the shared mock's buyer API before rendering.
+ *   &catalog=96  list that many products (copies of the mock product with store-like names) to check long lists.
  */
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -44,7 +45,27 @@ async function seed() {
   if (big) await api.createQuote(n1.id, big.candidateId);
 }
 
+const NAMES = ["Vintage Zip Polo", "The Backpack by Mokobara", "Flow Tee", "Metal Keychain - Oval", "A5 Strap Diary", "Canvas Tote", "Enamel Pin", "Ceramic Mug", "Linen Shirt", "Desk Calendar", "Wool Beanie", "Steel Bottle"];
+const KINDS = [["Apparel", "Classic", "Relaxed", "Heavyweight"], ["Bags", "Daypack", "Weekender", "Sling"], ["Accessories", "Brass", "Matte", "Mini"], ["Stationery", "Dotted", "Ruled", "Plain"]] as const;
+
+/** Copies of the mock product so a page shows a long catalogue; categories rotate and every seventh is hidden. */
+function longCatalogue(n: number) {
+  const original = api.app.products;
+  api.app.products = async () => {
+    const [base] = await original();
+    if (!base) return [];
+    return Array.from({ length: n }, (_, i) => {
+      const name = NAMES[i % NAMES.length]!;
+      const [category, ...styles] = KINDS[NAMES.indexOf(name) % KINDS.length]!;
+      const full = i < NAMES.length ? name : `${name} - ${styles[i % styles.length]} ${Math.floor(i / NAMES.length) + 1}`;
+      const slug = full.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      return { ...base, id: `${base.id}_${i}`, slug, name: full, category, summary: `${category} from the Shoonya Store catalogue`, active: i % 7 !== 3 };
+    });
+  };
+}
+
 async function main() {
+  if (params.get("catalog")) longCatalogue(Number(params.get("catalog")));
   if (params.get("seed") === "1" && !sessionStorage.getItem("seller-harness-seeded")) {
     await seed();
     sessionStorage.setItem("seller-harness-seeded", "1");

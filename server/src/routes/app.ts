@@ -8,6 +8,7 @@ import { openJson, openJsonOr } from "../lib/vault";
 import { accountView, completeEmbeddedSignup, connectAccount, disconnectAccount, negotiationChannel, resumeAgent, sellerReply } from "../services/whatsapp";
 import { evaluationContext, loadProductById, publicProduct } from "../services/catalog";
 import { dealView, listDeals, sellerCloseTerm } from "../services/deals";
+import { listQuery } from "../services/list-search";
 import { listNegotiations, reviveCandidate, sellerNegotiationView } from "../services/negotiation";
 import { decideApproval } from "../services/quotes";
 import { confirmDelivery } from "../services/delivery";
@@ -166,7 +167,7 @@ appRoutes.put("/app/catalog-sync", async (c) => {
 });
 appRoutes.post("/app/catalog-sync/run", async (c) => json(c, await runCatalogSync(session(c).orgId)));
 
-appRoutes.get("/app/negotiations", async (c) => json(c, await listNegotiations(session(c).orgId)));
+appRoutes.get("/app/negotiations", async (c) => json(c, await listNegotiations(session(c).orgId, listQuery(c.req.query("q")))));
 appRoutes.get("/app/negotiations/:id", async (c) => json(c, await sellerNegotiationView(session(c).orgId, c.req.param("id"))));
 
 appRoutes.get("/app/approvals", async (c) => {
@@ -188,7 +189,7 @@ appRoutes.post("/app/approvals/:id/decision", async (c) => {
   return json(c, await decideApproval(s.orgId, c.req.param("id"), body.decision, body.reason, s.address ?? `session:${s.kind}`, body.ownerSignature));
 });
 
-appRoutes.get("/app/deals", async (c) => json(c, await listDeals(session(c).orgId)));
+appRoutes.get("/app/deals", async (c) => json(c, await listDeals(session(c).orgId, listQuery(c.req.query("q")))));
 
 appRoutes.get("/app/deals/:id", async (c) => {
   const { orgId } = session(c);

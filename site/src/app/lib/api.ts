@@ -205,6 +205,8 @@ async function request<R>(method: Method, path: string, opts: RequestOpts = {}):
 }
 
 const enc = encodeURIComponent;
+/** `?q=` for the capped lists that search on the server; nothing for a blank query. */
+const searchQs = (q?: string) => (q?.trim() ? `?q=${enc(q.trim())}` : "");
 
 export const api = {
   /* Public */
@@ -309,8 +311,8 @@ export const api = {
   meWallet: () => request<T.MeWalletBalance>("GET", "/me/wallet"),
   setPrimaryWallet: (address: string) => request<T.MeResponse>("PATCH", "/me/wallets/primary", { body: { address } }),
   updateMe: (body: { mode: T.AccountMode }) => request<T.MeResponse>("PATCH", "/me", { body }),
-  meNegotiations: () => request<T.NegotiationSummary[]>("GET", "/me/negotiations"),
-  meDeals: () => request<T.DealSummary[]>("GET", "/me/deals"),
+  meNegotiations: (q?: string) => request<T.NegotiationSummary[]>("GET", `/me/negotiations${searchQs(q)}`),
+  meDeals: (q?: string) => request<T.DealSummary[]>("GET", `/me/deals${searchQs(q)}`),
   meActivity: () => request<T.MeActivity>("GET", "/me/activity"),
   createOrg: (body: { name: string; slug?: string; brand?: T.SellerBrand }) => request<T.MeOrg>("POST", "/orgs", { body }),
 
@@ -348,11 +350,11 @@ export const api = {
     updateCost: (id: string, body: T.CostUpdate) => request<T.ProductWithPrivate>("PATCH", `/app/products/${enc(id)}/cost`, { body }),
     preview: (id: string, body: { desiredUnits?: T.UnitsStr; budget?: T.MicroStr }) =>
       request<{ candidates: T.CandidateWithEconomics[] }>("POST", `/app/products/${enc(id)}/preview`, { body }),
-    negotiations: () => request<T.NegotiationSummary[]>("GET", "/app/negotiations"),
+    negotiations: (q?: string) => request<T.NegotiationSummary[]>("GET", `/app/negotiations${searchQs(q)}`),
     negotiation: (id: string) => request<T.SellerNegotiation>("GET", `/app/negotiations/${enc(id)}`),
     approvals: () => request<T.Approval[]>("GET", "/app/approvals"),
     decideApproval: (id: string, body: T.ApprovalDecision) => request<T.Approval>("POST", `/app/approvals/${enc(id)}/decision`, { body }),
-    deals: () => request<T.DealSummary[]>("GET", "/app/deals"),
+    deals: (q?: string) => request<T.DealSummary[]>("GET", `/app/deals${searchQs(q)}`),
     deal: (id: string) => request<T.SellerDeal>("GET", `/app/deals/${enc(id)}`),
     closeTerm: (id: string) => request<{ txHash: T.Hex }>("POST", `/app/deals/${enc(id)}/close-term`, { body: {} }),
     /** Seller-confirmed delivery: records N delivered units with proof as a signed receipt the buyer then countersigns. */

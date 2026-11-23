@@ -5,6 +5,7 @@ import { json } from "../lib/http";
 import { loadProductById } from "../services/catalog";
 import { reviveCandidate } from "../services/negotiation";
 import { session } from "./session";
+import { productNamesById } from "../services/product-names";
 import { features } from "../env";
 import { dealTotals, effectiveDealStatus, usageView } from "../services/seller-reports";
 
@@ -14,17 +15,7 @@ import { dealTotals, effectiveDealStatus, usageView } from "../services/seller-r
  */
 export const consoleRoutes = new Hono();
 
-async function productNames(ids: string[]) {
-  const out = new Map<string, string>();
-  for (const id of Array.from(new Set(ids))) {
-    try {
-      out.set(id, (await loadProductById(id)).product.name);
-    } catch {
-      out.set(id, "Product");
-    }
-  }
-  return out;
-}
+const productNames = productNamesById;
 
 consoleRoutes.get("/app/dashboard", async (c) => {
   const { orgId } = session(c);

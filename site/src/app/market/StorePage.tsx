@@ -3,7 +3,10 @@
  * negotiation page in store mode (lib/storeChat): each message is routed to the product it is about and that product's
  * agent negotiates within its rules, so one conversation covers everything the seller makes.
  */
-import { useState } from "react";
+import { useDeferredValue, useState } from "react";
+import { filterBySearch } from "@proteus/domain";
+import { NoMatches, SearchBar } from "../ui/SearchBar";
+import { useSearchParam } from "../lib/useSearchParam";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpRight, ChevronRight } from "lucide-react";
@@ -68,8 +71,12 @@ function StoreView({ seller }: { seller: PublicSeller }) {
   };
   const wide = useLogoShape(seller.brand?.logoUrl) === "wide";
   const st = seller.stats;
-  const products = seller.products;
   const category = seller.brand?.category;
+  const [query, setQuery] = useSearchParam("q");
+  const typed = useDeferredValue(query);
+  // A store with a long catalogue gets a search; a handful of products reads at a glance.
+  const searchable = seller.products.length > 6;
+  const products = searchable ? filterBySearch(seller.products, typed, (p) => [p.name, p.slug, p.summary, p.category, p.capabilities, p.unitLabel]) : seller.products;
 
   return (
     <div className={d.page}>
@@ -123,6 +130,8 @@ function StoreView({ seller }: { seller: PublicSeller }) {
             <span className={d.h2Note}>List prices. The deal desk fits an offer to your quantity within the seller's rules.</span>
             {rupees && <CurrencySwitch value={currency} onChange={setCurrency} size="sm" />}
           </div>
+          {searchable && <SearchBar value={query} onChange={setQuery} label={`Search ${seller.name}`} placeholder={`Search ${seller.products.length} products`} shown={products.length} total={seller.products.length} noun="products" />}
+          {products.length === 0 && <NoMatches query={query} noun="products" onClear={() => setQuery("")} />}
           <div className={s.items}>
             {products.map((p) => {
               const from = lowestUnit(p);

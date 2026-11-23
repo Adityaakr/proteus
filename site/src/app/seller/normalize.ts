@@ -43,10 +43,13 @@ export function product(raw: W.ProductWithPrivate | Loose): ProductWithPrivate {
     ...((t.inr as { stated?: boolean; unitPrice?: string } | null | undefined)?.stated ? { unitPriceInr: String((t.inr as { unitPrice: string }).unitPrice) } : {}),
   }));
   const fresh = r.cost?.freshUntil;
+  const category = str(r.category) ?? str((r.knowledge as Loose | undefined)?.category);
   return {
     id: String(r.id),
     slug: String(r.slug),
     name: String(r.name),
+    ...(str(r.summary) ? { summary: str(r.summary) } : {}),
+    ...(category ? { category } : {}),
     adapter: typeof r.adapter === "string" ? r.adapter : undefined,
     active: typeof r.active === "boolean" ? r.active : true,
     service: (r.service as ProductWithPrivate["service"]) ?? undefined,
@@ -139,6 +142,7 @@ export function negotiationSummary(raw: W.NegotiationSummary | Loose): Negotiati
     publicId: String(n.publicId ?? n.id),
     productName: str(n.productName) ?? str(n.productSlug) ?? "",
     buyerLabel: buyerLabelOf(n) ?? `Buyer ${String(n.publicId ?? n.id).slice(-6)}`,
+    ...(str(n.buyerAddress) ? { buyerAddress: str(n.buyerAddress) } : {}),
     status: (n.status as NegotiationSummary["status"]) ?? "open",
     updatedAt: String(n.updatedAt ?? n.createdAt ?? ""),
     turns: Number(n.turns ?? 0),

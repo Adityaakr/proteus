@@ -2,7 +2,7 @@
  * Seller console data layer: typed calls for `/api/app/*` plus react-query hooks.
  * Transport is the shared client (site/src/app/lib/api.ts); responses pass through ./normalize.
  */
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CostUpdateBody, PolicyUpdateBody } from "@proteus/domain";
 import { api, isUnauthorized } from "./transport";
 import * as N from "./normalize";
@@ -21,11 +21,11 @@ export const sellerApi = {
     const r = await api.app.preview(id, body);
     return { candidates: (r.candidates ?? []).map(N.candidate) };
   },
-  negotiations: async () => (await api.app.negotiations()).map(N.negotiationSummary),
+  negotiations: async (q?: string) => (await api.app.negotiations(q)).map(N.negotiationSummary),
   negotiation: async (id: string) => N.negotiation(await api.app.negotiation(id)),
   approvals: async () => (await api.app.approvals()).map(N.approval),
   decideApproval: async (id: string, body: { decision: "approve" | "decline"; reason?: string }) => N.approval(await api.app.decideApproval(id, body)),
-  deals: async () => (await api.app.deals()).map(N.dealSummary),
+  deals: async (q?: string) => (await api.app.deals(q)).map(N.dealSummary),
   deal: async (id: string) => N.deal(await api.app.deal(id)),
   closeTerm: (id: string) => api.app.closeTerm(id),
   recordDelivery: (id: string, body: { units: number; note: string; proofUrl?: string; requestId: string }) => api.app.recordDelivery(id, body),
@@ -60,10 +60,12 @@ const retry = (n: number, e: Error) => !isUnauthorized(e) && n < 1;
 export const useOverview = () => useQuery({ queryKey: K.overview, queryFn: sellerApi.overview, retry });
 export const useProducts = () => useQuery({ queryKey: K.products, queryFn: sellerApi.products, retry });
 export const useProduct = (id: string) => useQuery({ queryKey: K.product(id), queryFn: () => sellerApi.product(id), retry });
-export const useNegotiations = () => useQuery({ queryKey: K.negotiations, queryFn: sellerApi.negotiations, retry });
+/** Newest 100; with a search, the newest 100 matching it across all of them (the API's `?q=`). */
+export const useNegotiations = (q = "") => useQuery({ queryKey: [...K.negotiations, q.trim()], queryFn: () => sellerApi.negotiations(q), retry, placeholderData: keepPreviousData });
 export const useNegotiation = (id: string) => useQuery({ queryKey: K.negotiation(id), queryFn: () => sellerApi.negotiation(id), retry });
 export const useApprovals = () => useQuery({ queryKey: K.approvals, queryFn: sellerApi.approvals, retry });
-export const useDeals = () => useQuery({ queryKey: K.deals, queryFn: sellerApi.deals, retry });
+/** Newest 200; with a search, the newest 200 matching it across all of them (the API's `?q=`). */
+export const useDeals = (q = "") => useQuery({ queryKey: [...K.deals, q.trim()], queryFn: () => sellerApi.deals(q), retry, placeholderData: keepPreviousData });
 export const useDeal = (id: string) => useQuery({ queryKey: K.deal(id), queryFn: () => sellerApi.deal(id), retry });
 export const useFinance = () => useQuery({ queryKey: K.finance, queryFn: sellerApi.finance, retry });
 export function useSetListing(id: string) {

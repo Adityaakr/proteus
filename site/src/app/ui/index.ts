@@ -4,6 +4,7 @@ export { Card, type CardProps } from "./Card";
 export { StatCard, type StatCardProps } from "./StatCard";
 export { DataTable, type DataTableProps, type DataColumn } from "./DataTable";
 export { EmptyState, type EmptyStateProps } from "./EmptyState";
+export { SearchBar, FilterChips, NoMatches, type SearchBarProps, type FilterOption } from "./SearchBar";
 export { Field, type FieldProps } from "./Field";
 export { SellerMark, categoryLabel, possessive, useLogoShape, CATEGORY_LABELS } from "./SellerMark";
 export { ArcMark, UsdcMark } from "./Marks";

@@ -6,6 +6,7 @@ export * from "./greeting";
 export * from "./conversation";
 export * from "./consult";
 export * from "./api";
+export * from "./search";
 export * from "./arc";
 export * from "./abi/escrow";
 export * from "./abi/erc8004";

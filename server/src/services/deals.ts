@@ -10,6 +10,8 @@ import { env, features } from "../env";
 import { HttpError } from "../lib/http";
 import { apiKey, id } from "../lib/ids";
 import { loadProductById } from "./catalog";
+import { productNamesById } from "./product-names";
+import { scanLimit, searchRows } from "./list-search";
 import { effectiveDealStatus } from "./seller-reports";
 
 export async function loadDeal(dealId: string) {
@@ -191,8 +193,11 @@ export async function sellerCloseTerm(orgId: string, dealId: string) {
   return { txHash };
 }
 
-export async function listDeals(orgId: string) {
-  const rows = await db.select().from(schema.deals).where(eq(schema.deals.orgId, orgId)).orderBy(desc(schema.deals.createdAt)).limit(200);
+/** The seller's deals, newest first: the newest 200, or with `q` the newest 200 matching it (see list-search). */
+export async function listDeals(orgId: string, q?: string) {
+  const rows = await db.select().from(schema.deals).where(eq(schema.deals.orgId, orgId)).orderBy(desc(schema.deals.createdAt)).limit(scanLimit(q, 200));
+  const names = await productNamesById(rows.map((d) => d.productId));
   // `status` is what to show ("settled" when the escrow paid out the whole deposit); `chainStatus` is the contract's.
-  return rows.map((d) => ({ id: d.id, publicId: d.publicId, status: effectiveDealStatus(d), chainStatus: d.status, buyerAddress: d.buyerAddress, deposit: d.deposit, settled: d.settled, refunded: d.refunded, remaining: d.deposit - d.settled - d.refunded, balancesSource: d.balancesSource, fundingTxHash: d.fundingTxHash, createdAt: d.createdAt }));
+  const out = rows.map((d) => ({ id: d.id, publicId: d.publicId, status: effectiveDealStatus(d), chainStatus: d.status, buyerAddress: d.buyerAddress, productName: names.get(d.productId) ?? "Product", deposit: d.deposit, settled: d.settled, refunded: d.refunded, remaining: d.deposit - d.settled - d.refunded, balancesSource: d.balancesSource, fundingTxHash: d.fundingTxHash, createdAt: d.createdAt }));
+  return searchRows(out, q, 200, (d) => [d.publicId, d.buyerAddress, d.status, d.productName]);
 }
