@@ -78,7 +78,7 @@ export const EXAMPLE: FormState = {
   requestFields: [newRequestRow({ label: "Question", type: "textarea" }), newRequestRow({ label: "Order id", type: "text", required: false, hint: "Your store's order number." })],
   businessName: "Northwind Commerce",
   brand: { ...EMPTY_BRAND, tagline: "Order support for online stores, answered from the order record.", category: "support" },
-  summary: "Order status, delivery and tracking answers sourced from the store\'s order record; refunds go to a human.",
+  summary: "Order status, delivery and tracking answers sourced from the store's order record; refunds go to a human.",
   productName: "AI order support",
   unitLabel: "resolution",
   billableUnit: "One delivered order-status answer sourced from the store's order record",
