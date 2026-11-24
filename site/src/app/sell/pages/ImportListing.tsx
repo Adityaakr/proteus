@@ -3,6 +3,9 @@
  * wallet: the account it creates is owned by that wallet, payouts go to it, and the business registers on Arc
  * itself. Prices are editable here, so nothing goes live that the seller did not see and approve.
  *
+ * The listing file is served to anyone, so it carries public fields only. The seller's costs and limits are entered here
+ * by the signed-in owner, sent to the authenticated product API, and kept in this page's memory until then.
+ *
  * Order matters on chain: products are created unlisted, the seller registers on Arc (ERC-8004, from its own wallet),
  * the server confirms owner, payee and signer from chain and commits each product's policy to ProteusPolicyRegistry,
  * and only then are the products listed. No buyer can get a quote from an identity that is not on chain yet.
@@ -18,6 +21,9 @@ import { ActionButton } from "../../ui/ActionButton";
 import { Notice } from "../../ui/misc";
 import { SellerMark } from "../../ui/SellerMark";
 import { SocialLinks } from "../../ui/SocialLinks";
+import { SellerOnly } from "../../seller/parts/SellerOnly";
+import { EMPTY_PRIVATE_TERMS, privateTermsBody, validatePrivateTerms, type PrivateTerms } from "../onboarding/privateTerms";
+import { PrivateTermsFields } from "../onboarding/PrivateTermsFields";
 import { useMe } from "../hooks";
 import { useAuth, v1 } from "../v1";
 import type { ProductCreateBody, SellerBrand } from "../../lib/types";
@@ -26,8 +32,10 @@ import s from "../sell.module.css";
 interface Listing {
   /** ownerAddress: the business's own wallet; only it may publish this listing (owner and payee). */
   business: { name: string; slug: string; ownerAddress?: string; brand: SellerBrand };
-  products: (ProductCreateBody & { slug: string })[];
+  products: ListingProduct[];
 }
+
+type ListingProduct = Omit<ProductCreateBody, "cost" | "policy"> & { slug: string };
 
 type Status = { slug: string; id?: string; state: "created" | "exists" | "failed"; detail?: string };
 
@@ -46,11 +54,14 @@ export default function ImportListing() {
     retry: false,
   });
   const [prices, setPrices] = useState<Record<string, string>>({});
+  const [terms, setTerms] = useState<Record<string, PrivateTerms>>({});
+  const [checked, setChecked] = useState(false);
   const [skip, setSkip] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<Status[] | null>(null);
   const [live, setLive] = useState<{ agentId: string; policies: { product: string; tx: string | null }[] } | null>(null);
+  const saved = useQuery({ queryKey: ["sell", "import-products", me?.org?.slug], queryFn: () => v1.app.products(), retry: false, enabled: Boolean(me?.org) });
   const agent = useQuery({ queryKey: ["sell", "agent"], queryFn: () => v1.app.agent(), retry: false, enabled: Boolean(done) });
 
   if (!ready || listing.isPending) return <div className={s.page}><Card title="Loading the listing" /></div>;
@@ -60,6 +71,9 @@ export default function ImportListing() {
   const primary = me?.wallets?.find((w) => w.primary)?.address;
   const expected = l.business.ownerAddress;
   const wrongWallet = Boolean(expected && primary && primary.toLowerCase() !== expected.toLowerCase());
+  const canPublish = Boolean(primary) && !wrongWallet;
+  const isSaved = (slug: string) => Boolean(saved.data?.some((p) => p.slug === slug));
+  const termsOf = (slug: string) => terms[slug] ?? EMPTY_PRIVATE_TERMS;
   const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
   async function discard() {
     setBusy(true);
@@ -80,17 +94,24 @@ export default function ImportListing() {
   async function publish() {
     setBusy(true);
     setError(null);
+    setChecked(true);
     const out: Status[] = [];
     try {
+      // Products already in the account keep their stored prices and limits, so only new ones need private terms.
+      const existing = new Set(me?.org ? (await v1.app.products()).map((p) => p.slug) : []);
+      const missing = l.products.filter((p) => !skip[p.slug] && !existing.has(p.slug) && Object.keys(validatePrivateTerms(termsOf(p.slug))).length);
+      if (missing.length) {
+        setError(`Enter your private costs and limits for ${missing.map((p) => p.name).join(", ")}.`);
+        return;
+      }
       if (!me?.org) await v1.createOrg({ name: l.business.name, slug: l.business.slug, brand: l.business.brand });
-      const existing = new Set((await v1.app.products()).map((p) => p.slug));
       for (const p of l.products) {
         if (skip[p.slug]) continue;
         if (existing.has(p.slug)) {
           out.push({ slug: p.slug, state: "exists" });
           continue;
         }
-        const body = { ...p, tiers: p.tiers.map((t, i) => ({ ...t, unitPriceUsd: (prices[key(p.slug, i)] ?? t.unitPriceUsd).trim() })) };
+        const body: ProductCreateBody = { ...p, ...privateTermsBody(termsOf(p.slug)), tiers: p.tiers.map((t, i) => ({ ...t, unitPriceUsd: (prices[key(p.slug, i)] ?? t.unitPriceUsd).trim() })) };
         try {
           const created = (await v1.app.createProduct(body)) as unknown as { id: string };
           await v1.app.setListing(created.id, false); // listed only after the identity and policies are on chain
@@ -147,6 +168,7 @@ export default function ImportListing() {
           )}
         </Notice>
       )}
+      {!primary && <Notice tone="info" title="Sign in to publish">Only {l.business.name}'s own wallet can enter its private costs and limits and publish this listing.</Notice>}
       {otherOrg && <Notice tone="warn" title={`This wallet already sells as ${otherOrg.name}`}>Products will be added to {otherOrg.name}, not to a new {l.business.name} account. Sign in with {l.business.name}'s own wallet instead.</Notice>}
 
       {l.products.map((p) => (
@@ -166,9 +188,23 @@ export default function ImportListing() {
               ))}
             </tbody>
           </table>
-          <p style={{ marginTop: 10, fontSize: 13, opacity: 0.8 }}>
-            The agent never quotes below your floor: cost ${p.cost.variableCostPerUnitUsd} per {p.unitLabel} plus at least {p.policy.minMarginBps / 100}% margin, and at most {p.policy.maxDiscountBps / 100}% off list. Offers above ${p.policy.approvalThresholdUsd} wait for your approval. {p.refundPolicy}
-          </p>
+          <p style={{ marginTop: 10, fontSize: 13, opacity: 0.8 }}>{p.refundPolicy}</p>
+          {isSaved(p.slug) ? (
+            <p style={{ marginTop: 10, fontSize: 13, opacity: 0.8 }}>Already in your account. Its saved prices and limits stay as they are.</p>
+          ) : (
+            canPublish && !done && !skip[p.slug] && (
+              <SellerOnly as="div" title="Your costs and limits" description="Private. Your agent never quotes below these and never shows them to buyers.">
+                <PrivateTermsFields
+                  input={(k) => ({
+                    id: `private-${p.slug}-${k}`,
+                    value: termsOf(p.slug)[k],
+                    onChange: (e) => setTerms((t) => ({ ...t, [p.slug]: { ...(t[p.slug] ?? EMPTY_PRIVATE_TERMS), [k]: e.target.value } })),
+                    error: checked ? validatePrivateTerms(termsOf(p.slug))[k] : undefined,
+                  })}
+                />
+              </SellerOnly>
+            )
+          )}
         </Card>
       ))}
 
@@ -203,7 +239,7 @@ export default function ImportListing() {
         </>
       ) : (
         <div className={s.row}>
-          <ActionButton onClick={publish} loading={busy} loadingLabel="Publishing" disabled={wrongWallet}>Publish {l.business.name}</ActionButton>
+          <ActionButton onClick={publish} loading={busy} loadingLabel="Publishing" disabled={!canPublish}>Publish {l.business.name}</ActionButton>
         </div>
       )}
     </div>

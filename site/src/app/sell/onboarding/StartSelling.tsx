@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Sparkles, Trash2 } from "lucide-react";
 import { ActionButton, Card, Field, Notice } from "../../seller/kit";
@@ -9,6 +9,7 @@ import { usePublishProduct } from "../hooks";
 import type { MeOrg } from "../types";
 import { ChipInput } from "./ChipInput";
 import { Preview } from "./Preview";
+import { PrivateTermsFields } from "./PrivateTermsFields";
 import { EMPTY, EXAMPLE, newRequestRow, newTier, requestKey, toBody, toBrand, validate, type FormState, type RequestRow, type TierRow } from "./form";
 import { BrandFields } from "../BrandFields";
 import s from "../sell.module.css";
@@ -166,17 +167,7 @@ export default function StartSelling({ org }: { org?: MeOrg }) {
           </Card>
 
           <SellerOnly title="Your economics" description="Private. Your agent prices against these numbers and never reveals them to buyers.">
-            <div className={s.grid3}>
-              <PrivField label="Variable cost per unit USD" placeholder="0.48" hint="What one unit costs you to deliver." {...input("variableCostUsd")} inputMode="decimal" />
-              <PrivField label="Direct cost per deal USD" placeholder="150" hint="Setup or onboarding per deal." {...input("directCostUsd")} inputMode="decimal" />
-              <PrivField label="Transaction cost bps" placeholder="50" hint="100 bps is 1% of revenue." {...input("txCostBps")} inputMode="numeric" />
-              <PrivField label="Minimum margin %" placeholder="35" hint="The floor. Offers below it are refused." {...input("minMarginPct")} inputMode="decimal" />
-              <PrivField label="Max discount %" placeholder="15" hint="From list unit price." {...input("maxDiscountPct")} inputMode="decimal" />
-              <PrivField label="Approval threshold USD" placeholder="3000" hint="Larger deals wait for you." {...input("approvalThresholdUsd")} inputMode="decimal" />
-              <PrivField label="Prepaid minimum USD" placeholder="500" hint="Smallest deal you accept." {...input("prepaidMinimumUsd")} inputMode="decimal" />
-              <PrivField label="Available capacity units" placeholder="20000" hint="Units you can still commit." {...input("capacityUnits")} inputMode="numeric" />
-              <PrivField label="Quote validity hours" placeholder="48" hint="How long an offer can be signed." {...input("quoteValidityHours")} inputMode="numeric" />
-            </div>
+            <PrivateTermsFields input={input} />
           </SellerOnly>
 
           <Card title="Service endpoint" subtitle="Your HTTPS API answers every metered request. Proteus AI forwards the request, bills only what you report as delivered, and never charges failures or handoffs.">
@@ -273,8 +264,4 @@ function serverIssues(e: unknown): string[] {
   const issues = body && typeof body === "object" ? (body as { details?: unknown }).details : undefined;
   if (!Array.isArray(issues)) return [];
   return issues.slice(0, 6).map((it: { path?: (string | number)[]; message?: string }) => `${(it.path ?? []).join(".") || "request"}: ${it.message ?? "invalid"}`);
-}
-
-function PrivField(props: Parameters<typeof Field>[0] & { label: ReactNode }) {
-  return <Field {...props} className={s.privField} />;
 }

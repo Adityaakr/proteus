@@ -160,7 +160,7 @@ function OfferView({ quote }: { quote: Quote }) {
             <span className={f.label}>{quote.status === "accepted" ? "Signed" : quote.status === "expired" ? "Expired" : "Declined"}</span>
             <h2 className={f.railTitle}>{quote.status === "accepted" ? "Already accepted" : quote.status === "expired" ? "This offer expired" : "This offer was declined"}</h2>
             <p className={f.railText}>
-              {quote.status === "accepted" ? "These terms were already signed. Your deal is listed under Deals." : quote.status === "declined" ? `The seller declined this agreement${quote.approval?.reason ? `: ${quote.approval.reason}` : "."}` : "Ask the agent for a fresh offer."}
+              {quote.status === "accepted" ? "These terms were already signed. Your deal is listed under Deals." : quote.status === "declined" ? "The seller declined this agreement." : "Ask the agent for a fresh offer."}
             </p>
             <div className={f.actions}><ActionButton to={quote.status === "accepted" ? "/app/deals" : backToChat}>{quote.status === "accepted" ? "Go to deals" : backLabel}</ActionButton></div>
           </>
