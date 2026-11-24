@@ -193,7 +193,7 @@ export async function quoteView(quoteId: string, buyer?: Address) {
     terms: terms ? bigintsToStrings(terms) : null,
     typedData: terms && escrow ? bigintsToStrings({ domain: domain(env.CHAIN_ID, escrow), types: TERMS_TYPES, primaryType: "Terms", message: terms }) : null,
     publicTerms: q.publicTerms,
-    approval: approval ? { id: approval.id, status: approval.status, reason: approval.reason, decidedAt: approval.decidedAt, decisionReason: approval.decisionReason } : undefined,
+    approval: approval ? { id: approval.id, status: approval.status, reason: toPublicCandidate(c).publicReasons.join(" "), decidedAt: approval.decidedAt, decisionReason: approval.decisionReason } : undefined,
     labels: { seller: lp.org.label, network: features.network },
   };
 }

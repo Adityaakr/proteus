@@ -5,6 +5,7 @@ import type { RequestFieldType } from "../../lib/types";
  */
 import { toMicro, type CostModel, type Policy, type Product, type Requirements } from "@proteus/domain";
 import type { ProductCreateBody } from "../types";
+import { EMPTY_PRIVATE_TERMS, clean, int, isInt, isUsd, pctBps, privateTermsBody, validatePrivateTerms, type PrivateTerms } from "./privateTerms";
 import { EMPTY_BRAND, brandFromState, validateBrandState, type BrandFormState } from "../BrandFields";
 export type { BrandFormState };
 
@@ -24,7 +25,7 @@ export interface RequestRow {
   hint: string;
 }
 
-export interface FormState {
+export interface FormState extends PrivateTerms {
   businessName: string;
   requestIntro: string;
   requestFields: RequestRow[];
@@ -39,15 +40,6 @@ export interface FormState {
   maxUnitsPerDeal: string;
   termDays: string;
   refundPolicy: string;
-  variableCostUsd: string;
-  directCostUsd: string;
-  txCostBps: string;
-  minMarginPct: string;
-  maxDiscountPct: string;
-  approvalThresholdUsd: string;
-  prepaidMinimumUsd: string;
-  capacityUnits: string;
-  quoteValidityHours: string;
   perCallUsd: string;
   upstreamUrl: string;
   upstreamAuthHeader: string;
@@ -74,15 +66,7 @@ export const EMPTY: FormState = {
   maxUnitsPerDeal: "",
   termDays: "30",
   refundPolicy: "",
-  variableCostUsd: "",
-  directCostUsd: "",
-  txCostBps: "",
-  minMarginPct: "",
-  maxDiscountPct: "",
-  approvalThresholdUsd: "",
-  prepaidMinimumUsd: "",
-  capacityUnits: "",
-  quoteValidityHours: "48",
+  ...EMPTY_PRIVATE_TERMS,
   perCallUsd: "",
   upstreamUrl: "",
   upstreamAuthHeader: "",
@@ -125,22 +109,7 @@ export const EXAMPLE: FormState = {
 
 export const SAMPLE_ASK = { label: "2,000 units with a $1,500 budget", desiredUnits: 2000n, budgetUsd: "1500" };
 
-const USD = /^\d+(\.\d{1,6})?$/;
-const INT = /^\d+$/;
-const clean = (v: string) => v.replace(/[$,\s]/g, "");
-const isUsd = (v: string) => USD.test(clean(v));
-const isInt = (v: string) => INT.test(clean(v));
-const int = (v: string) => BigInt(clean(v));
 const usd = (v: string) => toMicro(clean(v));
-
-/** "35" or "35.5" percent to integer bps; undefined when invalid. */
-export function pctBps(v: string): number | undefined {
-  const s = v.trim().replace("%", "");
-  if (!/^\d+(\.\d{1,2})?$/.test(s)) return undefined;
-  const [w, f = ""] = s.split(".");
-  const b = Number(w) * 100 + Number((f + "00").slice(0, 2));
-  return b <= 10000 ? b : undefined;
-}
 
 export type Errors = Partial<Record<string, string>>;
 
@@ -187,15 +156,7 @@ export function validate(f: FormState, hasOrg: boolean): Errors {
   if (!isInt(f.termDays) || Number(clean(f.termDays)) < 1 || Number(clean(f.termDays)) > 365) e.termDays = "Between 1 and 365 days.";
   if (!f.refundPolicy.trim()) e.refundPolicy = "Tell buyers what happens to unused prepaid units.";
 
-  if (!isUsd(f.variableCostUsd)) e.variableCostUsd = "Cost in USD, zero or more.";
-  if (!isUsd(f.directCostUsd)) e.directCostUsd = "Cost in USD, zero or more.";
-  if (!isInt(f.txCostBps) || Number(clean(f.txCostBps)) > 10000) e.txCostBps = "Whole basis points from 0 to 10000.";
-  if (pctBps(f.minMarginPct) === undefined) e.minMarginPct = "Percent from 0 to 100.";
-  if (pctBps(f.maxDiscountPct) === undefined) e.maxDiscountPct = "Percent from 0 to 100.";
-  if (!isUsd(f.approvalThresholdUsd)) e.approvalThresholdUsd = "Amount in USD, zero or more.";
-  if (!isUsd(f.prepaidMinimumUsd)) e.prepaidMinimumUsd = "Amount in USD, zero or more.";
-  if (!isInt(f.capacityUnits) || int(f.capacityUnits) <= 0n) e.capacityUnits = "Whole number of units above zero.";
-  if (!isInt(f.quoteValidityHours) || Number(clean(f.quoteValidityHours)) < 1 || Number(clean(f.quoteValidityHours)) > 168) e.quoteValidityHours = "Between 1 and 168 hours.";
+  Object.assign(e, validatePrivateTerms(f));
   if (f.perCallUsd.trim() && (!isUsd(f.perCallUsd) || usd(f.perCallUsd) <= 0n)) e.perCallUsd = "Price in USD above zero, or leave it empty.";
   {
     const u = f.upstreamUrl.trim();
@@ -236,15 +197,7 @@ export function toBody(f: FormState): ProductCreateBody {
     maxUnitsPerDeal: Number(clean(f.maxUnitsPerDeal)),
     termDays: Number(clean(f.termDays)),
     refundPolicy: f.refundPolicy.trim(),
-    cost: { variableCostPerUnitUsd: decimal(f.variableCostUsd), directCostPerDealUsd: decimal(f.directCostUsd), txCostBps: Number(clean(f.txCostBps)) },
-    policy: {
-      minMarginBps: pctBps(f.minMarginPct)!,
-      maxDiscountBps: pctBps(f.maxDiscountPct)!,
-      approvalThresholdUsd: decimal(f.approvalThresholdUsd),
-      prepaidMinimumUsd: decimal(f.prepaidMinimumUsd),
-      availableCapacityUnits: Number(clean(f.capacityUnits)),
-      quoteTtlSeconds: Number(clean(f.quoteValidityHours)) * 3600,
-    },
+    ...privateTermsBody(f),
     ...(f.perCallUsd.trim() ? { payPerCall: { priceUsd: decimal(f.perCallUsd) } } : {}),
     adapter: "http" as const,
     upstream: { url: f.upstreamUrl.trim(), ...(f.upstreamAuthHeader.trim() ? { authHeader: f.upstreamAuthHeader.trim() } : {}), ...(f.upstreamSecret.trim() ? { secret: f.upstreamSecret.trim() } : {}) },

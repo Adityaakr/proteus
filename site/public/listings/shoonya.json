@@ -53,19 +53,6 @@
       "maxUnitsPerDeal": "500",
       "termDays": 30,
       "refundPolicy": "Anything not delivered within the term is refunded to the buyer wallet.",
-      "cost": {
-        "variableCostPerUnitUsd": "12.00",
-        "directCostPerDealUsd": "0",
-        "txCostBps": 50
-      },
-      "policy": {
-        "minMarginBps": 1000,
-        "maxDiscountBps": 0,
-        "approvalThresholdUsd": "1000",
-        "prepaidMinimumUsd": "10",
-        "availableCapacityUnits": "500",
-        "quoteTtlSeconds": 86400
-      },
       "request": {
         "intro": "What you need and where it goes.",
         "fields": [
@@ -139,19 +126,6 @@
       "maxUnitsPerDeal": "1000",
       "termDays": 30,
       "refundPolicy": "Anything not delivered within the term is refunded to the buyer wallet.",
-      "cost": {
-        "variableCostPerUnitUsd": "5.50",
-        "directCostPerDealUsd": "0",
-        "txCostBps": 50
-      },
-      "policy": {
-        "minMarginBps": 1000,
-        "maxDiscountBps": 500,
-        "approvalThresholdUsd": "500",
-        "prepaidMinimumUsd": "10",
-        "availableCapacityUnits": "2000",
-        "quoteTtlSeconds": 86400
-      },
       "request": {
         "intro": "What you need and where it goes.",
         "fields": [
@@ -224,19 +198,6 @@
       "maxUnitsPerDeal": "1000",
       "termDays": 30,
       "refundPolicy": "Anything not delivered within the term is refunded to the buyer wallet.",
-      "cost": {
-        "variableCostPerUnitUsd": "2.60",
-        "directCostPerDealUsd": "0",
-        "txCostBps": 50
-      },
-      "policy": {
-        "minMarginBps": 1000,
-        "maxDiscountBps": 500,
-        "approvalThresholdUsd": "500",
-        "prepaidMinimumUsd": "10",
-        "availableCapacityUnits": "3000",
-        "quoteTtlSeconds": 86400
-      },
       "request": {
         "intro": "What you need and where it goes.",
         "fields": [
@@ -310,19 +271,6 @@
       "maxUnitsPerDeal": "1000",
       "termDays": 30,
       "refundPolicy": "Anything not delivered within the term is refunded to the buyer wallet.",
-      "cost": {
-        "variableCostPerUnitUsd": "0.80",
-        "directCostPerDealUsd": "0",
-        "txCostBps": 50
-      },
-      "policy": {
-        "minMarginBps": 1000,
-        "maxDiscountBps": 500,
-        "approvalThresholdUsd": "500",
-        "prepaidMinimumUsd": "10",
-        "availableCapacityUnits": "10000",
-        "quoteTtlSeconds": 86400
-      },
       "request": {
         "intro": "What you need and where it goes.",
         "fields": [
